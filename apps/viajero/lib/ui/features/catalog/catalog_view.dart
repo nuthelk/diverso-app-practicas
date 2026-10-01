@@ -464,11 +464,25 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
   late double? _precio = widget.controller.precioMax;
   late DateTime? _fecha = widget.controller.fecha;
   String? _destinoTmp;
+  final _busquedaDestino = TextEditingController();
+
+  @override
+  void dispose() {
+    _busquedaDestino.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = widget.controller;
     final cs = Theme.of(context).colorScheme;
+    final seleccionado = _destinoTmp ?? c.destino ?? '';
+    final opciones = [
+      'Todos los destinos',
+      ...c.destinos.where(
+        (d) => d.toLowerCase().contains(_busquedaDestino.text.trim().toLowerCase()),
+      ),
+    ];
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -535,21 +549,55 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
             ],
           ),
           const SizedBox(height: 20),
+          // Selector de destino: buscador + lista propia con scroll (el menú
+          // de DropdownButton dentro de la hoja no recibía los gestos).
           const SectionLabel('Destino'),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _destinoTmp ?? (c.destino ?? ''),
-              isExpanded: true,
-              borderRadius: BorderRadius.circular(AppRadios.field),
-              items: [
-                const DropdownMenuItem(value: '', child: Text('Todos los destinos')),
-                ...c.destinos.map((d) => DropdownMenuItem(value: d, child: Text(d))),
-              ],
-              onChanged: (v) => setState(() => _destinoTmp = v),
+          TextField(
+            controller: _busquedaDestino,
+            onChanged: (_) => setState(() {}),
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(
+              hintText: 'Buscar destino…',
+              prefixIcon: Icon(Icons.search_rounded),
+              isDense: true,
             ),
           ),
-          const SizedBox(height: 26),
-          const SizedBox(height: 26),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 192),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: opciones.length,
+              itemBuilder: (context, i) {
+                final d = opciones[i];
+                final esTodos = i == 0;
+                final sel = seleccionado == (esTodos ? '' : d);
+                return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  leading: Icon(
+                    esTodos
+                        ? Icons.travel_explore_outlined
+                        : sel
+                            ? Icons.check_circle_rounded
+                            : Icons.location_on_outlined,
+                    size: 19,
+                    color: sel ? cs.primary : cs.onSurfaceVariant,
+                  ),
+                  title: Text(
+                    d,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                      color: sel ? cs.primary : cs.onSurface,
+                    ),
+                  ),
+                  onTap: () => setState(() => _destinoTmp = esTodos ? '' : d),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
@@ -559,6 +607,7 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
                       _fecha = null;
                       _precio = null;
                       _destinoTmp = '';
+                      _busquedaDestino.clear();
                     });
                   },
                   child: const Text('Limpiar'),
