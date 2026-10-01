@@ -73,6 +73,34 @@ flutter run -d chrome
 flutter run -d emulator-5554 --dart-define=SUPABASE_URL=http://10.0.2.2:54331
 ```
 
+### Probar en celular Android (USB)
+
+1. Activa **Opciones de desarrollador → Depuración USB** y conecta el teléfono.
+2. Crea un túnel para que el `localhost` del teléfono llegue al Supabase del PC
+   (no requiere compartir WiFi y evita el firewall):
+
+   ```bash
+   adb reverse tcp:54331 tcp:54331
+   ```
+
+3. Ejecuta la app en el dispositivo:
+
+   ```bash
+   cd apps/viajero
+   flutter run -d R5CW60JDZPE   # usa el ID que muestre `flutter devices`
+   ```
+
+La app queda instalada (`com.diversoapp.viajero`) y puedes abrirla normalmente;
+solo recuerda que mientras el backend sea local necesita el cable puesto y el
+túnel activo (se pierde al desconectar; basta repetir el `adb reverse`).
+
+Si prefieres **WiFi en vez de cable** (ambos en la misma red), omite el túnel y
+agrega `--dart-define=SUPABASE_URL=http://192.168.1.4:54331` (la IP LAN del PC);
+si el firewall de Windows bloquea, permite el puerto 54331 en entrada.
+
+Los builds `debug` y `profile` ya tienen `usesCleartextTraffic` para permitir el
+HTTP local; el build `release` con pasarela real usará HTTPS.
+
 Los puertos del stack se movieron al rango 5433x (`supabase/config.toml`) para no
 chocar con otros proyectos Supabase de la máquina.
 
