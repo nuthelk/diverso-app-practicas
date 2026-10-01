@@ -79,12 +79,19 @@
   const cuposVendidos = $derived(semanas.reduce((s, x) => s + x.vendidos, 0));
   const cuposOfertados = $derived(semanas.reduce((s, x) => s + x.total, 0));
 
-  // Próximas salidas (fecha, plan, cupos) — mismas reglas que Flutter.
+  // Salidas futuras con su nivel de llenado, de la más llena a la más vacía.
   const proximas = $derived.by(() => {
     const lista = planes.flatMap((p) =>
-      fechasFuturas(p).map((d) => ({ fecha: d.fecha, titulo: p.titulo, cupos: d.cupo_disponible, total: d.cupo_total })),
+      fechasFuturas(p).map((d) => ({
+        fecha: d.fecha,
+        titulo: p.titulo,
+        cupos: d.cupo_disponible,
+        total: d.cupo_total,
+        vendidos: d.cupo_total - d.cupo_disponible,
+        ocup: d.cupo_total === 0 ? 0 : (d.cupo_total - d.cupo_disponible) / d.cupo_total,
+      })),
     );
-    return lista.sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 6);
+    return lista.sort((a, b) => b.ocup - a.ocup || a.fecha.localeCompare(b.fecha)).slice(0, 6);
   });
 
   const labelEstado = $derived(
@@ -189,9 +196,11 @@
       {/if}
     </div>
 
-    <!-- Próximas salidas -->
+    <!-- Ocupación por salida -->
     <div class="mt-8 flex items-center justify-between">
-      <h2 class="text-[11.5px] font-bold tracking-[0.12em] text-slate-400">PRÓXIMAS SALIDAS</h2>
+      <h2 class="text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
+        OCUPACIÓN POR SALIDA · DE LA MÁS LLENA A LA MÁS VACÍA
+      </h2>
       <a href="#/planes" class="text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300"
         >Ver planes</a
       >
@@ -206,13 +215,15 @@
         </div>
       {:else}
         {#each proximas as s (s.fecha + s.titulo)}
+          {@const llena = s.ocup >= 0.66 || s.cupos <= 3}
           <div
             class="flex items-center gap-3.5 rounded-2xl border border-slate-200/80 bg-white p-3.5
               transition hover:shadow-sm dark:border-ink-600 dark:bg-ink-800"
           >
             <div
               class="flex size-[50px] shrink-0 flex-col items-center justify-center rounded-[15px]
-                bg-brand-600/12 leading-none text-brand-700 dark:text-brand-200"
+                leading-none
+                {llena ? 'bg-orange-500/15 text-orange-600' : 'bg-brand-600/12 text-brand-700 dark:text-brand-200'}"
             >
               <span class="text-[17px] font-extrabold">{new Date(s.fecha + 'T12:00:00').getDate()}</span>
               <span class="mt-1 text-[9.5px] font-bold tracking-wider">
@@ -220,19 +231,22 @@
               </span>
             </div>
             <div class="min-w-0 flex-1">
-              <div class="truncate text-[14px] font-bold">{s.titulo}</div>
+              <div class="flex items-baseline justify-between gap-3">
+                <div class="truncate text-[14px] font-bold">{s.titulo}</div>
+                <div class="shrink-0 text-[11.5px] font-bold tabular-nums {llena ? 'text-orange-600' : 'text-slate-400'}">
+                  {(s.ocup * 100).toFixed(0)}% lleno
+                </div>
+              </div>
               <div class="mt-0.5 text-[12.5px] text-slate-500 dark:text-slate-400">
-                {fechaLarga(s.fecha)}
+                {fechaLarga(s.fecha)} · {s.vendidos} vendidos · {s.cupos} libres
+              </div>
+              <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200/70 dark:bg-ink-700">
+                <div
+                  class="h-full rounded-full {llena ? 'bg-orange-500' : 'bg-brand-600'}"
+                  style="width:{Math.max(s.ocup * 100, 1.5).toFixed(1)}%"
+                ></div>
               </div>
             </div>
-            <span
-              class="rounded-full px-2.5 py-1 text-[11.5px] font-extrabold
-                {s.cupos / Math.max(s.total, 1) <= 0.34
-                ? 'bg-orange-500/13 text-orange-600'
-                : 'bg-brand-600/12 text-brand-700 dark:text-brand-200'}"
-            >
-              {s.cupos} cupos
-            </span>
           </div>
         {/each}
       {/if}
