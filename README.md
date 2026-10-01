@@ -14,7 +14,7 @@ MVP definido en los Anexos 4–6 del proyecto de Ingeniería de Software
 | Lado | App | Funciones |
 |---|---|---|
 | Viajero (B2C) | `apps/viajero` (Flutter móvil) | Catálogo con buscador y filtros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + pago simulado (PSE/Nequi/Daviplata/tarjeta) con confirmación inmediata, mis reservas con cancelación, reseñas verificadas (solo quien viajó) |
-| Agencia (B2B) | `apps/panel_agencias` (Flutter Web / PWA) | Onboarding con verificación RNT, dashboard de ventas y cupos, CRUD de planes con ficha estandarizada, calendario de cupos, conciliación de pagos con comisión 12% |
+| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + Tailwind 4 / PWA) | Onboarding con verificación RNT, dashboard de ventas y cupos, CRUD de planes con ficha estandarizada, calendario de cupos, conciliación de pagos con comisión 12% |
 | Admin | ídem panel (rol admin) | Aprobar/rechazar la verificación de agencias |
 
 **Fuera de alcance (Fase 2/3):** recomendador IA, suscripción sorpresa, gamificación,
@@ -27,7 +27,8 @@ sin reescribir flujos: la RPC `confirm_payment` es el punto único de confirmaci
 
 ```
 apps/viajero          → Flutter (Android/iOS/Web) — app del viajero
-apps/panel_agencias   → Flutter Web (PWA ligera) — panel B2B + admin
+apps/panel_svelte     → Svelte 5 + Tailwind 4 (SPA/PWA) — panel B2B + admin
+apps/panel_agencias   → (legado) versión Flutter Web del panel, misma API
 packages/diverso_core → modelos, servicios y PaymentGateway compartidos
 supabase/             → migraciones SQL, seed y config del stack local
 ```
@@ -61,10 +62,11 @@ cd apps/viajero
 flutter pub get
 flutter run -d chrome    # o: flutter run -d <emulador-android> con la URL de abajo
 
-# 3. Panel de agencias
-cd ../panel_agencias
-flutter pub get
-flutter run -d chrome
+# 3. Panel de agencias (Svelte 5 + Tailwind 4)
+cd ../panel_svelte
+npm install
+npm run dev            # desarrollo (http://localhost:5173)
+npm run build          # producción → dist/ (servir con cualquier estático)
 ```
 
 **Emulador de Android:** el host local no es `127.0.0.1` sino `10.0.2.2`:

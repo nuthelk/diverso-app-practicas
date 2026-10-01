@@ -1,0 +1,167 @@
+/** Tipos y parseo de las tablas que consume el panel (mismo backend). */
+
+export type VerificationStatus = 'pendiente' | 'verificado' | 'rechazado';
+export type PlanStatus = 'borrador' | 'publicado';
+
+export interface Agency {
+  id: string;
+  nombre: string;
+  numero_rnt: string;
+  matricula_camara_comercio: string;
+  ciudad: string;
+  telefono: string;
+  email: string;
+  whatsapp: string;
+  descripcion: string;
+  comision_pct: number;
+  estado_verificacion: VerificationStatus;
+}
+
+export interface PlanDate {
+  id: string;
+  plan_id: string;
+  fecha: string; // yyyy-mm-dd
+  cupo_total: number;
+  cupo_disponible: number;
+}
+
+export interface Plan {
+  id: string;
+  agency_id: string;
+  titulo: string;
+  destino: string;
+  categoria: string;
+  resumen: string;
+  descripcion: string;
+  duracion_texto: string;
+  precio_cop: number;
+  incluye: string[];
+  incluye_transporte: boolean;
+  incluye_comida: boolean;
+  incluye_hospedaje: boolean;
+  itinerario: { hora: string; actividad: string }[];
+  politica_cancelacion: string;
+  fotos: string[];
+  estado: PlanStatus;
+  rating_promedio: number;
+  reviews_count: number;
+  agencies: Agency | null;
+  plan_dates: PlanDate[];
+}
+
+export interface VentaRow {
+  booking_id: string;
+  codigo: string;
+  plan_titulo: string;
+  fecha: string;
+  pax: number;
+  monto_total: number;
+  comision: number;
+  saldo_agencia: number;
+  booking_estado: string;
+  pago_estado: string | null;
+  referencia: string | null;
+}
+
+export interface Profile {
+  id: string;
+  rol: 'viajero' | 'agencia' | 'admin';
+  nombre: string;
+}
+
+export const CATEGORIAS = [
+  { valor: 'aventura', label: 'Aventura', emoji: '🧭' },
+  { valor: 'naturaleza', label: 'Naturaleza', emoji: '🌿' },
+  { valor: 'cultura', label: 'Cultura', emoji: '🏘️' },
+  { valor: 'gastronomia', label: 'Gastronomía', emoji: '🍽️' },
+  { valor: 'relax', label: 'Relax', emoji: '💤' },
+  { valor: 'urbano', label: 'Urbano', emoji: '🏙️' },
+] as const;
+
+export type CategoriaValor = (typeof CATEGORIAS)[number]['valor'];
+
+export interface ItinerarioPaso {
+  hora: string;
+  actividad: string;
+}
+
+export interface PlanDraft {
+  id: string | null;
+  titulo: string;
+  destino: string;
+  categoria: CategoriaValor;
+  precioCop: number;
+  resumen: string;
+  descripcion: string;
+  duracionTexto: string;
+  puntoEncuentro: string;
+  incluye: string[];
+  incluyeTransporte: boolean;
+  incluyeComida: boolean;
+  incluyeHospedaje: boolean;
+  itinerario: ItinerarioPaso[];
+  politicaCancelacion: string;
+  fotos: string[];
+}
+
+export function draftVacio(): PlanDraft {
+  return {
+    id: null,
+    titulo: '',
+    destino: '',
+    categoria: 'aventura',
+    precioCop: 0,
+    resumen: '',
+    descripcion: '',
+    duracionTexto: '1 día',
+    puntoEncuentro: '',
+    incluye: [],
+    incluyeTransporte: true,
+    incluyeComida: false,
+    incluyeHospedaje: false,
+    itinerario: [],
+    politicaCancelacion: '',
+    fotos: [],
+  };
+}
+
+function duracionHoras(texto: string): number {
+  const t = texto.toLowerCase();
+  if (t.includes('2 días') || t.includes('dos días')) return 40;
+  if (t.includes('día') || t.includes('dia')) return 12;
+  if (t.includes('hora')) {
+    const m = /(\d+)/.exec(t);
+    return m ? parseFloat(m[1]) : 4;
+  }
+  return 12;
+}
+
+export function draftToRow(d: PlanDraft) {
+  return {
+    titulo: d.titulo,
+    destino: d.destino,
+    categoria: d.categoria,
+    precio_cop: d.precioCop,
+    resumen: d.resumen,
+    descripcion: d.descripcion,
+    duracion_texto: d.duracionTexto,
+    duracion_horas: duracionHoras(d.duracionTexto),
+    punto_encuentro: d.puntoEncuentro,
+    incluye: d.incluye,
+    incluye_transporte: d.incluyeTransporte,
+    incluye_comida: d.incluyeComida,
+    incluye_hospedaje: d.incluyeHospedaje,
+    itinerario: d.itinerario,
+    politica_cancelacion: d.politicaCancelacion,
+    fotos: d.fotos,
+  };
+}
+
+/** Fechas futuras con cupos, ordenadas (mismas reglas que el panel Flutter). */
+export function fechasFuturas(plan: Plan): PlanDate[] {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return plan.plan_dates
+    .filter((d) => new Date(d.fecha + 'T00:00:00') >= hoy && d.cupo_disponible > 0)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+}

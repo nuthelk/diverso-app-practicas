@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Azul pizarra de la marca (panel) */
+  --color-brand-50: #eef3f9;
+  --color-brand-100: #d8e3f0;
+  --color-brand-200: #b3c7e0;
+  --color-brand-300: #86a6cc;
+  --color-brand-400: #5d84b4;
+  --color-brand-500: #3f6a9c;
+  --color-brand-600: #2d4a73;
+  --color-brand-700: #253d5f;
+  --color-brand-800: #1c2f4a;
+  --color-brand-900: #15233c;
+
+  /* Verde Diverso (estados positivos) */
+  --color-ok-500: #1b7a4b;
+  --color-ok-600: #176a41;
+
+  --color-ink-950: #0f1216;
+  --color-ink-900: #14181e;
+  --color-ink-800: #171b22;
+  --color-ink-700: #1e242c;
+  --color-ink-600: #262b33;
+
+  --color-paper: #fafaf8;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  @apply bg-paper text-slate-900 dark:bg-ink-950 dark:text-slate-100;
+}
+
+/* Foco visible y consistente */
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 138, 150, 0.4);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.aparecer {
+  animation: aparecer 0.35s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.pulso {
+  animation: pulso 1.4s ease-in-out infinite;
+}
