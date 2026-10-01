@@ -182,74 +182,91 @@ class _VentasViewState extends State<VentasView> {
                           ),
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              headingRowColor: WidgetStatePropertyAll(
-                                cs.surfaceContainerHighest.withValues(
-                                  alpha: .45,
-                                ),
+                            // La tabla estira sus columnas hasta ocupar todo
+                            // el ancho disponible; el scroll solo entra en
+                            // juego si el contenido mínimo no cabe.
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: constraints.maxWidth - 2,
                               ),
-                              headingTextStyle: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: .8,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              columns: const [
-                                DataColumn(label: Text('CÓDIGO')),
-                                DataColumn(label: Text('PLAN')),
-                                DataColumn(label: Text('FECHA')),
-                                DataColumn(label: Text('PAX'), numeric: true),
-                                DataColumn(label: Text('MONTO'), numeric: true),
-                                DataColumn(
-                                  label: Text('COMISIÓN'),
-                                  numeric: true,
+                              child: DataTable(
+                                columnSpacing: 12,
+                                headingRowColor: WidgetStatePropertyAll(
+                                  cs.surfaceContainerHighest.withValues(
+                                    alpha: .45,
+                                  ),
                                 ),
-                                DataColumn(label: Text('SALDO'), numeric: true),
-                                DataColumn(label: Text('ESTADO')),
-                              ],
-                              rows: filtradas
-                                  .map(
-                                    (v) => DataRow(
-                                      cells: [
-                                        DataCell(SelectableText(v.codigo)),
-                                        DataCell(
-                                          SizedBox(
-                                            width: 220,
-                                            child: Text(
-                                              v.planTitulo,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                headingTextStyle: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: .8,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                columns: const [
+                                  DataColumn(label: Text('CÓDIGO')),
+                                  DataColumn(label: Text('PLAN')),
+                                  DataColumn(label: Text('FECHA')),
+                                  DataColumn(label: Text('PAX'), numeric: true),
+                                  DataColumn(
+                                    label: Text('MONTO'),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text('COMISIÓN'),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(
+                                    label: Text('SALDO'),
+                                    numeric: true,
+                                  ),
+                                  DataColumn(label: Text('ESTADO')),
+                                ],
+                                rows: filtradas
+                                    .map(
+                                      (v) => DataRow(
+                                        cells: [
+                                          DataCell(SelectableText(v.codigo)),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 170,
+                                              child: Text(
+                                                v.planTitulo,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        DataCell(
-                                          Text(formatFechaCorta(v.fecha)),
-                                        ),
-                                        DataCell(Text('${v.pax}')),
-                                        DataCell(Text(formatCOP(v.montoTotal))),
-                                        DataCell(
-                                          Text(
-                                            '- ${formatCOP(v.comision)}',
-                                            style: TextStyle(
-                                              color: Colors.orange.shade800,
+                                          DataCell(
+                                            Text(formatFechaCorta(v.fecha)),
+                                          ),
+                                          DataCell(Text('${v.pax}')),
+                                          DataCell(
+                                            Text(formatCOP(v.montoTotal)),
+                                          ),
+                                          DataCell(
+                                            Text(
+                                              '- ${formatCOP(v.comision)}',
+                                              style: TextStyle(
+                                                color: Colors.orange.shade800,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        DataCell(
-                                          Text(
-                                            formatCOP(v.saldoAgencia),
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w800,
+                                          DataCell(
+                                            Text(
+                                              formatCOP(v.saldoAgencia),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        DataCell(
-                                          StatusPill.estado(v.bookingEstado),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                  .toList(),
+                                          DataCell(
+                                            StatusPill.estado(v.bookingEstado),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
                             ),
                           ),
                         );
