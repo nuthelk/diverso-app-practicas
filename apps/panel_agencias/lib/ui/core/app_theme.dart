@@ -16,6 +16,9 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      // Densidad de escritorio: controles más compactos, menos "app de celular".
+      visualDensity: VisualDensity.compact,
+      splashFactory: InkSparkle.splashFactory,
       scaffoldBackgroundColor:
           brightness == Brightness.light ? const Color(0xFFFAFAF8) : const Color(0xFF0F1216),
       appBarTheme: AppBarTheme(
@@ -73,21 +76,6 @@ abstract final class AppTheme {
         shape: const StadiumBorder(),
         side: BorderSide.none,
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-      ),
-      navigationRailTheme: NavigationRailThemeData(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        indicatorColor: scheme.primaryContainer,
-        selectedLabelTextStyle: TextStyle(
-          color: scheme.onSurface,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
-        ),
-        unselectedLabelTextStyle: TextStyle(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
-        ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(

@@ -154,44 +154,59 @@ class _PlanFormViewState extends State<PlanFormView> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
+          constraints: const BoxConstraints(maxWidth: 780),
           child: Form(
             key: _formKey,
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
                 _seccion('Lo esencial', [
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      SizedBox(width: 380, child: _campo(_titulo, 'Título del plan', requerido: true)),
-                      SizedBox(width: 180, child: _campo(_destino, 'Destino', requerido: true)),
-                      SizedBox(
-                        width: 220,
-                        child: DropdownButtonFormField<ExperienceCategory>(
-                          initialValue: _categoria,
-                          decoration: const InputDecoration(labelText: 'Categoría'),
-                          items: ExperienceCategory.values
-                              .map((c) => DropdownMenuItem(value: c, child: Text('${c.emoji} ${c.label}')))
-                              .toList(),
-                          onChanged: (v) => setState(() => _categoria = v!),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 180,
-                        child: TextFormField(
-                          controller: _precio,
-                          decoration: const InputDecoration(
-                            labelText: 'Precio final COP *',
-                            prefixText: '\$ ',
+                  // Grilla proporcional: título a todo el ancho; destino,
+                  // categoría, precio y duración reparten la fila en anchos.
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final w = constraints.maxWidth;
+                      final campoAncho = w > 620 ? (w - 36) / 4 : (w - 12) / 2;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _campo(_titulo, 'Título del plan', requerido: true),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              SizedBox(width: campoAncho, child: _campo(_destino, 'Destino', requerido: true)),
+                              SizedBox(
+                                width: campoAncho,
+                                child: DropdownButtonFormField<ExperienceCategory>(
+                                  initialValue: _categoria,
+                                  decoration: const InputDecoration(labelText: 'Categoría'),
+                                  items: ExperienceCategory.values
+                                      .map((c) => DropdownMenuItem(value: c, child: Text('${c.emoji} ${c.label}')))
+                                      .toList(),
+                                  onChanged: (v) => setState(() => _categoria = v!),
+                                ),
+                              ),
+                              SizedBox(
+                                width: campoAncho,
+                                child: TextFormField(
+                                  controller: _precio,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Precio final COP *',
+                                    prefixText: '\$ ',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  validator: (v) =>
+                                      (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Precio inválido' : null,
+                                ),
+                              ),
+                              SizedBox(width: campoAncho, child: _campo(_duracion, 'Duración (ej. 1 día)', requerido: true)),
+                            ],
                           ),
-                          keyboardType: TextInputType.number,
-                          validator: (v) => (double.tryParse(v ?? '') ?? 0) <= 0 ? 'Precio inválido' : null,
-                        ),
-                      ),
-                      SizedBox(width: 180, child: _campo(_duracion, 'Duración (ej. 1 día)', requerido: true)),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ]),
                 _seccion('Resumen y descripción', [

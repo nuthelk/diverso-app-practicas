@@ -7,8 +7,8 @@ import '../../../theme_mode_controller.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets.dart';
 
-/// Shell del panel: rail lateral con marca, estado de la agencia y secciones.
-/// En anchuras compactas el rail colapsa a solo iconos (LayoutBuilder).
+/// Shell del panel: sidebar de escritorio (marca, agencia, navegación de
+/// texto, acciones al pie). En anchuras compactas colapsa a solo iconos.
 class PanelShell extends StatefulWidget {
   const PanelShell({super.key, required this.shell});
 
@@ -34,59 +34,72 @@ class _PanelShellState extends State<PanelShell> {
     } catch (_) {}
   }
 
+  static const _secciones = [
+    (Icons.dashboard_outlined, Icons.dashboard_rounded, 'Dashboard', '/dashboard'),
+    (Icons.map_outlined, Icons.map_rounded, 'Planes', '/planes'),
+    (Icons.payments_outlined, Icons.payments_rounded, 'Ventas', '/ventas'),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final a = _agencia;
+    final actual = widget.shell.currentIndex;
 
     return Scaffold(
       body: Row(
         children: [
-          // Rail lateral ----------------------------------------------------
+          // Sidebar -----------------------------------------------------------
           LayoutBuilder(
             builder: (context, constraints) {
               final extendido = constraints.maxWidth > AppTheme.bpMedium;
               return Container(
-                width: extendido ? 250 : 84,
-                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                width: extendido ? 236 : 76,
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: BorderSide(color: cs.outlineVariant.withValues(alpha: .45)),
+                  ),
+                ),
                 child: Column(
+                  crossAxisAlignment:
+                      extendido ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
                   children: [
                     // Marca
-                    Row(
-                      mainAxisAlignment: extendido ? MainAxisAlignment.start : MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: cs.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DiversoLogo(size: 24, color: cs.onPrimaryContainer),
+                    if (extendido)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Row(
+                          children: [
+                            _CajaMarca(),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Diverso',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                        letterSpacing: -.3)),
+                                Text('Panel de agencias',
+                                    style: TextStyle(fontSize: 10.5, height: 1.3)),
+                              ],
+                            ),
+                          ],
                         ),
-                        if (extendido) ...[
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Diverso',
-                                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: -.3)),
-                              Text('Panel de agencias',
-                                  style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
-                            ],
-                          ),
-                        ],
-                      ],
-                    ),
+                      )
+                    else
+                      const _CajaMarca(),
                     if (extendido && a != null) ...[
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 16),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(11),
                         decoration: BoxDecoration(
                           color: cs.surfaceContainerLow,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                              color: cs.outlineVariant.withValues(alpha: .4)),
                         ),
                         child: Row(
                           children: [
@@ -100,9 +113,10 @@ class _PanelShellState extends State<PanelShell> {
                                     a.nombre,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700, fontSize: 12.5),
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 3),
                                   StatusPill.estado(a.estadoVerificacion.name),
                                 ],
                               ),
@@ -111,55 +125,70 @@ class _PanelShellState extends State<PanelShell> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 18),
+                    if (extendido)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8, bottom: 6),
+                        child: Text(
+                          'GESTIÓN',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.1,
+                            color: cs.onSurfaceVariant.withValues(alpha: .8),
+                          ),
+                        ),
+                      ),
                     // Navegación
                     Expanded(
-                      child: NavigationRail(
-                        extended: extendido,
-                        selectedIndex: widget.shell.currentIndex,
-                        onDestinationSelected: (i) => widget.shell.goBranch(
-                          i,
-                          initialLocation: i == widget.shell.currentIndex,
-                        ),
-                        groupAlignment: 0,
-                        destinations: [
-                          NavigationRailDestination(
-                            icon: Icon(Icons.dashboard_outlined, color: cs.onSurfaceVariant),
-                            selectedIcon: const Icon(Icons.dashboard_rounded),
-                            label: const Text('Dashboard'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.map_outlined, color: cs.onSurfaceVariant),
-                            selectedIcon: const Icon(Icons.map_rounded),
-                            label: const Text('Planes'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(Icons.payments_outlined, color: cs.onSurfaceVariant),
-                            selectedIcon: const Icon(Icons.payments_rounded),
-                            label: const Text('Ventas'),
-                          ),
+                      child: Column(
+                        crossAxisAlignment: extendido
+                            ? CrossAxisAlignment.stretch
+                            : CrossAxisAlignment.center,
+                        children: [
+                          for (var i = 0; i < _secciones.length; i++)
+                            _ItemNavegacion(
+                              icono: _secciones[i].$1,
+                              iconoActivo: _secciones[i].$2,
+                              etiqueta: _secciones[i].$3,
+                              seleccionado: actual == i,
+                              extendido: extendido,
+                              onTap: () => widget.shell.goBranch(
+                                i,
+                                initialLocation: i == actual,
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                    // Apariencia + salir
+                    // Acciones al pie
+                    const Divider(),
+                    const SizedBox(height: 6),
                     Consumer<ThemeModeController>(
-                      builder: (context, modo, _) => IconButton(
-                        tooltip: modo.mode == ThemeMode.dark ? 'Modo claro' : 'Modo oscuro',
-                        icon: Icon(
-                          modo.mode == ThemeMode.dark
-                              ? Icons.light_mode_outlined
-                              : Icons.dark_mode_outlined,
-                          color: cs.onSurfaceVariant,
-                        ),
-                        onPressed: () => modo.setMode(
+                      builder: (context, modo, _) => _ItemNavegacion(
+                        icono: modo.mode == ThemeMode.dark
+                            ? Icons.light_mode_outlined
+                            : Icons.dark_mode_outlined,
+                        iconoActivo: modo.mode == ThemeMode.dark
+                            ? Icons.light_mode_rounded
+                            : Icons.dark_mode_rounded,
+                        etiqueta: modo.mode == ThemeMode.dark
+                            ? 'Modo claro'
+                            : 'Modo oscuro',
+                        seleccionado: false,
+                        extendido: extendido,
+                        onTap: () => modo.setMode(
                           modo.mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
                         ),
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'Cerrar sesión',
-                      icon: Icon(Icons.logout_rounded, color: cs.onSurfaceVariant),
-                      onPressed: () async {
+                    _ItemNavegacion(
+                      icono: Icons.logout_rounded,
+                      iconoActivo: Icons.logout_rounded,
+                      etiqueta: 'Cerrar sesión',
+                      seleccionado: false,
+                      extendido: extendido,
+                      onTap: () async {
                         await AuthService().signOut();
                         if (context.mounted) context.go('/login');
                       },
@@ -169,8 +198,7 @@ class _PanelShellState extends State<PanelShell> {
               );
             },
           ),
-          VerticalDivider(width: 1, color: cs.outlineVariant.withValues(alpha: .5)),
-          // Contenido --------------------------------------------------------
+          // Contenido -----------------------------------------------------------
           Expanded(
             child: Column(
               children: [
@@ -181,7 +209,8 @@ class _PanelShellState extends State<PanelShell> {
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
                       child: Row(
                         children: [
-                          const Icon(Icons.hourglass_top_rounded, color: Color(0xFF8A4B08), size: 19),
+                          const Icon(Icons.hourglass_top_rounded,
+                              color: Color(0xFF8A4B08), size: 19),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -200,5 +229,90 @@ class _PanelShellState extends State<PanelShell> {
         ],
       ),
     );
+  }
+}
+
+class _CajaMarca extends StatelessWidget {
+  const _CajaMarca();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: 36,
+      height: 36,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: cs.primaryContainer,
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: DiversoLogo(size: 22, color: cs.onPrimaryContainer),
+    );
+  }
+}
+
+/// Ítem de navegación web: fila de texto con fondo suave al seleccionarse
+/// (en lugar de la píldora de NavigationRail).
+class _ItemNavegacion extends StatelessWidget {
+  const _ItemNavegacion({
+    required this.icono,
+    required this.iconoActivo,
+    required this.etiqueta,
+    required this.seleccionado,
+    required this.extendido,
+    required this.onTap,
+  });
+
+  final IconData icono;
+  final IconData iconoActivo;
+  final String etiqueta;
+  final bool seleccionado;
+  final bool extendido;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tinta = seleccionado ? cs.primary : cs.onSurfaceVariant;
+
+    final contenido = extendido
+        ? Row(
+            children: [
+              Icon(seleccionado ? iconoActivo : icono, size: 18.5, color: tinta),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(
+                  etiqueta,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: seleccionado ? FontWeight.w700 : FontWeight.w500,
+                    color: seleccionado ? cs.onSurface : cs.onSurfaceVariant,
+                    letterSpacing: -.1,
+                  ),
+                ),
+              ),
+            ],
+          )
+        : Icon(seleccionado ? iconoActivo : icono, size: 19.5, color: tinta);
+
+    final item = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: seleccionado ? cs.primary.withValues(alpha: .12) : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: Padding(
+            padding: extendido
+                ? const EdgeInsets.symmetric(horizontal: 11, vertical: 9)
+                : const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: contenido,
+          ),
+        ),
+      ),
+    );
+
+    return extendido ? item : Tooltip(message: etiqueta, child: item);
   }
 }
