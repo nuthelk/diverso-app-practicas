@@ -69,6 +69,7 @@ class _PlanesViewState extends State<PlanesView> {
               icono: Icons.cloud_off_rounded,
               titulo: 'Sin conexión',
               mensaje: c.error!,
+              detalle: c.errorDetalle,
               accion: FilledButton.tonal(onPressed: c.cargarTodo, child: const Text('Reintentar')),
             );
           }

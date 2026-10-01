@@ -13,11 +13,13 @@ class PanelController extends ChangeNotifier {
   List<VentaRow> ventas = const [];
   bool cargando = true;
   String? error;
+  String? errorDetalle;
   String? mensaje;
 
   Future<void> cargarTodo() async {
     cargando = true;
     error = null;
+    errorDetalle = null;
     notifyListeners();
     try {
       agencia = await _servicio.miAgencia();
@@ -32,8 +34,10 @@ class PanelController extends ChangeNotifier {
         planes = futures[0] as List<Plan>;
         ventas = futures[1] as List<VentaRow>;
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('PanelController.cargarTodo: $e');
       error = 'No pudimos cargar los datos del panel.';
+      errorDetalle = e.toString();
     } finally {
       cargando = false;
       notifyListeners();

@@ -13,6 +13,7 @@ class CatalogController extends ChangeNotifier {
   List<String> destinos = const [];
   bool cargando = true;
   String? error;
+  String? errorDetalle;
 
   // Filtros
   String texto = '';
@@ -35,6 +36,7 @@ class CatalogController extends ChangeNotifier {
   Future<void> cargar() async {
     cargando = true;
     error = null;
+    errorDetalle = null;
     notifyListeners();
     try {
       final resultados = await _catalogo.search(FiltrosCatalogo(
@@ -51,7 +53,9 @@ class CatalogController extends ChangeNotifier {
       planes = resultados;
       destinos = listaDestinos;
     } catch (e) {
+      debugPrint('CatalogController.cargar: $e');
       error = 'No pudimos cargar los planes. ¿Está encendido el servidor local?';
+      errorDetalle = e.toString();
     } finally {
       cargando = false;
       notifyListeners();

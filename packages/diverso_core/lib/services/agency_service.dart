@@ -210,7 +210,7 @@ class AgencyService {
         .select('*, agencies(*), plan_dates(*)')
         .eq('agency_id', agencyId)
         .order('created_at', ascending: false)
-        .order('plan_dates.fecha', ascending: true, referencedTable: 'plan_dates');
+        .order('fecha', ascending: true, referencedTable: 'plan_dates');
     return res.map((e) => Plan.fromMap((e as Map).cast<String, dynamic>())).toList();
   }
 

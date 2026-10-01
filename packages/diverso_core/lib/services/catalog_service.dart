@@ -61,7 +61,7 @@ class CatalogService {
     }
 
     // Ordenes (transform builder) y límite.
-    final ordenado = query.order('plan_dates.fecha', ascending: true, referencedTable: 'plan_dates');
+    final ordenado = query.order('fecha', ascending: true, referencedTable: 'plan_dates');
     final List<dynamic> res;
     switch (filtros.orden) {
       case OrdenCatalogo.rating:
@@ -83,7 +83,7 @@ class CatalogService {
         .select('*, agencies(*), plan_dates(*)')
         .eq('id', planId)
         .gte('plan_dates.fecha', hoy)
-        .order('plan_dates.fecha', ascending: true, referencedTable: 'plan_dates')
+        .order('fecha', ascending: true, referencedTable: 'plan_dates')
         .single();
     return Plan.fromMap(res);
   }

@@ -56,6 +56,7 @@ class _DashboardViewState extends State<DashboardView> {
               icono: Icons.cloud_off_rounded,
               titulo: 'Sin conexión',
               mensaje: c.error!,
+              detalle: c.errorDetalle,
               accion: FilledButton.tonal(onPressed: c.cargarTodo, child: const Text('Reintentar')),
             );
           }

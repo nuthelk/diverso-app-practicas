@@ -157,6 +157,7 @@ class _CatalogViewState extends State<CatalogView>
                       icono: Icons.cloud_off_rounded,
                       titulo: 'Sin conexión',
                       mensaje: c.error!,
+                      detalle: c.errorDetalle,
                       accion: FilledButton.tonalIcon(
                         onPressed: c.cargar,
                         icon: const Icon(Icons.refresh_rounded),
