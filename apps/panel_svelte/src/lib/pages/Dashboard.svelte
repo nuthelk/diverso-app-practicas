@@ -41,43 +41,25 @@
   const comision = $derived(confirmadas.reduce((s, v) => s + v.comision, 0));
   const saldo = $derived(confirmadas.reduce((s, v) => s + v.saldo_agencia, 0));
 
-  // Ocupación semanal (8 semanas): vendidos / ofertados.
-  const semanas = $derived.by(() => {
+  // Resumen agregado de ocupación (próximas 8 semanas).
+  const resumenOcupacion = $derived.by(() => {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    return Array.from({ length: 8 }, (_, i) => {
-      const ini = new Date(hoy);
-      ini.setDate(hoy.getDate() + 7 * i);
-      const fin = new Date(hoy);
-      fin.setDate(hoy.getDate() + 7 * (i + 1));
-      let vendidos = 0;
-      let total = 0;
-      for (const p of planes) {
-        for (const d of p.plan_dates) {
-          const f = new Date(d.fecha + 'T00:00:00');
-          if (f >= ini && f < fin) {
-            vendidos += d.cupo_total - d.cupo_disponible;
-            total += d.cupo_total;
-          }
+    const fin = new Date(hoy);
+    fin.setDate(hoy.getDate() + 56);
+    let vendidos = 0;
+    let total = 0;
+    for (const p of planes) {
+      for (const d of p.plan_dates) {
+        const f = new Date(d.fecha + 'T00:00:00');
+        if (f >= hoy && f < fin) {
+          vendidos += d.cupo_total - d.cupo_disponible;
+          total += d.cupo_total;
         }
       }
-      return {
-        etiqueta: `${ini.getDate()}/${ini.getMonth() + 1}`,
-        vendidos,
-        total,
-        ocup: total === 0 ? 0 : vendidos / total,
-      };
-    });
+    }
+    return { vendidos, total, ocup: total === 0 ? 0 : vendidos / total };
   });
-
-  const ocupProm = $derived.by(() => {
-    const conCupo = semanas.filter((s) => s.total > 0);
-    if (conCupo.length === 0) return 0;
-    return conCupo.reduce((s, x) => s + x.ocup, 0) / conCupo.length;
-  });
-
-  const cuposVendidos = $derived(semanas.reduce((s, x) => s + x.vendidos, 0));
-  const cuposOfertados = $derived(semanas.reduce((s, x) => s + x.total, 0));
 
   // Salidas futuras con su nivel de llenado, de la más llena a la más vacía.
   const proximas = $derived.by(() => {
@@ -143,64 +125,17 @@
       <StatCard icono={'🎟️'} valor={String(confirmadas.length)} etiqueta="Reservas confirmadas" />
     </div>
 
-    <!-- Ocupación -->
-    <div
-      class="mt-7 rounded-2xl border border-slate-200/80 bg-white p-6
-        dark:border-ink-600 dark:bg-ink-800"
-    >
-      <div class="flex items-end justify-between gap-4">
-        <div>
-          <div class="text-[11px] font-bold tracking-[0.12em] text-slate-400">
-            OCUPACIÓN · PRÓXIMAS 8 SEMANAS
-          </div>
-          <div class="mt-2 text-3xl font-extrabold tracking-tight">
-            {(ocupProm * 100).toFixed(0)}%
-          </div>
-        </div>
-        <div class="text-xs text-slate-400">
-          {cuposVendidos} de {cuposOfertados} cupos vendidos
-        </div>
-      </div>
-
-      {#if cuposOfertados === 0}
-        <p class="mt-4 rounded-xl bg-slate-500/8 px-4 py-3 text-[13px] text-slate-500 dark:text-slate-400">
-          No tienes fechas futuras publicadas. Agrega fechas con cupos a tus planes
-          <a href="#/planes" class="font-semibold text-brand-600 hover:underline dark:text-brand-300"
-            >aquí</a
-          > para medir tu ocupación semana a semana.
-        </p>
-      {:else}
-        <div class="mt-5 flex h-24 items-end gap-1.5">
-          {#each semanas as s}
-            <div
-              class="relative h-full flex-1 overflow-hidden rounded-lg
-                {s.total === 0
-                ? 'border border-dashed border-slate-300/70 dark:border-ink-600'
-                : 'bg-slate-200/60 dark:bg-ink-700'}"
-              title={'Semana del ' + s.etiqueta + ': ' + s.vendidos + ' de ' + s.total + ' cupos vendidos'}
-            >
-              {#if s.vendidos > 0}
-                <div
-                  class="absolute inset-x-0 bottom-0 rounded-lg bg-brand-600"
-                  style="height:{Math.max(s.ocup * 100, 4).toFixed(1)}%"
-                ></div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-        <div class="mt-2 flex gap-1.5 text-center text-[10px] text-slate-400">
-          {#each semanas as s}
-            <div class="flex-1">{s.etiqueta}</div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-
     <!-- Ocupación por salida -->
     <div class="mt-8 flex items-center justify-between">
-      <h2 class="text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
-        OCUPACIÓN POR SALIDA · DE LA MÁS LLENA A LA MÁS VACÍA
-      </h2>
+      <div>
+        <h2 class="text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
+          OCUPACIÓN POR SALIDA · DE LA MÁS LLENA A LA MÁS VACÍA
+        </h2>
+        <p class="mt-0.5 text-[12px] text-slate-400">
+          {resumenOcupacion.vendidos} de {resumenOcupacion.total} cupos vendidos en las próximas 8
+          semanas ({(resumenOcupacion.ocup * 100).toFixed(0)}%)
+        </p>
+      </div>
       <a href="#/planes" class="text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300"
         >Ver planes</a
       >
