@@ -3,7 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-/// Métrica de dashboard: icono tonal, valor protagonista, etiqueta discreta.
+/// Métrica de dashboard: número protagonista con cifras tabulares, icono
+/// tonal arriba y borde sutil para que la tarjeta respire sobre el fondo.
 class StatCard extends StatelessWidget {
   const StatCard({
     super.key,
@@ -22,37 +23,45 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tinta = color ?? cs.primary;
+    final oscuro = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: oscuro ? .4 : .7),
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: tinta.withValues(alpha: .12), shape: BoxShape.circle),
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: tinta.withValues(alpha: .14),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icono, color: tinta, size: 19),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  valor,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: -.4),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  etiqueta,
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          const SizedBox(height: 16),
+          Text(
+            valor,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.7,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: cs.onSurface,
             ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            etiqueta,
+            style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

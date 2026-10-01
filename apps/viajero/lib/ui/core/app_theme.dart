@@ -53,14 +53,14 @@ abstract final class AppTheme {
           : ThemeData.dark().textTheme,
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rPill))),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: -.2),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size(0, 48),
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rPill))),
           side: BorderSide(color: scheme.outlineVariant),
           textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
