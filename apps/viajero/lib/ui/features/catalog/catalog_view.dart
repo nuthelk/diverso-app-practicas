@@ -42,6 +42,9 @@ class _CatalogViewState extends State<CatalogView>
   Widget build(BuildContext context) {
     super.build(context);
     final cs = Theme.of(context).colorScheme;
+    // El ancho de la ventana no cambia al hacer scroll: decidir aquí (una
+    // vez por rebuild real) en vez de dentro del scroll view.
+    final esGrid = MediaQuery.sizeOf(context).width > AppTheme.bpCompact;
 
     return Scaffold(
       body: ListenableBuilder(
@@ -176,46 +179,43 @@ class _CatalogViewState extends State<CatalogView>
                       mensaje: 'Prueba con otro destino o quita algunos filtros.',
                     ),
                   )
+                else if (esGrid)
+                // La decisión grid/lista se toma con el ancho de la VENTANA
+                // (estable), no con SliverLayoutBuilder: las constraints de
+                // un sliver cambian en cada cuadro de scroll y re-ejecutarían
+                // este subárbol a 120 Hz, matando la fluidez.
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+                    sliver: SliverGrid.builder(
+                      itemCount: c.planes.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 430,
+                        mainAxisSpacing: 14,
+                        crossAxisSpacing: 14,
+                        childAspectRatio: .82,
+                      ),
+                      itemBuilder: (context, i) => PlanCard(
+                        plan: c.planes[i],
+                        comparada: c.comparando(c.planes[i]),
+                        onToggleComparar: c.toggleComparar,
+                      ),
+                    ),
+                  )
                 else
-                  SliverLayoutBuilder(
-                    builder: (context, constraints) {
-                      final ancho = constraints.crossAxisExtent;
-                      final esGrid = ancho > AppTheme.bpCompact;
-                      final hijos = [
-                        for (final plan in c.planes)
-                          PlanCard(
-                            plan: plan,
-                            comparada: c.comparando(plan),
-                            onToggleComparar: c.toggleComparar,
-                          ),
-                      ];
-                      if (esGrid) {
-                        return SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
-                          sliver: SliverGrid.builder(
-                            itemCount: hijos.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 430,
-                              mainAxisSpacing: 14,
-                              crossAxisSpacing: 14,
-                              childAspectRatio: .82,
-                            ),
-                            itemBuilder: (context, i) => hijos[i],
-                          ),
-                        );
-                      }
-                      return SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
-                        sliver: SliverList.builder(
-                          itemCount: hijos.length,
-                          itemBuilder: (context, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: hijos[i],
-                          ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+                    sliver: SliverList.builder(
+                      itemCount: c.planes.length,
+                      itemBuilder: (context, i) => Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: PlanCard(
+                          plan: c.planes[i],
+                          comparada: c.comparando(c.planes[i]),
+                          onToggleComparar: c.toggleComparar,
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
               ],
             ),

@@ -200,6 +200,11 @@ class _PortadaPlan extends StatelessWidget {
     return Image.network(
       plan.fotoPrincipal!,
       fit: BoxFit.cover,
+      // Scroll 120 Hz: reutiliza el bitmap viejo entre cargas y usa un
+      // remuestreo barato (la tarjeta nunca muestra la imagen a resolución
+      // completa).
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.low,
       errorBuilder: (_, _, _) => Container(
         color: cs.primaryContainer,
         child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),

@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- El Supabase local corre en HTTP plano (túnel adb reverse); Android 9+
+         lo bloquea sin esto. Demo universitaria contra servidor local. -->
+    <application android:usesCleartextTraffic="true"/>
+</manifest>

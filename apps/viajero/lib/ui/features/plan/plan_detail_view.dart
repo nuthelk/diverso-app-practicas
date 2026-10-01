@@ -102,6 +102,8 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                                 itemBuilder: (context, i) => Image.network(
                                   plan.fotos[i],
                                   fit: BoxFit.cover,
+                                  gaplessPlayback: true,
+                                  filterQuality: FilterQuality.low,
                                   errorBuilder: (_, _, _) =>
                                       Container(color: cs.primaryContainer),
                                 ),
