@@ -1,0 +1,221 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:diverso_core/diverso_core.dart';
+
+import '../../core/widgets.dart';
+import 'checkout_controller.dart';
+
+/// Confirmación inmediata con código e itinerario (Anexo 4: KPI < 5 min).
+class BookingSuccessView extends StatelessWidget {
+  const BookingSuccessView({super.key, required this.args});
+
+  final SuccessArgs args;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 380),
+                    curve: Curves.elasticOut,
+                    builder: (context, t, child) =>
+                        Transform.scale(scale: t, child: child),
+                    child: Container(
+                      width: 84,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.check_rounded, color: cs.primary, size: 46),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '¡Listo, nos vemos ahí!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -.8,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Tu reserva está confirmada y el cupo es tuyo.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 24),
+                  // Código de reserva
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    decoration: BoxDecoration(
+                      color: cs.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppRadios.card),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'CÓDIGO DE RESERVA',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.6,
+                            color: cs.onPrimaryContainer.withValues(alpha: .75),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        SelectableText(
+                          args.codigo,
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 3,
+                            color: cs.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Detalle
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(AppRadios.card),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          args.planTitulo,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5, height: 1.25),
+                        ),
+                        const SizedBox(height: 12),
+                        _fila(Icons.event_rounded, formatFechaLarga(args.fecha)),
+                        _fila(Icons.group_rounded,
+                            '${args.pax} ${args.pax == 1 ? 'persona' : 'personas'}'),
+                        if (args.puntoEncuentro.isNotEmpty)
+                          _fila(Icons.flag_rounded, args.puntoEncuentro),
+                        const Divider(height: 22),
+                        _fila(Icons.payments_rounded,
+                            '${formatCOP(args.monto)} · ${args.metodo.label}'),
+                        _fila(Icons.receipt_rounded, 'Ref. ${args.referencia}'),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.verified_user_rounded, size: 14, color: cs.tertiary),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                'Compra protegida: reembolso según la política de cancelación.',
+                                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Itinerario inmediato (Anexo 6: confirmación + itinerario)
+                  if (args.itinerario.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(AppRadios.card),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ITINERARIO',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.6,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          for (final paso in args.itinerario.take(5))
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 52,
+                                    child: Text(
+                                      paso.hora,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 12.5,
+                                        color: cs.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(paso.actividad,
+                                        style: const TextStyle(fontSize: 13, height: 1.4)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (args.itinerario.length > 5)
+                            Text(
+                              '+ ${args.itinerario.length - 5} pasos más en la app',
+                              style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: () => context.go('/reservas'),
+                    child: const Text('Ver mis reservas'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => context.go('/'),
+                    child: const Text('Seguir explorando'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _fila(IconData icono, String texto) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icono, size: 16, color: Colors.black45),
+          const SizedBox(width: 10),
+          Expanded(child: Text(texto, style: const TextStyle(fontSize: 13.5))),
+        ],
+      ),
+    );
+  }
+}

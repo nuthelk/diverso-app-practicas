@@ -1,6 +1,7 @@
 /// Diverso App — núcleo compartido entre la app del viajero y el panel de agencias.
 library;
 
+export 'comparison.dart';
 export 'config.dart';
 export 'models/booking.dart';
 export 'models/enums.dart';

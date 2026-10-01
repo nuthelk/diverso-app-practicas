@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'theme_mode_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,5 +16,10 @@ Future<void> main() async {
     publishableKey: DiversoConfig.supabaseKey,
   );
 
-  runApp(const PanelAgenciasApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeModeController(),
+      child: const PanelAgenciasApp(),
+    ),
+  );
 }
