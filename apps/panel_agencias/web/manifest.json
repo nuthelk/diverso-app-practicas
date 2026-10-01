@@ -1,12 +1,11 @@
 {
-    "name": "panel_agencias",
-    "short_name": "panel_agencias",
+    "name": "Diverso — Panel de Agencias",
+    "short_name": "Diverso Panel",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#1F5C8B",
+    "description": "Panel de administración para agencias MIPYME: publica planes, gestiona cupos, reservas y conciliación de pagos.",
     "prefer_related_applications": false,
     "icons": [
         {

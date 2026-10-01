@@ -1,11 +1,11 @@
 {
-    "name": "viajero",
-    "short_name": "viajero",
+    "name": "Diverso App — Viajero",
+    "short_name": "Diverso",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#2E7D5B",
+    "description": "Reserva planes turísticos de agencias antioqueñas verificadas: fichas claras, cupos en tiempo real y pagos seguros.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
