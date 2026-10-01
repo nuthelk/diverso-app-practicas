@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- El Supabase local corre en HTTP plano; Android 9+ lo bloquea sin esto.
+         Solo aplica a builds debug. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>
