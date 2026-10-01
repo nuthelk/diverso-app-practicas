@@ -1,5 +1,6 @@
 <script lang="ts">
   import Logo from '../components/Logo.svelte';
+  import Select from '../components/Select.svelte';
   import { miAgencia, misPlanes, crearPlan, actualizarPlan, mensajeError } from '../api';
   import { go } from '../router.svelte';
   import { avisar } from '../toast.svelte';
@@ -14,6 +15,45 @@
 
   let nuevoIncluye = $state('');
   let nuevaFoto = $state('');
+
+  // Duración estructurada: cantidad + unidad → compone duracionTexto.
+  const UNIDADES = ['dias', 'horas', 'minutos'] as const;
+  type Unidad = (typeof UNIDADES)[number];
+  const ETIQUETA_UNIDAD: Record<Unidad, string> = {
+    dias: 'día',
+    horas: 'hora',
+    minutos: 'minuto',
+  };
+  let duracionCantidad = $state<number | null>(1);
+  let duracionUnidad = $state<Unidad>('dias');
+  const unidadesOpciones = $derived(
+    UNIDADES.map((u) => ({
+      valor: u,
+      etiqueta:
+        duracionCantidad === 1 ? ETIQUETA_UNIDAD[u] : ETIQUETA_UNIDAD[u] + 's',
+    })),
+  );
+
+  function componerDuracion() {
+    const n = duracionCantidad ?? 0;
+    if (n <= 0) {
+      d.duracionTexto = '';
+      return;
+    }
+    d.duracionTexto = `${n} ${ETIQUETA_UNIDAD[duracionUnidad]}${n === 1 ? '' : 's'}`;
+  }
+
+  function parsearDuracion(texto: string) {
+    const m = /(\d+(?:[.,]\d+)?)\s*(d[ií]a|hora|minuto|horas|d[ií]as|minutos)/i.exec(texto);
+    if (!m) {
+      duracionCantidad = null;
+      duracionUnidad = 'dias';
+      return;
+    }
+    duracionCantidad = parseFloat(m[1].replace(',', '.'));
+    const u = m[2].toLowerCase();
+    duracionUnidad = u.startsWith('d') ? 'dias' : u.startsWith('h') ? 'horas' : 'minutos';
+  }
 
   $effect(() => {
     if (!planId) return;
@@ -41,6 +81,7 @@
             politicaCancelacion: p.politica_cancelacion,
             fotos: [...p.fotos],
           };
+          parsearDuracion(p.duracion_texto);
         }
       } catch (e) {
         error = mensajeError(e);
@@ -143,11 +184,14 @@
             </label>
             <label>
               <span class="etiqueta">Categoría</span>
-              <select bind:value={d.categoria} class="campo">
-                {#each CATEGORIAS as c}
-                  <option value={c.valor}>{c.emoji} {c.label}</option>
-                {/each}
-              </select>
+              <Select
+                opciones={CATEGORIAS.map((c) => ({
+                  valor: c.valor,
+                  etiqueta: `${c.emoji} ${c.label}`,
+                }))}
+                valor={d.categoria}
+                onchange={(v) => (d.categoria = v as CategoriaValor)}
+              />
             </label>
             <label>
               <span class="etiqueta">Precio final COP *</span>
@@ -160,10 +204,28 @@
                 placeholder="150000"
               />
             </label>
-            <label>
+            <div>
               <span class="etiqueta">Duración *</span>
-              <input required bind:value={d.duracionTexto} class="campo" placeholder="1 día" />
-            </label>
+              <div class="flex gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  bind:value={duracionCantidad}
+                  oninput={componerDuracion}
+                  class="campo w-[74px] shrink-0 text-center"
+                />
+                <Select
+                  clase="flex-1"
+                  opciones={unidadesOpciones}
+                  valor={duracionUnidad}
+                  onchange={(v) => {
+                    duracionUnidad = v as Unidad;
+                    componerDuracion();
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>

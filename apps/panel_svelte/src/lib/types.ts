@@ -127,12 +127,11 @@ export function draftVacio(): PlanDraft {
 
 function duracionHoras(texto: string): number {
   const t = texto.toLowerCase();
-  if (t.includes('2 días') || t.includes('dos días')) return 40;
-  if (t.includes('día') || t.includes('dia')) return 12;
-  if (t.includes('hora')) {
-    const m = /(\d+)/.exec(t);
-    return m ? parseFloat(m[1]) : 4;
-  }
+  const m = /(\d+(?:[.,]\d+)?)/.exec(t);
+  const n = m ? parseFloat(m[1].replace(',', '.')) : null;
+  if (t.includes('minuto')) return n ? Math.round((n / 60) * 100) / 100 : 0.5;
+  if (t.includes('hora')) return n ?? 4;
+  if (t.includes('día') || t.includes('dia')) return n === 2 ? 40 : (n ?? 1) * 12;
   return 12;
 }
 
