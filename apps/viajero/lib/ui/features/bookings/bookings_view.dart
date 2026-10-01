@@ -80,7 +80,8 @@ class _BookingsViewState extends State<BookingsView>
             final c = _controller;
             return NestedScrollView(
               headerSliverBuilder: (context, _) => [
-                SliverAppBar.large(
+                SliverAppBar(
+                  pinned: true,
                   title: Text(
                     'Mis reservas',
                     style: TextStyle(
@@ -245,11 +246,15 @@ class _TarjetaReserva extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Text(
-                        '${booking.codigo} · ${booking.pax} pax · ${formatCOP(booking.montoTotal)}',
-                        style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                      Expanded(
+                        child: Text(
+                          '${booking.codigo} · ${booking.pax} pax · ${formatCOP(booking.montoTotal)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                        ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       _EstadoPill(estado: booking.estado),
                     ],
                   ),

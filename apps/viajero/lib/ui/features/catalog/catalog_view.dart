@@ -52,8 +52,10 @@ class _CatalogViewState extends State<CatalogView>
             onRefresh: c.cargar,
             child: CustomScrollView(
               slivers: [
-                // Encabezado ------------------------------------------------
-                SliverAppBar.large(
+                // Encabezado compacto: el contenido arranca de una vez,
+                // sin gastar media pantalla en un título expandido vacío.
+                SliverAppBar(
+                  pinned: true,
                   title: Text(
                     'Descubre Antioquia',
                     style: TextStyle(

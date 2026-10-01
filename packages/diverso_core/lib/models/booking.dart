@@ -83,7 +83,7 @@ class Booking {
     final pays = map['payments'];
     final PlanDate? planDate =
         pd is Map ? PlanDate.fromMap(pd.cast<String, dynamic>()) : null;
-    final planMap = pd is Map ? pd['plans'] : null;
+    final planMap = pd is Map ? pd['plan'] : null;
     return Booking(
       id: map['id'] as String,
       codigo: map['codigo'] as String,
