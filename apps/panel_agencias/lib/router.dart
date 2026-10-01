@@ -31,34 +31,79 @@ GoRouter buildPanelRouter() {
       return null;
     },
     routes: [
-      GoRoute(path: '/starter', builder: (_, _) => const StarterView()),
-      GoRoute(path: '/login', builder: (_, _) => const LoginView()),
-      GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingView()),
-      GoRoute(path: '/admin', builder: (_, _) => const AdminRouteGuard()),
+      GoRoute(
+        path: '/starter',
+        pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+          key: state.pageKey,
+          child: const StarterView(),
+        ),
+      ),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+          key: state.pageKey,
+          child: const LoginView(),
+        ),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (_, state) => DiversoPageTransitions.sharedAxisX(
+          key: state.pageKey,
+          child: const OnboardingView(),
+        ),
+      ),
+      GoRoute(
+        path: '/admin',
+        pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+          key: state.pageKey,
+          child: const AdminRouteGuard(),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => PanelShell(shell: shell),
         branches: [
           StatefulShellBranch(routes: [
-            GoRoute(path: '/dashboard', builder: (_, _) => const DashboardView()),
+            GoRoute(
+              path: '/dashboard',
+              pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+                key: state.pageKey,
+                child: const DashboardView(),
+              ),
+            ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/planes',
-              builder: (_, _) => const PlanesView(),
+              pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+                key: state.pageKey,
+                child: const PlanesView(),
+              ),
               routes: [
                 GoRoute(
                   path: 'nuevo',
-                  builder: (_, _) => const PlanFormView(),
+                  pageBuilder: (_, state) => DiversoPageTransitions.sharedAxisX(
+                    key: state.pageKey,
+                    child: const PlanFormView(),
+                  ),
                 ),
                 GoRoute(
                   path: 'editar/:id',
-                  builder: (_, s) => PlanFormView(planId: s.pathParameters['id']),
+                  pageBuilder: (_, s) => DiversoPageTransitions.sharedAxisX(
+                    key: s.pageKey,
+                    child: PlanFormView(planId: s.pathParameters['id']),
+                  ),
                 ),
               ],
             ),
           ]),
           StatefulShellBranch(routes: [
-            GoRoute(path: '/ventas', builder: (_, _) => const VentasView()),
+            GoRoute(
+              path: '/ventas',
+              pageBuilder: (_, state) => DiversoPageTransitions.fadeThrough(
+                key: state.pageKey,
+                child: const VentasView(),
+              ),
+            ),
           ]),
         ],
       ),

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Golondrina de Diverso (misma silueta que DiversoLogo, malla 100x100
+     trasladada +4/+6 al viewport 108 y escalada 0.62 a la zona segura). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.62"
+        android:scaleY="0.62"
+        android:pivotX="54"
+        android:pivotY="54">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M98,50 C86,42 78,30 68,31 C62,32 59,37 58,43 C49,31 37,18 29,13 C34,32 42,44 48,54 C34,62 20,74 12,86 C21,82 29,74 34,67 C26,77 19,87 15,96 C32,82 48,70 62,61 C67,57 70,54 72,51 C82,50 91,50 98,50 Z" />
+    </group>
+</vector>

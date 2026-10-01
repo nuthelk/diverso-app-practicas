@@ -89,7 +89,7 @@ class _LoginViewState extends State<LoginView> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.terrain_rounded, size: 56, color: cs.onPrimary),
+          DiversoLogo(size: 64, color: cs.onPrimary),
           const SizedBox(height: 20),
           Text(
             'Diverso',
@@ -141,8 +141,7 @@ class _LoginViewState extends State<LoginView> {
                               color: cs.primaryContainer,
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Icon(Icons.terrain_rounded,
-                                size: 36, color: cs.onPrimaryContainer),
+                            child: DiversoLogo(size: 42, color: cs.onPrimaryContainer),
                           ),
                           const SizedBox(height: 14),
                         ],

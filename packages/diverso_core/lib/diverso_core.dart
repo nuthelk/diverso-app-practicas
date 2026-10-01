@@ -14,3 +14,5 @@ export 'services/booking_service.dart';
 export 'services/catalog_service.dart';
 export 'services/review_service.dart';
 export 'utils/formatters.dart';
+export 'ui/diverso_logo.dart';
+export 'ui/page_transitions.dart';

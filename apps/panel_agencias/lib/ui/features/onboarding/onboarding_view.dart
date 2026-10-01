@@ -90,8 +90,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                                 color: cs.primaryContainer,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Icon(Icons.terrain_rounded,
-                                  size: 28, color: cs.onPrimaryContainer),
+                              child: DiversoLogo(size: 30, color: cs.onPrimaryContainer),
                             ),
                             const SizedBox(height: 22),
                             const Text(

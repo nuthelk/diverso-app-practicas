@@ -63,7 +63,7 @@ class _PanelShellState extends State<PanelShell> {
                             color: cs.primaryContainer,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(Icons.terrain_rounded, color: cs.onPrimaryContainer, size: 21),
+                          child: DiversoLogo(size: 24, color: cs.onPrimaryContainer),
                         ),
                         if (extendido) ...[
                           const SizedBox(width: 10),

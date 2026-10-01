@@ -88,14 +88,23 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                     flexibleSpace: FlexibleSpaceBar(
                       background: plan.fotos.isEmpty
                           ? Container(color: cs.primaryContainer)
-                          : PageView.builder(
-                              controller: _pageCtrl,
-                              itemCount: plan.fotos.length,
-                              itemBuilder: (context, i) => Image.network(
-                                plan.fotos[i],
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    Container(color: cs.primaryContainer),
+                          // Asentado cinematográfico: la foto entra con un
+                          // leve zoom y se calma al hacerlo visible.
+                          : TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 1.06, end: 1),
+                              duration: const Duration(milliseconds: 900),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, t, child) =>
+                                  Transform.scale(scale: t, child: child),
+                              child: PageView.builder(
+                                controller: _pageCtrl,
+                                itemCount: plan.fotos.length,
+                                itemBuilder: (context, i) => Image.network(
+                                  plan.fotos[i],
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) =>
+                                      Container(color: cs.primaryContainer),
+                                ),
                               ),
                             ),
                     ),

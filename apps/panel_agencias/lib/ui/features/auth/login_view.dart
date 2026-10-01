@@ -75,7 +75,7 @@ class _LoginViewState extends State<LoginView> {
                       color: cs.primaryContainer,
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Icon(Icons.terrain_rounded, color: cs.onPrimaryContainer, size: 28),
+                    child: DiversoLogo(size: 30, color: cs.onPrimaryContainer),
                   ),
                   const SizedBox(height: 18),
                   const Text(

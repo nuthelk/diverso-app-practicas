@@ -39,103 +39,82 @@ class BookingSuccessView extends StatelessWidget {
                         color: cs.primaryContainer,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.check_rounded, color: cs.primary, size: 46),
+                      child: Icon(
+                        Icons.check_rounded,
+                        color: cs.primary,
+                        size: 46,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    '¡Listo, nos vemos ahí!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -.8,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Tu reserva está confirmada y el cupo es tuyo.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 24),
-                  // Código de reserva
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    decoration: BoxDecoration(
-                      color: cs.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppRadios.card),
-                    ),
+                  _Aparecer(
+                    paso: 0,
                     child: Column(
                       children: [
                         Text(
-                          'CÓDIGO DE RESERVA',
+                          '¡Listo, nos vemos ahí!',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.6,
-                            color: cs.onPrimaryContainer.withValues(alpha: .75),
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -.8,
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 6),
-                        SelectableText(
-                          args.codigo,
+                        Text(
+                          'Tu reserva está confirmada y el cupo es tuyo.',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 3,
-                            color: cs.onPrimaryContainer,
+                            fontSize: 14,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Código de reserva
+                  _Aparecer(
+                    paso: 1,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadios.card),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'CÓDIGO DE RESERVA',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.6,
+                              color: cs.onPrimaryContainer.withValues(
+                                alpha: .75,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          SelectableText(
+                            args.codigo,
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 3,
+                              color: cs.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
                   // Detalle
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: cs.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(AppRadios.card),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          args.planTitulo,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5, height: 1.25),
-                        ),
-                        const SizedBox(height: 12),
-                        _fila(Icons.event_rounded, formatFechaLarga(args.fecha)),
-                        _fila(Icons.group_rounded,
-                            '${args.pax} ${args.pax == 1 ? 'persona' : 'personas'}'),
-                        if (args.puntoEncuentro.isNotEmpty)
-                          _fila(Icons.flag_rounded, args.puntoEncuentro),
-                        const Divider(height: 22),
-                        _fila(Icons.payments_rounded,
-                            '${formatCOP(args.monto)} · ${args.metodo.label}'),
-                        _fila(Icons.receipt_rounded, 'Ref. ${args.referencia}'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.verified_user_rounded, size: 14, color: cs.tertiary),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                'Compra protegida: reembolso según la política de cancelación.',
-                                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Itinerario inmediato (Anexo 6: confirmación + itinerario)
-                  if (args.itinerario.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    Container(
+                  _Aparecer(
+                    paso: 2,
+                    child: Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
                         color: cs.surfaceContainerLow,
@@ -145,45 +124,120 @@ class BookingSuccessView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ITINERARIO',
-                            style: TextStyle(
-                              fontSize: 10.5,
+                            args.planTitulo,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 1.6,
-                              color: cs.onSurfaceVariant,
+                              fontSize: 15.5,
+                              height: 1.25,
                             ),
                           ),
                           const SizedBox(height: 12),
-                          for (final paso in args.itinerario.take(5))
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: 52,
-                                    child: Text(
-                                      paso.hora,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 12.5,
-                                        color: cs.primary,
-                                      ),
-                                    ),
+                          _fila(
+                            Icons.event_rounded,
+                            formatFechaLarga(args.fecha),
+                          ),
+                          _fila(
+                            Icons.group_rounded,
+                            '${args.pax} ${args.pax == 1 ? 'persona' : 'personas'}',
+                          ),
+                          if (args.puntoEncuentro.isNotEmpty)
+                            _fila(Icons.flag_rounded, args.puntoEncuentro),
+                          const Divider(height: 22),
+                          _fila(
+                            Icons.payments_rounded,
+                            '${formatCOP(args.monto)} · ${args.metodo.label}',
+                          ),
+                          _fila(
+                            Icons.receipt_rounded,
+                            'Ref. ${args.referencia}',
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.verified_user_rounded,
+                                size: 14,
+                                color: cs.tertiary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Compra protegida: reembolso según la política de cancelación.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: cs.onSurfaceVariant,
                                   ),
-                                  Expanded(
-                                    child: Text(paso.actividad,
-                                        style: const TextStyle(fontSize: 13, height: 1.4)),
-                                  ),
-                                ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Itinerario inmediato (Anexo 6: confirmación + itinerario)
+                  if (args.itinerario.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    _Aparecer(
+                      paso: 3,
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: cs.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(AppRadios.card),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ITINERARIO',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.6,
+                                color: cs.onSurfaceVariant,
                               ),
                             ),
-                          if (args.itinerario.length > 5)
-                            Text(
-                              '+ ${args.itinerario.length - 5} pasos más en la app',
-                              style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                            ),
-                        ],
+                            const SizedBox(height: 12),
+                            for (final paso in args.itinerario.take(5))
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 52,
+                                      child: Text(
+                                        paso.hora,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 12.5,
+                                          color: cs.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        paso.actividad,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (args.itinerario.length > 5)
+                              Text(
+                                '+ ${args.itinerario.length - 5} pasos más en la app',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -216,6 +270,38 @@ class BookingSuccessView extends StatelessWidget {
           Expanded(child: Text(texto, style: const TextStyle(fontSize: 13.5))),
         ],
       ),
+    );
+  }
+}
+
+/// Entrada escalonada: cada bloque aparece con un pequeño desplazamiento
+/// vertical según su [paso], dentro de la misma animación (sin timers).
+class _Aparecer extends StatelessWidget {
+  const _Aparecer({required this.paso, required this.child});
+
+  final int paso;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    const escalon = 0.14;
+    final inicio = (paso * escalon).clamp(0.0, 0.72);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 640),
+      curve: Interval(
+        inicio,
+        (inicio + 0.42).clamp(0.0, 1.0),
+        curve: Curves.easeOutCubic,
+      ),
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 14 * (1 - t)),
+          child: child,
+        ),
+      ),
+      child: child,
     );
   }
 }

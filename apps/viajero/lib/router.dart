@@ -20,7 +20,8 @@ import 'ui/features/checkout/checkout_controller.dart';
 /// Router de la app del viajero (go_router):
 /// - redirect global por sesión
 /// - StatefulShellRoute con estado por pestaña
-/// - transiciones fade-through suaves en flujos
+/// - movimiento Material 3: shared-axis en flujos, fade-through en pestañas,
+///   zoom en la confirmación (ver DiversoPageTransitions)
 GoRouter buildViajeroRouter() {
   final auth = Supabase.instance.client.auth;
 
@@ -37,73 +38,118 @@ GoRouter buildViajeroRouter() {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginView(),
+        pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+          key: state.pageKey,
+          child: const LoginView(),
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/', builder: (context, state) => const CatalogView()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/reservas', builder: (context, state) => const BookingsView()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/perfil', builder: (context, state) => const ProfileView()),
-          ]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                pageBuilder: (context, state) =>
+                    DiversoPageTransitions.fadeThrough(
+                      key: state.pageKey,
+                      child: const CatalogView(),
+                    ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/reservas',
+                pageBuilder: (context, state) =>
+                    DiversoPageTransitions.fadeThrough(
+                      key: state.pageKey,
+                      child: const BookingsView(),
+                    ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/perfil',
+                pageBuilder: (context, state) =>
+                    DiversoPageTransitions.fadeThrough(
+                      key: state.pageKey,
+                      child: const ProfileView(),
+                    ),
+              ),
+            ],
+          ),
         ],
       ),
       GoRoute(
         path: '/plan/:id',
-        pageBuilder: (context, state) => _fade(state, PlanDetailView(planId: state.pathParameters['id']!)),
+        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
+          key: state.pageKey,
+          child: PlanDetailView(planId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/checkout',
         pageBuilder: (context, state) {
           final extra = state.extra as (Plan, PlanDate)?;
-          if (extra == null) return _fade(state, const CatalogView());
-          return _fade(state, CheckoutView(plan: extra.$1, fecha: extra.$2));
+          if (extra == null) {
+            return DiversoPageTransitions.fadeThrough(
+              key: state.pageKey,
+              child: const CatalogView(),
+            );
+          }
+          return DiversoPageTransitions.sharedAxisX(
+            key: state.pageKey,
+            child: CheckoutView(plan: extra.$1, fecha: extra.$2),
+          );
         },
       ),
       GoRoute(
         path: '/exito',
         pageBuilder: (context, state) {
           final extra = state.extra;
-          if (extra is SuccessArgs) return _fade(state, BookingSuccessView(args: extra));
-          return _fade(state, const BookingsView());
+          if (extra is SuccessArgs) {
+            return DiversoPageTransitions.zoomIn(
+              key: state.pageKey,
+              child: BookingSuccessView(args: extra),
+            );
+          }
+          return DiversoPageTransitions.fadeThrough(
+            key: state.pageKey,
+            child: const BookingsView(),
+          );
         },
       ),
       GoRoute(
         path: '/resena',
         pageBuilder: (context, state) {
           final booking = state.extra as Booking?;
-          if (booking == null) return _fade(state, const BookingsView());
-          return _fade(state, ReviewView(booking: booking));
+          if (booking == null) {
+            return DiversoPageTransitions.fadeThrough(
+              key: state.pageKey,
+              child: const BookingsView(),
+            );
+          }
+          return DiversoPageTransitions.sharedAxisX(
+            key: state.pageKey,
+            child: ReviewView(booking: booking),
+          );
         },
       ),
       GoRoute(
         path: '/comparar',
         pageBuilder: (context, state) {
           final planes = (state.extra as List<Plan>?) ?? const <Plan>[];
-          return _fade(state, ComparatorView(planes: planes));
+          return DiversoPageTransitions.sharedAxisX(
+            key: state.pageKey,
+            child: ComparatorView(planes: planes),
+          );
         },
       ),
     ],
-  );
-}
-
-CustomTransitionPage<T> _fade<T>(GoRouterState state, Widget child) {
-  return CustomTransitionPage<T>(
-    key: state.pageKey,
-    child: child,
-    transitionDuration: const Duration(milliseconds: 260),
-    transitionsBuilder: (context, animation, secondary, child) {
-      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-      return FadeTransition(
-        opacity: curved,
-        child: ScaleTransition(scale: Tween(begin: .985, end: 1.0).animate(curved), child: child),
-      );
-    },
   );
 }
 
