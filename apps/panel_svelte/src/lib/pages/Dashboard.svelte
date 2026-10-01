@@ -76,6 +76,9 @@
     return conCupo.reduce((s, x) => s + x.ocup, 0) / conCupo.length;
   });
 
+  const cuposVendidos = $derived(semanas.reduce((s, x) => s + x.vendidos, 0));
+  const cuposOfertados = $derived(semanas.reduce((s, x) => s + x.total, 0));
+
   // Próximas salidas (fecha, plan, cupos) — mismas reglas que Flutter.
   const proximas = $derived.by(() => {
     const lista = planes.flatMap((p) =>
@@ -147,23 +150,43 @@
             {(ocupProm * 100).toFixed(0)}%
           </div>
         </div>
-        <div class="text-xs text-slate-400">cupos vendidos / ofertados</div>
+        <div class="text-xs text-slate-400">
+          {cuposVendidos} de {cuposOfertados} cupos vendidos
+        </div>
       </div>
-      <div class="mt-5 flex h-24 items-end gap-1.5">
-        {#each semanas as s}
-          <div class="relative h-full flex-1 overflow-hidden rounded-lg bg-slate-200/60 dark:bg-ink-700">
+
+      {#if cuposOfertados === 0}
+        <p class="mt-4 rounded-xl bg-slate-500/8 px-4 py-3 text-[13px] text-slate-500 dark:text-slate-400">
+          No tienes fechas futuras publicadas. Agrega fechas con cupos a tus planes
+          <a href="#/planes" class="font-semibold text-brand-600 hover:underline dark:text-brand-300"
+            >aquí</a
+          > para medir tu ocupación semana a semana.
+        </p>
+      {:else}
+        <div class="mt-5 flex h-24 items-end gap-1.5">
+          {#each semanas as s}
             <div
-              class="absolute inset-x-0 bottom-0 rounded-lg bg-brand-600 transition-all"
-              style="height:{(s.ocup * 100).toFixed(1)}%"
-            ></div>
-          </div>
-        {/each}
-      </div>
-      <div class="mt-2 flex gap-1.5 text-center text-[10px] text-slate-400">
-        {#each semanas as s}
-          <div class="flex-1">{s.etiqueta}</div>
-        {/each}
-      </div>
+              class="relative h-full flex-1 overflow-hidden rounded-lg
+                {s.total === 0
+                ? 'border border-dashed border-slate-300/70 dark:border-ink-600'
+                : 'bg-slate-200/60 dark:bg-ink-700'}"
+              title={'Semana del ' + s.etiqueta + ': ' + s.vendidos + ' de ' + s.total + ' cupos vendidos'}
+            >
+              {#if s.vendidos > 0}
+                <div
+                  class="absolute inset-x-0 bottom-0 rounded-lg bg-brand-600"
+                  style="height:{Math.max(s.ocup * 100, 4).toFixed(1)}%"
+                ></div>
+              {/if}
+            </div>
+          {/each}
+        </div>
+        <div class="mt-2 flex gap-1.5 text-center text-[10px] text-slate-400">
+          {#each semanas as s}
+            <div class="flex-1">{s.etiqueta}</div>
+          {/each}
+        </div>
+      {/if}
     </div>
 
     <!-- Próximas salidas -->
