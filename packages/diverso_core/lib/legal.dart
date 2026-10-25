@@ -7,7 +7,7 @@
 /// panel y en la función SQL version_documentos_legales().
 library;
 
-const String kVersionLegal = 'v1-2026-10';
+const String kVersionLegal = 'v2-2026-10';
 
 class SeccionLegal {
   const SeccionLegal(this.titulo, this.parrafos);
@@ -67,7 +67,7 @@ const DocumentoLegal politicaDatos = DocumentoLegal(
       'Los datos se almacenan con control de acceso por rol y cifrado en tránsito (HTTPS/TLS). Se conservan mientras la cuenta esté activa y durante el tiempo que exijan las obligaciones legales.',
     ]),
     SeccionLegal('7. Autorización y vigencia', [
-      'Al marcar la casilla de autorización otorgas tu consentimiento previo, expreso e informado. Diverso conserva la prueba (fecha y versión del documento). Versión v1-2026-10.',
+      'Al marcar la casilla de autorización otorgas tu consentimiento previo, expreso e informado. Diverso conserva la prueba (fecha y versión del documento). Versión v2-2026-10.',
     ]),
   ],
 );
@@ -89,8 +89,8 @@ const DocumentoLegal terminosViajeros = DocumentoLegal(
     SeccionLegal('4. Reseñas', [
       'Solo puede reseñar quien compró y viajó en el plan. Las reseñas deben ser respetuosas y basadas en la experiencia real.',
     ]),
-    SeccionLegal('5. Pagos en el piloto', [
-      'Durante el piloto los pagos son simulados y no se realizan cobros reales.',
+    SeccionLegal('5. Pagos en modo de prueba', [
+      'Durante el modo de prueba, los pagos se hacen con Wompi en su entorno de pruebas (tarjeta, PSE, Nequi, Daviplata o Bancolombia con datos de prueba) y no se cobra dinero real; los reembolsos por cancelación también son de prueba. Cuando Diverso opere con pagos reales se avisará y se actualizará este documento.',
     ]),
   ],
 );
@@ -111,7 +111,7 @@ const DocumentoLegal terminosAgencias = DocumentoLegal(
     ]),
     SeccionLegal('3. Comisión y pagos', [
       'Diverso cobra una comisión por venta efectiva (12 % por defecto), que se descuenta del valor pagado por el viajero. El uso básico de la plataforma no tiene costo fijo.',
-      'Durante el piloto los pagos son simulados; la dispersión real de saldos se habilitará con la integración de la pasarela de pagos.',
+      'Durante el modo de prueba, los cobros a los viajeros se procesan con Wompi en su entorno de pruebas (sandbox) y no se cobra dinero real. La liquidación semanal y los anticipos a las agencias se registran como «Dispersión de prueba»: ese registro no mueve dinero real. Cuando Diverso opere con pagos reales se avisará a las agencias y se actualizará este documento.',
     ]),
     SeccionLegal('4. Prestación del servicio', [
       'La agencia presta el servicio turístico como responsable directa frente al viajero y debe cumplir el Estatuto del Consumidor (Ley 1480 de 2011) y la normativa turística vigente.',

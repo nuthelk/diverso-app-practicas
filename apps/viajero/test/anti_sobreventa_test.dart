@@ -52,11 +52,10 @@ void main() {
   /// solo service_role) y las borra; el borrado arrastra pagos, intentos y reembolsos.
   Future<void> limpiar(List<String> ids) async {
     if (ids.isEmpty) return;
-    final uid = client.auth.currentUser!.id;
-    final filas = await admin.from('bookings').select('id, estado').inFilter('id', ids);
+    final filas = await admin.from('bookings').select('id, estado, viajero_id').inFilter('id', ids);
     for (final f in filas) {
       if (f['estado'] != 'cancelada') {
-        await admin.rpc('cancelar_reserva', params: {'p_booking_id': f['id'], 'p_viajero_id': uid});
+        await admin.rpc('cancelar_reserva', params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']});
       }
     }
     await admin.from('bookings').delete().inFilter('id', ids);
@@ -116,23 +115,51 @@ void main() {
     final cupo = fecha['cupo_disponible'] as int;
     final creadas = <String>[];
 
+    // La regla "una sola reserva pendiente por viajero y fecha" (servidor) impide que UN viajero compita
+    // consigo mismo: la carrera por el último cupo es entre DOS viajeros distintos.
+    final email = 'carrera-${DateTime.now().millisecondsSinceEpoch}@example.com';
+    final otro = SupabaseClient(DiversoConfig.supabaseUrl, DiversoConfig.supabaseKey);
+    final usuario = await admin.auth.admin
+        .createUser(AdminUserAttributes(email: email, password: 'Carrera-1234', emailConfirm: true));
+    final otroId = usuario.user!.id;
+
     try {
+      await otro.auth.signInWithPassword(email: email, password: 'Carrera-1234');
+
       // 2. Consumir cupo-1 asientos en una reserva grande.
       final grande = await bookings.crearReserva(planDateId: planDateId, pax: cupo - 1);
       creadas.add(grande.bookingId);
       expect(grande.codigo, startsWith('DIV-'));
+      // La reserva grande queda pagada: si siguiera pendiente, la regla de una pendiente por viajero y
+      // fecha rechazaría el segundo intento de este mismo viajero por ese motivo y no por falta de cupo.
+      await admin.from('bookings').update({'estado': 'confirmada'}).eq('id', grande.bookingId);
 
-      // 3. Carrera: dos reservas simultáneas de 1 pax por el último cupo.
-      Future<(String, Object?)> intento() async {
+      // 3. Carrera: dos reservas simultáneas de 1 pax (de dos viajeros) por el último cupo.
+      Future<(String, Object?)> intento(Future<CreatedBooking> Function() reservar) async {
         try {
-          final r = await bookings.crearReserva(planDateId: planDateId, pax: 1);
-          return ('ok', r);
+          return ('ok', await reservar());
         } catch (e) {
           return ('error', e);
         }
       }
 
-      final resultados = await Future.wait([intento(), intento()]);
+      final resultados = await Future.wait([
+        intento(() => bookings.crearReserva(planDateId: planDateId, pax: 1)),
+        intento(() async {
+          try {
+            final res = await otro.rpc('create_booking', params: {'p_plan_date_id': planDateId, 'p_pax': 1});
+            final map = (res as Map).cast<String, dynamic>();
+            return CreatedBooking(
+              bookingId: map['booking_id'] as String,
+              codigo: map['codigo'] as String,
+              montoTotal: (map['monto_total'] as num).toDouble(),
+              planTitulo: map['plan_titulo'] as String? ?? '',
+            );
+          } catch (e) {
+            throw DiversoException.fromPostgrest(e);
+          }
+        }),
+      ]);
 
       final exitosas = resultados.where((r) => r.$1 == 'ok').toList();
       final fallidas = resultados.where((r) => r.$1 != 'ok').toList();
@@ -154,10 +181,40 @@ void main() {
           .single();
       expect(despues['cupo_disponible'], 0);
     } finally {
-      // 5. Limpieza: devuelve cupos y borra las reservas de prueba.
+      // 5. Limpieza: devuelve cupos, borra las reservas de prueba y el viajero creado para la carrera.
       await limpiar(creadas);
+      await otro.auth.signOut();
+      await otro.dispose();
+      await admin.auth.admin.deleteUser(otroId);
     }
     expect(await cupoDe(planDateId), cupo, reason: 'la limpieza debe devolver los cupos');
+  });
+
+  test('el mismo viajero no abre una segunda reserva pendiente de la misma fecha (RESERVA_PENDIENTE_EXISTENTE)',
+      skip: sinLlave, () async {
+    final fechas = await admin
+        .from('plan_dates')
+        .select('id, cupo_disponible, plans!inner(estado)')
+        .gte('fecha', DateTime.now().toIso8601String().substring(0, 10))
+        .eq('plans.estado', 'publicado')
+        .gte('cupo_disponible', 3)
+        .limit(1);
+    expect(fechas, isNotEmpty, reason: 'el seed debe dejar una fecha con cupos');
+    final planDateId = fechas.first['id'] as String;
+    final cupo = await cupoDe(planDateId);
+
+    final primera = await bookings.crearReserva(planDateId: planDateId, pax: 1);
+    try {
+      final error = await bookings.crearReserva(planDateId: planDateId, pax: 1).then<DiversoException?>((_) => null,
+          onError: (Object e) => e as DiversoException);
+      expect(error, isNotNull, reason: 'la segunda reserva pendiente debe rechazarse');
+      expect(error!.codigo, 'RESERVA_PENDIENTE_EXISTENTE');
+      expect(error.detalle?['booking_id'], primera.bookingId, reason: 'el error trae el id de la reserva existente');
+      expect(await cupoDe(planDateId), cupo - 1, reason: 'el rechazo no retiene cupos');
+    } finally {
+      await limpiar([primera.bookingId]);
+    }
+    expect(await cupoDe(planDateId), cupo);
   });
 
   test('reservaPendiente encuentra la reserva sin pagar de esa fecha y solo de esa', skip: sinLlave, () async {

@@ -191,6 +191,43 @@ test("lista de retorno: solo orígenes permitidos (no por prefijo de texto)", ()
   assert.ok(!redirectPermitido("http://localhost:8080/", propia.redirectPermitidos));
 });
 
+test("lista de retorno: una ruta exacta no admite prefijos ni rutas hijas (frontera de ruta)", () => {
+  const cfg = cargarConfig(leer(SANDBOX));
+  const ok = (u: string) => redirectPermitido(u, cfg.redirectPermitidos);
+  assert.ok(ok("https://diverso.app/pago/resultado"));
+  assert.ok(ok("https://diverso.app/pago/resultado?id=123-456"), "Wompi agrega ?id=…");
+  assert.ok(ok("https://diverso.app/pago/resultado#fragmento"));
+  assert.ok(!ok("https://diverso.app/pago/resultadoEVIL"), "prefijo de texto, no frontera");
+  assert.ok(!ok("https://diverso.app/pago/resultado-evil?x=1"));
+  assert.ok(!ok("https://diverso.app/pago/resultado/extra"));
+  assert.ok(!ok("https://diverso.app/pago/resultado/../otra"));
+  assert.ok(!ok("https://diverso.app/pago/resultado%2Fextra"));
+  // Una entrada que termina en «/» (todo el origen) sigue admitiendo cualquier ruta.
+  assert.ok(ok("http://localhost:3000/pago/resultado"));
+  assert.ok(ok("http://localhost:3000/cualquier/ruta?x=1"));
+});
+
+test("lista de retorno mal configurada → 503 SOLO_MODO_PRUEBA (no 500) sin revelar el valor", () => {
+  for (
+    const lista of [
+      "no es una url",
+      "http://localhost:8080/,%%%",
+      "javascript:alert(1)",
+      "ftp://diverso.app/pago",
+      ",",
+      "  ",
+    ]
+  ) {
+    const e = rechazada({ ...SANDBOX, PAGOS_REDIRECT_ALLOWLIST: lista });
+    assert.equal(e.status, 503, lista);
+    assert.equal(e.code, "SOLO_MODO_PRUEBA", lista);
+    assert.ok(!JSON.stringify(e.extra).includes(lista.trim() || "\u0000"), "el detalle nombra la variable, no su valor");
+    assert.match(JSON.stringify(e.extra), /PAGOS_REDIRECT_ALLOWLIST/);
+  }
+  // Una lista vacía (variable sin definir o en blanco) usa la de por defecto.
+  assert.ok(cargarConfig(leer({ ...SANDBOX, PAGOS_REDIRECT_ALLOWLIST: "" })).redirectPermitidos.length >= 1);
+});
+
 // ---------------------------------------------------------------------------
 // URL del checkout y normalización
 // ---------------------------------------------------------------------------

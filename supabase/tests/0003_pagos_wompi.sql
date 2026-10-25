@@ -129,23 +129,22 @@ select pg_temp.ok(exists (select 1 from cron.job where jobname = 'expirar-reserv
                            and schedule = '*/5 * * * *' and command ilike '%expire_stale_bookings%' and active),
                   'pg_cron ejecuta expire_stale_bookings cada 5 minutos');
 
--- 3. Relleno de la política desde el texto del seed ------------------------------
-select pg_temp.ok((select count(*) from plans where politica_cancelacion = 'Cancelación gratuita hasta 12 horas antes.'
-                      and horas_cancelacion_gratuita = 12 and horas_reembolso_parcial is null) = 1,
+-- 3. Relleno de la política desde el texto del seed (0005 regenera el texto desde los números: se cuenta por números) ----------
+select pg_temp.ok((select count(*) from plans where horas_cancelacion_gratuita = 12 and horas_reembolso_parcial is null) = 1,
                   'política de 12 h → ventana gratuita 12');
-select pg_temp.ok((select count(*) from plans where politica_cancelacion = 'Cancelación gratuita hasta 24 horas antes.'
-                      and horas_cancelacion_gratuita = 24) = 5, 'política de 24 h → ventana gratuita 24');
-select pg_temp.ok((select count(*) from plans where politica_cancelacion = 'Cancelación gratuita hasta 72 horas antes.'
-                      and horas_cancelacion_gratuita = 72) = 3, 'política de 72 h → ventana gratuita 72');
-select pg_temp.ok((select count(*) from plans where politica_cancelacion = 'Cancelación gratuita hasta 48 horas antes.'
-                      and horas_cancelacion_gratuita = 48) = 6, 'política de 48 h → ventana gratuita 48');
+select pg_temp.ok((select count(*) from plans where horas_cancelacion_gratuita = 24 and horas_reembolso_parcial is null) = 10,
+                  'política de 24 h → ventana gratuita 24 (con o sin frases extra sobre reprogramación o restricciones)');
+select pg_temp.ok((select count(*) from plans where horas_cancelacion_gratuita = 72 and horas_reembolso_parcial is null) = 5,
+                  'política de 72 h → ventana gratuita 72');
+select pg_temp.ok((select count(*) from plans where horas_cancelacion_gratuita = 48 and horas_reembolso_parcial is null) = 7,
+                  'política de 48 h → ventana gratuita 48');
 select pg_temp.ok((select count(*) from plans
                     where politica_cancelacion like 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 24 horas%'
                       and horas_cancelacion_gratuita = 48 and horas_reembolso_parcial = 24
                       and porcentaje_reembolso_parcial = 50) = 1,
                   'política escalonada → 48 h / 24 h / 50 %');
 select pg_temp.ok((select count(*) from plans
-                    where politica_cancelacion = 'Cancelación gratuita hasta 7 días antes. Menos de 7 días: 50%.'
+                    where politica_cancelacion = 'Cancelación gratuita hasta 168 horas antes. Menos de 168 horas: reembolso del 50 %.'
                       and horas_cancelacion_gratuita = 168 and horas_reembolso_parcial = 0
                       and porcentaje_reembolso_parcial = 50) = 2,
                   '«Menos de 7 días: 50%» → 168 h gratis y 50 % hasta la salida');

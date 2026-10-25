@@ -4,7 +4,11 @@
 // Responde 200 también a lo que ignora (eventos de otro tipo, referencias ajenas),
 // porque Wompi reintenta mientras la respuesta no sea 200.
 //
-// transaction.updated → aplicar_resultado_pago (idempotente: un reenvío nunca confirma dos veces)
+// transaction.updated → el evento solo AVISA: el checksum no cubre la referencia ni la moneda, así que se
+//                       vuelve a pedir la transacción a Wompi por su id (firmado) y se aplica únicamente lo que
+//                       Wompi devuelve (referencia, monto, moneda, estado) con aplicar_resultado_pago
+//                       (idempotente: un reenvío nunca confirma dos veces). Id desconocido en Wompi, o referencia /
+//                       monto / moneda del evento distintos de los de Wompi → 200 ignorado, sin efectos.
 // refund.updated      → registrar_resultado_reembolso
 import { ApiError, exigirPost, json, manejar } from "../_shared/http.ts";
 import { contexto } from "../_shared/runtime.ts";
@@ -15,6 +19,8 @@ import { aplicarTransaccion, procesarReembolso } from "../_shared/pagos.ts";
 // Campos que el checksum DEBE cubrir para que el estado y el monto sean de fiar.
 const FIRMADOS_TRANSACCION = ["transaction.id", "transaction.status", "transaction.amount_in_cents"];
 const FIRMADOS_REEMBOLSO = ["refund.refund_id", "refund.status"];
+
+const REEMBOLSA = new Set(["aprobado_tarde", "ya_aprobado_tarde", "monto_no_coincide"]);
 
 const cubre = (e: EventoWompi, requeridos: string[]) =>
   requeridos.every((r) => e.signature?.properties?.includes(r));
@@ -37,9 +43,21 @@ Deno.serve(manejar(async (req) => {
   if (evento.event === "transaction.updated") {
     const crudo = (evento.data as { transaction?: Record<string, unknown> } | undefined)?.transaction;
     if (!crudo || !cubre(evento, FIRMADOS_TRANSACCION)) throw new ApiError(401, "FIRMA_INVALIDA");
-    const resultado = await aplicarTransaccion(env, normalizarTransaccion(crudo));
-    if (resultado.resultado === "aprobado_tarde" || resultado.resultado === "ya_aprobado_tarde") {
-      if (resultado.refund_id) await procesarReembolso(env, wompi, resultado.refund_id);
+    const anunciada = normalizarTransaccion(crudo);
+    const tx = await wompi.obtenerTransaccion(anunciada.id);
+    if (!tx) return json(200, { ok: true, ignorado: "TRANSACCION_DESCONOCIDA" });
+    // Lo no firmado (referencia, moneda) y lo firmado (monto) del evento deben coincidir con Wompi.
+    if (
+      (crudo.reference !== undefined && anunciada.reference !== tx.reference) ||
+      (crudo.currency !== undefined && anunciada.currency !== tx.currency) ||
+      anunciada.amount_in_cents !== tx.amount_in_cents
+    ) {
+      return json(200, { ok: true, ignorado: "TRANSACCION_NO_COINCIDE" });
+    }
+    const resultado = await aplicarTransaccion(env, tx);
+    // Cobros que no se confirman (tardíos, repetidos o de otro monto) dejan una obligación de reembolso.
+    if (REEMBOLSA.has(resultado.resultado) && resultado.refund_id) {
+      await procesarReembolso(env, wompi, resultado.refund_id);
     }
     return json(200, { ok: true, resultado: resultado.resultado });
   }

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { conPoliticaGenerada, horaCorta, textoPolitica, validarPolitica } from './politica';
 import { draftToRow, draftVacio } from './types';
@@ -34,6 +36,43 @@ describe('textoPolitica', () => {
     expect(
       textoPolitica({ ...base, horasCancelacionGratuita: 168, horasReembolsoParcial: 0, porcentajeReembolsoParcial: 50 }),
     ).toBe('Cancelación gratuita hasta 168 horas antes. Menos de 168 horas: reembolso del 50 %.');
+  });
+});
+
+/**
+ * Vectores compartidos con la BD: la función SQL texto_politica() (migración 0005) debe producir EXACTAMENTE
+ * estas cadenas. supabase/tests/0005_endurecimiento_pagos.sql afirma los mismos vectores; este test además
+ * comprueba que ese archivo contiene cada cadena, para que ninguna de las dos mitades se desvíe sola.
+ */
+const VECTORES: [number, number | null, number | null, string][] = [
+  [48, null, null, 'Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso.'],
+  [48, 24, 50, 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 24 horas: reembolso del 50 %. Menos de 24 horas: sin reembolso.'],
+  [1, null, null, 'Cancelación gratuita hasta 1 hora antes. Menos de 1 hora: sin reembolso.'],
+  [48, 1, 30, 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 1 hora: reembolso del 30 %. Menos de 1 hora: sin reembolso.'],
+  [168, 0, 50, 'Cancelación gratuita hasta 168 horas antes. Menos de 168 horas: reembolso del 50 %.'],
+  [72, 24, 40, 'Cancelación gratuita hasta 72 horas antes. Entre 72 y 24 horas: reembolso del 40 %. Menos de 24 horas: sin reembolso.'],
+  [24, 12, 100, 'Cancelación gratuita hasta 24 horas antes. Entre 24 y 12 horas: reembolso del 100 %. Menos de 12 horas: sin reembolso.'],
+  [12, 0, 0, 'Cancelación gratuita hasta 12 horas antes. Menos de 12 horas: reembolso del 0 %.'],
+];
+
+describe('vectores compartidos con la BD (texto_politica en SQL)', () => {
+  const sql = readFileSync(resolve(process.cwd(), '../../supabase/tests/0005_endurecimiento_pagos.sql'), 'utf-8');
+
+  it.each(VECTORES)('textoPolitica(%s, %s, %s)', (gratis, parcial, pct, esperado) => {
+    expect(
+      textoPolitica({
+        horasCancelacionGratuita: gratis,
+        horasReembolsoParcial: parcial,
+        porcentajeReembolsoParcial: pct,
+      }),
+    ).toBe(esperado);
+    expect(sql, 'la prueba SQL debe afirmar el mismo vector').toContain(`'${esperado}'`);
+  });
+
+  it('un tramo parcial incompleto se trata como «sin tramo» (igual que en SQL)', () => {
+    const sinTramo = 'Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso.';
+    expect(textoPolitica({ ...base, horasReembolsoParcial: 24, porcentajeReembolsoParcial: null })).toBe(sinTramo);
+    expect(textoPolitica({ ...base, horasReembolsoParcial: null, porcentajeReembolsoParcial: 50 })).toBe(sinTramo);
   });
 });
 

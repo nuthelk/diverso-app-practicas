@@ -35,3 +35,7 @@ dist/
 *.env
 !*.env.example
 supabase/functions/.env
+
+# Python (pruebas HTTP de pagos)
+__pycache__/
+*.pyc

@@ -9,7 +9,7 @@
  * móvil y en la función SQL version_documentos_legales(): los usuarios
  * deberán aceptar de nuevo.
  */
-export const VERSION_LEGAL = 'v1-2026-10';
+export const VERSION_LEGAL = 'v2-2026-10';
 
 export type TipoConsentimiento = 'tratamiento_datos' | 'terminos_viajero' | 'terminos_agencia';
 
@@ -107,7 +107,7 @@ export const TERMINOS_AGENCIAS: DocumentoLegal = {
       titulo: '3. Comisión y pagos',
       parrafos: [
         'Diverso cobra una comisión por venta efectiva (12 % por defecto), que se descuenta del valor pagado por el viajero. El uso básico de la plataforma no tiene costo fijo.',
-        'Durante el piloto los pagos son simulados; la dispersión real de saldos se habilitará con la integración de la pasarela de pagos.',
+        'Durante el modo de prueba, los cobros a los viajeros se procesan con Wompi en su entorno de pruebas (sandbox) y no se cobra dinero real. La liquidación semanal y los anticipos a las agencias se registran como «Dispersión de prueba»: ese registro no mueve dinero real. Cuando Diverso opere con pagos reales se avisará a las agencias y se actualizará este documento.',
       ],
     },
     {
@@ -161,9 +161,9 @@ export const TERMINOS_VIAJEROS: DocumentoLegal = {
       ],
     },
     {
-      titulo: '5. Pagos en el piloto',
+      titulo: '5. Pagos en modo de prueba',
       parrafos: [
-        'Durante el piloto los pagos son simulados y no se realizan cobros reales.',
+        'Durante el modo de prueba, los pagos se hacen con Wompi en su entorno de pruebas (tarjeta, PSE, Nequi, Daviplata o Bancolombia con datos de prueba) y no se cobra dinero real; los reembolsos por cancelación también son de prueba. Cuando Diverso opere con pagos reales se avisará y se actualizará este documento.',
       ],
     },
   ],

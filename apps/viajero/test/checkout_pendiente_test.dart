@@ -48,6 +48,11 @@ class _Reservas implements BookingService {
   Booking? pendiente;
   bool fallaLaBusqueda = false;
   DiversoException? fallaCancelar;
+
+  /// Error que lanza `crearReserva` (el servidor rechaza la reserva) y, si se indica, la pendiente
+  /// que aparece en ese momento (otra pestaña la creó entre la consulta y el alta).
+  DiversoException? fallaAlCrear;
+  Booking? pendienteTrasFalla;
   final creadas = <String>[];
   final canceladas = <String>[];
   int busquedas = 0;
@@ -61,6 +66,10 @@ class _Reservas implements BookingService {
 
   @override
   Future<CreatedBooking> crearReserva({required String planDateId, required int pax}) async {
+    if (fallaAlCrear != null) {
+      pendiente = pendienteTrasFalla;
+      throw fallaAlCrear!;
+    }
     creadas.add('$planDateId:$pax');
     return CreatedBooking(bookingId: 'nueva-${creadas.length}', codigo: 'DIV-NEW', montoTotal: 1, planTitulo: '');
   }
@@ -152,6 +161,40 @@ void main() {
       expect(abiertos, isEmpty);
       expect(c.pendiente?.id, 'pend-1', reason: 'se muestra el aviso aunque la carga inicial no haya terminado');
       expect(c.procesando, isFalse);
+    });
+
+    test('RESERVA_PENDIENTE_EXISTENTE del servidor (otra pestaña) muestra el aviso de la pendiente, no un error', () async {
+      reservas
+        ..pendiente = null
+        ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
+        ..pendienteTrasFalla = _pendiente();
+      await c.pagar(_fecha, abrir(true));
+      expect(c.pendiente?.id, 'pend-1');
+      expect(c.error, isNull);
+      expect(c.bookingId, isNull);
+      expect(abiertos, isEmpty);
+      expect(c.procesando, isFalse);
+    });
+
+    test('RESERVA_PENDIENTE_EXISTENTE sin poder recuperar la pendiente: mensaje claro, sin abrir el pago', () async {
+      reservas
+        ..pendiente = null
+        ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
+        ..pendienteTrasFalla = null;
+      await c.pagar(_fecha, abrir(true));
+      expect(c.pendiente, isNull);
+      expect(c.error, contains('reserva pendiente'));
+      expect(abiertos, isEmpty);
+    });
+
+    test('PRESERVE: cualquier otro error al crear la reserva se sigue mostrando como error', () async {
+      reservas
+        ..pendiente = null
+        ..fallaAlCrear = DiversoException('SIN_CUPO');
+      await c.pagar(_fecha, abrir(true));
+      expect(c.pendiente, isNull);
+      expect(c.error, DiversoException('SIN_CUPO').mensajeUsuario);
+      expect(abiertos, isEmpty);
     });
 
     test('pagar dos veces reutiliza la misma reserva (solo se crea una)', () async {

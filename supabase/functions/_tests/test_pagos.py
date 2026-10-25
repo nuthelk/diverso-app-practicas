@@ -433,6 +433,20 @@ class TestPagos(unittest.TestCase):
         self.assertEqual((estado, cuerpo["error"]), (405, "METODO_NO_PERMITIDO"))
         self.assertEqual(self.intentos(r), [])
 
+    def test_iniciar_redirect_exige_frontera_de_ruta(self):
+        r = self.reserva()
+        for malo in ("https://diverso.app/pago/resultadoEVIL", "https://diverso.app/pago/resultado-evil?x=1",
+                     "https://diverso.app/pago/resultado/extra", "https://diverso.app/pago/resultado/../otra"):
+            estado, cuerpo = self.iniciar(r, redirect=malo)
+            self.assertEqual((estado, cuerpo["error"]), (400, "REDIRECT_NO_PERMITIDO"), malo)
+        self.assertEqual(self.intentos(r), [], "un redirect rechazado no crea intentos")
+        for bueno in ("https://diverso.app/pago/resultado", "https://diverso.app/pago/resultado?id=1-2-3",
+                      "http://localhost:3000/pago/resultado"):
+            estado, cuerpo = self.iniciar(r, redirect=bueno)
+            self.assertEqual(estado, 200, (bueno, cuerpo))
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(cuerpo["checkout_url"]).query)
+            self.assertEqual(q["redirect-url"], [bueno])
+
     def test_preflight_cors(self):
         req = urllib.request.Request(f"{API}/functions/v1/pagos-iniciar", method="OPTIONS",
                                      headers={"Origin": "http://localhost:8080", "Access-Control-Request-Method": "POST",
@@ -647,6 +661,83 @@ class TestPagos(unittest.TestCase):
         self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
         self.assertEqual(self.pagos(r), [])
 
+    def test_webhook_con_referencia_sin_firmar_de_otro_intento_no_confirma(self):
+        # El checksum cubre id, estado y monto, NO la referencia: un evento firmado con la transacción de A
+        # pero con la referencia de B no puede confirmar la reserva de B (ni la de A: se ignora entero).
+        a, b = self.reserva(), self.reserva(usuario=self.beto)
+        ia, ib = self.intento(a), self.intento(b, self.beto)
+        tx_a = self.mock.transaccion(ia["referencia"], ia["amount_in_cents"])
+        falso = dict(tx_a, reference=ib["referencia"])
+        estado, cuerpo = self.webhook(evento_tx(falso))
+        self.assertEqual((estado, cuerpo.get("ok")), (200, True), cuerpo)
+        self.assertEqual(cuerpo.get("ignorado"), "TRANSACCION_NO_COINCIDE")
+        for reserva in (a, b):
+            self.assertEqual(self.booking(reserva)["estado"], "pendiente_pago")
+            self.assertEqual(self.pagos(reserva), [])
+            self.assertEqual([x["estado"] for x in self.intentos(reserva)], ["pendiente"])
+            self.assertIsNone(self.intentos(reserva)[0]["wompi_transaction_id"])
+        # Lo mismo con la moneda adulterada (no está firmada): se compara contra lo que dice Wompi.
+        falso = dict(tx_a, currency="USD")
+        self.assertEqual(self.webhook(evento_tx(falso))[1].get("ignorado"), "TRANSACCION_NO_COINCIDE")
+        self.assertEqual(self.booking(a)["estado"], "pendiente_pago")
+        # El evento legítimo de A sí confirma A y no toca B.
+        estado, cuerpo = self.webhook(evento_tx(tx_a))
+        self.assertEqual((estado, cuerpo["resultado"]), (200, "confirmada"))
+        self.assertEqual(self.booking(a)["estado"], "confirmada")
+        self.assertEqual(self.booking(b)["estado"], "pendiente_pago")
+
+    def test_webhook_aplica_lo_que_wompi_dice_no_lo_que_trae_el_evento(self):
+        # Evento firmado que anuncia APPROVED, pero Wompi dice que la transacción sigue PENDING.
+        r = self.reserva()
+        i = self.intento(r)
+        tx = self.mock.transaccion(i["referencia"], i["amount_in_cents"], "BANCOLOMBIA_TRANSFER", "", status="PENDING")
+        ev = evento_tx(dict(tx, status="APPROVED"))
+        estado, cuerpo = self.webhook(ev)
+        self.assertEqual((estado, cuerpo["resultado"]), (200, "pendiente"), cuerpo)
+        self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+        self.assertEqual(self.pagos(r), [])
+
+    def test_webhook_de_transaccion_que_wompi_no_conoce_se_ignora_con_200(self):
+        r = self.reserva()
+        i = self.intento(r)
+        inventada = {"id": "9999-1-1", "reference": i["referencia"], "status": "APPROVED",
+                     "amount_in_cents": i["amount_in_cents"], "currency": "COP", "payment_method_type": "CARD"}
+        estado, cuerpo = self.webhook(evento_tx(inventada))
+        self.assertEqual((estado, cuerpo), (200, {"ok": True, "ignorado": "TRANSACCION_DESCONOCIDA"}))
+        self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+        self.assertEqual(self.pagos(r), [])
+        self.assertEqual(self.intentos(r)[0]["estado"], "pendiente")
+
+    def test_cobro_aprobado_con_monto_distinto_se_reembolsa_lo_cobrado(self):
+        for via in ("verificar", "webhook"):
+            with self.subTest(via=via):
+                r = self.reserva()
+                i = self.intento(r)
+                cobrado = i["amount_in_cents"] - 100
+                tx = self.mock.transaccion(i["referencia"], cobrado)
+                if via == "verificar":
+                    estado, cuerpo = self.verificar({"transaction_id": tx["id"]})
+                    self.assertEqual((estado, cuerpo["error"], cuerpo["reembolso"]), (409, "MONTO_NO_COINCIDE", "aprobado"))
+                else:
+                    estado, cuerpo = self.webhook(evento_tx(tx))
+                    self.assertEqual((estado, cuerpo["resultado"]), (200, "monto_no_coincide"))
+                self.assertEqual(self.booking(r)["estado"], "pendiente_pago", "no se confirma")
+                self.assertEqual(self.pagos(r), [], "no cuenta como venta")
+                self.assertEqual(self.intentos(r)[0]["estado"], "monto_no_coincide")
+                rf = self.reembolsos(r)
+                self.assertEqual(len(rf), 1)
+                self.assertEqual((rf[0]["origen"], rf[0]["porcentaje"], round(float(rf[0]["monto"]) * 100), rf[0]["estado"]),
+                                 ("monto_no_coincide", 100, cobrado, "aprobado"))
+                self.assertEqual(rf[0]["wompi_transaction_id"], tx["id"])
+                enviados = [e for e in self.mock.reembolsos() if e["transaction_id"] == tx["id"]]
+                self.assertEqual([(e["amount_in_cents"], e["reference"]) for e in enviados],
+                                 [(cobrado, rf[0]["referencia"])], "Wompi recibe el monto realmente cobrado")
+                # Reintentos (webhook repetido, consulta del viajero): no se pide otro reembolso.
+                self.assertEqual(self.webhook(evento_tx(tx))[1]["resultado"], "monto_no_coincide")
+                self.assertEqual(self.verificar({"transaction_id": tx["id"]})[0], 409)
+                self.assertEqual(len(self.reembolsos(r)), 1)
+                self.assertEqual(len([e for e in self.mock.reembolsos() if e["transaction_id"] == tx["id"]]), 1)
+
     # -- pago aprobado después del vencimiento ---------------------------------
     def vencer(self, reserva):
         vencida = (datetime.now(timezone.utc) - timedelta(minutes=40)).isoformat()
@@ -816,6 +907,31 @@ class TestPagos(unittest.TestCase):
         self.assertEqual((estado, cuerpo["reembolso"]["estado"], cuerpo["reembolso"]["porcentaje"]), (200, "aprobado", 100))
         self.assertEqual(self.mock.reembolsos(), [])
         self.assertEqual(self.pagos(r)[0]["estado"], "reembolsado")
+
+    def test_una_sola_reserva_pendiente_por_viajero_y_fecha(self):
+        r = self.reserva()
+        estado, cuerpo = rpc("create_booking", {"p_plan_date_id": r["plan_date_id"], "p_pax": 1}, jwt=self.ana["jwt"])
+        self.assertEqual(estado, 400, cuerpo)
+        self.assertIn("RESERVA_PENDIENTE_EXISTENTE", cuerpo["message"])
+        self.assertEqual(cuerpo["details"], r["id"], "el detalle trae el id de la reserva pendiente existente")
+        self.assertEqual(self.cupo(r), 8, "el rechazo no retiene cupos")
+        # Otro viajero reserva la misma fecha sin problema; y tras cancelar la pendiente, Ana puede volver a reservar.
+        estado, otra = rpc("create_booking", {"p_plan_date_id": r["plan_date_id"], "p_pax": 1}, jwt=self.beto["jwt"])
+        self.assertEqual(estado, 200, otra)
+        self.assertEqual(self.cancelar(r)[0], 200)
+        estado, nueva = rpc("create_booking", {"p_plan_date_id": r["plan_date_id"], "p_pax": 1}, jwt=self.ana["jwt"])
+        self.assertEqual(estado, 200, nueva)
+        # Peticiones simultáneas del mismo viajero para otra fecha: solo una reserva queda pendiente.
+        r2 = self.reserva(usuario=self.beto)
+        resultados = []
+        hilos = [threading.Thread(target=lambda: resultados.append(
+            rpc("create_booking", {"p_plan_date_id": r2["plan_date_id"], "p_pax": 1}, jwt=self.ana["jwt"])[0]))
+            for _ in range(4)]
+        for h in hilos:
+            h.start()
+        for h in hilos:
+            h.join()
+        self.assertEqual(sorted(resultados), [200, 400, 400, 400], resultados)
 
     # -- el viajero ya no puede saltarse la pasarela ---------------------------------
     def test_el_viajero_no_puede_confirmar_ni_cancelar_por_postgrest(self):

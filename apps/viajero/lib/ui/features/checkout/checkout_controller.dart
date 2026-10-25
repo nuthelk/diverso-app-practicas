@@ -56,7 +56,16 @@ class CheckoutController extends ChangeNotifier {
           pendiente = existente;
           return;
         }
-        bookingId = (await _reservas.crearReserva(planDateId: fecha.id, pax: pax)).bookingId;
+        try {
+          bookingId = (await _reservas.crearReserva(planDateId: fecha.id, pax: pax)).bookingId;
+        } on DiversoException catch (e) {
+          // El servidor también impide la segunda pendiente (otra pestaña o dispositivo la abrió entre la
+          // consulta y el alta): se muestra el mismo aviso de la reserva pendiente en vez de un error.
+          if (e.codigo != 'RESERVA_PENDIENTE_EXISTENTE') rethrow;
+          pendiente = await _reservas.reservaPendiente(fecha.id);
+          if (pendiente == null) rethrow;
+          return;
+        }
       }
       await _abrir(abrirPago);
     });

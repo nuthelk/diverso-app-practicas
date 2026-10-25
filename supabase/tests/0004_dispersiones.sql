@@ -771,4 +771,96 @@ update public.agencies set descripcion = 'sigue editable' where id = pg_temp.ag(
 reset role;
 select pg_temp.ok((select descripcion = 'sigue editable' from agencies where id = pg_temp.ag('D')), 'el dueño sigue editando su agencia');
 
+-- 9. Escenario calculado a mano por la verificación independiente (T6a): anticipos, retención, ajuste y saldo anterior --
+-- Una agencia con 10 servicios prestados y siete reservas de marzo de 2030 (lunes 4 a lunes 11):
+--   b1 10-mar 100.000 · b2 6-mar 300.000 · b3 8-mar 200.000 · b4 5-mar 150.000 · b5 5-mar 100.000 · b6 11-mar 50.000 · b7 7-mar 80.000
+-- Anticipos «a las 12:00 UTC del 4-mar» (salida entre ahora y +48 h): b2, b4 y b5.
+-- Después: b3 se cancela con reembolso del 50 % aprobado, b4 sin reembolso (0 %), b5 con reembolso del 100 %,
+-- y existe una semanal anterior con saldo de −5.000.
+select pg_temp.mk_agencia('V', '99990', null);
+select pg_temp.mk_pasados(pg_temp.ag('V'), 10);
+select pg_temp.mk_serv('v1', pg_temp.ag('V'), date '2030-03-10', time '06:00', 100000);
+select pg_temp.mk_serv('v2', pg_temp.ag('V'), date '2030-03-06', time '06:00', 300000);
+select pg_temp.mk_serv('v3', pg_temp.ag('V'), date '2030-03-08', time '06:00', 200000);
+select pg_temp.mk_serv('v4', pg_temp.ag('V'), date '2030-03-05', time '06:00', 150000);
+select pg_temp.mk_serv('v5', pg_temp.ag('V'), date '2030-03-05', time '06:00', 100000);
+select pg_temp.mk_serv('v6', pg_temp.ag('V'), date '2030-03-11', time '06:00', 50000);
+select pg_temp.mk_serv('v7', pg_temp.ag('V'), date '2030-03-07', time '06:00', 80000);
+
+select pg_temp.ok(((date '2030-03-06' + time '06:00') at time zone 'America/Bogota') = timestamptz '2030-03-06 11:00+00',
+                  'la salida de las 06:00 de Bogotá es las 11:00 UTC');
+select pg_temp.ok(pg_temp.ag('V') is not null and public.contar_servicios_prestados(pg_temp.ag('V'), timestamptz '2030-03-04 12:00+00') = 10,
+                  'la agencia llega al anticipo con exactamente 10 servicios prestados');
+
+select pg_temp.guarda('v_ant', public.procesar_anticipos(timestamptz '2030-03-04 12:00+00')::text);
+select pg_temp.ok((select count(*) = 3 from liquidacion_items i where i.tipo = 'anticipo'
+                      and i.booking_id in (pg_temp.b('v1'), pg_temp.b('v2'), pg_temp.b('v3'), pg_temp.b('v4'), pg_temp.b('v5'),
+                                           pg_temp.b('v6'), pg_temp.b('v7'))),
+                  'anticipo solo para las reservas que salen en las próximas 48 h (b2, b4, b5)');
+select pg_temp.ok((select (monto_bruto, comision, monto_neto) = (90000, 10800, 79200) from liquidacion_items where booking_id = pg_temp.b('v2') and tipo = 'anticipo'),
+                  'anticipo de b2: 30 % de 300.000 = 90.000 − 10.800 de comisión = 79.200');
+select pg_temp.ok((select (monto_bruto, comision, monto_neto) = (45000, 5400, 39600) from liquidacion_items where booking_id = pg_temp.b('v4') and tipo = 'anticipo'),
+                  'anticipo de b4: 45.000 − 5.400 = 39.600');
+select pg_temp.ok((select (monto_bruto, comision, monto_neto) = (30000, 3600, 26400) from liquidacion_items where booking_id = pg_temp.b('v5') and tipo = 'anticipo'),
+                  'anticipo de b5: 30.000 − 3.600 = 26.400');
+select pg_temp.ok((select (count(*), sum(monto_bruto), sum(comision), sum(monto_neto), min(estado)) = (1, 165000, 19800, 145200, 'pendiente')
+                     from liquidaciones where agency_id = pg_temp.ag('V') and tipo = 'anticipo'),
+                  'una liquidación de anticipo por 165.000 − 19.800 = 145.200');
+select public.procesar_anticipos(timestamptz '2030-03-04 12:30+00');
+select pg_temp.ok((select count(*) = 3 from liquidacion_items i join liquidaciones l on l.id = i.liquidacion_id
+                    where l.agency_id = pg_temp.ag('V') and i.tipo = 'anticipo')
+                  and (select count(*) = 1 from liquidaciones where agency_id = pg_temp.ag('V') and tipo = 'anticipo'),
+                  'repetir los anticipos no crea nada nuevo para la agencia (idempotente)');
+
+select pg_temp.reembolsar(pg_temp.b('v3'), 50, 'aprobado');
+select pg_temp.cancelar_sin_reembolso(pg_temp.b('v4'));
+select pg_temp.reembolsar(pg_temp.b('v5'), 100, 'aprobado');
+insert into liquidaciones (agency_id, tipo, periodo_inicio, periodo_fin, monto_bruto, comision, monto_neto, monto_a_pagar)
+values (pg_temp.ag('V'), 'semanal', date '2030-02-25', date '2030-03-03', -5000, 0, -5000, -5000);
+
+select pg_temp.falla_con($q$select public.procesar_liquidaciones(date '2030-03-11', timestamptz '2030-03-11 12:00+00')$q$,
+                         'SEMANA_NO_TERMINADA', 'la semana en curso no se liquida');
+select pg_temp.guarda('v_sem', public.procesar_liquidaciones(null, timestamptz '2030-03-11 12:00+00')::text);
+select pg_temp.ok((pg_temp.r('v_sem')->>'periodo_inicio') = '2030-03-04' and (pg_temp.r('v_sem')->>'periodo_fin') = '2030-03-10',
+                  'la semanal liquida el lunes 4 al domingo 10 de marzo');
+
+create or replace function pg_temp.item(p_clave text, p_tipo text) returns numeric[] language sql as $$
+  select array[i.monto_bruto, i.comision, i.monto_neto]
+    from liquidacion_items i join liquidaciones l on l.id = i.liquidacion_id
+   where l.agency_id = pg_temp.ag('V') and l.tipo = 'semanal' and i.tipo = p_tipo
+     and i.booking_id = pg_temp.b(p_clave) $$;
+select pg_temp.ok(pg_temp.item('v1', 'servicio') = array[100000, 12000, 88000]::numeric[], 'servicio b1: 100.000 − 12.000 = 88.000');
+select pg_temp.ok(pg_temp.item('v2', 'servicio') = array[300000, 36000, 264000]::numeric[], 'servicio b2: 300.000 − 36.000 = 264.000');
+select pg_temp.ok(pg_temp.item('v7', 'servicio') = array[80000, 9600, 70400]::numeric[], 'servicio b7: 80.000 − 9.600 = 70.400');
+select pg_temp.ok(pg_temp.item('v3', 'retencion') = array[100000, 12000, 88000]::numeric[],
+                  'retención b3: lo no reembolsado (50 % de 200.000) menos comisión');
+select pg_temp.ok(pg_temp.item('v4', 'retencion') = array[150000, 18000, 132000]::numeric[],
+                  'retención b4: cancelada sin reembolso, todo es de la agencia menos comisión');
+select pg_temp.ok(pg_temp.item('v5', 'ajuste') = array[-30000, -3600, -26400]::numeric[],
+                  'ajuste b5: reembolso del 100 % devuelve el anticipo (−30.000 / −3.600 / −26.400)');
+select pg_temp.ok((select count(*) = 0 from liquidacion_items i where i.booking_id in (pg_temp.b('v6'))),
+                  'b6 (11-mar) cae en la semana siguiente: no entra');
+select pg_temp.ok((select (i.monto_bruto, i.monto_neto) = (-5000, -5000) and i.comision = 0
+                     from liquidacion_items i join liquidaciones l on l.id = i.liquidacion_id
+                    where l.agency_id = pg_temp.ag('V') and l.tipo = 'semanal' and l.periodo_inicio = date '2030-03-04'
+                      and i.tipo = 'saldo_anterior'),
+                  'la semanal anterior con saldo −5.000 entra como saldo_anterior');
+select pg_temp.ok((select (monto_bruto, comision, monto_neto, anticipos_descontados, monto_a_pagar, estado)
+                          = (695000, 84000, 611000, 118800, 492200, 'pendiente')
+                     from liquidaciones where agency_id = pg_temp.ag('V') and tipo = 'semanal' and periodo_inicio = date '2030-03-04'),
+                  'totales: bruto 695.000, comisión 84.000, neto 611.000, anticipos descontados 118.800, a pagar 492.200');
+select pg_temp.ok((select estado = 'compensada' and compensada_en = (select id from liquidaciones where agency_id = pg_temp.ag('V')
+                                                                      and tipo = 'semanal' and periodo_inicio = date '2030-03-04')
+                     from liquidaciones where agency_id = pg_temp.ag('V') and periodo_inicio = date '2030-02-25'),
+                  'la semanal anterior queda compensada en la nueva');
+select pg_temp.ok((public.procesar_liquidaciones(null, timestamptz '2030-03-11 13:00+00')->>'liquidaciones')::int = 0
+                  and (select count(*) = 2 from liquidaciones where agency_id = pg_temp.ag('V') and tipo = 'semanal'),
+                  'segunda corrida de la semana: 0 liquidaciones nuevas (idempotente)');
+select pg_temp.como(null, 'service_role');
+set role service_role;
+select pg_temp.falla_con(format($q$select public.ejecutar_liquidacion(%L)$q$,
+                         (select id from public.liquidaciones where agency_id = pg_temp.ag('V') and tipo = 'semanal' and estado = 'pendiente')),
+                         'CUENTA_NO_REGISTRADA', 'sin cuenta para dispersiones no se ejecuta');
+reset role;
+
 rollback;

@@ -201,6 +201,7 @@ describe('mensajeError', () => {
     ['CUENTA_NO_REGISTRADA', /cuenta para dispersiones/],
     ['LIQUIDACION_NO_PENDIENTE', /ya fue ejecutada/],
     ['MONTO_NO_POSITIVO', /cero o negativo/],
+    ['FECHA_CON_RESERVAS', /reservas activas/],
   ])('traduce %s', (codigo, esperado) => {
     expect(mensajeError(new Error(`${codigo}`))).toMatch(esperado);
   });

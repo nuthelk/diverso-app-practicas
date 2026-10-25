@@ -74,9 +74,17 @@ export function cargarConfig(leer: LectorEnv): ConfigWompi {
     }
   }
 
+  // Una entrada mal escrita es un error de configuración (503), nunca un 500 ni una lista que deje pasar todo.
   const redirects = (leer("PAGOS_REDIRECT_ALLOWLIST") || REDIRECT_POR_DEFECTO)
     .split(",").map((s) => s.trim()).filter(Boolean)
-    .map((s) => new URL(s));
+    .map((s) => {
+      const u = url(s, "PAGOS_REDIRECT_ALLOWLIST");
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        soloPrueba("PAGOS_REDIRECT_ALLOWLIST solo admite URLs http(s)");
+      }
+      return u;
+    });
+  if (redirects.length === 0) soloPrueba("PAGOS_REDIRECT_ALLOWLIST no tiene ninguna URL");
 
   return {
     entorno,
@@ -90,7 +98,11 @@ export function cargarConfig(leer: LectorEnv): ConfigWompi {
   };
 }
 
-/** El retorno de Wompi solo puede ir a un origen permitido y, si la entrada trae ruta, bajo esa ruta. */
+/**
+ * El retorno de Wompi solo puede ir a un origen permitido. Una entrada que termina en «/» (p. ej. el origen
+ * completo) autoriza todo lo que cuelga de ella; una entrada con ruta exacta (p. ej. /pago/resultado) autoriza solo
+ * esa ruta: la consulta (?id=…) y el fragmento no forman parte de la ruta, y /pago/resultadoEVIL no coincide.
+ */
 export function redirectPermitido(candidato: string, permitidos: URL[]): boolean {
   let u: URL;
   try {
@@ -99,5 +111,7 @@ export function redirectPermitido(candidato: string, permitidos: URL[]): boolean
     return false;
   }
   if (u.username || u.password) return false;
-  return permitidos.some((p) => p.origin === u.origin && u.pathname.startsWith(p.pathname));
+  return permitidos.some((p) =>
+    p.origin === u.origin && (p.pathname.endsWith("/") ? u.pathname.startsWith(p.pathname) : u.pathname === p.pathname)
+  );
 }

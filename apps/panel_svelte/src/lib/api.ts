@@ -309,6 +309,8 @@ const ERRORES: Record<string, string> = {
   LIQUIDACION_NO_PENDIENTE: 'Esa liquidación ya fue ejecutada o anulada.',
   CUENTA_NO_REGISTRADA: 'La agencia aún no registró su cuenta para dispersiones.',
   MONTO_NO_POSITIVO: 'El monto a pagar es cero o negativo: no hay nada que dispersar.',
+  FECHA_CON_RESERVAS:
+    'Esa fecha tiene reservas activas (pendientes de pago o confirmadas): no se puede mover ni eliminar.',
   agency_payout_accounts_numero_cuenta_check: 'El número de cuenta debe tener de 6 a 20 dígitos.',
   agency_payout_accounts_numero_documento_check: 'El documento debe tener de 4 a 20 caracteres, sin puntos ni espacios.',
   agency_payout_accounts_titular_check: 'Escribe el nombre del titular (mínimo 3 caracteres).',

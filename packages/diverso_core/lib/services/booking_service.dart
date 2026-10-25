@@ -33,6 +33,15 @@ class DiversoException implements Exception {
     if (error is PostgrestException) {
       // Las RPC elevan raise exception 'CODIGO'; PostgREST lo devuelve en message.
       final msg = error.message.trim();
+      // `raise exception 'RESERVA_PENDIENTE_EXISTENTE' using detail = <id de la reserva existente>`.
+      if (msg.contains('RESERVA_PENDIENTE_EXISTENTE')) {
+        final id = error.details?.toString();
+        return DiversoException(
+          'RESERVA_PENDIENTE_EXISTENTE',
+          msg,
+          id == null || id.isEmpty ? null : {'booking_id': id},
+        );
+      }
       final conocidos = [
         'SIN_CUPO',
         'PAX_INVALIDO',
@@ -74,6 +83,8 @@ class DiversoException implements Exception {
         return 'Esa fecha ya pasó. Elige una salida próxima.';
       case 'PLAN_NO_PUBLICADO':
         return 'Este plan ya no está disponible.';
+      case 'RESERVA_PENDIENTE_EXISTENTE':
+        return 'Ya tienes una reserva pendiente de pago para esta fecha. Complétala o cancélala para empezar de nuevo.';
       case 'RESERVA_NO_EXISTE':
         return 'No encontramos esa reserva.';
       case 'NO_AUTENTICADO':

@@ -6,7 +6,8 @@
 // POST { transaction_id } | { booking_id } →
 //   200 { estado_pago: 'aprobado'|'rechazado'|'pendiente'|'error', metodo, referencia,
 //         booking: { id, codigo, estado } }
-//   409 MONTO_NO_COINCIDE · 409 RESERVA_VENCIDA (+ estado_pago:'aprobado_tarde', reembolso)
+//   409 MONTO_NO_COINCIDE (+ reembolso del 100 % de lo cobrado) ·
+//   409 RESERVA_VENCIDA (+ estado_pago:'aprobado_tarde', reembolso)
 import { ApiError, exigirPost, json, leerJson, manejar, UUID } from "../_shared/http.ts";
 import { contexto } from "../_shared/runtime.ts";
 import { seleccionar, usuarioDesdeJwt } from "../_shared/db.ts";
@@ -109,8 +110,13 @@ Deno.serve(manejar(async (req) => {
   switch (resultado.resultado) {
     case "referencia_desconocida":
       throw new ApiError(404, "REFERENCIA_DESCONOCIDA");
-    case "monto_no_coincide":
-      throw new ApiError(409, "MONTO_NO_COINCIDE");
+    case "monto_no_coincide": {
+      // Wompi cobró un monto o moneda distintos de los de la reserva: no se confirma y se devuelve lo cobrado.
+      const reembolso = resultado.refund_id
+        ? await procesarReembolso(env, wompi, resultado.refund_id)
+        : (resultado.refund_estado ?? "no_aplica");
+      throw new ApiError(409, "MONTO_NO_COINCIDE", { reembolso, referencia });
+    }
     case "aprobado_tarde":
     case "ya_aprobado_tarde": {
       // El cobro llegó cuando la reserva ya no estaba disponible: se devuelve completo.

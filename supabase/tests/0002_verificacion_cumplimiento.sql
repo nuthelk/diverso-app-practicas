@@ -129,6 +129,11 @@ update plan_dates set cupo_disponible = 1 where id = current_setting('t.fecha_ok
 set role authenticated;
 select create_booking(current_setting('t.fecha_ok')::uuid, 1);
 select pg_temp.falla_con(format('select create_booking(%L, 1)', current_setting('t.fecha_ok')),
+                         'RESERVA_PENDIENTE_EXISTENTE', 'el mismo viajero no abre una segunda reserva pendiente de la fecha (0005)');
+reset role;
+select pg_temp.como('santiago@demo.com');
+set role authenticated;
+select pg_temp.falla_con(format('select create_booking(%L, 1)', current_setting('t.fecha_ok')),
                          'SIN_CUPO', 'el último cupo no se vende dos veces');
 reset role;
 
@@ -136,7 +141,7 @@ reset role;
 -- auth.users.id no tiene valor por defecto en las versiones recientes de Auth.
 insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data)
 values (gen_random_uuid(), 'atacante@x.com', '{"nombre":"X","rol":"admin"}', '{}'),
-       (gen_random_uuid(), 'nuevo@x.com', '{"nombre":"Nuevo","rol":"viajero","consentimiento_version":"v1-2026-10"}', '{}'),
+       (gen_random_uuid(), 'nuevo@x.com', '{"nombre":"Nuevo","rol":"viajero","consentimiento_version":"v2-2026-10"}', '{}'),
        (gen_random_uuid(), 'sinconsent@x.com', '{"nombre":"Sin","rol":"viajero"}', '{}');
 select pg_temp.ok((select rol = 'viajero' from profiles p join auth.users u on u.id = p.id
                     where u.email = 'atacante@x.com'),
@@ -156,7 +161,7 @@ select pg_temp.falla_con($$select registrar_consentimiento('tratamiento_datos', 
 select registrar_consentimiento('tratamiento_datos', version_documentos_legales());
 select registrar_consentimiento('terminos_viajero', version_documentos_legales());
 select pg_temp.ok(cardinality(consentimientos_pendientes()) = 0, 'tras aceptar no quedan pendientes');
-select pg_temp.falla_con($$insert into consents (user_id, tipo, version) values (auth.uid(), 'terminos_agencia', 'v1-2026-10')$$,
+select pg_temp.falla_con($$insert into consents (user_id, tipo, version) values (auth.uid(), 'terminos_agencia', 'v2-2026-10')$$,
                          'row-level security', 'no se insertan consentimientos directamente');
 reset role;
 
