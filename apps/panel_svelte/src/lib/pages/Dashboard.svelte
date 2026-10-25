@@ -4,8 +4,11 @@
   import StatusPill from '../components/StatusPill.svelte';
   import Empty from '../components/Empty.svelte';
   import { misVentas, mensajeError } from '../api';
-  import { cop, fechaCorta, fechaLarga, fechaTexto } from '../format';
-  import { fechasFuturas, estadoVigencia, type Agency, type Plan, type VentaRow } from '../types';
+  import { cop, fechaCorta, fechaLarga } from '../format';
+  import type { Agency, Plan, VentaRow } from '../types';
+  import { ventasPagadas, totalesVentas } from '../ventas';
+  import { resumenOcupacion, proximasSalidas } from '../ocupacion';
+  import { etiquetaEstadoAgencia } from '../agencias';
   import { go } from '../router.svelte';
 
   let cargando = $state(true);
@@ -33,57 +36,12 @@
   cargar();
 
   // Ventas efectivas: reservas pagadas, ya sea por viajar (confirmada) o realizadas (completada).
-  const confirmadas = $derived(
-    ventasLista.filter((v) => v.booking_estado === 'confirmada' || v.booking_estado === 'completada'),
-  );
-  const totalVentas = $derived(confirmadas.reduce((s, v) => s + v.monto_total, 0));
-  const comision = $derived(confirmadas.reduce((s, v) => s + v.comision, 0));
-  const saldo = $derived(confirmadas.reduce((s, v) => s + v.saldo_agencia, 0));
+  const confirmadas = $derived(ventasPagadas(ventasLista));
+  const totales = $derived(totalesVentas(confirmadas));
 
-  // Resumen agregado de ocupación (próximas 8 semanas).
-  const resumenOcupacion = $derived.by(() => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const fin = new Date(hoy);
-    fin.setDate(hoy.getDate() + 56);
-    let vendidos = 0;
-    let total = 0;
-    for (const p of planes) {
-      for (const d of p.plan_dates) {
-        const f = new Date(d.fecha + 'T00:00:00');
-        if (f >= hoy && f < fin) {
-          vendidos += d.cupo_total - d.cupo_disponible;
-          total += d.cupo_total;
-        }
-      }
-    }
-    return { vendidos, total, ocup: total === 0 ? 0 : vendidos / total };
-  });
-
-  // Salidas futuras con su nivel de llenado, de la más llena a la más vacía.
-  const proximas = $derived.by(() => {
-    const lista = planes.flatMap((p) =>
-      fechasFuturas(p).map((d) => ({
-        fecha: d.fecha,
-        titulo: p.titulo,
-        cupos: d.cupo_disponible,
-        total: d.cupo_total,
-        vendidos: d.cupo_total - d.cupo_disponible,
-        ocup: d.cupo_total === 0 ? 0 : (d.cupo_total - d.cupo_disponible) / d.cupo_total,
-      })),
-    );
-    return lista.sort((a, b) => b.ocup - a.ocup || a.fecha.localeCompare(b.fecha)).slice(0, 6);
-  });
-
-  const labelEstado = $derived.by(() => {
-    const a = agencia;
-    if (!a) return '';
-    if (a.estado_verificacion === 'rechazado') return 'Verificación rechazada';
-    if (a.estado_verificacion === 'pendiente') return 'En verificación';
-    const est = estadoVigencia(a);
-    if (est === 'vencido' || est === 'sin_vigencia') return 'Verificada · RNT vencido';
-    return `Verificada ✓ · RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`;
-  });
+  const resumen = $derived(resumenOcupacion(planes));
+  const proximas = $derived(proximasSalidas(planes));
+  const labelEstado = $derived(etiquetaEstadoAgencia(agencia));
 </script>
 
 {#if cargando}
@@ -120,9 +78,9 @@
 
     <!-- Métricas -->
     <div class="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-      <StatCard icono={'💵'} valor={cop(totalVentas)} etiqueta="Ventas pagadas" />
-      <StatCard icono={'📊'} valor={'- ' + cop(comision)} etiqueta="Comisión Diverso" color="bg-orange-500/15 text-orange-600" />
-      <StatCard icono={'🏦'} valor={cop(saldo)} etiqueta="Tu saldo a recibir" color="bg-ok-500/15 text-ok-600" />
+      <StatCard icono={'💵'} valor={cop(totales.total)} etiqueta="Ventas pagadas" />
+      <StatCard icono={'📊'} valor={'- ' + cop(totales.comision)} etiqueta="Comisión Diverso" color="bg-orange-500/15 text-orange-600" />
+      <StatCard icono={'🏦'} valor={cop(totales.saldo)} etiqueta="Tu saldo a recibir" color="bg-ok-500/15 text-ok-600" />
       <StatCard icono={'🎟️'} valor={String(confirmadas.length)} etiqueta="Reservas pagadas" />
     </div>
 
@@ -133,8 +91,8 @@
           OCUPACIÓN POR SALIDA · DE LA MÁS LLENA A LA MÁS VACÍA
         </h2>
         <p class="mt-0.5 text-[12px] text-slate-400">
-          {resumenOcupacion.vendidos} de {resumenOcupacion.total} cupos vendidos en las próximas 8
-          semanas ({(resumenOcupacion.ocup * 100).toFixed(0)}%)
+          {resumen.vendidos} de {resumen.total} cupos vendidos en las próximas 8
+          semanas ({(resumen.ocup * 100).toFixed(0)}%)
         </p>
       </div>
       <a href="#/planes" class="text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300"

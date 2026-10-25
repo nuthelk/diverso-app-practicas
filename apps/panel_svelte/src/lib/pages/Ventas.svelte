@@ -5,12 +5,13 @@
   import { misVentas, mensajeError } from '../api';
   import { cop, fechaCorta } from '../format';
   import type { VentaRow } from '../types';
+  import { ventasPagadas, totalesVentas, filtrarVentas, type FiltroVentas } from '../ventas';
 
   let cargando = $state(true);
   let error = $state('');
   let ventas = $state<VentaRow[]>([]);
   let comisionPct = $state(12);
-  let filtro = $state<'todas' | 'confirmadas' | 'pendientes'>('todas');
+  let filtro = $state<FiltroVentas>('todas');
 
   async function cargar() {
     cargando = true;
@@ -30,18 +31,8 @@
     cargar();
   });
 
-  const confirmadas = $derived(
-    ventas.filter((v) => v.booking_estado === 'confirmada' || v.booking_estado === 'completada'),
-  );
-  const filtradas = $derived(
-    filtro === 'confirmadas'
-      ? confirmadas
-      : filtro === 'pendientes'
-        ? ventas.filter((v) => v.booking_estado === 'pendiente_pago')
-        : ventas,
-  );
-  const totalComision = $derived(confirmadas.reduce((s, v) => s + v.comision, 0));
-  const saldoTotal = $derived(confirmadas.reduce((s, v) => s + v.saldo_agencia, 0));
+  const filtradas = $derived(filtrarVentas(ventas, filtro));
+  const totales = $derived(totalesVentas(ventasPagadas(ventas)));
 </script>
 
 {#if cargando}
@@ -85,19 +76,19 @@
       <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
         <div class="text-[12px] text-slate-500 dark:text-slate-400">Ventas pagadas</div>
         <div class="mt-0.5 text-[17px] font-extrabold text-brand-700 tabular-nums dark:text-brand-200">
-          {cop(confirmadas.reduce((s, v) => s + v.monto_total, 0))}
+          {cop(totales.total)}
         </div>
       </div>
       <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
         <div class="text-[12px] text-slate-500 dark:text-slate-400">Comisión ({comisionPct}%)</div>
         <div class="mt-0.5 text-[17px] font-extrabold text-orange-600 tabular-nums">
-          - {cop(totalComision)}
+          - {cop(totales.comision)}
         </div>
       </div>
       <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
         <div class="text-[12px] text-slate-500 dark:text-slate-400">Saldo a recibir</div>
         <div class="mt-0.5 text-[17px] font-extrabold text-ok-600 tabular-nums">
-          {cop(saldoTotal)}
+          {cop(totales.saldo)}
         </div>
       </div>
     </div>

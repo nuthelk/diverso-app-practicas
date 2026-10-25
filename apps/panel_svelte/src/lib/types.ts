@@ -207,8 +207,8 @@ export function draftToRow(d: PlanDraft) {
 }
 
 /** Fechas futuras con cupos, ordenadas (mismas reglas que el panel Flutter). */
-export function fechasFuturas(plan: Plan): PlanDate[] {
-  const hoy = new Date();
+export function fechasFuturas(plan: Plan, ahora = new Date()): PlanDate[] {
+  const hoy = new Date(ahora);
   hoy.setHours(0, 0, 0, 0);
   return plan.plan_dates
     .filter((d) => new Date(d.fecha + 'T00:00:00') >= hoy && d.cupo_disponible > 0)

@@ -15,21 +15,20 @@
   import { auth, signOut } from '../auth.svelte';
   import { avisar } from '../toast.svelte';
   import { fechaTexto } from '../format';
+  import { estadoVigencia, vigenciaSugerida, type Agency, type VerificationLog } from '../types';
   import {
-    estadoVigencia,
-    diasParaVencer,
-    vigenciaSugerida,
-    type Agency,
-    type VerificationLog,
-  } from '../types';
+    conteosAgencias,
+    filtrarAgencias,
+    textoVigencia,
+    type FiltroAgencias,
+  } from '../agencias';
 
-  type Filtro = 'pendientes' | 'atencion' | 'verificadas' | 'rechazadas' | 'todas';
   type Accion = { tipo: 'verificar' | 'rechazar' | 'vigencia'; agencia: Agency };
 
   let cargando = $state(true);
   let error = $state('');
   let agencias = $state<Agency[]>([]);
-  let filtro = $state<Filtro>('pendientes');
+  let filtro = $state<FiltroAgencias>('pendientes');
   let busqueda = $state('');
   let filtroElegido = false;
 
@@ -60,46 +59,10 @@
   }
   cargar();
 
-  /** Verificada pero con RNT vencido, por vencer o sin vigencia registrada. */
-  function requiereAtencion(a: Agency): boolean {
-    return a.estado_verificacion === 'verificado' && estadoVigencia(a) !== 'vigente';
-  }
+  const conteos = $derived(conteosAgencias(agencias));
+  const visibles = $derived(filtrarAgencias(agencias, filtro, busqueda));
 
-  const conteos = $derived({
-    pendientes: agencias.filter((a) => a.estado_verificacion === 'pendiente').length,
-    atencion: agencias.filter(requiereAtencion).length,
-    verificadas: agencias.filter((a) => a.estado_verificacion === 'verificado').length,
-    rechazadas: agencias.filter((a) => a.estado_verificacion === 'rechazado').length,
-    todas: agencias.length,
-  });
-
-  const visibles = $derived.by(() => {
-    const q = busqueda.trim().toLowerCase();
-    return agencias
-      .filter((a) => {
-        switch (filtro) {
-          case 'pendientes':
-            return a.estado_verificacion === 'pendiente';
-          case 'atencion':
-            return requiereAtencion(a);
-          case 'verificadas':
-            return a.estado_verificacion === 'verificado';
-          case 'rechazadas':
-            return a.estado_verificacion === 'rechazado';
-          default:
-            return true;
-        }
-      })
-      .filter(
-        (a) =>
-          !q ||
-          a.nombre.toLowerCase().includes(q) ||
-          a.numero_rnt.includes(q) ||
-          a.ciudad.toLowerCase().includes(q),
-      );
-  });
-
-  const FILTROS: { valor: Filtro; etiqueta: string }[] = [
+  const FILTROS: { valor: FiltroAgencias; etiqueta: string }[] = [
     { valor: 'pendientes', etiqueta: 'Por verificar' },
     { valor: 'atencion', etiqueta: 'RNT por renovar' },
     { valor: 'verificadas', etiqueta: 'Verificadas' },
@@ -165,26 +128,6 @@
     reverificacion_requerida: 'Cambió RNT o matrícula · vuelve a verificación',
     vigencia_actualizada: 'Vigencia del RNT actualizada',
   };
-
-  function textoVigencia(a: Agency): { texto: string; clase: string } {
-    const dias = diasParaVencer(a);
-    switch (estadoVigencia(a)) {
-      case 'vencido':
-        return { texto: `RNT vencido hace ${Math.abs(dias!)} ${Math.abs(dias!) === 1 ? 'día' : 'días'}`, clase: 'text-red-600' };
-      case 'por_vencer':
-        return {
-          texto: dias === 0 ? 'RNT vence hoy' : `RNT vence en ${dias} ${dias === 1 ? 'día' : 'días'}`,
-          clase: 'text-orange-600',
-        };
-      case 'sin_vigencia':
-        return { texto: 'Sin vigencia registrada', clase: 'text-slate-400' };
-      default:
-        return {
-          texto: `RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`,
-          clase: 'text-ok-600 dark:text-ok-500',
-        };
-    }
-  }
 
   const hoyISO = new Date().toISOString().slice(0, 10);
 </script>
