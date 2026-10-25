@@ -1,6 +1,8 @@
 -- Pruebas de la migración 0002 (verificación de agencias y consentimientos).
--- Uso: supabase db reset  →  psql "postgresql://postgres:postgres@127.0.0.1:54332/postgres" -f supabase/tests/0002_verificacion_cumplimiento.sql
--- Modifica datos demo: al terminar, vuelve a ejecutar supabase db reset.
+-- Uso (siempre dentro de una transacción que se deshace, porque modifica datos demo):
+--   (echo 'begin;'; cat supabase/tests/0002_verificacion_cumplimiento.sql; echo 'rollback;') \
+--     | docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1
+-- No ejecutes este archivo sin el envoltorio begin … rollback.
 \set ON_ERROR_STOP 1
 create or replace function pg_temp.como(p_email text) returns void language plpgsql as $$
 begin
