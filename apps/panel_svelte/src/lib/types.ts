@@ -14,6 +14,8 @@ export interface Agency {
   whatsapp: string;
   descripcion: string;
   comision_pct: number;
+  /** Lo gestiona el admin: una agencia bloqueada no recibe anticipos. */
+  anticipo_bloqueado?: boolean;
   estado_verificacion: VerificationStatus;
   rnt_vigente_hasta: string | null; // yyyy-mm-dd
   verificado_at: string | null;
@@ -91,6 +93,11 @@ export interface Plan {
   incluye_hospedaje: boolean;
   itinerario: { hora: string; actividad: string }[];
   politica_cancelacion: string;
+  horas_cancelacion_gratuita: number;
+  horas_reembolso_parcial: number | null;
+  porcentaje_reembolso_parcial: number | null;
+  /** time de Postgres: «06:00:00». */
+  hora_salida: string;
   fotos: string[];
   estado: PlanStatus;
   rating_promedio: number;
@@ -150,7 +157,13 @@ export interface PlanDraft {
   incluyeComida: boolean;
   incluyeHospedaje: boolean;
   itinerario: ItinerarioPaso[];
+  /** Texto derivado de los números de abajo (lo genera conPoliticaGenerada al guardar). */
   politicaCancelacion: string;
+  horasCancelacionGratuita: number;
+  horasReembolsoParcial: number | null;
+  porcentajeReembolsoParcial: number | null;
+  /** HH:MM, hora de Colombia: base de la ventana de cancelación. */
+  horaSalida: string;
   fotos: string[];
 }
 
@@ -171,6 +184,10 @@ export function draftVacio(): PlanDraft {
     incluyeHospedaje: false,
     itinerario: [],
     politicaCancelacion: '',
+    horasCancelacionGratuita: 48,
+    horasReembolsoParcial: null,
+    porcentajeReembolsoParcial: null,
+    horaSalida: '06:00',
     fotos: [],
   };
 }
@@ -202,6 +219,11 @@ export function draftToRow(d: PlanDraft) {
     incluye_hospedaje: d.incluyeHospedaje,
     itinerario: d.itinerario,
     politica_cancelacion: d.politicaCancelacion,
+    horas_cancelacion_gratuita: d.horasCancelacionGratuita,
+    // Un campo numérico vacío llega como undefined: la BD necesita null para borrar el tramo parcial.
+    horas_reembolso_parcial: d.horasReembolsoParcial ?? null,
+    porcentaje_reembolso_parcial: d.porcentajeReembolsoParcial ?? null,
+    hora_salida: d.horaSalida,
     fotos: d.fotos,
   };
 }

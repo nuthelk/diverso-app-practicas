@@ -11,6 +11,10 @@
   import PlanForm from './lib/pages/PlanForm.svelte';
   import Ventas from './lib/pages/Ventas.svelte';
   import Admin from './lib/pages/Admin.svelte';
+  import AdminDispersiones from './lib/pages/AdminDispersiones.svelte';
+  import Liquidaciones from './lib/pages/Liquidaciones.svelte';
+  import LiquidacionDetalle from './lib/pages/LiquidacionDetalle.svelte';
+  import CuentaDispersion from './lib/pages/CuentaDispersion.svelte';
   import Legal from './lib/pages/Legal.svelte';
   import AceptarDocumentos from './lib/pages/AceptarDocumentos.svelte';
 
@@ -38,6 +42,8 @@
   <AceptarDocumentos />
 {:else if seg[0] === 'starter'}
   <Starter />
+{:else if seg[0] === 'admin' && seg[1] === 'dispersiones'}
+  <AdminDispersiones />
 {:else if seg[0] === 'admin'}
   <Admin />
 {:else}
@@ -54,6 +60,12 @@
       <Planes />
     {:else if seg[0] === 'ventas'}
       <Ventas />
+    {:else if seg[0] === 'liquidaciones' && seg[1]}
+      <LiquidacionDetalle id={seg[1]} />
+    {:else if seg[0] === 'liquidaciones'}
+      <Liquidaciones />
+    {:else if seg[0] === 'cuenta-dispersiones'}
+      <CuentaDispersion />
     {:else}
       <div class="p-10 text-slate-500">
         No encontramos esta sección. <a class="font-semibold text-brand-600 hover:underline" href="#/dashboard">Volver al resumen</a>

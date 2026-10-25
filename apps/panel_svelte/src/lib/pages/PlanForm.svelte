@@ -3,6 +3,7 @@
   import Select from '../components/Select.svelte';
   import { miAgencia, misPlanes, crearPlan, actualizarPlan, mensajeError } from '../api';
   import { go } from '../router.svelte';
+  import { horaCorta, textoPolitica, validarPolitica } from '../politica';
   import { avisar } from '../toast.svelte';
   import { CATEGORIAS, draftVacio, type PlanDraft, type CategoriaValor } from '../types';
 
@@ -12,6 +13,7 @@
   let cargando = $state(!!planId);
   let guardando = $state(false);
   let error = $state('');
+  let intentado = $state(false);
 
   let nuevoIncluye = $state('');
   let nuevaFoto = $state('');
@@ -79,6 +81,10 @@
             incluyeHospedaje: p.incluye_hospedaje,
             itinerario: p.itinerario.map((i) => ({ ...i })),
             politicaCancelacion: p.politica_cancelacion,
+            horasCancelacionGratuita: p.horas_cancelacion_gratuita,
+            horasReembolsoParcial: p.horas_reembolso_parcial,
+            porcentajeReembolsoParcial: p.porcentaje_reembolso_parcial,
+            horaSalida: horaCorta(p.hora_salida),
             fotos: [...p.fotos],
           };
           parsearDuracion(p.duracion_texto);
@@ -91,10 +97,22 @@
     })();
   });
 
+  // El texto de la política se genera siempre desde estos números (api.ts lo vuelve a generar al guardar).
+  const erroresPolitica = $derived(validarPolitica(d));
+  const politicaValida = $derived(Object.keys(erroresPolitica).length === 0);
+  const textoVistaPrevia = $derived(
+    politicaValida ? textoPolitica(d) : 'Completa la política de cancelación para ver el texto que leerá el viajero.',
+  );
+
   async function guardar(e: SubmitEvent) {
     e.preventDefault();
+    intentado = true;
     if (d.precioCop <= 0) {
       error = 'El precio debe ser mayor a 0.';
+      return;
+    }
+    if (!politicaValida) {
+      error = Object.values(erroresPolitica)[0] ?? 'Revisa la política de cancelación.';
       return;
     }
     guardando = true;
@@ -357,14 +375,85 @@
           ENCUENTRO, CANCELACIÓN Y FOTOS
         </h2>
         <div class="space-y-3">
-          <label class="block">
-            <span class="etiqueta">Punto de encuentro</span>
-            <input bind:value={d.puntoEncuentro} class="campo" />
-          </label>
-          <label class="block">
-            <span class="etiqueta">Política de cancelación</span>
-            <textarea rows="2" bind:value={d.politicaCancelacion} class="campo resize-none"></textarea>
-          </label>
+          <div class="grid gap-3 min-[640px]:grid-cols-[1fr_180px]">
+            <label class="block">
+              <span class="etiqueta">Punto de encuentro</span>
+              <input bind:value={d.puntoEncuentro} class="campo" />
+            </label>
+            <label class="block">
+              <span class="etiqueta">Hora de salida (hora de Colombia) *</span>
+              <input
+                type="time"
+                required
+                bind:value={d.horaSalida}
+                class="campo"
+                aria-invalid={intentado && !!erroresPolitica.horaSalida}
+              />
+            </label>
+          </div>
+          <div
+            class="space-y-3 rounded-xl border border-slate-200/80 bg-paper p-4 dark:border-ink-600 dark:bg-ink-900"
+            role="group"
+            aria-label="Política de cancelación"
+          >
+            <h3 class="text-[13px] font-bold">Política de cancelación y reembolsos</h3>
+            <p class="text-[12px] leading-relaxed text-slate-500 dark:text-slate-400">
+              Las horas se cuentan hacia atrás desde la fecha del plan y su hora de salida. Con estos
+              números se calcula el reembolso al cancelar y se escribe el texto que ve el viajero.
+            </p>
+            <div class="grid gap-3 min-[640px]:grid-cols-3">
+              <label class="block">
+                <span class="etiqueta">Cancelación gratuita hasta (horas antes) *</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                  bind:value={d.horasCancelacionGratuita}
+                  class="campo"
+                  aria-invalid={intentado && !!erroresPolitica.horasGratis}
+                />
+                {#if intentado && erroresPolitica.horasGratis}
+                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.horasGratis}</span>
+                {/if}
+              </label>
+              <label class="block">
+                <span class="etiqueta">Reembolso parcial hasta (horas antes)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  bind:value={d.horasReembolsoParcial}
+                  class="campo"
+                  placeholder="Opcional"
+                  aria-invalid={intentado && !!erroresPolitica.horasParcial}
+                />
+                {#if intentado && erroresPolitica.horasParcial}
+                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.horasParcial}</span>
+                {/if}
+              </label>
+              <label class="block">
+                <span class="etiqueta">Porcentaje de reembolso parcial (1–99)</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="99"
+                  step="1"
+                  bind:value={d.porcentajeReembolsoParcial}
+                  class="campo"
+                  placeholder="Opcional"
+                  aria-invalid={intentado && !!erroresPolitica.porcentajeParcial}
+                />
+                {#if intentado && erroresPolitica.porcentajeParcial}
+                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.porcentajeParcial}</span>
+                {/if}
+              </label>
+            </div>
+            <p class="text-[13px] leading-relaxed" data-testid="politica-texto">
+              <span class="font-semibold">Lo que verá el viajero:</span>
+              {textoVistaPrevia}
+            </p>
+          </div>
           {#if d.fotos.length > 0}
             <div class="flex flex-wrap gap-2">
               {#each d.fotos as f, i (f)}

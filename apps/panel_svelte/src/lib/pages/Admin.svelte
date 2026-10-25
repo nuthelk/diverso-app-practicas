@@ -141,6 +141,9 @@
       <Logo size={20} />
     </div>
     <div class="text-[15px] font-extrabold tracking-tight">Diverso · Administración</div>
+    <a class="ml-3 text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300" href="#/admin/dispersiones">
+      Dispersiones de prueba
+    </a>
     <div class="flex-1"></div>
     <span class="hidden text-[12.5px] text-slate-400 sm:inline">{auth.email}</span>
     <button class="btn btn-secundario py-1.5 text-[13px]" onclick={() => signOut()}>

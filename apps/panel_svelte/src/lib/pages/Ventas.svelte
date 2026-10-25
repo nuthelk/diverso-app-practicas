@@ -144,9 +144,11 @@
       {/if}
     </div>
 
-    <p class="mt-4 flex items-start gap-1.5 text-[12px] text-slate-400">
-      ⓘ Piloto con pagos simulados: los saldos son informativos y aún no se transfieren. La
-      dispersión a tu cuenta se habilitará con la integración de la pasarela real (Wompi o PayU).
+    <p class="mt-4 text-[12px] text-slate-400">
+      ⓘ Modo de prueba (Wompi sandbox): los cobros a los viajeros son transacciones de prueba y no se
+      mueve dinero real. Concilia estos saldos con tus
+      <a class="font-semibold text-brand-600 hover:underline dark:text-brand-300" href="#/liquidaciones">Liquidaciones</a>
+      semanales y anticipos, que también son dispersiones de prueba.
     </p>
   </div>
 {/if}

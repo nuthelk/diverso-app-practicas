@@ -34,6 +34,8 @@
     { ruta: '/dashboard', icono: 'M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10 3h8v5h-8v-5z', etiqueta: 'Resumen' },
     { ruta: '/planes', icono: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7', etiqueta: 'Planes' },
     { ruta: '/ventas', icono: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', etiqueta: 'Ventas' },
+    { ruta: '/liquidaciones', icono: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', etiqueta: 'Liquidaciones' },
+    { ruta: '/cuenta-dispersiones', icono: 'M3 10h18M5 6l7-3 7 3M4 10v9m4-9v9m4-9v9m4-9v9m4-9v9M3 21h18', etiqueta: 'Cuenta para dispersiones', corta: 'Cuenta' },
   ];
 
   function activa(rutaSeccion: string): boolean {
@@ -232,7 +234,8 @@
 
     <!-- Navegación inferior (móvil) -->
     <nav
-      class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-slate-200/80 bg-white/95
+      style="grid-template-columns: repeat({secciones.length}, minmax(0, 1fr))"
+      class="fixed inset-x-0 bottom-0 z-30 grid border-t border-slate-200/80 bg-white/95
         pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden dark:border-ink-600 dark:bg-ink-900/95"
       aria-label="Secciones"
     >
@@ -246,7 +249,7 @@
           <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d={s.icono} />
           </svg>
-          {s.etiqueta}
+          {s.corta ?? s.etiqueta}
         </a>
       {/each}
     </nav>

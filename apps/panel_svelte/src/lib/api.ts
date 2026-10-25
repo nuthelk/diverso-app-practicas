@@ -9,6 +9,14 @@ import {
   type VerificationLog,
 } from './types';
 import { VERSION_LEGAL, type TipoConsentimiento } from './legal';
+import { conPoliticaGenerada } from './politica';
+import {
+  normalizarCuenta,
+  type CuentaDispersion,
+  type CuentaResumen,
+  type Liquidacion,
+  type LiquidacionDetalle,
+} from './liquidaciones';
 
 /** Capa de datos del panel — mismas consultas que AgencyService en Flutter. */
 
@@ -57,7 +65,7 @@ export async function misPlanes(agencyId: string): Promise<Plan[]> {
 export async function crearPlan(agencyId: string, draft: PlanDraft): Promise<string> {
   const { data, error } = await supabase
     .from('plans')
-    .insert({ ...draftToRow(draft), agency_id: agencyId })
+    .insert({ ...draftToRow(conPoliticaGenerada(draft)), agency_id: agencyId })
     .select('id')
     .single();
   if (error) throw error;
@@ -67,7 +75,7 @@ export async function crearPlan(agencyId: string, draft: PlanDraft): Promise<str
 export async function actualizarPlan(draft: PlanDraft): Promise<void> {
   const { error } = await supabase
     .from('plans')
-    .update(draftToRow(draft))
+    .update(draftToRow(conPoliticaGenerada(draft)))
     .eq('id', draft.id!);
   if (error) throw error;
 }
@@ -122,6 +130,100 @@ export async function misVentas(): Promise<{
     ventas(agencia.id),
   ]);
   return { agencia, planes, ventas: ventasAgencia };
+}
+
+/* Liquidaciones y cuenta para dispersiones (modo prueba) ------------------ */
+
+export async function misLiquidaciones(agencyId: string): Promise<Liquidacion[]> {
+  const { data, error } = await supabase
+    .from('liquidaciones')
+    .select('*')
+    .eq('agency_id', agencyId)
+    .order('periodo_inicio', { ascending: false })
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as Liquidacion[];
+}
+
+export async function liquidacionDetalle(id: string): Promise<LiquidacionDetalle | null> {
+  const { data, error } = await supabase
+    .from('liquidaciones')
+    .select('*, liquidacion_items!liquidacion_items_liquidacion_id_fkey(*, bookings(codigo, pax, plan_dates(fecha, plans(titulo))))')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as LiquidacionDetalle | null) ?? null;
+}
+
+/** Cuenta completa: solo la dueña (formulario). En listas se usa cuentasResumen. */
+export async function miCuentaDispersion(agencyId: string): Promise<CuentaDispersion | null> {
+  const { data, error } = await supabase
+    .from('agency_payout_accounts')
+    .select('banco, tipo_cuenta, numero_cuenta, titular, tipo_documento, numero_documento')
+    .eq('agency_id', agencyId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as CuentaDispersion | null) ?? null;
+}
+
+export async function guardarCuentaDispersion(agencyId: string, cuenta: CuentaDispersion): Promise<void> {
+  const { error } = await supabase
+    .from('agency_payout_accounts')
+    .upsert({ ...normalizarCuenta(cuenta), agency_id: agencyId }, { onConflict: 'agency_id' });
+  if (error) throw error;
+}
+
+/** Cuentas con solo los 4 últimos dígitos (la dueña ve la suya; el admin, todas). */
+export async function cuentasResumen(): Promise<CuentaResumen[]> {
+  const { data, error } = await supabase.from('cuentas_dispersion_resumen').select('*');
+  if (error) throw error;
+  return (data ?? []) as CuentaResumen[];
+}
+
+export async function serviciosPrestados(agencyId: string): Promise<number> {
+  const { data, error } = await supabase.rpc('servicios_prestados', { p_agency_id: agencyId });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
+/* Admin: dispersión de prueba -------------------------------------------- */
+
+export async function todasLiquidaciones(): Promise<Liquidacion[]> {
+  const { data, error } = await supabase
+    .from('liquidaciones')
+    .select('*, agencies(nombre)')
+    .order('created_at', { ascending: false })
+    .limit(300);
+  if (error) throw error;
+  return (data ?? []) as Liquidacion[];
+}
+
+export async function generarLiquidaciones(
+  semana: string,
+): Promise<{ periodo_inicio: string; periodo_fin: string; liquidaciones: number; items: number }> {
+  const { data, error } = await supabase.rpc('generar_liquidaciones', { p_semana: semana });
+  if (error) throw error;
+  return data;
+}
+
+export async function generarAnticipos(): Promise<{ liquidaciones: number; items: number }> {
+  const { data, error } = await supabase.rpc('generar_anticipos');
+  if (error) throw error;
+  return data;
+}
+
+export async function ejecutarLiquidacion(id: string): Promise<{ referencia_prueba: string }> {
+  const { data, error } = await supabase.rpc('ejecutar_liquidacion', { p_id: id });
+  if (error) throw error;
+  return data;
+}
+
+export async function bloquearAnticipo(agencyId: string, bloqueado: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('agencies')
+    .update({ anticipo_bloqueado: bloqueado })
+    .eq('id', agencyId);
+  if (error) throw error;
 }
 
 /* Admin -------------------------------------------------------------- */
@@ -201,6 +303,18 @@ const ERRORES: Record<string, string> = {
   agencies_rnt_formato: 'El número de RNT debe tener entre 4 y 8 dígitos, sin letras.',
   agencies_matricula_formato: 'La matrícula mercantil debe ser numérica (se admiten guiones).',
   agencies_numero_rnt_key: 'Ya existe una agencia registrada con ese número de RNT.',
+  NO_AUTORIZADO: 'No tienes permiso para esta acción.',
+  SEMANA_NO_TERMINADA: 'Esa semana aún no termina: solo se liquidan semanas completas (lunes a domingo).',
+  LIQUIDACION_NO_EXISTE: 'La liquidación ya no existe. Recarga la lista.',
+  LIQUIDACION_NO_PENDIENTE: 'Esa liquidación ya fue ejecutada o anulada.',
+  CUENTA_NO_REGISTRADA: 'La agencia aún no registró su cuenta para dispersiones.',
+  MONTO_NO_POSITIVO: 'El monto a pagar es cero o negativo: no hay nada que dispersar.',
+  agency_payout_accounts_numero_cuenta_check: 'El número de cuenta debe tener de 6 a 20 dígitos.',
+  agency_payout_accounts_numero_documento_check: 'El documento debe tener de 4 a 20 caracteres, sin puntos ni espacios.',
+  agency_payout_accounts_titular_check: 'Escribe el nombre del titular (mínimo 3 caracteres).',
+  agency_payout_accounts_banco_check: 'Indica el banco (entre 2 y 80 caracteres).',
+  plans_politica_parcial_coherente:
+    'La ventana parcial debe ser menor que la de cancelación gratuita y llevar su porcentaje.',
   'Failed to fetch': 'No hay conexión con el servidor. Verifica que el backend esté encendido.',
 };
 

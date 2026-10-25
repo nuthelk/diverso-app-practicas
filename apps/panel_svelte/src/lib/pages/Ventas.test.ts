@@ -85,6 +85,17 @@ describe('Ventas', () => {
     expect(screen.getByText('Sin ventas aquí')).toBeTruthy();
   });
 
+  it('refleja el modo de prueba de Wompi y enlaza la conciliación con Liquidaciones', async () => {
+    misVentasMock.mockResolvedValue({ agencia: agencia(), planes: [], ventas });
+    const { container } = render(Ventas);
+    await screen.findByText('Ventas y conciliación');
+    const t = texto(container);
+    expect(t).toContain('Modo de prueba (Wompi sandbox)');
+    expect(t).toContain('no se mueve dinero real');
+    expect(t).not.toContain('pagos simulados');
+    expect(screen.getByRole('link', { name: 'Liquidaciones' }).getAttribute('href')).toBe('#/liquidaciones');
+  });
+
   it('si falla la carga muestra el error', async () => {
     misVentasMock.mockRejectedValue(new Error('sin red'));
     render(Ventas);

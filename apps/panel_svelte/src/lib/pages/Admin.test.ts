@@ -130,6 +130,13 @@ describe('Admin', () => {
     expect(texto(container)).toContain('No hay agencias en esta categoría.');
   });
 
+  it('enlaza con las dispersiones de prueba', async () => {
+    todasMock.mockResolvedValue(agencias);
+    render(Admin);
+    await screen.findByText('Pendiente Plan');
+    expect(screen.getByRole('link', { name: 'Dispersiones de prueba' }).getAttribute('href')).toBe('#/admin/dispersiones');
+  });
+
   it('si falla la carga muestra el error', async () => {
     todasMock.mockRejectedValue(new Error('sin permisos'));
     render(Admin);

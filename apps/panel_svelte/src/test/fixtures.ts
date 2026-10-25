@@ -1,4 +1,5 @@
 import type { Agency, Plan, PlanDate, VentaRow } from '../lib/types';
+import type { CuentaResumen, Liquidacion, LiquidacionItem } from '../lib/liquidaciones';
 
 /** Texto visible normalizado (espacios, saltos de línea y NBSP → un espacio). */
 export function texto(el: Element | null): string {
@@ -47,6 +48,10 @@ export function plan(titulo: string, fechas: PlanDate[]): Plan {
     incluye_hospedaje: false,
     itinerario: [],
     politica_cancelacion: '',
+    horas_cancelacion_gratuita: 48,
+    horas_reembolso_parcial: null,
+    porcentaje_reembolso_parcial: null,
+    hora_salida: '06:00:00',
     fotos: [],
     estado: 'publicado',
     rating_promedio: 4.5,
@@ -68,6 +73,53 @@ export function venta(parcial: Partial<VentaRow> & Pick<VentaRow, 'booking_id'>)
     booking_estado: 'confirmada',
     pago_estado: 'aprobado',
     referencia: null,
+    ...parcial,
+  };
+}
+
+export function liquidacion(parcial: Partial<Liquidacion> = {}): Liquidacion {
+  return {
+    id: 'liq-1',
+    agency_id: 'ag-1',
+    tipo: 'semanal',
+    periodo_inicio: '2026-02-02',
+    periodo_fin: '2026-02-08',
+    monto_bruto: 400000,
+    comision: 48000,
+    monto_neto: 352000,
+    anticipos_descontados: 79200,
+    monto_a_pagar: 272800,
+    estado: 'pendiente',
+    compensada_en: null,
+    referencia_prueba: null,
+    ejecutada_at: null,
+    created_at: '2026-02-09T11:00:00Z',
+    ...parcial,
+  };
+}
+
+export function itemLiquidacion(parcial: Partial<LiquidacionItem> = {}): LiquidacionItem {
+  return {
+    id: 'it-1',
+    liquidacion_id: 'liq-1',
+    booking_id: 'bk-1',
+    tipo: 'servicio',
+    monto_bruto: 100000,
+    comision: 12000,
+    monto_neto: 88000,
+    bookings: { codigo: 'DV-AAAA', pax: 2, plan_dates: { fecha: '2026-02-04', plans: { titulo: 'Guatapé' } } },
+    ...parcial,
+  };
+}
+
+export function cuentaResumen(parcial: Partial<CuentaResumen> = {}): CuentaResumen {
+  return {
+    agency_id: 'ag-1',
+    banco: 'Bancolombia',
+    tipo_cuenta: 'ahorros',
+    ultimos4: '4321',
+    titular: 'EcoAndes SAS',
+    updated_at: '2026-02-01T10:00:00Z',
     ...parcial,
   };
 }
