@@ -3,7 +3,7 @@ import 'package:diverso_core/diverso_core.dart';
 
 /// ViewModel de "Mis reservas": carga la lista y ejecuta cancelaciones.
 class BookingsController extends ChangeNotifier {
-  BookingsController({BookingService? reservas}) : _reservas = reservas ?? BookingService();
+  BookingsController({required BookingService reservas}) : _reservas = reservas;
 
   final BookingService _reservas;
 
@@ -34,11 +34,33 @@ class BookingsController extends ChangeNotifier {
     }
   }
 
+  /// Muestra [texto] como aviso (snackbar) en la vista.
+  void avisar(String texto) {
+    mensaje = texto;
+    notifyListeners();
+  }
+
+  /// Reembolso que daría la política del plan si se cancelara ahora; null si no se pudo
+  /// consultar (el motivo queda en [mensaje]).
+  Future<VistaPreviaCancelacion?> vistaPrevia(Booking b) async {
+    mensaje = null;
+    try {
+      return await _reservas.vistaPreviaCancelacion(b.id);
+    } on DiversoException catch (e) {
+      mensaje = e.mensajeUsuario;
+      notifyListeners();
+      return null;
+    }
+  }
+
   Future<void> cancelar(Booking b) async {
     mensaje = null;
     try {
-      await _reservas.cancelar(b.id);
-      mensaje = 'Reserva cancelada y cupos liberados.';
+      final r = await _reservas.cancelar(b.id);
+      final reembolso = r.estado == EstadoReembolso.noAplica
+          ? r.estado.etiqueta
+          : '${r.estado.etiqueta}: ${formatCOP(r.monto)} (${r.porcentaje} %)';
+      mensaje = 'Reserva cancelada y cupos liberados. $reembolso.';
       await cargar();
     } on DiversoException catch (e) {
       mensaje = e.mensajeUsuario;

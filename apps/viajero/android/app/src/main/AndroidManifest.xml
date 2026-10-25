@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Supabase y el checkout de Wompi (WebView) necesitan red también en release. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="viajero"
         android:name="${applicationName}"

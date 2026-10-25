@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
 import '../../core/widgets.dart';
 import 'checkout_controller.dart';
+import 'pago_wompi.dart';
+import 'pago_wompi_card.dart';
+import 'reserva_pendiente_aviso.dart';
 
-/// Checkout: resumen claro, personas, medio de pago local y total final —
+/// Checkout: resumen claro, personas, pago con Wompi (modo prueba) y total final —
 /// todo en una pantalla, sin pasos innecesarios.
 class CheckoutView extends StatefulWidget {
   const CheckoutView({super.key, required this.plan, required this.fecha});
@@ -19,7 +23,16 @@ class CheckoutView extends StatefulWidget {
 }
 
 class _CheckoutViewState extends State<CheckoutView> {
-  final _controller = CheckoutController();
+  late final CheckoutController _controller;
+  late final PaymentGateway _pasarela;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CheckoutController(reservas: context.read<BookingService>());
+    _pasarela = context.read<PaymentGateway>();
+    _controller.cargarPendiente(widget.fecha);
+  }
 
   @override
   void dispose() {
@@ -27,11 +40,12 @@ class _CheckoutViewState extends State<CheckoutView> {
     super.dispose();
   }
 
-  Future<void> _pagar() async {
-    final resultado = await _controller.pagar(widget.plan, widget.fecha);
-    if (!mounted || resultado == null) return;
-    context.pushReplacement('/exito', extra: resultado);
-  }
+  Future<bool> _abrirPago(String bookingId) => iniciarPago(context, pasarela: _pasarela, bookingId: bookingId);
+
+  Future<void> _pagar() => _controller.pagar(widget.fecha, _abrirPago);
+
+  /// Fallback si la redirección no llegó: el servidor consulta a Wompi por la reserva.
+  void _yaPague(String bookingId) => context.go('${DiversoConfig.pagoResultadoPath}?reserva=$bookingId');
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +64,17 @@ class _CheckoutViewState extends State<CheckoutView> {
               ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 200),
                 children: [
+                  // Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi) --------
+                  if (c.pendiente != null) ...[
+                    ReservaPendienteAviso(
+                      reserva: c.pendiente!,
+                      ocupado: c.procesando,
+                      onCompletar: () => c.completarPendiente(_abrirPago),
+                      onVerificar: () => _yaPague(c.pendiente!.id),
+                      onCancelar: c.cancelarPendiente,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   // Resumen del plan -----------------------------------------
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -121,7 +146,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                         const Expanded(child: Text('¿Cuántos viajan?', style: TextStyle(fontWeight: FontWeight.w600))),
                         _BotonPax(
                           icono: Icons.remove_rounded,
-                          habilitado: c.pax > 1,
+                          habilitado: c.bookingId == null && c.pendiente == null && c.pax > 1,
                           onTap: () => c.setPax(c.pax - 1),
                         ),
                         SizedBox(
@@ -134,7 +159,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                         ),
                         _BotonPax(
                           icono: Icons.add_rounded,
-                          habilitado: c.pax < cupos && c.pax < 20,
+                          habilitado: c.bookingId == null && c.pendiente == null && c.pax < cupos && c.pax < 20,
                           onTap: () => c.setPax(c.pax + 1),
                         ),
                       ],
@@ -147,34 +172,9 @@ class _CheckoutViewState extends State<CheckoutView> {
                   ),
                   const SizedBox(height: 22),
 
-                  // Medio de pago ----------------------------------------------
-                  const SectionLabel('Medio de pago'),
-                  ...PaymentMethodOption.values.map((m) {
-                    final sel = m == c.metodo;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _OpcionPago(
-                        metodo: m,
-                        seleccionada: sel,
-                        onTap: () => c.setMetodo(m),
-                      ),
-                    );
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.shield_outlined, size: 14, color: cs.tertiary),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Compra protegida con garantía de reembolso. Modo demo: pago simulado.',
-                            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  // Pago con Wompi (modo prueba) ---------------------------------
+                  const SectionLabel('Pago'),
+                  const PagoWompiCard(),
                   const SizedBox(height: 22),
 
                   // Resumen de pago --------------------------------------------
@@ -242,6 +242,14 @@ class _CheckoutViewState extends State<CheckoutView> {
                       ),
                     ),
                   ],
+                  if (c.bookingId != null) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: c.procesando ? null : () => _yaPague(c.bookingId!),
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Ya pagué, verificar'),
+                    ),
+                  ],
                 ],
               ),
               // Barra inferior con total + CTA --------------------------------
@@ -279,9 +287,9 @@ class _CheckoutViewState extends State<CheckoutView> {
                         ),
                       ),
                       SizedBox(
-                        width: 190,
+                        width: 220,
                         child: FilledButton.icon(
-                          onPressed: c.procesando ? null : _pagar,
+                          onPressed: c.procesando || c.pendiente != null ? null : _pagar,
                           icon: c.procesando
                               ? const SizedBox(
                                   height: 17,
@@ -289,7 +297,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.lock_rounded, size: 17),
-                          label: Text(c.procesando ? 'Procesando…' : 'Pagar'),
+                          label: Text(c.procesando ? 'Procesando…' : 'Pagar con Wompi'),
                         ),
                       ),
                     ],
@@ -324,66 +332,6 @@ class _BotonPax extends StatelessWidget {
       tooltip: icono == Icons.remove_rounded ? 'Quitar una persona' : 'Agregar una persona',
       onPressed: habilitado ? onTap : null,
       icon: Icon(icono, size: 18),
-    );
-  }
-}
-
-class _OpcionPago extends StatelessWidget {
-  const _OpcionPago({required this.metodo, required this.seleccionada, required this.onTap});
-
-  final PaymentMethodOption metodo;
-  final bool seleccionada;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final icono = switch (metodo) {
-      PaymentMethodOption.pse => Icons.account_balance_rounded,
-      PaymentMethodOption.nequi => Icons.smartphone_rounded,
-      PaymentMethodOption.daviplata => Icons.phone_iphone_rounded,
-      PaymentMethodOption.tarjeta => Icons.credit_card_rounded,
-    };
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-      decoration: BoxDecoration(
-        color: seleccionada ? cs.primaryContainer : cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadios.card),
-        border: Border.fromBorderSide(
-          BorderSide(
-            color: seleccionada ? cs.primary : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadios.card),
-        onTap: onTap,
-        child: Row(
-          children: [
-            Icon(icono, size: 21, color: seleccionada ? cs.primary : cs.onSurfaceVariant),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Text(
-                metodo.label,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: seleccionada ? FontWeight.w700 : FontWeight.w600,
-                  color: seleccionada ? cs.onPrimaryContainer : cs.onSurface,
-                ),
-              ),
-            ),
-            AnimatedScale(
-              duration: const Duration(milliseconds: 140),
-              scale: seleccionada ? 1 : 0,
-              child: Icon(Icons.check_circle_rounded, color: cs.primary),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

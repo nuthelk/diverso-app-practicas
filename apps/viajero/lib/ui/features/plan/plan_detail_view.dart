@@ -633,10 +633,7 @@ class _BarraReservaState extends State<_BarraReserva> {
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(150, 52),
                   ),
-                  onPressed: () => context.push(
-                    '/checkout',
-                    extra: (widget.plan, fecha),
-                  ),
+                  onPressed: () => context.push('/checkout/${widget.plan.id}/${fecha.id}'),
                   icon: const Icon(Icons.lock_outline_rounded, size: 17),
                   label: const Text('Reservar'),
                 ),

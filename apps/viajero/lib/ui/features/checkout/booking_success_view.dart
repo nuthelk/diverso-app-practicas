@@ -3,17 +3,22 @@ import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
 
 import '../../core/widgets.dart';
-import 'checkout_controller.dart';
 
-/// Confirmación inmediata con código e itinerario (Anexo 4: KPI < 5 min).
+/// Confirmación inmediata con código e itinerario (Anexo 4: KPI < 5 min), cargada del
+/// backend por id para sobrevivir a una recarga en web.
 class BookingSuccessView extends StatelessWidget {
-  const BookingSuccessView({super.key, required this.args});
+  const BookingSuccessView({super.key, required this.booking});
 
-  final SuccessArgs args;
+  final Booking booking;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final plan = booking.plan;
+    final fecha = booking.planDate?.fecha;
+    final pago = booking.pago;
+    final itinerario = plan?.itinerario ?? const <ItinerarioPaso>[];
+    final puntoEncuentro = plan?.puntoEncuentro ?? '';
 
     return Scaffold(
       body: SafeArea(
@@ -98,7 +103,7 @@ class BookingSuccessView extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           SelectableText(
-                            args.codigo,
+                            booking.codigo,
                             style: TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.w900,
@@ -124,7 +129,7 @@ class BookingSuccessView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            args.planTitulo,
+                            plan?.titulo ?? 'Tu plan',
                             style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15.5,
@@ -132,25 +137,18 @@ class BookingSuccessView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          _fila(
-                            Icons.event_rounded,
-                            formatFechaLarga(args.fecha),
-                          ),
+                          if (fecha != null)
+                            _fila(Icons.event_rounded, formatFechaLarga(fecha)),
                           _fila(
                             Icons.group_rounded,
-                            '${args.pax} ${args.pax == 1 ? 'persona' : 'personas'}',
+                            '${booking.pax} ${booking.pax == 1 ? 'persona' : 'personas'}',
                           ),
-                          if (args.puntoEncuentro.isNotEmpty)
-                            _fila(Icons.flag_rounded, args.puntoEncuentro),
+                          if (puntoEncuentro.isNotEmpty)
+                            _fila(Icons.flag_rounded, puntoEncuentro),
                           const Divider(height: 22),
-                          _fila(
-                            Icons.payments_rounded,
-                            '${formatCOP(args.monto)} · ${args.metodo.label}',
-                          ),
-                          _fila(
-                            Icons.receipt_rounded,
-                            'Ref. ${args.referencia}',
-                          ),
+                          _fila(Icons.payments_rounded, formatCOP(booking.montoTotal)),
+                          if (pago != null)
+                            _fila(Icons.receipt_rounded, pago.textoReferencia),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -176,7 +174,7 @@ class BookingSuccessView extends StatelessWidget {
                     ),
                   ),
                   // Itinerario inmediato (Anexo 6: confirmación + itinerario)
-                  if (args.itinerario.isNotEmpty) ...[
+                  if (itinerario.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     _Aparecer(
                       paso: 3,
@@ -199,7 +197,7 @@ class BookingSuccessView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            for (final paso in args.itinerario.take(5))
+                            for (final paso in itinerario.take(5))
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 8),
                                 child: Row(
@@ -228,9 +226,9 @@ class BookingSuccessView extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            if (args.itinerario.length > 5)
+                            if (itinerario.length > 5)
                               Text(
-                                '+ ${args.itinerario.length - 5} pasos más en la app',
+                                '+ ${itinerario.length - 5} pasos más en la app',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: cs.onSurfaceVariant,

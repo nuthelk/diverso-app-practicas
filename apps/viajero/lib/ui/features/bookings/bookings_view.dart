@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/widgets.dart';
+import '../checkout/pago_wompi.dart';
 import 'bookings_controller.dart';
+import 'cancel_dialog.dart';
 
 /// Mis reservas: próximas e historial con acciones de reseña y cancelación.
 class BookingsView extends StatefulWidget {
@@ -15,7 +18,8 @@ class BookingsView extends StatefulWidget {
 
 class _BookingsViewState extends State<BookingsView>
     with AutomaticKeepAliveClientMixin {
-  final _controller = BookingsController();
+  late final BookingsController _controller;
+  late final PaymentGateway _pasarela;
 
   @override
   bool get wantKeepAlive => true;
@@ -23,6 +27,8 @@ class _BookingsViewState extends State<BookingsView>
   @override
   void initState() {
     super.initState();
+    _controller = BookingsController(reservas: context.read<BookingService>());
+    _pasarela = context.read<PaymentGateway>();
     _controller.cargar();
     _controller.addListener(_escucharMensaje);
   }
@@ -43,27 +49,25 @@ class _BookingsViewState extends State<BookingsView>
   }
 
   Future<void> _confirmarCancelacion(BuildContext context, Booking b) async {
+    final vista = await _controller.vistaPrevia(b);
+    if (vista == null || !context.mounted) return;
     final confirmo = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Cancelar reserva?'),
-        content: Text(
-          'La reserva ${b.codigo} se cancelará y los cupos volverán a estar disponibles. '
-          '${b.pago?.estado == PaymentStatus.aprobado ? 'El pago simulado quedará como reembolsado.' : ''}',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Mantener')),
-          FilledButton.tonal(
-            style: FilledButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sí, cancelar'),
-          ),
-        ],
-      ),
+      builder: (context) => CancelacionDialog(codigo: b.codigo, vista: vista),
     );
     if (confirmo == true) await _controller.cancelar(b);
+  }
+
+  /// Retoma el pago de una reserva que sigue pendiente (mientras dure la retención de 30 min).
+  Future<void> _completarPago(Booking b) async {
+    try {
+      final terminado = await iniciarPago(context, pasarela: _pasarela, bookingId: b.id);
+      if (!terminado) {
+        _controller.avisar('Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar».');
+      }
+    } on DiversoException catch (e) {
+      _controller.avisar(e.mensajeUsuario);
+    }
   }
 
   @override
@@ -165,6 +169,10 @@ class _BookingsViewState extends State<BookingsView>
           onResenar: lista[i].puedeResenar
               ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
               : null,
+          onPagar: lista[i].estado == BookingStatus.pendientePago ? () => _completarPago(lista[i]) : null,
+          onVerificar: lista[i].estado == BookingStatus.pendientePago
+              ? () => context.go('${DiversoConfig.pagoResultadoPath}?reserva=${lista[i].id}')
+              : null,
           onCancelar: lista[i].estado == BookingStatus.confirmada ||
                   lista[i].estado == BookingStatus.pendientePago
               ? () => _confirmarCancelacion(context, lista[i])
@@ -180,11 +188,15 @@ class _TarjetaReserva extends StatelessWidget {
     required this.booking,
     this.onResenar,
     this.onCancelar,
+    this.onPagar,
+    this.onVerificar,
   });
 
   final Booking booking;
   final VoidCallback? onResenar;
   final VoidCallback? onCancelar;
+  final VoidCallback? onPagar;
+  final VoidCallback? onVerificar;
 
   @override
   Widget build(BuildContext context) {
@@ -261,8 +273,37 @@ class _TarjetaReserva extends StatelessWidget {
                   if (booking.pago != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Pagado con ${booking.pago!.metodo.label} · ref. ${booking.pago!.referencia}',
+                      booking.pago!.textoReferencia,
                       style: TextStyle(fontSize: 11.5, color: cs.outline),
+                    ),
+                  ],
+                  if (booking.etiquetaReembolso != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      booking.etiquetaReembolso!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: booking.reembolso?.estado == EstadoReembolso.rechazado ? cs.error : cs.primary,
+                      ),
+                    ),
+                  ],
+                  if (onPagar != null || onVerificar != null) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        if (onVerificar != null)
+                          TextButton(onPressed: onVerificar, child: const Text('Ya pagué, verificar')),
+                        if (onPagar != null)
+                          FilledButton.tonal(
+                            style: FilledButton.styleFrom(minimumSize: const Size(0, 38)),
+                            onPressed: onPagar,
+                            child: const Text('Completar pago'),
+                          ),
+                      ],
                     ),
                   ],
                   if (onResenar != null || onCancelar != null) ...[

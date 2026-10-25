@@ -11,12 +11,16 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
   supabase_flutter: ^2.9.0
   intl: ^0.20.2
   diverso_core:
     path: ../../packages/diverso_core
   go_router: ^18.0.2
   provider: ^6.1.5+1
+  webview_flutter: ^4.14.1
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
