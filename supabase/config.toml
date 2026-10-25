@@ -411,3 +411,9 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Wompi no puede enviar un JWT de Supabase: el webhook se autentica con el
+# checksum del evento (SHA-256 + secreto de eventos), no con JWT. Las demás
+# funciones de pagos conservan verify_jwt = true (viajero autenticado).
+[functions.pagos-webhook]
+verify_jwt = false

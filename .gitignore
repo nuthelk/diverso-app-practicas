@@ -27,3 +27,11 @@ Thumbs.db
 # Node (panel Svelte)
 node_modules/
 dist/
+
+# Secretos (llaves de Wompi y cualquier .env). Las plantillas .env.example sí se versionan.
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+supabase/functions/.env

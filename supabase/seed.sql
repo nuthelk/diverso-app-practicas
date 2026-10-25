@@ -450,6 +450,10 @@ values
  'Cancelación gratuita hasta 72 horas antes.',
  '{"https://picsum.photos/seed/sanrafael-1/800/500"}', 'publicado');
 
+-- Política de cancelación estructurada (0003): ventana gratuita, tramo parcial y
+-- hora de salida se derivan del texto de política y del itinerario de cada plan.
+select public.aplicar_politica_desde_texto();
+
 -- ---------------------------------------------------------------------
 -- Calendario de cupos + reservas históricas + reseñas
 -- ---------------------------------------------------------------------
