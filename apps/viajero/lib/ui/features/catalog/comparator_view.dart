@@ -6,15 +6,27 @@ import '../../../ui/core/widgets.dart';
 
 /// Comparador de planes "todo incluido" (Anexo 6, idea 7): enfrenta hasta 3
 /// planes con precio final y qué incluye cada uno, sin sorpresas.
-class ComparatorView extends StatelessWidget {
+class ComparatorView extends StatefulWidget {
   const ComparatorView({super.key, required this.planes});
 
   final List<Plan> planes;
 
   @override
+  State<ComparatorView> createState() => _ComparatorViewState();
+}
+
+class _ComparatorViewState extends State<ComparatorView> {
+  static const _minViajeros = 1;
+  static const _maxViajeros = 20;
+
+  int _pax = 2;
+
+  List<Plan> get planes => widget.planes;
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final filas = buildComparisonRows(planes);
+    final filas = buildComparisonRows(planes, pax: _pax);
     final barato = planes.map((p) => p.precioCop).reduce((a, b) => a < b ? a : b);
 
     return Scaffold(
@@ -41,6 +53,13 @@ class ComparatorView extends StatelessWidget {
                 Text(
                   'Precio final por persona, sin cargos ocultos.',
                   style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.5),
+                ),
+                const SizedBox(height: 16),
+                _SelectorViajeros(
+                  pax: _pax,
+                  onChanged: (v) => setState(() => _pax = v),
+                  min: _minViajeros,
+                  max: _maxViajeros,
                 ),
                 const SizedBox(height: 20),
                 // Cabecera con las fotos/títulos
@@ -165,6 +184,58 @@ class ComparatorView extends StatelessWidget {
   }
 
   String _cortar(String s, int n) => s.length <= n ? s : '${s.substring(0, n)}…';
+}
+
+/// Control "¿Cuántos viajan?" (− / +) que recalcula el total de la tabla.
+class _SelectorViajeros extends StatelessWidget {
+  const _SelectorViajeros({
+    required this.pax,
+    required this.onChanged,
+    required this.min,
+    required this.max,
+  });
+
+  final int pax;
+  final ValueChanged<int> onChanged;
+  final int min;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            '¿Cuántos viajan?',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
+          ),
+        ),
+        IconButton.outlined(
+          tooltip: 'Menos viajeros',
+          onPressed: pax > min ? () => onChanged(pax - 1) : null,
+          icon: const Icon(Icons.remove_rounded),
+        ),
+        SizedBox(
+          width: 40,
+          child: Text(
+            '$pax',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+        ),
+        IconButton.outlined(
+          tooltip: 'Más viajeros',
+          onPressed: pax < max ? () => onChanged(pax + 1) : null,
+          icon: const Icon(Icons.add_rounded),
+        ),
+      ],
+    );
+  }
 }
 
 class _ValorComparado extends StatelessWidget {

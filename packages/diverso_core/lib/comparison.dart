@@ -12,8 +12,9 @@ class ComparisonRow {
 }
 
 /// Construye las filas comparables de 2-3 planes: precio final, duración,
-/// rating, transporte/comida/hospedaje, próximos cupos y política.
-List<ComparisonRow> buildComparisonRows(List<Plan> planes) {
+/// rating, transporte/comida/hospedaje, próximos cupos y política. El total
+/// se calcula para [pax] viajeros (2 por defecto).
+List<ComparisonRow> buildComparisonRows(List<Plan> planes, {int pax = 2}) {
   if (planes.isEmpty) return const [];
 
   return [
@@ -24,8 +25,8 @@ List<ComparisonRow> buildComparisonRows(List<Plan> planes) {
     ),
     ComparisonRow(
       'total',
-      'Total para 2 personas',
-      planes.map((p) => (p.precioCop * 2).toStringAsFixed(0)).toList(),
+      'Total para $pax ${pax == 1 ? 'persona' : 'personas'}',
+      planes.map((p) => (p.precioCop * pax).toStringAsFixed(0)).toList(),
     ),
     ComparisonRow(
       'duracion',
