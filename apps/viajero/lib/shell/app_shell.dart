@@ -1,17 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:diverso_core/diverso_core.dart';
 
 import '../ui/core/widgets.dart';
 
 /// Shell inferior de la app: navegación con píldora indicadora.
-class AppShell extends StatelessWidget {
+///
+/// Al entrar verifica que el usuario tenga aceptada la versión vigente de
+/// la política de datos y los términos; si no, pide la autorización antes
+/// de continuar (Ley 1581 de 2012).
+class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.shell});
 
   final StatefulNavigationShell shell;
 
   @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  bool _revisado = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _revisarConsentimiento());
+  }
+
+  Future<void> _revisarConsentimiento() async {
+    if (_revisado) return;
+    _revisado = true;
+    try {
+      final pendientes = await AuthService().consentimientosPendientes();
+      if (pendientes.isNotEmpty && mounted) {
+        await context.push('/consentimiento');
+      }
+    } catch (_) {
+      // Sin conexión: se vuelve a revisar en el próximo inicio de sesión.
+      _revisado = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final shell = widget.shell;
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       extendBody: true,

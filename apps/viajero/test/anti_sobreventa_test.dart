@@ -5,7 +5,7 @@ import 'package:diverso_core/diverso_core.dart';
 
 /// Prueba de integración contra el Supabase local (docker). Verifica el
 /// requisito central del Anexo 6: dos reservas simultáneas que compiten por
-/// los últimos cupos nunca generan sobreventa (bloqueo optimista en la RPC).
+/// los últimos cupos nunca generan sobreventa (decremento atómico condicional en la RPC).
 ///
 /// Requiere: `supabase start` + `supabase db reset` en diverso-app/.
 /// Binding para pruebas de integración: permite HTTP real contra el

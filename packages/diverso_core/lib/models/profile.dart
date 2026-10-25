@@ -36,6 +36,7 @@ class Agency {
     this.whatsapp,
     this.logoUrl,
     this.comisionPct = 12,
+    this.rntVigenteHasta,
   });
 
   final String id;
@@ -52,7 +53,17 @@ class Agency {
   final VerificationStatus estadoVerificacion;
   final double comisionPct;
 
-  bool get verificada => estadoVerificacion == VerificationStatus.verificado;
+  /// Fecha hasta la que el RNT está vigente (renovación anual).
+  final DateTime? rntVigenteHasta;
+
+  /// Verificada y con RNT vigente: solo así puede vender en la plataforma.
+  bool get verificada {
+    if (estadoVerificacion != VerificationStatus.verificado) return false;
+    final v = rntVigenteHasta;
+    if (v == null) return false;
+    final hoy = DateTime.now();
+    return !v.isBefore(DateTime(hoy.year, hoy.month, hoy.day));
+  }
 
   factory Agency.fromMap(Map<String, dynamic> map) => Agency(
         id: map['id'] as String,
@@ -70,5 +81,8 @@ class Agency {
             enumFromString(VerificationStatus.values, map['estado_verificacion'] as String?) ??
                 VerificationStatus.pendiente,
         comisionPct: (map['comision_pct'] as num?)?.toDouble() ?? 12,
+        rntVigenteHasta: map['rnt_vigente_hasta'] == null
+            ? null
+            : DateTime.tryParse(map['rnt_vigente_hasta'].toString()),
       );
 }

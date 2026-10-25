@@ -29,8 +29,10 @@
   }
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
   class="relative {clase}"
+  role="group"
   bind:this={raiz}
   onfocusout={alPerderFoco}
   onkeydown={(e) => e.key === 'Escape' && (abierto = false)}

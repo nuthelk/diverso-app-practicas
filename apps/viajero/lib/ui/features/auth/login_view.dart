@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
 
 import '../../core/app_theme.dart';
+import '../legal/consent_checkboxes.dart';
 
 /// Acceso al viajero: en pantallas anchas muestra un panel de marca a la
 /// izquierda (LayoutBuilder, según la skill de layouts responsivos).
@@ -20,6 +22,9 @@ class _LoginViewState extends State<LoginView> {
   final _auth = AuthService();
   bool _esRegistro = false;
   bool _cargando = false;
+  bool _aceptaDatos = false;
+  bool _aceptaTerminos = false;
+  bool _intentoRegistro = false;
   String? _error;
 
   @override
@@ -31,7 +36,13 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> _enviar() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formularioValido = _formKey.currentState!.validate();
+    if (_esRegistro) {
+      setState(() => _intentoRegistro = true);
+      // La autorización debe ser expresa: sin las dos casillas no se envía nada.
+      if (!_aceptaDatos || !_aceptaTerminos) return;
+    }
+    if (!formularioValido) return;
     setState(() {
       _cargando = true;
       _error = null;
@@ -42,12 +53,15 @@ class _LoginViewState extends State<LoginView> {
           nombre: _nombreCtrl.text.trim(),
           email: _emailCtrl.text.trim(),
           password: _passCtrl.text,
+          aceptaDocumentos: _aceptaDatos && _aceptaTerminos,
         );
       } else {
         await _auth.signIn(email: _emailCtrl.text.trim(), password: _passCtrl.text);
       }
     } catch (e) {
-      setState(() => _error = 'Credenciales inválidas o error de conexión.');
+      setState(() => _error = _esRegistro
+          ? 'No pudimos crear la cuenta. ¿Ese correo ya está registrado?'
+          : 'Correo o contraseña incorrectos, o no hay conexión.');
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -194,6 +208,16 @@ class _LoginViewState extends State<LoginView> {
                 validator: (v) => (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
                 onFieldSubmitted: (_) => _enviar(),
               ),
+              if (_esRegistro) ...[
+                const SizedBox(height: 14),
+                ConsentCheckboxes(
+                  aceptaDatos: _aceptaDatos,
+                  aceptaTerminos: _aceptaTerminos,
+                  mostrarError: _intentoRegistro,
+                  onDatos: (v) => setState(() => _aceptaDatos = v),
+                  onTerminos: (v) => setState(() => _aceptaTerminos = v),
+                ),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 14),
                 Text(_error!, textAlign: TextAlign.center,
@@ -215,29 +239,46 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () => setState(() {
                   _esRegistro = !_esRegistro;
                   _error = null;
+                  _intentoRegistro = false;
                 }),
                 child: Text(_esRegistro ? 'Ya tengo cuenta — entrar' : 'Crear cuenta nueva'),
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(46),
-                  foregroundColor: cs.onSurface,
+              if (!_esRegistro) ...[
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(46),
+                    foregroundColor: cs.onSurface,
+                  ),
+                  onPressed: () {
+                    _emailCtrl.text = 'viajero@demo.com';
+                    _passCtrl.text = 'demo1234';
+                  },
+                  icon: const Icon(Icons.science_outlined, size: 18),
+                  label: const Text('Usar cuenta demo'),
                 ),
-                onPressed: () {
-                  _emailCtrl.text = 'viajero@demo.com';
-                  _passCtrl.text = 'demo1234';
-                },
-                icon: const Icon(Icons.science_outlined, size: 18),
-                label: const Text('Usar cuenta demo'),
-              ),
-              const SizedBox(height: 22),
-              Text(
-                'Al continuar aceptas el tratamiento de tus datos conforme a la '
-                'Ley 1581 de 2012 (Habeas Data). Los usamos únicamente para '
-                'gestionar tus reservas.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11.5, height: 1.5, color: cs.outline),
+              ],
+              const SizedBox(height: 18),
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: cs.onSurfaceVariant,
+                      textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                    ),
+                    onPressed: () => context.push('/legal/privacidad'),
+                    child: const Text('Política de datos'),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: cs.onSurfaceVariant,
+                      textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                    ),
+                    onPressed: () => context.push('/legal/terminos-viajeros'),
+                    child: const Text('Términos y condiciones'),
+                  ),
+                ],
               ),
             ],
           ),

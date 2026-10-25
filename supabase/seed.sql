@@ -42,8 +42,8 @@ values
   ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
    'admin@demo.com', crypt('demo1234', gen_salt('bf')), now(), now(), now(),
    '', '', '', '', '',
-   '{"provider":"email","providers":["email"]}',
-   '{"nombre":"Admin Diverso","rol":"admin"}');
+   '{"provider":"email","providers":["email"],"rol":"admin"}',
+   '{"nombre":"Admin Diverso"}');
 
 -- ---------------------------------------------------------------------
 -- Agencias (12) — 10 verificadas, 1 pendiente (dueña con login), 1 sin dueño demo
@@ -78,6 +78,28 @@ values
    '81025', '01990011-2', 'Sabaneta', '604 555 1122', 'sabor@sabaneta.demo', '+573145551111', 'verificado'),
   (null, 'Río y Selva Colombia', 'Expediciones de varios días con hospedaje en reservas naturales de Antioquia.',
    '49571', '04211335-6', 'Medellín', '604 666 2233', 'expediciones@rioy Selva.demo', '+573145551222', 'verificado');
+
+-- Vigencia del RNT de las agencias verificadas (0002). Se registra antes de
+-- crear planes publicados, porque publicar exige RNT vigente. Una agencia
+-- queda próxima a vencer para mostrar la alerta de revalidación en el panel.
+update public.agencies
+   set rnt_vigente_hasta = case
+         when nombre = 'Río y Selva Colombia' then current_date + 20
+         else make_date(extract(year from current_date)::int + 1, 3, 31)
+       end
+ where estado_verificacion = 'verificado';
+
+-- Autorizaciones de tratamiento de datos y términos de las cuentas demo.
+insert into public.consents (user_id, tipo, version, origen)
+select p.id, t.tipo, public.version_documentos_legales(), 'seed'
+  from public.profiles p
+  cross join lateral (
+    select unnest(case p.rol
+                    when 'agencia' then array['tratamiento_datos','terminos_agencia']::public.consent_type[]
+                    when 'viajero' then array['tratamiento_datos','terminos_viajero']::public.consent_type[]
+                    else array[]::public.consent_type[]
+                  end) as tipo
+  ) t;
 
 -- ---------------------------------------------------------------------
 -- Planes (34) — precios de mercado COP, precio final todo incluido

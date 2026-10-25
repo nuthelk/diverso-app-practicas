@@ -89,6 +89,7 @@ class _ReviewViewState extends State<ReviewView> {
                     return IconButton(
                       iconSize: 42,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
+                      tooltip: '${i + 1} de 5 estrellas',
                       onPressed: _enviando ? null : () => setState(() => _calificacion = i + 1),
                       icon: Icon(
                         marcada ? Icons.star_rounded : Icons.star_outline_rounded,

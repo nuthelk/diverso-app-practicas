@@ -15,6 +15,55 @@ export interface Agency {
   descripcion: string;
   comision_pct: number;
   estado_verificacion: VerificationStatus;
+  rnt_vigente_hasta: string | null; // yyyy-mm-dd
+  verificado_at: string | null;
+  motivo_rechazo: string | null;
+  created_at?: string;
+}
+
+export type VerificationAction =
+  | 'registrada'
+  | 'verificada'
+  | 'rechazada'
+  | 'reverificacion_requerida'
+  | 'vigencia_actualizada';
+
+export interface VerificationLog {
+  id: string;
+  agency_id: string;
+  accion: VerificationAction;
+  numero_rnt: string;
+  matricula: string;
+  vigente_hasta: string | null;
+  motivo: string | null;
+  created_at: string;
+}
+
+/** Estado del RNT para vender: vigente, por vencer (≤ 30 días), vencido o sin vigencia. */
+export type EstadoVigencia = 'vigente' | 'por_vencer' | 'vencido' | 'sin_vigencia';
+
+export function estadoVigencia(a: Pick<Agency, 'rnt_vigente_hasta'>, hoy = new Date()): EstadoVigencia {
+  if (!a.rnt_vigente_hasta) return 'sin_vigencia';
+  const h = new Date(hoy);
+  h.setHours(0, 0, 0, 0);
+  const v = new Date(a.rnt_vigente_hasta + 'T00:00:00');
+  const dias = Math.round((v.getTime() - h.getTime()) / 86_400_000);
+  if (dias < 0) return 'vencido';
+  if (dias <= 30) return 'por_vencer';
+  return 'vigente';
+}
+
+export function diasParaVencer(a: Pick<Agency, 'rnt_vigente_hasta'>, hoy = new Date()): number | null {
+  if (!a.rnt_vigente_hasta) return null;
+  const h = new Date(hoy);
+  h.setHours(0, 0, 0, 0);
+  const v = new Date(a.rnt_vigente_hasta + 'T00:00:00');
+  return Math.round((v.getTime() - h.getTime()) / 86_400_000);
+}
+
+/** Vigencia sugerida al verificar: 31 de marzo del año siguiente. */
+export function vigenciaSugerida(hoy = new Date()): string {
+  return `${hoy.getFullYear() + 1}-03-31`;
 }
 
 export interface PlanDate {
@@ -34,6 +83,7 @@ export interface Plan {
   resumen: string;
   descripcion: string;
   duracion_texto: string;
+  punto_encuentro: string;
   precio_cop: number;
   incluye: string[];
   incluye_transporte: boolean;

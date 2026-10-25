@@ -66,16 +66,23 @@ class PlanCard extends StatelessWidget {
                     child: IconButton(
                       visualDensity: VisualDensity.compact,
                       style: IconButton.styleFrom(
-                        backgroundColor:
-                            comparada ? cs.primary : Colors.black.withValues(alpha: .28),
-                        foregroundColor: comparada ? cs.onPrimary : Colors.white,
+                        backgroundColor: comparada
+                            ? cs.primary
+                            : Colors.black.withValues(alpha: .28),
+                        foregroundColor: comparada
+                            ? cs.onPrimary
+                            : Colors.white,
                       ),
+                      tooltip: comparada
+                          ? 'Quitar del comparador'
+                          : 'Agregar al comparador',
                       onPressed: () => onToggleComparar(plan),
                       icon: Icon(
-                        comparada ? Icons.check_rounded : Icons.compare_arrows_rounded,
+                        comparada
+                            ? Icons.check_rounded
+                            : Icons.compare_arrows_rounded,
                         size: 19,
                       ),
-                      tooltip: 'Comparar',
                     ),
                   ),
                   Positioned(
@@ -83,8 +90,11 @@ class PlanCard extends StatelessWidget {
                     bottom: 10,
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on_rounded,
-                            size: 14, color: Colors.white),
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           plan.destino,
@@ -96,14 +106,21 @@ class PlanCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: .22),
                             borderRadius: BorderRadius.circular(AppRadios.pill),
                           ),
                           child: Text(
                             plan.duracionTexto,
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -114,7 +131,10 @@ class PlanCard extends StatelessWidget {
                       right: 12,
                       bottom: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(AppRadios.pill),
@@ -122,8 +142,11 @@ class PlanCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.event_available_rounded,
-                                size: 12, color: cs.primary),
+                            Icon(
+                              Icons.event_available_rounded,
+                              size: 12,
+                              color: cs.primary,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               '${plan.fechasDisponibles.first.cupoDisponible} cupos',
@@ -160,11 +183,19 @@ class PlanCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      RatingStars(calificacion: plan.ratingPromedio, mostrarNumero: true),
+                      RatingStars(
+                        calificacion: plan.ratingPromedio,
+                        mostrarNumero: true,
+                      ),
                       if (plan.reviewsCount > 0) ...[
                         const SizedBox(width: 3),
-                        Text('(${plan.reviewsCount})',
-                            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                        Text(
+                          '(${plan.reviewsCount})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                       const Spacer(),
                       PriceText(monto: plan.precioCop),
@@ -193,7 +224,10 @@ class _PortadaPlan extends StatelessWidget {
       return Container(
         color: cs.primaryContainer,
         child: Center(
-          child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40)),
+          child: Text(
+            plan.categoria.emoji,
+            style: const TextStyle(fontSize: 40),
+          ),
         ),
       );
     }
@@ -207,7 +241,12 @@ class _PortadaPlan extends StatelessWidget {
       filterQuality: FilterQuality.low,
       errorBuilder: (_, _, _) => Container(
         color: cs.primaryContainer,
-        child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
+        child: Center(
+          child: Text(
+            plan.categoria.emoji,
+            style: const TextStyle(fontSize: 40),
+          ),
+        ),
       ),
     );
   }

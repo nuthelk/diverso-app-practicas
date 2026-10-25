@@ -11,24 +11,31 @@
   import PlanForm from './lib/pages/PlanForm.svelte';
   import Ventas from './lib/pages/Ventas.svelte';
   import Admin from './lib/pages/Admin.svelte';
+  import Legal from './lib/pages/Legal.svelte';
+  import AceptarDocumentos from './lib/pages/AceptarDocumentos.svelte';
 
   const seg = $derived(segmentos());
 
   // Guards de sesión (equivalen al redirect global de go_router).
   $effect(() => {
     if (!auth.ready) return;
-    const publica = router.path === '/login' || router.path === '/starter';
+    const publica =
+      router.path === '/login' || router.path === '/starter' || router.path.startsWith('/legal/');
     if (!auth.userId && !publica) go('/login');
     if (auth.userId && router.path === '/login') go('/starter');
   });
 </script>
 
 {#if !auth.ready}
-  <div class="grid min-h-screen place-items-center">
+  <div class="grid min-h-screen place-items-center" role="status" aria-label="Cargando">
     <div class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
   </div>
+{:else if seg[0] === 'legal'}
+  <Legal doc={seg[1] ?? ''} />
 {:else if seg[0] === 'login'}
   <Login />
+{:else if seg[0] === 'consentimiento'}
+  <AceptarDocumentos />
 {:else if seg[0] === 'starter'}
   <Starter />
 {:else if seg[0] === 'admin'}
@@ -48,7 +55,9 @@
     {:else if seg[0] === 'ventas'}
       <Ventas />
     {:else}
-      <div class="p-10 text-slate-500">Ruta no encontrada: {router.path}</div>
+      <div class="p-10 text-slate-500">
+        No encontramos esta sección. <a class="font-semibold text-brand-600 hover:underline" href="#/dashboard">Volver al resumen</a>
+      </div>
     {/if}
   </Shell>
 {/if}

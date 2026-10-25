@@ -37,3 +37,10 @@ export function hoyISO(): string {
   d.setHours(12, 0, 0, 0);
   return d.toISOString().slice(0, 10);
 }
+
+const textoFmt = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** Fecha para usar dentro de una frase: «24 de octubre de 2026». */
+export function fechaTexto(iso: string): string {
+  return textoFmt.format(new Date(iso.slice(0, 10) + 'T12:00:00'));
+}

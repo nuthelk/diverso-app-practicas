@@ -9,6 +9,8 @@ import 'ui/features/bookings/bookings_view.dart';
 import 'ui/features/bookings/review_view.dart';
 import 'ui/features/catalog/catalog_view.dart';
 import 'ui/features/catalog/comparator_view.dart';
+import 'ui/features/legal/consent_view.dart';
+import 'ui/features/legal/legal_view.dart';
 import 'ui/features/checkout/booking_success_view.dart';
 import 'ui/features/checkout/checkout_view.dart';
 import 'ui/features/plan/plan_detail_view.dart';
@@ -31,7 +33,9 @@ GoRouter buildViajeroRouter() {
     redirect: (context, state) {
       final logueado = auth.currentUser != null;
       final enLogin = state.matchedLocation == '/login';
-      if (!logueado && !enLogin) return '/login';
+      // Los documentos legales se leen antes de crear la cuenta.
+      final enLegal = state.matchedLocation.startsWith('/legal/');
+      if (!logueado && !enLogin && !enLegal) return '/login';
       if (logueado && enLogin) return '/';
       return null;
     },
@@ -41,6 +45,20 @@ GoRouter buildViajeroRouter() {
         pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
           key: state.pageKey,
           child: const LoginView(),
+        ),
+      ),
+      GoRoute(
+        path: '/legal/:doc',
+        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
+          key: state.pageKey,
+          child: LegalView(docId: state.pathParameters['doc']!),
+        ),
+      ),
+      GoRoute(
+        path: '/consentimiento',
+        pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+          key: state.pageKey,
+          child: const ConsentView(),
         ),
       ),
       StatefulShellRoute.indexedStack(

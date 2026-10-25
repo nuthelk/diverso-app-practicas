@@ -4,8 +4,8 @@
   import StatusPill from '../components/StatusPill.svelte';
   import Empty from '../components/Empty.svelte';
   import { misVentas, mensajeError } from '../api';
-  import { cop, fechaCorta, fechaLarga } from '../format';
-  import { fechasFuturas, type Agency, type Plan, type VentaRow } from '../types';
+  import { cop, fechaCorta, fechaLarga, fechaTexto } from '../format';
+  import { fechasFuturas, estadoVigencia, type Agency, type Plan, type VentaRow } from '../types';
   import { go } from '../router.svelte';
 
   let cargando = $state(true);
@@ -15,20 +15,16 @@
   let ventasLista = $state<VentaRow[]>([]);
 
   async function cargar() {
-    (window as any).__dbg = { paso: 'inicio' };
     cargando = true;
     error = '';
     try {
       const r = await misVentas();
-      (window as any).__dbg = { paso: 'datos', agencia: !!r.agencia, planes: r.planes.length };
       agencia = r.agencia;
       planes = r.planes;
       ventasLista = r.ventas;
     } catch (e) {
-      (window as any).__dbg = { paso: 'error', msg: mensajeError(e) };
       error = mensajeError(e);
     } finally {
-      (window as any).__dbg = { ...(window as any).__dbg, paso: (window as any).__dbg.paso + '+finally' };
       cargando = false;
     }
   }
@@ -36,7 +32,10 @@
   // Carga al montar (initState): llamada directa, sin $effect.
   cargar();
 
-  const confirmadas = $derived(ventasLista.filter((v) => v.booking_estado === 'confirmada'));
+  // Ventas efectivas: reservas pagadas, ya sea por viajar (confirmada) o realizadas (completada).
+  const confirmadas = $derived(
+    ventasLista.filter((v) => v.booking_estado === 'confirmada' || v.booking_estado === 'completada'),
+  );
   const totalVentas = $derived(confirmadas.reduce((s, v) => s + v.monto_total, 0));
   const comision = $derived(confirmadas.reduce((s, v) => s + v.comision, 0));
   const saldo = $derived(confirmadas.reduce((s, v) => s + v.saldo_agencia, 0));
@@ -76,13 +75,15 @@
     return lista.sort((a, b) => b.ocup - a.ocup || a.fecha.localeCompare(b.fecha)).slice(0, 6);
   });
 
-  const labelEstado = $derived(
-    agencia?.estado_verificacion === 'verificado'
-      ? 'Agencia verificada ✓'
-      : agencia?.estado_verificacion === 'rechazado'
-        ? 'Verificación rechazada'
-        : 'En verificación',
-  );
+  const labelEstado = $derived.by(() => {
+    const a = agencia;
+    if (!a) return '';
+    if (a.estado_verificacion === 'rechazado') return 'Verificación rechazada';
+    if (a.estado_verificacion === 'pendiente') return 'En verificación';
+    const est = estadoVigencia(a);
+    if (est === 'vencido' || est === 'sin_vigencia') return 'Verificada · RNT vencido';
+    return `Verificada ✓ · RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`;
+  });
 </script>
 
 {#if cargando}
@@ -99,11 +100,11 @@
 {:else if !agencia}
   <Empty icono="🏢" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
 {:else}
-  <div class="aparecer mx-auto max-w-[1200px] px-7 py-6">
+  <div class="aparecer mx-auto max-w-[1200px] px-4 py-6 sm:px-7">
     <!-- Cabecera -->
-    <div class="flex items-start gap-4">
-      <div class="min-w-0 flex-1">
-        <h1 class="truncate text-[26px] font-extrabold tracking-tight">Hola, {agencia.nombre}</h1>
+    <div class="flex flex-wrap items-start gap-4">
+      <div class="min-w-[240px] flex-1">
+        <h1 class="text-[24px] leading-tight font-extrabold tracking-tight sm:text-[26px]">Hola, {agencia.nombre}</h1>
         <p class="mt-1 text-[13.5px] text-slate-500 dark:text-slate-400">
           {labelEstado} · Comisión Diverso {agencia.comision_pct.toFixed(0)}%
         </p>
@@ -119,10 +120,10 @@
 
     <!-- Métricas -->
     <div class="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-      <StatCard icono={'💵'} valor={cop(totalVentas)} etiqueta="Ventas confirmadas" />
+      <StatCard icono={'💵'} valor={cop(totalVentas)} etiqueta="Ventas pagadas" />
       <StatCard icono={'📊'} valor={'- ' + cop(comision)} etiqueta="Comisión Diverso" color="bg-orange-500/15 text-orange-600" />
       <StatCard icono={'🏦'} valor={cop(saldo)} etiqueta="Tu saldo a recibir" color="bg-ok-500/15 text-ok-600" />
-      <StatCard icono={'🎟️'} valor={String(confirmadas.length)} etiqueta="Reservas confirmadas" />
+      <StatCard icono={'🎟️'} valor={String(confirmadas.length)} etiqueta="Reservas pagadas" />
     </div>
 
     <!-- Ocupación por salida -->
@@ -200,10 +201,10 @@
       {:else}
         {#each ventasLista.slice(0, 6) as v (v.booking_id)}
           <div
-            class="flex items-center gap-3.5 rounded-2xl border border-slate-200/80 bg-white p-3.5
+            class="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-2xl border border-slate-200/80 bg-white p-3.5
               dark:border-ink-600 dark:bg-ink-800"
           >
-            <div class="min-w-0 flex-1">
+            <div class="min-w-[200px] flex-1">
               <div class="truncate text-[13.5px] font-bold">
                 {v.codigo} · {v.plan_titulo}
               </div>

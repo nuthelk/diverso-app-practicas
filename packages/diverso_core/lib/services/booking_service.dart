@@ -26,6 +26,9 @@ class DiversoException implements Exception {
         'NO_ES_DUENO',
         'RESERVA_INVALIDA',
         'AGENCIA_NO_VERIFICADA',
+        'AGENCIA_NO_HABILITADA',
+        'FECHA_PASADA',
+        'RNT_VENCIDO',
       ];
       for (final c in conocidos) {
         if (msg.contains(c)) return DiversoException(c, msg);
@@ -45,6 +48,14 @@ class DiversoException implements Exception {
         return 'Esta reserva no te pertenece.';
       case 'AGENCIA_NO_VERIFICADA':
         return 'La agencia debe estar verificada para publicar planes.';
+      case 'AGENCIA_NO_HABILITADA':
+      case 'RNT_VENCIDO':
+        return 'Esta agencia no está habilitada para vender en este momento '
+            '(verificación o RNT pendiente). Elige otro plan.';
+      case 'FECHA_PASADA':
+        return 'Esa fecha ya pasó. Elige una salida próxima.';
+      case 'PLAN_NO_PUBLICADO':
+        return 'Este plan ya no está disponible.';
       case 'ERROR_BD':
         return 'Error de conexión. Revisa tu internet e intenta de nuevo.';
       default:

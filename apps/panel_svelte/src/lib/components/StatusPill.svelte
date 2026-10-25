@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-
   let { estado }: { estado: string } = $props();
 
   const MAPA: Record<string, { texto: string; clase: string }> = {
@@ -15,6 +13,10 @@
     borrador: { texto: 'Borrador', clase: 'bg-slate-500/15 text-slate-500' },
     aprobado: { texto: 'Aprobado', clase: 'bg-ok-500/12 text-ok-500' },
     reembolsado: { texto: 'Reembolsado', clase: 'bg-slate-500/15 text-slate-500' },
+    vigente: { texto: 'RNT vigente', clase: 'bg-ok-500/12 text-ok-500' },
+    por_vencer: { texto: 'RNT por vencer', clase: 'bg-orange-500/12 text-orange-600' },
+    vencido: { texto: 'RNT vencido', clase: 'bg-red-500/12 text-red-600' },
+    sin_vigencia: { texto: 'Sin vigencia', clase: 'bg-red-500/12 text-red-600' },
   };
 
   const info = $derived(MAPA[estado] ?? { texto: estado, clase: 'bg-slate-500/15 text-slate-500' });

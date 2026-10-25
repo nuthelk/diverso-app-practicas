@@ -87,6 +87,7 @@ class _CatalogViewState extends State<CatalogView>
                                   suffixIcon: c.texto.isEmpty
                                       ? null
                                       : IconButton(
+                                          tooltip: 'Borrar búsqueda',
                                           icon: const Icon(Icons.close_rounded, size: 19),
                                           onPressed: () {
                                             _searchCtrl.clear();
@@ -432,6 +433,7 @@ class _BotonFiltros extends StatelessWidget {
             minimumSize: const Size(52, 52),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadios.field)),
           ),
+          tooltip: 'Filtros y orden',
           onPressed: () => _hojaFiltros(context),
           icon: const Icon(Icons.tune_rounded),
         ),
@@ -517,6 +519,7 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
               if (_fecha != null) ...[
                 const SizedBox(width: 8),
                 IconButton.outlined(
+                  tooltip: 'Quitar fecha',
                   onPressed: () => setState(() => _fecha = null),
                   icon: const Icon(Icons.close_rounded, size: 18),
                 ),

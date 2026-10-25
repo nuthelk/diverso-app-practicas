@@ -4,7 +4,7 @@
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0F1216",
-  "theme_color": "#0E6E4F",
+  "theme_color": "#2D4A73",
   "description": "Publica planes, gestiona cupos y concilia tus pagos.",
   "icons": [
     { "src": "icons/Icon-192.png", "sizes": "192x192", "type": "image/png" },

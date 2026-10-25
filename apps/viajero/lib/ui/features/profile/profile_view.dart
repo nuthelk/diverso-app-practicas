@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:diverso_core/diverso_core.dart';
 
@@ -93,15 +94,45 @@ class _ProfileViewState extends State<ProfileView> {
           _TarjetaInfo(
             icono: Icons.verified_user_rounded,
             titulo: 'Compra protegida',
-            cuerpo: 'Todas las agencias están verificadas con RNT y Cámara de Comercio. '
-                'Tus pagos tienen garantía de reembolso según la política de cada plan.',
+            cuerpo: 'Solo mostramos agencias con RNT vigente y matrícula mercantil '
+                'verificadas por el equipo Diverso. Si una agencia cambia sus datos o '
+                'se le vence el RNT, sus planes se ocultan hasta revalidarla.',
           ),
           const SizedBox(height: 12),
           _TarjetaInfo(
             icono: Icons.privacy_tip_rounded,
             titulo: 'Tus datos',
             cuerpo: 'Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), '
-                'únicamente para gestionar tu cuenta y tus reservas.',
+                'únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, '
+                'actualizar o pedir la supresión de tus datos en cualquier momento.',
+          ),
+          const SizedBox(height: 24),
+          const SectionLabel('Documentos legales'),
+          Container(
+            decoration: BoxDecoration(
+              color: cs.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppRadios.card),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.shield_outlined),
+                  title: const Text('Política de tratamiento de datos'),
+                  subtitle: Text('Versión $kVersionLegal'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push('/legal/privacidad'),
+                ),
+                Divider(height: 1, indent: 56, color: cs.outlineVariant.withValues(alpha: .5)),
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: const Text('Términos y condiciones'),
+                  subtitle: Text('Versión $kVersionLegal'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => context.push('/legal/terminos-viajeros'),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
           OutlinedButton.icon(

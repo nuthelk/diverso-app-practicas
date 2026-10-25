@@ -1,7 +1,7 @@
 <script lang="ts">
   import { auth, perfilActual } from '../auth.svelte';
   import { go } from '../router.svelte';
-  import { miAgencia } from '../api';
+  import { miAgencia, consentimientosPendientes } from '../api';
 
   // Decisión de destino: admin → /admin; agencia sin registro → /onboarding.
   $effect(() => {
@@ -11,7 +11,9 @@
         const perfil = await perfilActual();
         if (perfil.rol === 'admin') return go('/admin');
         const agencia = await miAgencia();
-        go(agencia ? '/dashboard' : '/onboarding');
+        if (!agencia) return go('/onboarding'); // el registro incluye la autorización
+        const pendientes = await consentimientosPendientes();
+        go(pendientes.length > 0 ? '/consentimiento' : '/dashboard');
       } catch {
         go('/login');
       }

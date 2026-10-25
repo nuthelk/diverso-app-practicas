@@ -3,6 +3,7 @@ library;
 
 export 'comparison.dart';
 export 'config.dart';
+export 'legal.dart';
 export 'models/booking.dart';
 export 'models/enums.dart';
 export 'models/plan.dart';

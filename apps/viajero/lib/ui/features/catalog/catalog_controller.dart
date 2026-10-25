@@ -54,7 +54,7 @@ class CatalogController extends ChangeNotifier {
       destinos = listaDestinos;
     } catch (e) {
       debugPrint('CatalogController.cargar: $e');
-      error = 'No pudimos cargar los planes. ¿Está encendido el servidor local?';
+      error = 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.';
       errorDetalle = e.toString();
     } finally {
       cargando = false;

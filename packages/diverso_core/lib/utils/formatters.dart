@@ -24,3 +24,9 @@ String formatFechaLarga(DateTime fecha) {
 /// Convierte [fecha] a la cadena YYYY-MM-DD que espera PostgreSQL.
 String fechaToIso(DateTime fecha) =>
     '${fecha.year.toString().padLeft(4, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}';
+
+/// Fecha para usar dentro de una frase: "24 de octubre de 2026".
+String formatFechaTexto(DateTime fecha) {
+  final f = DateFormat('d \'de\' MMMM \'de\' y', 'es');
+  return f.format(fecha);
+}

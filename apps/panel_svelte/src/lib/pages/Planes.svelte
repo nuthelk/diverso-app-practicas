@@ -62,7 +62,7 @@
     </a>
   </Empty>
 {:else}
-  <div class="aparecer mx-auto max-w-[1100px] space-y-3 px-7 py-6 pb-24">
+  <div class="aparecer mx-auto max-w-[1100px] space-y-3 px-4 py-6 pb-24 sm:px-7">
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-[24px] font-extrabold tracking-tight">Mis planes</h1>
       <a
@@ -120,16 +120,16 @@
                 .join(', ')}`}
         </p>
 
-        <div class="mt-3.5 flex items-center gap-1 border-t border-slate-200/70 pt-3 dark:border-ink-600">
+        <div class="mt-3.5 flex flex-wrap items-center gap-1 border-t border-slate-200/70 pt-3 dark:border-ink-600">
           <a
             href={'#/planes/editar/' + p.id}
-            class="rounded-full px-3 py-1.5 text-[13px] font-semibold text-slate-600 transition
+            class="rounded-full px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-600 transition
               hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-700"
           >
             ✏️ Editar
           </a>
           <button
-            class="rounded-full px-3 py-1.5 text-[13px] font-semibold text-slate-600 transition
+            class="rounded-full px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-600 transition
               hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-700"
             onclick={() => (fechasDe = p)}
           >
@@ -137,7 +137,7 @@
           </button>
           <div class="flex-1"></div>
           <button
-            class="rounded-full px-4 py-1.5 text-[13px] font-bold transition
+            class="rounded-full px-4 py-1.5 text-[13px] font-bold whitespace-nowrap transition
               {publicado
               ? 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-ink-700 dark:text-slate-400'
               : 'bg-ok-500/15 text-ok-600 hover:bg-ok-500/25'}"

@@ -321,6 +321,7 @@ class _BotonPax extends StatelessWidget {
         side: BorderSide(color: habilitado ? cs.primary : cs.outlineVariant),
         foregroundColor: habilitado ? cs.primary : cs.outline,
       ),
+      tooltip: icono == Icons.remove_rounded ? 'Quitar una persona' : 'Agregar una persona',
       onPressed: habilitado ? onTap : null,
       icon: Icon(icono, size: 18),
     );

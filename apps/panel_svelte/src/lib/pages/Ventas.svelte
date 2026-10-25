@@ -30,7 +30,9 @@
     cargar();
   });
 
-  const confirmadas = $derived(ventas.filter((v) => v.booking_estado === 'confirmada'));
+  const confirmadas = $derived(
+    ventas.filter((v) => v.booking_estado === 'confirmada' || v.booking_estado === 'completada'),
+  );
   const filtradas = $derived(
     filtro === 'confirmadas'
       ? confirmadas
@@ -49,14 +51,13 @@
 {:else if error}
   <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
 {:else}
-  <div class="aparecer mx-auto max-w-[1200px] px-7 py-6">
+  <div class="aparecer mx-auto max-w-[1200px] px-4 py-6 sm:px-7">
     <!-- Cabecera: título + filtro compacto -->
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <h1 class="text-[24px] font-extrabold tracking-tight">Ventas y conciliación</h1>
         <p class="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-          El motor retiene la comisión de Diverso y dispersa el saldo a tu cuenta sin intervención
-          manual.
+          Cada venta muestra la comisión de Diverso y el saldo que corresponde a tu agencia.
         </p>
       </div>
       <div
@@ -73,7 +74,7 @@
                 : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700'}"
             onclick={() => (filtro = f as typeof filtro)}
           >
-            {f === 'todas' ? 'Todas' : f === 'confirmadas' ? 'Confirmadas' : 'Pendientes'}
+            {f === 'todas' ? 'Todas' : f === 'confirmadas' ? 'Pagadas' : 'Pendientes de pago'}
           </button>
         {/each}
       </div>
@@ -82,7 +83,7 @@
     <!-- Resumen -->
     <div class="mt-5 flex flex-wrap gap-3">
       <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
-        <div class="text-[12px] text-slate-500 dark:text-slate-400">Ventas confirmadas</div>
+        <div class="text-[12px] text-slate-500 dark:text-slate-400">Ventas pagadas</div>
         <div class="mt-0.5 text-[17px] font-extrabold text-brand-700 tabular-nums dark:text-brand-200">
           {cop(confirmadas.reduce((s, v) => s + v.monto_total, 0))}
         </div>
@@ -153,8 +154,8 @@
     </div>
 
     <p class="mt-4 flex items-start gap-1.5 text-[12px] text-slate-400">
-      ⓘ Pagos simulados en el MVP. Con la pasarela real (Wompi/PayU), la dispersión del saldo será
-      automática.
+      ⓘ Piloto con pagos simulados: los saldos son informativos y aún no se transfieren. La
+      dispersión a tu cuenta se habilitará con la integración de la pasarela real (Wompi o PayU).
     </p>
   </div>
 {/if}

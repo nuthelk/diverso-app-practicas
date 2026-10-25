@@ -81,6 +81,7 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                           backgroundColor: Colors.black.withValues(alpha: .30),
                           foregroundColor: Colors.white,
                         ),
+                        tooltip: 'Volver',
                         icon: const Icon(Icons.arrow_back_rounded, size: 20),
                         onPressed: () => context.pop(),
                       ),
@@ -308,6 +309,11 @@ class _TarjetaAgencia extends StatelessWidget {
                   'Agencia local · RNT ${agency.numeroRnt}',
                   style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
                 ),
+                if (agency.rntVigenteHasta != null)
+                  Text(
+                    'RNT vigente hasta el ${formatFechaTexto(agency.rntVigenteHasta!)}',
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
               ],
             ),
           ),

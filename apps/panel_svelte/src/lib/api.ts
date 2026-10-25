@@ -6,7 +6,9 @@ import {
   type PlanDate,
   type PlanDraft,
   type VentaRow,
+  type VerificationLog,
 } from './types';
+import { VERSION_LEGAL, type TipoConsentimiento } from './legal';
 
 /** Capa de datos del panel — mismas consultas que AgencyService en Flutter. */
 
@@ -134,17 +136,79 @@ export async function todasLasAgencias(): Promise<Agency[]> {
   return (data ?? []) as Agency[];
 }
 
-export async function cambiarVerificacion(agencyId: string, estado: string): Promise<void> {
-  // El trigger guard_agency_verification permite el cambio solo a admins.
+/** Aprueba la agencia con la vigencia de su RNT (el trigger registra quién y cuándo). */
+export async function verificarAgencia(agencyId: string, vigenteHasta: string): Promise<void> {
   const { error } = await supabase
     .from('agencies')
-    .update({ estado_verificacion: estado })
+    .update({ estado_verificacion: 'verificado', rnt_vigente_hasta: vigenteHasta })
     .eq('id', agencyId);
   if (error) throw error;
 }
 
+/** Rechaza o revoca la verificación; el motivo es obligatorio y queda en el historial. */
+export async function rechazarAgencia(agencyId: string, motivo: string): Promise<void> {
+  const { error } = await supabase
+    .from('agencies')
+    .update({ estado_verificacion: 'rechazado', motivo_rechazo: motivo })
+    .eq('id', agencyId);
+  if (error) throw error;
+}
+
+/** Revalidación anual: registra la nueva vigencia del RNT. */
+export async function actualizarVigencia(agencyId: string, vigenteHasta: string): Promise<void> {
+  const { error } = await supabase
+    .from('agencies')
+    .update({ rnt_vigente_hasta: vigenteHasta })
+    .eq('id', agencyId);
+  if (error) throw error;
+}
+
+export async function historialVerificacion(agencyId: string): Promise<VerificationLog[]> {
+  const { data, error } = await supabase
+    .from('agency_verification_log')
+    .select('*')
+    .eq('agency_id', agencyId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as VerificationLog[];
+}
+
+/* Consentimientos (Ley 1581) ------------------------------------------ */
+
+export async function consentimientosPendientes(): Promise<TipoConsentimiento[]> {
+  const { data, error } = await supabase.rpc('consentimientos_pendientes');
+  if (error) throw error;
+  return (data ?? []) as TipoConsentimiento[];
+}
+
+export async function registrarConsentimiento(tipo: TipoConsentimiento): Promise<void> {
+  const { error } = await supabase.rpc('registrar_consentimiento', {
+    p_tipo: tipo,
+    p_version: VERSION_LEGAL,
+    p_origen: 'panel',
+  });
+  if (error) throw error;
+}
+
+/** Mensajes legibles para los códigos que lanzan las funciones y triggers SQL. */
+const ERRORES: Record<string, string> = {
+  AGENCIA_NO_VERIFICADA: 'Tu agencia aún no está verificada; el plan queda como borrador.',
+  RNT_VENCIDO: 'El RNT de tu agencia está vencido. Renuévalo para volver a publicar.',
+  VIGENCIA_RNT_REQUERIDA: 'Indica hasta cuándo está vigente el RNT para verificar la agencia.',
+  VIGENCIA_RNT_VENCIDA: 'La vigencia del RNT debe ser una fecha futura.',
+  MOTIVO_RECHAZO_REQUERIDO: 'Escribe el motivo del rechazo; la agencia lo verá en su panel.',
+  VERSION_DESACTUALIZADA: 'Los documentos legales cambiaron. Recarga la página y acéptalos de nuevo.',
+  agencies_rnt_formato: 'El número de RNT debe tener entre 4 y 8 dígitos, sin letras.',
+  agencies_matricula_formato: 'La matrícula mercantil debe ser numérica (se admiten guiones).',
+  agencies_numero_rnt_key: 'Ya existe una agencia registrada con ese número de RNT.',
+  'Failed to fetch': 'No hay conexión con el servidor. Verifica que el backend esté encendido.',
+};
+
 export function mensajeError(e: unknown): string {
   const m = (e as { message?: string })?.message ?? String(e);
+  for (const [clave, texto] of Object.entries(ERRORES)) {
+    if (m.includes(clave)) return texto;
+  }
   return m;
 }
 
