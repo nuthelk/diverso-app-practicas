@@ -9,7 +9,7 @@ enum PlanStatus { borrador, publicado, archivado }
 
 enum BookingStatus { pendientePago, confirmada, cancelada, completada }
 
-enum PaymentMethodOption { pse, nequi, daviplata, tarjeta }
+enum PaymentMethodOption { pse, nequi, daviplata, tarjeta, bancolombia, otro }
 
 enum PaymentStatus { pendiente, aprobado, rechazado, reembolsado }
 
@@ -77,6 +77,10 @@ extension PaymentMethodX on PaymentMethodOption {
         return 'Daviplata';
       case PaymentMethodOption.tarjeta:
         return 'Tarjeta';
+      case PaymentMethodOption.bancolombia:
+        return 'Bancolombia';
+      case PaymentMethodOption.otro:
+        return 'Otro medio';
     }
   }
 }

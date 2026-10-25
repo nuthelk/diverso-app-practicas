@@ -1,5 +1,6 @@
 import 'enums.dart';
 import 'plan.dart';
+import 'reembolso.dart';
 
 class Payment {
   Payment({
@@ -22,11 +23,14 @@ class Payment {
   final String provider;
   final bool simulated;
 
+  /// «Pagado con Nequi · ref. DIV-1-1 (prueba)»: el piloto solo cobra en sandbox.
+  String get textoReferencia => 'Pagado con ${metodo.label} · ref. $referencia (prueba)';
+
   factory Payment.fromMap(Map<String, dynamic> map) => Payment(
         id: map['id'] as String,
         bookingId: map['booking_id'] as String,
         metodo: enumFromString(PaymentMethodOption.values, map['metodo'] as String?) ??
-            PaymentMethodOption.pse,
+            PaymentMethodOption.otro,
         estado: enumFromString(PaymentStatus.values, map['estado'] as String?) ??
             PaymentStatus.pendiente,
         monto: (map['monto'] as num?)?.toDouble() ?? 0,
@@ -49,6 +53,7 @@ class Booking {
     this.planDate,
     this.plan,
     this.payments = const [],
+    this.refunds = const [],
     this.tieneResena = false,
   });
 
@@ -63,9 +68,46 @@ class Booking {
   final PlanDate? planDate;
   final Plan? plan;
   final List<Payment> payments;
+  final List<Refund> refunds;
   final bool tieneResena;
 
   Payment? get pago => payments.isEmpty ? null : payments.first;
+
+  /// Tiempo que se retienen los cupos de una reserva pendiente de pago (mismo valor que el servidor).
+  static const retencion = Duration(minutes: 30);
+
+  /// Momento en que vence la retención de cupos si no se paga.
+  DateTime get venceAt => createdAt.add(retencion);
+
+  /// Reembolso más reciente de la reserva (cancelación o pago tardío).
+  Refund? get reembolso => refunds.isEmpty
+      ? null
+      : (refunds.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt))).first;
+
+  /// Estado del reembolso para mostrar en la tarjeta de la reserva. Una reserva cancelada que
+  /// sí se pagó y no tiene reembolso es «Sin reembolso»; una que nunca se pagó no muestra nada.
+  String? get etiquetaReembolso {
+    final r = reembolso;
+    if (r != null) return r.etiqueta;
+    if (estado == BookingStatus.cancelada && pago != null) return EstadoReembolso.noAplica.etiqueta;
+    return null;
+  }
+
+  Booking conResena() => Booking(
+        id: id,
+        codigo: codigo,
+        planDateId: planDateId,
+        viajeroId: viajeroId,
+        pax: pax,
+        montoTotal: montoTotal,
+        estado: estado,
+        createdAt: createdAt,
+        planDate: planDate,
+        plan: plan,
+        payments: payments,
+        refunds: refunds,
+        tieneResena: true,
+      );
 
   bool get esFutura =>
       planDate != null &&
@@ -81,6 +123,7 @@ class Booking {
   factory Booking.fromMap(Map<String, dynamic> map) {
     final pd = map['plan_date'];
     final pays = map['payments'];
+    final refs = map['refunds'];
     final PlanDate? planDate =
         pd is Map ? PlanDate.fromMap(pd.cast<String, dynamic>()) : null;
     final planMap = pd is Map ? pd['plan'] : null;
@@ -98,6 +141,9 @@ class Booking {
       plan: planMap is Map ? Plan.fromMap(planMap.cast<String, dynamic>()) : null,
       payments: pays is List
           ? pays.map((e) => Payment.fromMap((e as Map).cast<String, dynamic>())).toList()
+          : const [],
+      refunds: refs is List
+          ? refs.map((e) => Refund.fromMap((e as Map).cast<String, dynamic>())).toList()
           : const [],
     );
   }

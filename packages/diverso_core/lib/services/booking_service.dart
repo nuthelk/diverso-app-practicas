@@ -1,15 +1,33 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/booking.dart';
-import '../models/enums.dart';
+import '../models/reembolso.dart';
+import 'edge_functions.dart';
 
 /// Error de dominio con código estable para mostrar mensajes de la app.
 class DiversoException implements Exception {
-  DiversoException(this.codigo, [this.mensaje]);
+  DiversoException(this.codigo, [this.mensaje, this.detalle]);
 
   /// SIN_CUPO, ESTADO_INVALIDO, NO_ES_DUENO, ...
   final String codigo;
   final String? mensaje;
+
+  /// Cuerpo completo del error de una Edge Function (p. ej. `estado_pago`, `reembolso`).
+  final Map<String, dynamic>? detalle;
+
+  /// Errores de las Edge Functions: `{error, mensaje, ...}` con HTTP 4xx/5xx.
+  factory DiversoException.fromFunction(FunctionException e) {
+    final d = e.details;
+    if (d is Map && d['error'] is String) {
+      return DiversoException(d['error'] as String, d['mensaje'] as String?, d.cast<String, dynamic>());
+    }
+    if (e.status == 0) return DiversoException('SIN_CONEXION', e.details?.toString());
+    if (e.status >= 500) return DiversoException('ERROR_SERVIDOR', e.details?.toString());
+    return DiversoException('ERROR_FUNCION', e.details?.toString());
+  }
+
+  /// Pago aprobado por Wompi cuando la reserva ya había vencido: se reembolsa solo.
+  bool get aprobadoTarde => detalle?['estado_pago'] == 'aprobado_tarde';
 
   factory DiversoException.fromPostgrest(Object error) {
     if (error is PostgrestException) {
@@ -56,6 +74,39 @@ class DiversoException implements Exception {
         return 'Esa fecha ya pasó. Elige una salida próxima.';
       case 'PLAN_NO_PUBLICADO':
         return 'Este plan ya no está disponible.';
+      case 'RESERVA_NO_EXISTE':
+        return 'No encontramos esa reserva.';
+      case 'NO_AUTENTICADO':
+        return 'Tu sesión expiró. Inicia sesión de nuevo.';
+      case 'RESERVA_VENCIDA':
+        if (aprobadoTarde) {
+          final estado = EstadoReembolsoX.desdeServidor(detalle?['reembolso'] as String?);
+          final texto = estado == EstadoReembolso.noAplica ? 'en proceso' : estado.name;
+          return 'Tu pago llegó cuando la reserva ya había vencido, así que no se confirmó. '
+              'Te lo devolvemos automáticamente (reembolso de prueba $texto).';
+        }
+        return 'Tu reserva venció (los cupos se retienen 30 minutos). Vuelve a reservar.';
+      case 'REDIRECT_NO_PERMITIDO':
+        return 'Esta dirección de la app no está autorizada para pagos de prueba.';
+      case 'MONTO_NO_COINCIDE':
+        return 'El monto de la transacción no coincide con el de tu reserva, así que no la confirmamos. '
+            'Contacta a soporte con tu referencia.';
+      case 'TRANSACCION_NO_EXISTE':
+      case 'REFERENCIA_DESCONOCIDA':
+        return 'No encontramos ese pago. Si ya pagaste, toca «Ya pagué, verificar» en Mis reservas.';
+      case 'WOMPI_NO_DISPONIBLE':
+        return 'Wompi no está disponible en este momento. Intenta de nuevo en unos minutos.';
+      case 'WOMPI_NO_AUTORIZADO':
+        return 'La pasarela de prueba rechazó las credenciales configuradas. Avisa al equipo de Diverso.';
+      case 'SOLO_MODO_PRUEBA':
+        return 'La pasarela de prueba no está configurada.';
+      case 'SIN_CONEXION':
+        return 'Sin conexión con el servidor. Revisa tu internet e intenta de nuevo.';
+      case 'ERROR_SERVIDOR':
+      case 'ERROR_INTERNO':
+      case 'CONFIG_SUPABASE':
+      case 'SERVICIO_NO_DISPONIBLE':
+        return 'El servidor tuvo un problema. Intenta de nuevo en un momento.';
       case 'ERROR_BD':
         return 'Error de conexión. Revisa tu internet e intenta de nuevo.';
       default:
@@ -68,7 +119,17 @@ class DiversoException implements Exception {
 }
 
 class BookingService {
+  BookingService({FunctionInvoker? invocar}) : _invocar = invocar ?? invocarEdgeFunction;
+
+  final FunctionInvoker _invocar;
+
   SupabaseClient get _client => Supabase.instance.client;
+
+  /// Reserva con plan, agencia, pagos y reembolsos embebidos. Los reembolsos se piden con
+  /// columnas explícitas: `refunds(*)` falla con 403 porque `raw` no se concede al viajero.
+  static const _seleccionReserva =
+      '*, plan_date:plan_dates(*, plan:plans(*, agency:agencies(*))), payments(*), '
+      'refunds(${Refund.columnas})';
 
   /// Crea la reserva decrementando cupos de forma atómica en el servidor.
   /// Devuelve el id de la reserva en estado pendiente_pago.
@@ -100,9 +161,7 @@ class BookingService {
     if (uid == null) return const [];
     final res = await _client
         .from('bookings')
-        .select(
-          '*, plan_date:plan_dates(*, plan:plans(*, agency:agencies(*))), payments(*)',
-        )
+        .select(_seleccionReserva)
         .eq('viajero_id', uid)
         .order('created_at', ascending: false);
 
@@ -117,35 +176,62 @@ class BookingService {
           .eq('viajero_id', uid);
       final conResena = resenas.map((e) => e['booking_id'] as String).toSet();
       return bookings
-          .map((b) => b.tieneResena || conResena.contains(b.id)
-              ? _conResena(b)
-              : b)
+          .map((b) => b.tieneResena || conResena.contains(b.id) ? b.conResena() : b)
           .toList();
     }
     return bookings;
   }
 
-  Booking _conResena(Booking b) => Booking(
-        id: b.id,
-        codigo: b.codigo,
-        planDateId: b.planDateId,
-        viajeroId: b.viajeroId,
-        pax: b.pax,
-        montoTotal: b.montoTotal,
-        estado: b.estado,
-        createdAt: b.createdAt,
-        planDate: b.planDate,
-        plan: b.plan,
-        payments: b.payments,
-        tieneResena: true,
-      );
-
-  Future<void> cancelar(String bookingId) async {
+  /// Una reserva propia cargada del backend (confirmación `/reserva/:bookingId`).
+  Future<Booking> reserva(String bookingId) async {
     try {
-      await _client.rpc('cancel_booking', params: {'p_booking_id': bookingId});
+      final res = await _client.from('bookings').select(_seleccionReserva).eq('id', bookingId).maybeSingle();
+      if (res == null) throw DiversoException('RESERVA_NO_EXISTE');
+      return Booking.fromMap(res);
+    } on DiversoException {
+      rethrow;
     } catch (e) {
       throw DiversoException.fromPostgrest(e);
     }
+  }
+
+  /// Reserva propia de esta fecha que sigue pendiente de pago y con la retención vigente, si
+  /// existe. El checkout la reutiliza en vez de crear otra (que retendría cupos dos veces).
+  Future<Booking?> reservaPendiente(String planDateId) async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) return null;
+    try {
+      final desde = DateTime.now().toUtc().subtract(Booking.retencion);
+      final res = await _client
+          .from('bookings')
+          .select()
+          .eq('viajero_id', uid)
+          .eq('plan_date_id', planDateId)
+          .eq('estado', 'pendiente_pago')
+          .gt('created_at', desde.toIso8601String())
+          .order('created_at', ascending: false)
+          .limit(1);
+      return res.isEmpty ? null : Booking.fromMap(res.first);
+    } catch (e) {
+      throw DiversoException.fromPostgrest(e);
+    }
+  }
+
+  /// Reembolso que daría la política del plan si se cancelara AHORA (solo lectura).
+  Future<VistaPreviaCancelacion> vistaPreviaCancelacion(String bookingId) async {
+    try {
+      final res = await _client.rpc('vista_previa_cancelacion', params: {'p_booking_id': bookingId});
+      return VistaPreviaCancelacion.fromMap((res as Map).cast<String, dynamic>());
+    } catch (e) {
+      throw DiversoException.fromPostgrest(e);
+    }
+  }
+
+  /// Cancela con la política del plan (Edge Function `reservas-cancelar`, que también pide
+  /// el reembolso de prueba a Wompi). Es idempotente.
+  Future<ResultadoCancelacion> cancelar(String bookingId) async {
+    final res = await llamarEdgeFunction(_invocar, 'reservas-cancelar', {'booking_id': bookingId});
+    return ResultadoCancelacion.fromMap(res);
   }
 }
 
@@ -163,72 +249,4 @@ class CreatedBooking {
   final double montoTotal;
   final String planTitulo;
   final DateTime? fecha;
-}
-
-/// Resultado del pago confirmado.
-class PaymentResult {
-  PaymentResult({
-    required this.paymentId,
-    required this.referencia,
-    required this.codigo,
-    required this.monto,
-  });
-
-  final String paymentId;
-  final String referencia;
-  final String codigo;
-  final double monto;
-
-  factory PaymentResult.fromRpc(Map<String, dynamic> map) => PaymentResult(
-        paymentId: map['payment_id'] as String,
-        referencia: map['referencia'] as String,
-        codigo: map['codigo'] as String,
-        monto: (map['monto'] as num?)?.toDouble() ?? 0,
-      );
-}
-
-/// Abstracción de pasarela de pago (Anexo 6: pagos locales seguros).
-///
-/// El MVP usa [SimulatedPaymentGateway]: confirma vía RPC `confirm_payment`
-/// con provider='simulado'. La integración real (Wompi/PayU sandbox) implementa
-/// esta misma interfaz: crea la intención de pago, redirige/abre el medio y su
-/// webhook termina llamando la misma RPC con simulated=false.
-abstract class PaymentGateway {
-  String get provider;
-  bool get esSimulado;
-
-  Future<PaymentResult> pagar({
-    required String bookingId,
-    required PaymentMethodOption metodo,
-  });
-}
-
-class SimulatedPaymentGateway implements PaymentGateway {
-  SimulatedPaymentGateway({this.latenciaSimulada = const Duration(milliseconds: 1800)});
-
-  /// Tiempo de "procesamiento" para que la UX refleje un checkout real.
-  final Duration latenciaSimulada;
-
-  @override
-  String get provider => 'simulado';
-
-  @override
-  bool get esSimulado => true;
-
-  @override
-  Future<PaymentResult> pagar({
-    required String bookingId,
-    required PaymentMethodOption metodo,
-  }) async {
-    await Future.delayed(latenciaSimulada);
-    try {
-      final res = await Supabase.instance.client.rpc('confirm_payment', params: {
-        'p_booking_id': bookingId,
-        'p_metodo': metodo.name,
-      });
-      return PaymentResult.fromRpc((res as Map).cast<String, dynamic>());
-    } catch (e) {
-      throw DiversoException.fromPostgrest(e);
-    }
-  }
 }

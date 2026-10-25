@@ -30,11 +30,7 @@ class CatalogService {
 
   /// Planes publicados con su agencia y próximas fechas, aplicando filtros.
   Future<List<Plan>> search(FiltrosCatalogo filtros) async {
-    // Limpieza oportunista de reservas vencidas en pago (libera cupos).
-    try {
-      await _client.rpc('expire_stale_bookings');
-    } catch (_) {/* best effort */}
-
+    // Las reservas vencidas se liberan en el servidor (pg_cron cada 5 min).
     final hoy = fechaToIso(DateTime.now());
     // Filtros primero (PostgrestFilterBuilder); orden y límite al final.
     var query = _client
