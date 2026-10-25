@@ -91,6 +91,31 @@ describe('PlanForm · política de cancelación', () => {
     expect(crearMock).not.toHaveBeenCalled();
   });
 
+  it('no guarda con notas que son una regla de reembolso y muestra el motivo junto al campo', async () => {
+    miAgenciaMock.mockResolvedValue(agencia({ id: 'ag-7' }));
+    crearMock.mockResolvedValue('plan-1');
+    const { container } = render(PlanForm);
+    await llenarBasicos(container);
+    const notas = screen.getByLabelText(/^Notas de la política \(opcional\)/) as HTMLTextAreaElement;
+    await fireEvent.input(notas, { target: { value: 'Reembolso del 100 % hasta 1 hora antes.' } });
+    expect(notas.getAttribute('aria-invalid')).not.toBe('true'); // el error aparece al intentar guardar, como los demás
+    await fireEvent.submit(container.querySelector('form')!);
+
+    const mensaje = 'Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje.';
+    await vi.waitFor(() => expect(texto(container)).toContain(mensaje));
+    expect(screen.getAllByRole('alert').map((a) => texto(a))).toContain(mensaje);
+    expect(notas.getAttribute('aria-invalid')).toBe('true');
+    expect(textoViajero()).toContain('Completa la política de cancelación');
+    expect(crearMock).not.toHaveBeenCalled();
+
+    // Quitar la regla de las notas desbloquea el guardado
+    await fireEvent.input(notas, { target: { value: 'Avisar restricciones alimentarias.' } });
+    expect(notas.getAttribute('aria-invalid')).not.toBe('true');
+    await fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => expect(crearMock).toHaveBeenCalledTimes(1));
+    expect(crearMock.mock.calls[0][1]).toMatchObject({ politicaNotas: 'Avisar restricciones alimentarias.' });
+  });
+
   it('guarda los números y el texto juntos (el texto sale de los números)', async () => {
     miAgenciaMock.mockResolvedValue(agencia({ id: 'ag-7' }));
     crearMock.mockResolvedValue('plan-1');

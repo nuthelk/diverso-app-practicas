@@ -457,10 +457,14 @@
                 bind:value={d.politicaNotas}
                 class="campo resize-none"
                 placeholder="Ej.: Avisar restricciones alimentarias."
+                aria-invalid={intentado && !!erroresPolitica.notas}
               ></textarea>
               <span class="mt-1 block text-[12px] text-slate-500 dark:text-slate-400">
                 Frases que no cambian el reembolso: se muestran al viajero después de la política.
               </span>
+              {#if intentado && erroresPolitica.notas}
+                <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.notas}</span>
+              {/if}
             </label>
             <p class="text-[13px] leading-relaxed" data-testid="politica-texto">
               <span class="font-semibold">Lo que verá el viajero:</span>

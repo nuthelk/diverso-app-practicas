@@ -9,7 +9,7 @@ import {
   type VerificationLog,
 } from './types';
 import { VERSION_LEGAL, type TipoConsentimiento } from './legal';
-import { conPoliticaGenerada } from './politica';
+import { conPoliticaGenerada, MENSAJE_NOTAS_CON_POLITICA } from './politica';
 import {
   normalizarCuenta,
   type CuentaDispersion,
@@ -315,6 +315,7 @@ const ERRORES: Record<string, string> = {
   agency_payout_accounts_numero_documento_check: 'El documento debe tener de 4 a 20 caracteres, sin puntos ni espacios.',
   agency_payout_accounts_titular_check: 'Escribe el nombre del titular (mínimo 3 caracteres).',
   agency_payout_accounts_banco_check: 'Indica el banco (entre 2 y 80 caracteres).',
+  NOTAS_CON_POLITICA: MENSAJE_NOTAS_CON_POLITICA,
   plans_politica_parcial_coherente:
     'La ventana parcial debe ser menor que la de cancelación gratuita y llevar su porcentaje.',
   'Failed to fetch': 'No hay conexión con el servidor. Verifica que el backend esté encendido.',

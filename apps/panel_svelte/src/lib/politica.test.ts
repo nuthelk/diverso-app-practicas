@@ -1,7 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { conPoliticaGenerada, horaCorta, normalizarNotas, textoPolitica, textoPoliticaCompleto, validarPolitica } from './politica';
+import {
+  conPoliticaGenerada,
+  horaCorta,
+  MENSAJE_NOTAS_CON_POLITICA,
+  normalizarNotas,
+  notasConPolitica,
+  textoPolitica,
+  textoPoliticaCompleto,
+  validarPolitica,
+} from './politica';
 import { draftToRow, draftVacio } from './types';
 
 const base = { horasCancelacionGratuita: 48, horasReembolsoParcial: null, porcentajeReembolsoParcial: null };
@@ -165,6 +174,76 @@ describe('conPoliticaGenerada con notas', () => {
   });
 });
 
+describe('vectores de notas con política compartidos con la BD (notas_con_politica en SQL)', () => {
+  const sql = readFileSync(resolve(process.cwd(), '../../supabase/tests/0007_notas_sin_politica.sql'), 'utf-8');
+
+  // [notas, ¿son una regla de política?] — la prueba SQL afirma exactamente estas líneas.
+  const VECTORES: [string, boolean][] = [
+    ['Cancelación gratuita hasta 1 hora antes.', true],
+    ['Cancelación gratuita hasta 3 días antes.', true],
+    ['Entre 48 y 24 horas: reembolso del 50 %.', true],
+    ['Entre 48 y 24 horas: 50%.', true],
+    ['Menos de 24 horas: sin reembolso.', true],
+    ['Menos de 24 horas: 50 %.', true],
+    ['Menos de 2 días: reembolso del 50 %.', true],
+    ['Reembolso del 100 % hasta 1 hora antes.', true],
+    ['Sin reembolso a menos de 12 horas.', true],
+    ['REEMBOLSO COMPLETO SI CANCELAS.', true],
+    ['Política de reintegro flexible.', true],
+    ['No se aceptan devoluciones.', true],
+    ['Te devolvemos el dinero si cancelas.', true],
+    ['El dinero no se devuelve.', true],
+    ['Cancela gratis hasta 2 horas antes.', true],
+    ['La cancelación es totalmente gratuita hasta 5 horas antes.', true],
+    ['Cancelaciones con más de 6 horas de anticipación no tienen costo.', true],
+    ['Con 2 días de anticipación puedes cancelar sin costo.', true],
+    ['Cancelación sin penalización.', true],
+    ['Si cancelas con menos de 3h cobramos el 50 %.', true],
+    ['Requiere condición física media. Reembolso del 100 % hasta 1 hora antes.', true],
+    ['  Sin   reembolso  a menos de 12 horas.  ', true],
+    ['', false],
+    ['Reprogramación gratuita si el clima no permite volar.', false],
+    ['Reprogramación gratuita por clima.', false],
+    ['Requiere condición física media.', false],
+    ['Avisar restricciones alimentarias.', false],
+    ['Llevar documento de identidad. Incluye 3 horas de guía.', false],
+    ['Menos de 2 horas de caminata.', false],
+    ['Entre 2 y 3 horas de recorrido.', false],
+    ['Descuento del 10 % para grupos de 6 personas.', false],
+    ['Para cancelaciones escribe a la agencia.', false],
+    ['Si se cancela por clima, la reprogramación es gratis.', false],
+    ['Devolver el equipo al guía.', false],
+    ['Entrada sin costo para menores de 5 años.', false],
+  ];
+
+  it.each(VECTORES)('notasConPolitica(%j) = %s', (notas, esperado) => {
+    expect(notasConPolitica(notas)).toBe(esperado);
+    expect(sql, 'la prueba SQL debe afirmar el mismo vector').toContain(`pg_temp.vector('${notas}', ${esperado});`);
+  });
+
+  it('ignora saltos de línea y descompone/compone las tildes igual que SQL', () => {
+    expect(notasConPolitica('Sin\nreembolso a menos de 12 horas.')).toBe(true);
+    expect(notasConPolitica('Cancelacio\u0301n gratuita hasta 1 hora antes.')).toBe(true);
+  });
+
+  it('notas vacías, nulas o indefinidas no son una regla', () => {
+    expect(notasConPolitica(null)).toBe(false);
+    expect(notasConPolitica(undefined)).toBe(false);
+    expect(notasConPolitica(' \t\n ')).toBe(false);
+  });
+
+  it('las notas de los 6 planes del seed (restauradas por la migración 0006) siguen siendo válidas', () => {
+    for (const n of [
+      'Reprogramación gratuita si el clima no permite volar.',
+      'Avisar restricciones alimentarias.',
+      'Requiere condición física media.',
+      'Reprogramación gratuita por clima.',
+    ]) {
+      expect(notasConPolitica(n), n).toBe(false);
+    }
+  });
+});
+
 describe('validarPolitica', () => {
   const ok = { ...base, horaSalida: '06:00' };
 
@@ -210,6 +289,27 @@ describe('validarPolitica', () => {
 
   it.each(['', '6:00', '24:00', '12:60', 'abc', '06:00:00'])('la hora de salida «%s» no es válida', (h) => {
     expect(validarPolitica({ ...ok, horaSalida: h }).horaSalida).toMatch(/HH:MM/);
+  });
+
+  it('las notas que son una regla de reembolso son un error de «notas»', () => {
+    expect(MENSAJE_NOTAS_CON_POLITICA).toBe(
+      'Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje.',
+    );
+    expect(validarPolitica({ ...ok, politicaNotas: 'Cancelación gratuita hasta 1 hora antes.' })).toEqual({
+      notas: MENSAJE_NOTAS_CON_POLITICA,
+    });
+    expect(validarPolitica({ ...ok, politicaNotas: 'Sin reembolso a menos de 12 horas.' }).notas).toBe(MENSAJE_NOTAS_CON_POLITICA);
+  });
+
+  it('PRESERVE: notas que no son política, vacías o ausentes no producen error', () => {
+    expect(validarPolitica({ ...ok, politicaNotas: 'Avisar restricciones alimentarias.' })).toEqual({});
+    expect(validarPolitica({ ...ok, politicaNotas: '' })).toEqual({});
+    expect(validarPolitica({ ...ok, politicaNotas: undefined })).toEqual({});
+  });
+
+  it('el error de notas convive con los demás errores de la política', () => {
+    const e = validarPolitica({ ...ok, horasCancelacionGratuita: 0, politicaNotas: 'Reembolso del 100 % hasta 1 hora antes.' });
+    expect(Object.keys(e).sort()).toEqual(['horasGratis', 'notas']);
   });
 });
 

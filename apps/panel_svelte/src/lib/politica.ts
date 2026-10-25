@@ -15,8 +15,12 @@ export type PoliticaNumeros = Pick<
 export type PoliticaConNotas = PoliticaNumeros & Pick<PlanDraft, 'politicaNotas'>;
 
 export type ErroresPolitica = Partial<
-  Record<'horasGratis' | 'horasParcial' | 'porcentajeParcial' | 'horaSalida', string>
+  Record<'horasGratis' | 'horasParcial' | 'porcentajeParcial' | 'horaSalida' | 'notas', string>
 >;
+
+/** Mensaje del error `notas` y de NOTAS_CON_POLITICA (api.ts) cuando unas notas dicen una regla de reembolso. */
+export const MENSAJE_NOTAS_CON_POLITICA =
+  'Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje.';
 
 const horas = (n: number) => `${n} ${n === 1 ? 'hora' : 'horas'}`;
 
@@ -51,8 +55,38 @@ export function textoPoliticaCompleto(p: PoliticaConNotas): string {
   return notas === '' ? textoPolitica(p) : `${textoPolitica(p)} ${notas}`;
 }
 
-/** Mismas reglas que los CHECK de la BD (plans_politica_parcial_coherente y rangos). */
-export function validarPolitica(p: PoliticaNumeros & { horaSalida: string }): ErroresPolitica {
+/**
+ * Expresiones que reconocen una regla de política dentro de unas notas: las frases de politica_desde_texto
+ * («Cancelación gratuita hasta N …», «Entre N y M …: …», «Menos de N …: …») y la redacción libre de un reembolso
+ * («Reembolso del 100 % hasta 1 hora antes.», «Sin reembolso a menos de 12 horas.»). Son LAS MISMAS cadenas que
+ * notas_con_politica en SQL (migración 0007): ASCII, sin delimitadores de palabra, sin distinguir mayúsculas, y
+ * [^.] limita cada una a una frase. Las pruebas SQL y vitest afirman los mismos vectores. Es una guarda de
+ * coherencia, no un analizador de lenguaje: lo que se reembolsa lo deciden siempre los números.
+ */
+const REGLAS_EN_NOTAS = [
+  'reembols|reintegr|devoluciones',
+  '(devol|devuelv)[^ ]*( [^ ]+){0,3} (dinero|valor|pago|plata|abono|monto|total)',
+  '(dinero|valor|pago|plata|abono|monto)( [^ ]+){0,3} (devol|devuelv)',
+  'cancel[^ ]*( [^ ]+){0,2} (gratis|gratuit)',
+  'grat(is|uit)[^ ]* hasta',
+  'cancel[^.]*[0-9]+ ?(%|h(rs?|oras?)?|d.as?)([^a-z]|$)',
+  '[0-9]+ ?(%|h(rs?|oras?)?|d.as?)([^a-z]|$)[^.]*cancel',
+  'cancel[^.]*(penaliz|multa|cobr|(sin|con) (costo|cargo|penal|recargo))',
+  '(sin|con) (costo|cargo|penal|recargo)[^.]*cancel',
+  'entre [0-9]+ y [0-9]+ (horas?|d.as?) ?:',
+  'menos de [0-9]+ (horas?|d.as?) ?:',
+].map((re) => new RegExp(re, 'i'));
+
+/** ¿Alguna frase de las notas es una regla de política (que podría contradecir los números)? */
+export function notasConPolitica(notas: string | null | undefined): boolean {
+  const texto = normalizarNotas(notas).normalize('NFC');
+  return REGLAS_EN_NOTAS.some((regla) => regla.test(texto));
+}
+
+/** Mismas reglas que los CHECK de la BD (plans_politica_parcial_coherente y rangos) y que el disparador de notas. */
+export function validarPolitica(
+  p: PoliticaNumeros & { horaSalida: string; politicaNotas?: string | null },
+): ErroresPolitica {
   const errores: ErroresPolitica = {};
   const gratis = p.horasCancelacionGratuita;
   if (!esEntero(gratis) || gratis <= 0) {
@@ -81,6 +115,7 @@ export function validarPolitica(p: PoliticaNumeros & { horaSalida: string }): Er
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(p.horaSalida)) {
     errores.horaSalida = 'Indica la hora de salida en formato HH:MM (hora de Colombia).';
   }
+  if (notasConPolitica(p.politicaNotas)) errores.notas = MENSAJE_NOTAS_CON_POLITICA;
   return errores;
 }
 

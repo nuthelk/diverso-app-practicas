@@ -202,6 +202,7 @@ describe('mensajeError', () => {
     ['LIQUIDACION_NO_PENDIENTE', /ya fue ejecutada/],
     ['MONTO_NO_POSITIVO', /cero o negativo/],
     ['FECHA_CON_RESERVAS', /reservas activas/],
+    ['NOTAS_CON_POLITICA', /^Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje\.$/],
   ])('traduce %s', (codigo, esperado) => {
     expect(mensajeError(new Error(`${codigo}`))).toMatch(esperado);
   });

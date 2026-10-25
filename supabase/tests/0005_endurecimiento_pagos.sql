@@ -306,6 +306,69 @@ begin
                      'cancelar_reserva aplica la política con la que se pagó (100 %, ventana de 48 h)');
 end $$;
 
+-- Ataques sobre una reserva ya pagada (B1): ni el viajero ni la agencia pueden cambiarle la política ni la salida.
+do $$
+declare
+  v_pd uuid; v_plan uuid; v_b uuid; v_dueno text; n int; r record; bk bookings; j json;
+begin
+  v_pd := pg_temp.mk_fecha(48, 24, 50, 100);
+  v_plan := (select plan_id from plan_dates where id = v_pd);
+  v_dueno := (select owner_user_id::text from agencies where numero_rnt = '85421');
+  v_b := pg_temp.crear_como('viajero@demo.com', v_pd);
+  update bookings set estado = 'confirmada' where id = v_b;
+  insert into payments (booking_id, metodo, estado, monto, referencia, provider, simulated, provider_transaction_id)
+  values (v_b, 'tarjeta', 'aprobado', 200000, 'P5-' || substr(md5(random()::text), 1, 10), 'wompi', false, 'tx5-' || v_b);
+
+  -- el viajero intenta reescribir su propia política y la salida
+  perform pg_temp.como('viajero@demo.com');
+  set local role authenticated;
+  begin
+    update bookings set politica_horas_gratuita = 1, politica_horas_parcial = null, politica_porcentaje_parcial = null,
+                        politica_texto = 'Cancelación gratuita hasta 1 hora antes.', salida_at = now() where id = v_b;
+    get diagnostics n = row_count;
+  exception when insufficient_privilege then
+    n := 0;
+  end;
+  reset role;
+  perform pg_temp.ok(n = 0, 'el viajero no puede reescribir la política ni la salida de su reserva (0 filas o permiso denegado)');
+
+  -- la agencia dueña del plan intenta lo mismo sobre la reserva, y endurece el plan, y lo borra
+  perform set_config('request.jwt.claim.sub', v_dueno, false);
+  set local role authenticated;
+  begin
+    update bookings set politica_horas_gratuita = 999 where id = v_b;
+    get diagnostics n = row_count;
+  exception when insufficient_privilege then
+    n := 0;
+  end;
+  perform pg_temp.ok(n = 0, 'la agencia no puede reescribir la política de la reserva de un viajero (0 filas o permiso denegado)');
+  update plans set horas_cancelacion_gratuita = 999, horas_reembolso_parcial = null, porcentaje_reembolso_parcial = null,
+                   hora_salida = '23:59' where id = v_plan;
+  update plans set politica_cancelacion = 'Cancelación gratuita hasta 5000 horas antes.' where id = v_plan;
+  perform pg_temp.ok((select horas_cancelacion_gratuita from plans where id = v_plan) = 5000,
+                     'la agencia sí puede cambiar el plan (la reserva ya pagada no lo nota)');
+  perform pg_temp.falla_con(format($q$delete from plans where id = %L$q$, v_plan),
+                            'FECHA_CON_RESERVAS', 'la agencia no puede borrar el plan (ni su fecha) mientras haya una reserva viva');
+  reset role;
+
+  select * into bk from bookings where id = v_b;
+  perform pg_temp.ok((bk.politica_horas_gratuita, bk.politica_horas_parcial, bk.politica_porcentaje_parcial) = (48, 24, 50)
+                     and bk.politica_texto <> 'Cancelación gratuita hasta 1 hora antes.' and bk.salida_at > now() + interval '90 hours',
+                     'tras los ataques, la reserva conserva su política (48/24/50) y su salida');
+
+  perform pg_temp.como('viajero@demo.com');
+  set local role authenticated;
+  j := public.vista_previa_cancelacion(v_b);
+  reset role;
+  perform pg_temp.ok((j->>'porcentaje')::int = 100 and (j->>'monto')::numeric = 200000,
+                     'la vista previa del viajero sigue en 100 % tras el endurecimiento del plan');
+  set local role service_role;
+  j := public.cancelar_reserva(v_b, pg_temp.uid('viajero@demo.com'));
+  reset role;
+  perform pg_temp.ok((j->'reembolso'->>'porcentaje')::int = 100 and (j->'reembolso'->>'monto')::numeric = 200000,
+                     'cancelar la reserva pagada devuelve el 100 % que prometía la política congelada');
+end $$;
+
 -- 4. Ventanas exactas (SF2) -------------------------------------------------------------------------
 do $$
 declare v_b uuid; r record;
@@ -320,7 +383,16 @@ begin
   select * into r from public.reembolso_por_politica(v_b);
   perform pg_temp.ok(r.porcentaje = 50 and r.monto = 100000,
                      '48 h menos 10 s: reembolso del 50 %, no del 100 % (no se redondea a 2 decimales para decidir)');
-  perform pg_temp.ok(r.horas_antes = 48.00, 'solo la cifra mostrada (horas_antes) se redondea');
+  -- (0007) la cifra mostrada se trunca a 2 decimales: 48 h − 10 s ya no se muestra como 48.00 junto al tramo del 50 %.
+  perform pg_temp.ok(r.horas_antes = 47.99, 'solo la cifra mostrada (horas_antes) se trunca a 2 decimales');
+
+  update bookings set salida_at = now() + interval '48 hours' - interval '1 second' where id = v_b;
+  select * into r from public.reembolso_por_politica(v_b);
+  perform pg_temp.ok(r.porcentaje = 50 and r.monto = 100000 and r.aplica, '48 h menos 1 s: reembolso del 50 %');
+
+  update bookings set salida_at = now() + interval '30 hours' where id = v_b;
+  select * into r from public.reembolso_por_politica(v_b);
+  perform pg_temp.ok(r.porcentaje = 50 and r.monto = 100000, '30 h antes (dentro del tramo parcial): reembolso del 50 %');
 
   update bookings set salida_at = now() + interval '24 hours' where id = v_b;
   select * into r from public.reembolso_por_politica(v_b);

@@ -287,15 +287,8 @@ class TestPagos(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.puerto = int(os.environ.get("PAGOS_TEST_MOCK_PORT") or puerto_libre())
-        cls.mock_proc = subprocess.Popen([sys.executable, "-I", str(MOCK_PY), "--port", str(cls.puerto)],
-                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         cls.mock = Mock(cls.puerto)
-        for _ in range(50):
-            try:
-                http("GET", cls.mock.base + "/_mock/health")
-                break
-            except Exception:
-                time.sleep(0.1)
+        cls.arrancar_mock()
         cls.datos = Datos()
         cls.servidor = None
         try:
@@ -305,6 +298,17 @@ class TestPagos(unittest.TestCase):
         except BaseException:
             cls.tearDownClass()
             raise
+
+    @classmethod
+    def arrancar_mock(cls):
+        cls.mock_proc = subprocess.Popen([sys.executable, "-I", "-B", str(MOCK_PY), "--port", str(cls.puerto)],
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for _ in range(50):
+            try:
+                http("GET", cls.mock.base + "/_mock/health")
+                return
+            except Exception:
+                time.sleep(0.1)
 
     @classmethod
     def tearDownClass(cls):
@@ -738,6 +742,43 @@ class TestPagos(unittest.TestCase):
                 self.assertEqual(len(self.reembolsos(r)), 1)
                 self.assertEqual(len([e for e in self.mock.reembolsos() if e["transaction_id"] == tx["id"]]), 1)
 
+    def test_webhook_de_un_evento_viejo_aplica_el_estado_actual_de_wompi(self):
+        # Un evento antiguo (firma válida) que dice APPROVED, pero Wompi dice hoy que la transacción fue
+        # rechazada: se aplica lo que dice Wompi, no lo que trae el evento.
+        r = self.reserva()
+        i = self.intento(r)
+        tx = self.mock.transaccion(i["referencia"], i["amount_in_cents"], "CARD", "4111111111111111")
+        self.assertEqual(tx["status"], "DECLINED")
+        viejo = evento_tx(dict(tx, status="APPROVED"), ts=int(time.time()) - 86400)
+        estado, cuerpo = self.webhook(viejo)
+        self.assertEqual((estado, cuerpo.get("resultado")), (200, "rechazado"), cuerpo)
+        self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+        self.assertEqual(self.pagos(r), [])
+        self.assertEqual([x["estado"] for x in self.intentos(r)], ["rechazado"])
+        self.assertEqual(self.reembolsos(r), [])
+
+    def test_cobro_en_otra_moneda_se_reembolsa_completo(self):
+        # El monto coincide pero la moneda no (USD): no se confirma y se devuelve el 100 % de lo cobrado.
+        for via in ("verificar", "webhook"):
+            with self.subTest(via=via):
+                r = self.reserva()
+                i = self.intento(r)
+                tx = self.mock.transaccion(i["referencia"], i["amount_in_cents"], currency="USD")
+                if via == "verificar":
+                    estado, cuerpo = self.verificar({"transaction_id": tx["id"]})
+                    self.assertEqual((estado, cuerpo.get("error")), (409, "MONTO_NO_COINCIDE"), cuerpo)
+                else:
+                    estado, cuerpo = self.webhook(evento_tx(tx))
+                    self.assertEqual((estado, cuerpo.get("resultado")), (200, "monto_no_coincide"), cuerpo)
+                self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+                self.assertEqual(self.pagos(r), [])
+                self.assertEqual(self.intentos(r)[0]["estado"], "monto_no_coincide")
+                rf = self.reembolsos(r)
+                self.assertEqual([(x["origen"], x["porcentaje"], round(float(x["monto"]) * 100)) for x in rf],
+                                 [("monto_no_coincide", 100, i["amount_in_cents"])])
+                self.assertEqual(len([e for e in self.mock.reembolsos() if e["transaction_id"] == tx["id"]]), 1,
+                                 "Wompi recibe el reembolso de lo cobrado una sola vez")
+
     # -- pago aprobado después del vencimiento ---------------------------------
     def vencer(self, reserva):
         vencida = (datetime.now(timezone.utc) - timedelta(minutes=40)).isoformat()
@@ -985,6 +1026,27 @@ class TestPagos(unittest.TestCase):
         self.assertIn(estado, (401, 403))
         estado, filas = rest("GET", f"refunds?booking_id=eq.{r['id']}&select={columnas}", jwt=self.beto["jwt"])
         self.assertEqual((estado, filas), (200, []), "otro viajero no ve reembolsos ajenos")
+
+    def test_zz_wompi_caido_responde_502_sin_efectos(self):
+        # Se apaga el Wompi simulado: el webhook y la verificación responden 502 y no tocan nada. Va el último
+        # (nombre «zz») y el mock se vuelve a levantar al terminar, pase lo que pase, para no afectar a otras pruebas.
+        r = self.reserva()
+        i = self.intento(r)
+        tx = self.mock.transaccion(i["referencia"], i["amount_in_cents"])
+        terminar(self.mock_proc)
+        try:
+            time.sleep(1)
+            estado, cuerpo = self.webhook(evento_tx(tx))
+            self.assertEqual((estado, cuerpo.get("error")), (502, "WOMPI_NO_DISPONIBLE"), cuerpo)
+            estado, cuerpo = self.verificar({"transaction_id": tx["id"]})
+            self.assertEqual((estado, cuerpo.get("error")), (502, "WOMPI_NO_DISPONIBLE"), cuerpo)
+        finally:
+            type(self).arrancar_mock()
+        self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+        self.assertEqual(self.pagos(r), [])
+        self.assertEqual(self.reembolsos(r), [])
+        self.assertEqual([x["estado"] for x in self.intentos(r)], ["pendiente"])
+        self.assertIsNone(self.intentos(r)[0]["wompi_transaction_id"])
 
 
 # ---------------------------------------------------------------------------
