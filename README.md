@@ -100,6 +100,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0004_dispersiones.sql` | Cuentas de pago de agencias, liquidaciones (semanales y anticipos) con sus ítems, funciones de generación/ejecución y crons |
 | `0005_endurecimiento_pagos.sql` | Política congelada en cada reserva, regla de una reserva pendiente por fecha, reembolso por monto distinto, ventanas exactas, texto de política sincronizado con sus números, protección de fechas con reservas y versión legal `v2-2026-10` |
 | `0006_politica_notas.sql` | `plans.politica_notas`: las frases de la política que no son reglas (p. ej. «Reprogramación gratuita por clima») nunca se pierden al regenerar el texto |
+| `0007_notas_sin_politica.sql` | Las notas no pueden contener reglas de reembolso que contradigan los números (`NOTAS_CON_POLITICA`); `horas_antes` se trunca para mostrarlo |
 
 ### RPC y tareas programadas
 
@@ -312,11 +313,12 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0002 (verificación y cumplimiento) | ver «Pruebas SQL» | 27 |
 | SQL 0003 (pagos y reembolsos) | ver «Pruebas SQL» | 94 |
 | SQL 0004 (dispersiones) | ver «Pruebas SQL» | 157 |
-| SQL 0005 (endurecimiento) | ver «Pruebas SQL» | 72 |
+| SQL 0005 (endurecimiento) | ver «Pruebas SQL» | 81 |
 | SQL 0006 (notas de política) | ver «Pruebas SQL» | 49 |
-| Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I supabase/functions/_tests/test_pagos.py` | 38 |
+| SQL 0007 (notas sin reglas de reembolso) | ver «Pruebas SQL» | 62 |
+| Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 272 (18 archivos) |
+| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 315 (18 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 31 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 58 |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
@@ -332,7 +334,8 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 ```
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
-`0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`). Si una aserción
+`0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
+`0007_notas_sin_politica`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).
