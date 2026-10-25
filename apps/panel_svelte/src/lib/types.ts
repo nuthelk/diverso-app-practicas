@@ -93,6 +93,8 @@ export interface Plan {
   incluye_hospedaje: boolean;
   itinerario: { hora: string; actividad: string }[];
   politica_cancelacion: string;
+  /** Frases del plan que no son política (el texto de arriba = política de los números + estas notas). */
+  politica_notas: string;
   horas_cancelacion_gratuita: number;
   horas_reembolso_parcial: number | null;
   porcentaje_reembolso_parcial: number | null;
@@ -157,8 +159,10 @@ export interface PlanDraft {
   incluyeComida: boolean;
   incluyeHospedaje: boolean;
   itinerario: ItinerarioPaso[];
-  /** Texto derivado de los números de abajo (lo genera conPoliticaGenerada al guardar). */
+  /** Texto derivado de los números de abajo y de las notas (lo genera conPoliticaGenerada al guardar). */
   politicaCancelacion: string;
+  /** Frases opcionales que no son política (p. ej. «Avisar restricciones alimentarias.»); van tras el texto generado. */
+  politicaNotas: string;
   horasCancelacionGratuita: number;
   horasReembolsoParcial: number | null;
   porcentajeReembolsoParcial: number | null;
@@ -184,6 +188,7 @@ export function draftVacio(): PlanDraft {
     incluyeHospedaje: false,
     itinerario: [],
     politicaCancelacion: '',
+    politicaNotas: '',
     horasCancelacionGratuita: 48,
     horasReembolsoParcial: null,
     porcentajeReembolsoParcial: null,
@@ -219,6 +224,7 @@ export function draftToRow(d: PlanDraft) {
     incluye_hospedaje: d.incluyeHospedaje,
     itinerario: d.itinerario,
     politica_cancelacion: d.politicaCancelacion,
+    politica_notas: d.politicaNotas ?? '',
     horas_cancelacion_gratuita: d.horasCancelacionGratuita,
     // Un campo numérico vacío llega como undefined: la BD necesita null para borrar el tramo parcial.
     horas_reembolso_parcial: d.horasReembolsoParcial ?? null,

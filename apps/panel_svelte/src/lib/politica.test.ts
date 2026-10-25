@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { conPoliticaGenerada, horaCorta, textoPolitica, validarPolitica } from './politica';
+import { conPoliticaGenerada, horaCorta, normalizarNotas, textoPolitica, textoPoliticaCompleto, validarPolitica } from './politica';
 import { draftToRow, draftVacio } from './types';
 
 const base = { horasCancelacionGratuita: 48, horasReembolsoParcial: null, porcentajeReembolsoParcial: null };
@@ -73,6 +73,95 @@ describe('vectores compartidos con la BD (texto_politica en SQL)', () => {
     const sinTramo = 'Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso.';
     expect(textoPolitica({ ...base, horasReembolsoParcial: 24, porcentajeReembolsoParcial: null })).toBe(sinTramo);
     expect(textoPolitica({ ...base, horasReembolsoParcial: null, porcentajeReembolsoParcial: 50 })).toBe(sinTramo);
+  });
+});
+
+/**
+ * Vectores con notas, compartidos con la BD: texto_politica_con_notas() (migración 0006) debe producir EXACTAMENTE estas
+ * cadenas; supabase/tests/0006_politica_notas.sql afirma los mismos vectores. Las notas son las frases del plan que no
+ * son política (p. ej. «Avisar restricciones alimentarias.») y viajan detrás del texto canónico.
+ */
+const VECTORES_NOTAS: [number, number | null, number | null, string, string][] = [
+  [48, null, null, '', 'Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso.'],
+  [24, null, null, 'Reprogramación gratuita si el clima no permite volar.', 'Cancelación gratuita hasta 24 horas antes. Menos de 24 horas: sin reembolso. Reprogramación gratuita si el clima no permite volar.'],
+  [48, 24, 50, 'Avisar restricciones alimentarias.', 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 24 horas: reembolso del 50 %. Menos de 24 horas: sin reembolso. Avisar restricciones alimentarias.'],
+  [168, 0, 50, 'Requiere condición física media.', 'Cancelación gratuita hasta 168 horas antes. Menos de 168 horas: reembolso del 50 %. Requiere condición física media.'],
+  [72, null, null, '  Requiere   condición\n física media.  ', 'Cancelación gratuita hasta 72 horas antes. Menos de 72 horas: sin reembolso. Requiere condición física media.'],
+  [12, null, null, ' \t\n ', 'Cancelación gratuita hasta 12 horas antes. Menos de 12 horas: sin reembolso.'],
+  [24, null, null, 'Nota A. Nota B.', 'Cancelación gratuita hasta 24 horas antes. Menos de 24 horas: sin reembolso. Nota A. Nota B.'],
+];
+
+describe('vectores con notas compartidos con la BD (texto_politica_con_notas en SQL)', () => {
+  const sql = readFileSync(resolve(process.cwd(), '../../supabase/tests/0006_politica_notas.sql'), 'utf-8');
+
+  it.each(VECTORES_NOTAS)('textoPoliticaCompleto(%s, %s, %s, %j)', (gratis, parcial, pct, notas, esperado) => {
+    expect(
+      textoPoliticaCompleto({
+        horasCancelacionGratuita: gratis,
+        horasReembolsoParcial: parcial,
+        porcentajeReembolsoParcial: pct,
+        politicaNotas: notas,
+      }),
+    ).toBe(esperado);
+    expect(sql, 'la prueba SQL debe afirmar el mismo vector').toContain(`'${esperado}'`);
+  });
+
+  it('sin notas, el texto completo es el canónico de siempre', () => {
+    const n = { horasCancelacionGratuita: 48, horasReembolsoParcial: 24, porcentajeReembolsoParcial: 50 };
+    expect(textoPoliticaCompleto({ ...n, politicaNotas: '' })).toBe(textoPolitica(n));
+    expect(textoPoliticaCompleto({ ...n, politicaNotas: undefined as unknown as string })).toBe(textoPolitica(n));
+  });
+
+  it('normalizarNotas recorta y colapsa espacios y saltos de línea (igual que normalizar_notas_politica en SQL)', () => {
+    expect(normalizarNotas('  Requiere   condición\n física media.  ')).toBe('Requiere condición física media.');
+    expect(normalizarNotas(' \t\n ')).toBe('');
+    expect(normalizarNotas(undefined as unknown as string)).toBe('');
+  });
+
+  it('la migración 0006 restaura las frases originales de seed.sql, palabra por palabra', () => {
+    const seed = readFileSync(resolve(process.cwd(), '../../supabase/seed.sql'), 'utf-8');
+    const migracion = readFileSync(resolve(process.cwd(), '../../supabase/migrations/0006_politica_notas.sql'), 'utf-8');
+    const originales = [
+      'Reprogramación gratuita si el clima no permite volar. Cancelación gratuita hasta 24 horas antes.',
+      'Cancelación gratuita hasta 72 horas antes. Requiere condición física media.',
+      'Cancelación gratuita hasta 24 horas antes. Avisar restricciones alimentarias.',
+      'Reprogramación gratuita por clima. Cancelación gratuita hasta 24 horas antes.',
+    ];
+    for (const o of originales) {
+      expect(seed, `seed.sql debe contener «${o}»`).toContain(`'${o}'`);
+      expect(migracion, `0006 debe restaurar «${o}»`).toContain(`'${o}'`);
+    }
+  });
+});
+
+describe('conPoliticaGenerada con notas', () => {
+  it('el texto guardado lleva las notas normalizadas y el borrador queda con las notas normalizadas', () => {
+    const d = conPoliticaGenerada({
+      ...draftVacio(),
+      horasCancelacionGratuita: 24,
+      politicaNotas: '  Avisar   restricciones alimentarias. ',
+    });
+    expect(d.politicaCancelacion).toBe(
+      'Cancelación gratuita hasta 24 horas antes. Menos de 24 horas: sin reembolso. Avisar restricciones alimentarias.',
+    );
+    expect(d.politicaNotas).toBe('Avisar restricciones alimentarias.');
+  });
+
+  it('draftToRow envía las notas junto con el texto y los números', () => {
+    const row = draftToRow(
+      conPoliticaGenerada({ ...draftVacio(), horasCancelacionGratuita: 24, politicaNotas: 'Requiere condición física media.' }),
+    );
+    expect(row).toMatchObject({
+      horas_cancelacion_gratuita: 24,
+      politica_notas: 'Requiere condición física media.',
+      politica_cancelacion:
+        'Cancelación gratuita hasta 24 horas antes. Menos de 24 horas: sin reembolso. Requiere condición física media.',
+    });
+    expect(draftToRow(draftVacio()).politica_notas).toBe('');
+  });
+
+  it('draftVacio no trae notas', () => {
+    expect(draftVacio().politicaNotas).toBe('');
   });
 });
 

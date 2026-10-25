@@ -48,6 +48,7 @@ export function plan(titulo: string, fechas: PlanDate[]): Plan {
     incluye_hospedaje: false,
     itinerario: [],
     politica_cancelacion: '',
+    politica_notas: '',
     horas_cancelacion_gratuita: 48,
     horas_reembolso_parcial: null,
     porcentaje_reembolso_parcial: null,

@@ -11,6 +11,9 @@ export type PoliticaNumeros = Pick<
   'horasCancelacionGratuita' | 'horasReembolsoParcial' | 'porcentajeReembolsoParcial'
 >;
 
+/** Números + notas: lo que define el texto completo que lee el viajero. */
+export type PoliticaConNotas = PoliticaNumeros & Pick<PlanDraft, 'politicaNotas'>;
+
 export type ErroresPolitica = Partial<
   Record<'horasGratis' | 'horasParcial' | 'porcentajeParcial' | 'horaSalida', string>
 >;
@@ -29,6 +32,23 @@ export function textoPolitica(p: PoliticaNumeros): string {
   if (!hayValor(parcial) || !hayValor(pct)) return `${base} Menos de ${horas(gratis)}: sin reembolso.`;
   if (parcial === 0) return `${base} Menos de ${horas(gratis)}: reembolso del ${pct} %.`;
   return `${base} Entre ${gratis} y ${horas(parcial!)}: reembolso del ${pct} %. Menos de ${horas(parcial!)}: sin reembolso.`;
+}
+
+/**
+ * Recorta y colapsa espacios, tabuladores y saltos de línea (igual que normalizar_notas_politica en SQL).
+ * Se escribe con clases explícitas, no con \s, para que SQL y TS coincidan carácter por carácter.
+ */
+export function normalizarNotas(notas: string | null | undefined): string {
+  return (notas ?? '').replace(/[ \t\r\n]+/g, ' ').replace(/^ | $/g, '');
+}
+
+/**
+ * Texto completo: el canónico de los números y, si el plan tiene notas (frases que no son política, p. ej.
+ * «Avisar restricciones alimentarias.»), las notas detrás. Igual que texto_politica_con_notas en SQL.
+ */
+export function textoPoliticaCompleto(p: PoliticaConNotas): string {
+  const notas = normalizarNotas(p.politicaNotas);
+  return notas === '' ? textoPolitica(p) : `${textoPolitica(p)} ${notas}`;
 }
 
 /** Mismas reglas que los CHECK de la BD (plans_politica_parcial_coherente y rangos). */
@@ -69,7 +89,8 @@ export function horaCorta(h: string | null | undefined): string {
   return h ? h.slice(0, 5) : '06:00';
 }
 
-/** Copia del borrador con el texto de la política generado desde sus números. */
+/** Copia del borrador con el texto de la política generado desde sus números y sus notas. */
 export function conPoliticaGenerada(d: PlanDraft): PlanDraft {
-  return { ...d, politicaCancelacion: textoPolitica(d) };
+  const politicaNotas = normalizarNotas(d.politicaNotas);
+  return { ...d, politicaNotas, politicaCancelacion: textoPoliticaCompleto({ ...d, politicaNotas }) };
 }

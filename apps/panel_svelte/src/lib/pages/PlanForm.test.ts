@@ -147,6 +147,41 @@ describe('PlanForm · política de cancelación', () => {
     });
   });
 
+  it('las notas de la política se escriben aparte y aparecen en la vista previa del viajero', async () => {
+    render(PlanForm);
+    const notas = screen.getByLabelText(/^Notas de la política \(opcional\)/) as HTMLTextAreaElement;
+    expect(notas.value).toBe('');
+    await fireEvent.input(notas, { target: { value: 'Avisar restricciones alimentarias.' } });
+    expect(textoViajero()).toBe(
+      'Lo que verá el viajero: Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso. Avisar restricciones alimentarias.',
+    );
+    await fireEvent.input(notas, { target: { value: '' } });
+    expect(textoViajero()).toBe(
+      'Lo que verá el viajero: Cancelación gratuita hasta 48 horas antes. Menos de 48 horas: sin reembolso.',
+    );
+  });
+
+  it('un plan existente carga sus notas y las guarda sin perderlas', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    misPlanesMock.mockResolvedValue([
+      {
+        ...plan('Street food', []),
+        id: 'p-3',
+        horas_cancelacion_gratuita: 24,
+        politica_notas: 'Avisar restricciones alimentarias.',
+        politica_cancelacion: 'Cancelación gratuita hasta 24 horas antes. Menos de 24 horas: sin reembolso. Avisar restricciones alimentarias.',
+      },
+    ]);
+    actualizarMock.mockResolvedValue();
+    const { container } = render(PlanForm, { planId: 'p-3' });
+    await screen.findByText('Editar plan');
+    expect((screen.getByLabelText(/^Notas de la política/) as HTMLTextAreaElement).value).toBe('Avisar restricciones alimentarias.');
+    expect(textoViajero()).toContain('Menos de 24 horas: sin reembolso. Avisar restricciones alimentarias.');
+    await fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => expect(actualizarMock).toHaveBeenCalledTimes(1));
+    expect(actualizarMock.mock.calls[0][0]).toMatchObject({ politicaNotas: 'Avisar restricciones alimentarias.' });
+  });
+
   it('un plan sin tramo parcial puede quitarlo vaciando los dos campos', async () => {
     miAgenciaMock.mockResolvedValue(agencia());
     misPlanesMock.mockResolvedValue([

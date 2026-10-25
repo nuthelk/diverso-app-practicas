@@ -159,9 +159,10 @@ begin
   -- 2.3 texto ilegible o incoherente: los números no cambian y el texto vuelve a ser el de los números
   update plans set politica_cancelacion = 'Política flexible, pregunta a la agencia' where id = v_plan;
   select * into p from plans where id = v_plan;
+  -- (0006) el texto ilegible ya no se descarta: pasa a politica_notas, detrás del texto canónico de los números.
   perform pg_temp.ok((p.horas_cancelacion_gratuita, p.horas_reembolso_parcial, p.porcentaje_reembolso_parcial) = (48, 24, 50)
-                     and p.politica_cancelacion = 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 24 horas: reembolso del 50 %. Menos de 24 horas: sin reembolso.',
-                     'texto ilegible: los números no cambian y el texto no puede contradecirlos');
+                     and p.politica_cancelacion = 'Cancelación gratuita hasta 48 horas antes. Entre 48 y 24 horas: reembolso del 50 %. Menos de 24 horas: sin reembolso. Política flexible, pregunta a la agencia',
+                     'texto ilegible: los números no cambian, el texto no los contradice y la frase se conserva como nota');
   update plans set politica_cancelacion = 'Cancelación gratuita hasta 24 horas antes. Entre 24 y 48 horas: reembolso del 50%.' where id = v_plan;
   select * into p from plans where id = v_plan;
   perform pg_temp.ok((p.horas_cancelacion_gratuita, p.horas_reembolso_parcial, p.porcentaje_reembolso_parcial) = (48, 24, 50),
@@ -197,11 +198,12 @@ begin
                      'INSERT sin política: valores por omisión (48 h) con su texto');
 end $$;
 
+-- (0006) el texto lleva además las notas del plan (texto_politica_con_notas = texto_politica cuando no hay notas).
 select pg_temp.ok(not exists (select 1 from plans p
                                where p.politica_cancelacion is distinct from
-                                     public.texto_politica(p.horas_cancelacion_gratuita, p.horas_reembolso_parcial,
-                                                           p.porcentaje_reembolso_parcial)),
-                  'TODOS los planes tienen el texto que generan sus números (relleno de la migración incluido)');
+                                     public.texto_politica_con_notas(p.horas_cancelacion_gratuita, p.horas_reembolso_parcial,
+                                                                     p.porcentaje_reembolso_parcial, p.politica_notas)),
+                  'TODOS los planes tienen el texto que generan sus números y sus notas (relleno de la migración incluido)');
 
 -- 3. Política congelada en la reserva (B1) ---------------------------------------------------------
 select pg_temp.ok(not exists (select 1 from bookings

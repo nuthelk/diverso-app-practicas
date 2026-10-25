@@ -3,7 +3,7 @@
   import Select from '../components/Select.svelte';
   import { miAgencia, misPlanes, crearPlan, actualizarPlan, mensajeError } from '../api';
   import { go } from '../router.svelte';
-  import { horaCorta, textoPolitica, validarPolitica } from '../politica';
+  import { horaCorta, textoPoliticaCompleto, validarPolitica } from '../politica';
   import { avisar } from '../toast.svelte';
   import { CATEGORIAS, draftVacio, type PlanDraft, type CategoriaValor } from '../types';
 
@@ -81,6 +81,7 @@
             incluyeHospedaje: p.incluye_hospedaje,
             itinerario: p.itinerario.map((i) => ({ ...i })),
             politicaCancelacion: p.politica_cancelacion,
+            politicaNotas: p.politica_notas ?? '',
             horasCancelacionGratuita: p.horas_cancelacion_gratuita,
             horasReembolsoParcial: p.horas_reembolso_parcial,
             porcentajeReembolsoParcial: p.porcentaje_reembolso_parcial,
@@ -101,7 +102,7 @@
   const erroresPolitica = $derived(validarPolitica(d));
   const politicaValida = $derived(Object.keys(erroresPolitica).length === 0);
   const textoVistaPrevia = $derived(
-    politicaValida ? textoPolitica(d) : 'Completa la política de cancelación para ver el texto que leerá el viajero.',
+    politicaValida ? textoPoliticaCompleto(d) : 'Completa la política de cancelación para ver el texto que leerá el viajero.',
   );
 
   async function guardar(e: SubmitEvent) {
@@ -449,6 +450,18 @@
                 {/if}
               </label>
             </div>
+            <label class="block">
+              <span class="etiqueta">Notas de la política (opcional)</span>
+              <textarea
+                rows="2"
+                bind:value={d.politicaNotas}
+                class="campo resize-none"
+                placeholder="Ej.: Avisar restricciones alimentarias."
+              ></textarea>
+              <span class="mt-1 block text-[12px] text-slate-500 dark:text-slate-400">
+                Frases que no cambian el reembolso: se muestran al viajero después de la política.
+              </span>
+            </label>
             <p class="text-[13px] leading-relaxed" data-testid="politica-texto">
               <span class="font-semibold">Lo que verá el viajero:</span>
               {textoVistaPrevia}
