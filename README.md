@@ -43,6 +43,7 @@ apps/panel_svelte     → Svelte 5 + Tailwind 4 (SPA/PWA) — panel B2B + admin
 apps/panel_agencias   → (legado) versión Flutter Web del panel, misma API
 packages/diverso_core → modelos, servicios y PaymentGateway (WompiPaymentGateway) compartidos
 supabase/             → migraciones SQL, seed, pruebas SQL, Edge Functions de pagos y métricas
+tools/iconos          → generador de los íconos de la app y de las webs (Pillow)
 ```
 
 - **Backend:** Supabase (PostgreSQL + Auth + Storage + API REST auto-generada + Edge
@@ -321,8 +322,8 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0008 (cancelar solo antes de la salida) | ver «Pruebas SQL» | 14 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 315 (18 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 47 |
+| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 50 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 67 |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
@@ -402,6 +403,13 @@ solo servidor) · `payments` (pago aprobado, con id y método de la transacción
   `diverso_core`, detrás de la abstracción `PaymentGateway`) inicia y verifica el pago
   llamando a las Edge Functions; la plataforma opera solo con transacciones de prueba hasta
   que se decida lo contrario.
+- **Marca:** el colibrí de la primera versión de la app. La máscara maestra
+  (`packages/diverso_core/assets/logo_diverso.png`, negro + alfa) la dibuja `DiversoLogo`
+  teñida con el color que pida cada pantalla; el panel Svelte usa una copia como máscara CSS
+  (`apps/panel_svelte/public/logo_diverso.png`). Todos los íconos (launcher Android e iOS,
+  favicon y PWA de la app y del panel) salen de esa máscara, ave blanca sobre `#0E6E4F`:
+  `python -I -B tools/iconos/generar_iconos.py` (requiere Pillow) los regenera, y la zona
+  segura y los márgenes por plataforma están documentados en el script.
 - **Ley 1581/2012:** autorización expresa con evidencia en `consents` (ver migración 0002);
   política y términos legibles en la app (`/legal/...`) y en el panel (`#/legal/...`).
   **PCI-DSS:** la plataforma no almacena datos de tarjeta: se digitan en la página de Wompi.
