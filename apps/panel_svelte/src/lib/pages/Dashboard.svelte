@@ -3,6 +3,7 @@
   import Skeleton from '../components/Skeleton.svelte';
   import StatusPill from '../components/StatusPill.svelte';
   import Empty from '../components/Empty.svelte';
+  import LogoAgencia from '../components/LogoAgencia.svelte';
   import { misVentas, mensajeError } from '../api';
   import { cop, fechaCorta, fechaLarga } from '../format';
   import type { Agency, Plan, VentaRow } from '../types';
@@ -30,6 +31,10 @@
     } finally {
       cargando = false;
     }
+  }
+
+  function logoActualizado(logoUrl: string | null) {
+    if (agencia) agencia = { ...agencia, logo_url: logoUrl };
   }
 
   // Carga al montar (initState): llamada directa, sin $effect.
@@ -75,6 +80,9 @@
         + Nuevo plan
       </button>
     </div>
+
+    <!-- Logo -->
+    <div class="mt-6"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
 
     <!-- Métricas -->
     <div class="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">

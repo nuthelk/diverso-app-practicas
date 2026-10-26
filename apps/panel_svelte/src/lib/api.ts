@@ -9,6 +9,7 @@ import {
   type VerificationLog,
 } from './types';
 import { VERSION_LEGAL, type TipoConsentimiento } from './legal';
+import { BUCKET_LOGOS, rutaDeLogo, rutaNuevaLogo, validarLogo } from './logo';
 import { conPoliticaGenerada, MENSAJE_NOTAS_CON_POLITICA } from './politica';
 import {
   normalizarCuenta,
@@ -49,6 +50,51 @@ export async function registrarAgencia(datos: {
     // estado_verificacion queda 'pendiente' por la política RLS
   });
   if (error) throw error;
+}
+
+/* Logo de la agencia (bucket público `agency-logos`, carpeta `<agency_id>/`) ----- */
+
+type AgenciaConLogo = Pick<Agency, 'id' | 'logo_url'>;
+
+/** Borrar el objeto viejo es limpieza: si falla, el logo nuevo igual quedó guardado. */
+async function borrarObjetoLogo(ruta: string | null): Promise<void> {
+  if (!ruta) return;
+  try {
+    await supabase.storage.from(BUCKET_LOGOS).remove([ruta]);
+  } catch {
+    /* queda un archivo huérfano en la carpeta de la agencia; no afecta al logo vigente */
+  }
+}
+
+/** Sube un logo con nombre único, lo fija en `agencies.logo_url` y borra el anterior. Devuelve la URL pública. */
+export async function subirLogo(agencia: AgenciaConLogo, archivo: File): Promise<string> {
+  const problema = validarLogo(archivo);
+  if (problema) throw new Error(problema);
+
+  const bucket = supabase.storage.from(BUCKET_LOGOS);
+  const ruta = rutaNuevaLogo(agencia.id, archivo.type);
+  const { error: errorSubida } = await bucket.upload(ruta, archivo, {
+    contentType: archivo.type,
+    cacheControl: '31536000', // el nombre cambia en cada subida: se puede cachear un año
+    upsert: false,
+  });
+  if (errorSubida) throw errorSubida;
+
+  const url = bucket.getPublicUrl(ruta).data.publicUrl;
+  const { error } = await supabase.from('agencies').update({ logo_url: url }).eq('id', agencia.id);
+  if (error) {
+    await borrarObjetoLogo(ruta);
+    throw error;
+  }
+  await borrarObjetoLogo(rutaDeLogo(agencia.logo_url, agencia.id));
+  return url;
+}
+
+/** Quita el logo: primero deja de apuntar a él y luego borra el objeto. */
+export async function quitarLogo(agencia: AgenciaConLogo): Promise<void> {
+  const { error } = await supabase.from('agencies').update({ logo_url: null }).eq('id', agencia.id);
+  if (error) throw error;
+  await borrarObjetoLogo(rutaDeLogo(agencia.logo_url, agencia.id));
 }
 
 export async function misPlanes(agencyId: string): Promise<Plan[]> {
@@ -303,6 +349,9 @@ const ERRORES: Record<string, string> = {
   agencies_rnt_formato: 'El número de RNT debe tener entre 4 y 8 dígitos, sin letras.',
   agencies_matricula_formato: 'La matrícula mercantil debe ser numérica (se admiten guiones).',
   agencies_numero_rnt_key: 'Ya existe una agencia registrada con ese número de RNT.',
+  LOGO_URL_INVALIDO: 'No pudimos guardar el logo: la imagen no es válida. Súbela de nuevo.',
+  'exceeded the maximum allowed size': 'La imagen supera el máximo de 2 MB.',
+  'mime type': 'Solo se admiten imágenes PNG, JPG o WebP.',
   NO_AUTORIZADO: 'No tienes permiso para esta acción.',
   SEMANA_NO_TERMINADA: 'Esa semana aún no termina: solo se liquidan semanas completas (lunes a domingo).',
   LIQUIDACION_NO_EXISTE: 'La liquidación ya no existe. Recarga la lista.',

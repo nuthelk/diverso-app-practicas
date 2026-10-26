@@ -1,13 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen } from '@testing-library/svelte';
 import { agencia, fecha, HOY, plan, texto, venta } from '../../test/fixtures';
 
 vi.mock('../api', () => ({
   misVentas: vi.fn(),
+  subirLogo: vi.fn(),
+  quitarLogo: vi.fn(),
   mensajeError: (e: unknown) => (e instanceof Error ? e.message : String(e)),
 }));
 
-import { misVentas } from '../api';
+import { misVentas, quitarLogo, subirLogo } from '../api';
 import Dashboard from './Dashboard.svelte';
 
 const misVentasMock = vi.mocked(misVentas);
@@ -104,6 +106,27 @@ describe('Dashboard', () => {
     expect(t).toContain('0 de 0 cupos vendidos en las próximas 8 semanas (0%)');
     expect(t).toContain('No tienes fechas futuras con cupos.');
     expect(t).toContain('Aún no tienes ventas registradas.');
+  });
+
+  it('muestra la sección Logo: iniciales si no hay logo, y el logo nuevo tras subirlo o quitarlo', async () => {
+    const url = 'http://127.0.0.1:54331/storage/v1/object/public/agency-logos/ag-1/logo-abc.png';
+    misVentasMock.mockResolvedValue({ agencia: agencia({ id: 'ag-1' }), planes: [], ventas: [] });
+    vi.mocked(subirLogo).mockResolvedValue(url);
+    vi.mocked(quitarLogo).mockResolvedValue();
+    render(Dashboard);
+    await screen.findByText('Hola, Aventuras Antioquia');
+    expect(screen.getByRole('heading', { name: 'Logo' })).toBeTruthy();
+    expect(screen.getByRole('img', { name: 'Iniciales de Aventuras Antioquia' })).toBeTruthy();
+
+    const archivo = new File([new Uint8Array(1000)], 'logo.png', { type: 'image/png' });
+    await fireEvent.change(screen.getByLabelText('Archivo del logo'), { target: { files: [archivo] } });
+    const img = (await screen.findByRole('img', { name: 'Logo de Aventuras Antioquia' })) as HTMLImageElement;
+    expect(img.getAttribute('src')).toBe(url);
+    expect(vi.mocked(subirLogo)).toHaveBeenCalledWith(expect.objectContaining({ id: 'ag-1' }), archivo);
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Quitar logo' }));
+    await screen.findByRole('img', { name: 'Iniciales de Aventuras Antioquia' });
+    expect(vi.mocked(quitarLogo)).toHaveBeenCalledWith(expect.objectContaining({ logo_url: url }));
   });
 
   it('sin agencia invita a registrarla', async () => {

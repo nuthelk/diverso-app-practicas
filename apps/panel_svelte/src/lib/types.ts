@@ -13,6 +13,8 @@ export interface Agency {
   email: string;
   whatsapp: string;
   descripcion: string;
+  /** URL pública del logo en el bucket `agency-logos` (null mientras no suba uno). */
+  logo_url?: string | null;
   comision_pct: number;
   /** Lo gestiona el admin: una agencia bloqueada no recibe anticipos. */
   anticipo_bloqueado?: boolean;
