@@ -558,3 +558,218 @@ begin
     from public.bookings b where b.codigo in ('DIV-FUT01','DIV-FUT02');
 end;
 $$;
+
+-- ---------------------------------------------------------------------
+-- Opiniones demo: más viajeros, reservas pasadas completadas con pago aprobado
+-- y reseñas variadas, para que cada plan publicado muestre varias opiniones.
+-- Idempotente (no duplica si ya se aplicó). Para cargarlo SIN db reset sobre una BD
+-- ya sembrada, extrae solo este bloque entre los marcadores:
+--   sed -n '/^-- BEGIN opiniones_demo/,/^-- END opiniones_demo/p' supabase/seed.sql \
+--     | docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1
+-- ---------------------------------------------------------------------
+-- BEGIN opiniones_demo
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password,
+                        email_confirmed_at, created_at, updated_at,
+                        confirmation_token, recovery_token, email_change,
+                        email_change_token_new, reauthentication_token,
+                        raw_app_meta_data, raw_user_meta_data)
+select '00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
+       v.email, crypt('demo1234', gen_salt('bf')), now(), now(), now(),
+       '', '', '', '', '',
+       '{"provider":"email","providers":["email"]}'::jsonb,
+       jsonb_build_object('nombre', v.nombre, 'rol', 'viajero', 'telefono', v.telefono)
+  from (values
+    ('camila@demo.com',    'Camila Ospina',       '3115550101'),
+    ('juandavid@demo.com', 'Juan David Zapata',   '3115550102'),
+    ('mariana@demo.com',   'Mariana Arango',      '3115550103'),
+    ('sebastian@demo.com', 'Sebastián Giraldo',   '3115550104'),
+    ('daniela@demo.com',   'Daniela Cardona',     '3115550105'),
+    ('andres@demo.com',    'Andrés Felipe Muñoz', '3115550106'),
+    ('laura@demo.com',     'Laura Vélez',         '3115550107'),
+    ('esteban@demo.com',   'Esteban Londoño',     '3115550108')
+  ) as v(email, nombre, telefono)
+ where not exists (select 1 from auth.users u where u.email = v.email);
+
+-- Autorizaciones de los viajeros demo recién creados (quien ya tiene alguna no se toca).
+insert into public.consents (user_id, tipo, version, origen)
+select p.id, t.tipo, public.version_documentos_legales(), 'seed'
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  cross join (select unnest(array['tratamiento_datos','terminos_viajero']::public.consent_type[]) as tipo) t
+ where p.rol = 'viajero' and u.email like '%@demo.com'
+   and not exists (select 1 from public.consents c where c.user_id = p.id)
+on conflict (user_id, tipo, version) do nothing;
+
+do $$
+declare
+  p record;
+  v record;
+  v_pd record;
+  v_pool uuid[];
+  v_n int := 0;
+  v_reviews int := 0;
+  v_add int;
+  v_cal int;
+  v_r float8;
+  v_pax int;
+  v_comentario text;
+  v_pool_cat text[];
+  v_booking_id uuid;
+  v_creada timestamptz;
+  v_metodos text[] := array['pse','nequi','daviplata','tarjeta','bancolombia'];
+  v_generales text[] := array[
+    'Todo salió como lo prometieron. Puntuales, bien organizados y sin cobros extra.',
+    'Muy buena atención de la agencia, me resolvieron las dudas por WhatsApp antes del viaje.',
+    'Reservé en un par de minutos y la confirmación llegó al instante. Así da gusto.',
+    'El guía fue amabilísimo y se nota que ama lo que hace. Repetiría sin pensarlo.',
+    'Grupo pequeño, buen ambiente y buena logística. Se disfruta mucho más así.',
+    'Muy buena relación calidad-precio. El precio que vi fue el que pagué.',
+    'Fui con mi familia y la pasamos delicioso. Nos cuidaron a todos, hasta a los niños.',
+    'Plan muy bien armado, transporte cómodo y el itinerario se cumplió casi al pie de la letra.'
+  ];
+  v_cuatro_matiz text[] := array[
+    'Muy buen plan, aunque el regreso salió un poco más tarde de lo anunciado. Lo demás, excelente.',
+    'Lo disfruté bastante. Le faltó un poquito más de tiempo libre, pero el guía estuvo muy atento.',
+    'Buena experiencia en general. Lleven efectivo para compras propias, porque en la zona no todos reciben tarjeta.'
+  ];
+  v_regulares text[] := array[
+    'Estuvo bien, pero esperaba más. El guía fue amable, aunque el grupo era más grande de lo que pensé.',
+    'Cumple, nada más. La salida arrancó con 30 minutos de retraso y el resto del día se sintió apurado.',
+    'Lindo lugar, pero la organización puede mejorar: tocó esperar bastante en el punto de encuentro.',
+    'El plan es bueno, pero la comunicación previa fue confusa y no tenía claro qué debía llevar.'
+  ];
+  v_malas text[] := array[
+    'No fue lo que esperaba. Llegamos tarde por problemas con el transporte y se recortó buena parte del recorrido.',
+    'Me quedé con ganas de más. El guía parecía apurado y casi no explicó nada del plan.',
+    'No estuvo a la altura de la descripción. Ojalá mejoren la puntualidad y la atención al grupo.'
+  ];
+  v_aventura text[] := array[
+    'Pura adrenalina. Los guías explicaron las medidas de seguridad con calma y el equipo estaba en perfecto estado.',
+    'Me dio susto al principio, pero el instructor me dio confianza y terminé repitiendo. Qué experiencia tan brutal.',
+    'Muy bien manejada la seguridad. Se nota que son profesionales, y las fotos quedaron espectaculares.',
+    'Para quienes buscan algo diferente a lo típico: emoción, buen paisaje y cero improvisación.',
+    'Imperdible si te gusta la aventura. Lleven ropa cómoda y ganas de reírse todo el día.'
+  ];
+  v_naturaleza text[] := array[
+    'Paisajes de postal. El guía conocía de memoria las plantas y los animales de la zona, aprendimos muchísimo.',
+    'Un respiro de la ciudad. Caminata tranquila, aire limpio y mucho verde por todos lados.',
+    'Se nota el cuidado por el entorno: cero basura, grupos pequeños y respeto por la fauna.',
+    'Madrugar valió la pena. Salieron unas fotos preciosas y el guía tuvo paciencia con todos.',
+    'Muy recomendado para desconectarse. Lleven repelente y calzado cómodo, que el sendero se pone barroso.'
+  ];
+  v_cultura text[] := array[
+    'El guía contó la historia del pueblo con mucho cariño, aprendí cosas que no sabía de mi propia región.',
+    'Pueblo hermoso y muy bien explicado. Se siente la tradición paisa en cada esquina.',
+    'Mucho más que fotos bonitas: conocimos la historia y la gente del lugar. Súper enriquecedor.',
+    'Ritmo tranquilo, ideal para ir con los papás. Las explicaciones fueron claras y nunca nos sentimos apurados.',
+    'Se nota la investigación detrás del recorrido. Me encantó que nos llevaran a sitios que no salen en las guías.'
+  ];
+  v_gastronomia text[] := array[
+    'Comimos delicioso y variado. Cada parada tenía su historia y las porciones fueron generosas.',
+    'Una forma deliciosa de conocer la cultura paisa. Fui con hambre y salí feliz.',
+    'Excelente la atención con mi alergia alimentaria: avisaron con tiempo y la tuvieron en cuenta en todo.',
+    'Sabores auténticos, nada de montaje para turistas. Quienes nos atendieron fueron un amor.',
+    'Aprendí un montón y me llevé recetas para repetir en casa. Muy buena relación precio-calidad.'
+  ];
+  v_relax text[] := array[
+    'Plan muy tranquilo, ideal para desconectarse del trabajo. Sin afanes y con un ritmo muy agradable.',
+    'Perfecto para descansar y salir de la rutina. Todo estuvo bien coordinado y sin estrés.'
+  ];
+  v_urbano text[] := array[
+    'Los guías son de la zona y se siente: hablaron con orgullo y sin filtros de su historia. Muy conmovedor.',
+    'Una mirada distinta de Medellín. Recorrido a buen paso, buen ambiente y cero afán.'
+  ];
+begin
+  if exists (select 1 from public.bookings where codigo like 'DIV-OPIN%') then
+    raise notice 'opiniones_demo: ya estaba aplicado, no se agrega nada';
+    return;
+  end if;
+
+  perform setseed(0.77);
+
+  select array_agg(u.id order by u.email) into v_pool
+    from auth.users u
+    join public.profiles pr on pr.id = u.id
+   where pr.rol = 'viajero' and u.email like '%@demo.com';
+
+  for p in select pl.id, pl.precio_cop, pl.categoria,
+                  (select count(*) from public.reviews r where r.plan_id = pl.id) as existentes
+             from public.plans pl
+            where pl.estado = 'publicado'
+            order by pl.titulo loop
+    -- Meta: entre 3 y 6 reseñas por plan, de viajeros distintos (una por reserva).
+    v_add := 3 + floor(random() * 4)::int - p.existentes;
+    continue when v_add <= 0;
+
+    for v in select t as viajero_id
+               from unnest(v_pool) as t
+              where not exists (select 1 from public.reviews r where r.plan_id = p.id and r.viajero_id = t)
+              order by random()
+              limit v_add loop
+      select pd.id, pd.fecha into v_pd
+        from public.plan_dates pd
+       where pd.plan_id = p.id and pd.fecha < current_date
+       order by random() limit 1;
+      continue when v_pd.id is null;
+
+      v_n := v_n + 1;
+      v_pax := 1 + floor(random() * 4)::int;
+      v_creada := ((v_pd.fecha - (2 + floor(random() * 9)::int))::timestamp + interval '15 hours')
+                  at time zone 'America/Bogota';
+
+      insert into public.bookings (codigo, plan_date_id, viajero_id, pax, monto_total, estado, created_at)
+      values ('DIV-OPIN' || lpad(v_n::text, 4, '0'), v_pd.id, v.viajero_id, v_pax,
+              p.precio_cop * v_pax, 'completada', v_creada)
+      returning id into v_booking_id;
+
+      insert into public.payments (booking_id, metodo, estado, monto, referencia, provider, simulated, created_at)
+      values (v_booking_id,
+              (v_metodos[1 + floor(random() * array_length(v_metodos, 1))::int])::public.payment_method,
+              'aprobado', p.precio_cop * v_pax, 'SIM-OPIN' || lpad(v_n::text, 4, '0'),
+              'simulado', true, v_creada + interval '4 minutes');
+
+      -- Calificación: mayoría 5 y 4, algunas 3 y rara vez 2.
+      v_r := random();
+      v_cal := case when v_r < 0.55 then 5 when v_r < 0.88 then 4 when v_r < 0.97 then 3 else 2 end;
+
+      -- Comentario acorde a la calificación; ~12 % de reseñas sin texto.
+      v_r := random();
+      v_comentario := null;
+      if v_r >= 0.12 then
+        if v_cal = 2 then
+          v_comentario := v_malas[1 + floor(random() * array_length(v_malas, 1))::int];
+        elsif v_cal = 3 then
+          v_comentario := v_regulares[1 + floor(random() * array_length(v_regulares, 1))::int];
+        elsif v_cal = 4 and v_r < 0.35 then
+          v_comentario := v_cuatro_matiz[1 + floor(random() * array_length(v_cuatro_matiz, 1))::int];
+        else
+          v_pool_cat := case p.categoria
+                          when 'aventura' then v_aventura
+                          when 'naturaleza' then v_naturaleza
+                          when 'cultura' then v_cultura
+                          when 'gastronomia' then v_gastronomia
+                          when 'relax' then v_relax
+                          when 'urbano' then v_urbano
+                          else v_generales
+                        end;
+          if random() < 0.6 then
+            v_comentario := v_pool_cat[1 + floor(random() * array_length(v_pool_cat, 1))::int];
+          else
+            v_comentario := v_generales[1 + floor(random() * array_length(v_generales, 1))::int];
+          end if;
+        end if;
+      end if;
+
+      insert into public.reviews (booking_id, calificacion, comentario, created_at)
+      values (v_booking_id, v_cal, v_comentario,
+              least(now(), ((v_pd.fecha + 1 + floor(random() * 4)::int)::timestamp
+                            + interval '10 hours' + random() * interval '8 hours')
+                           at time zone 'America/Bogota'));
+      v_reviews := v_reviews + 1;
+    end loop;
+  end loop;
+
+  raise notice 'opiniones_demo: % reservas pasadas, % reseñas nuevas', v_n, v_reviews;
+end;
+$$;
+-- END opiniones_demo

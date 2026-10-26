@@ -307,6 +307,15 @@ chocar con otros proyectos Supabase de la máquina.
 | `patrimonio@demo.com` | Agencia pendiente | Banner de "en verificación", planes en borrador |
 | `ecoandes@demo.com` | Agencia verificada | 5 planes, más volumen |
 | `admin@demo.com` | Admin | Verificación de agencias (aprobar la pendiente) |
+| `camila@`, `juandavid@`, `mariana@`, `sebastian@`, `daniela@`, `andres@`, `laura@`, `esteban@` (`@demo.com`) | Viajeros | Autores de las reseñas demo: cada plan publicado tiene de 3 a 6 opiniones (2 a 5 ★) |
+
+Las reseñas extra viven en `supabase/seed.sql`, entre `-- BEGIN opiniones_demo` y `-- END opiniones_demo`.
+El bloque es idempotente; para cargarlo en una base ya sembrada sin `db reset`:
+
+```bash
+sed -n '/^-- BEGIN opiniones_demo/,/^-- END opiniones_demo/p' supabase/seed.sql \
+  | docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1 -1
+```
 
 ## Pruebas
 
@@ -321,6 +330,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0006 (notas de política) | ver «Pruebas SQL» | 49 |
 | SQL 0007 (notas sin reglas de reembolso) | ver «Pruebas SQL» | 62 |
 | SQL 0008 (cancelar solo antes de la salida) | ver «Pruebas SQL» | 14 |
+| SQL 0009 (agencias públicas) | ver «Pruebas SQL» | 24 |
 | SQL 0011 (búsqueda sin tildes) | ver «Pruebas SQL» | 11 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |

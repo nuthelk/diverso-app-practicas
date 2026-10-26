@@ -117,9 +117,17 @@ set role authenticated;
 select pg_temp.ok((select rating = 4.25 and reviews_total = 4 and planes_count = 2
                      from public.agencias_publicas() where id = current_setting('t.pesos')::uuid),
                   'puntaje ponderado por reseñas 4.25 sobre 4 reseñas, 2 planes publicados (el borrador no cuenta)');
-select pg_temp.ok((select rating = 4.50 and reviews_total = 2
-                     from public.agencias_publicas() where nombre = 'Rutas de Antioquia Cultural'),
-                  'Rutas de Antioquia Cultural: 4.50 sobre 2 reseñas');
+-- Esperado calculado desde `reviews` (no literal): el seed agrega reseñas demo y el total cambia.
+-- Tolerancia de 0.01 porque la función promedia `rating_promedio` ya redondeado por plan.
+select pg_temp.ok((select abs(ap.rating - e.promedio) <= 0.01 and ap.reviews_total = e.total
+                     from public.agencias_publicas() ap,
+                          (select round(avg(r.calificacion), 2) as promedio, count(*)::int as total
+                             from reviews r
+                             join plans p on p.id = r.plan_id and p.estado = 'publicado'
+                             join agencies a on a.id = p.agency_id
+                            where a.nombre = 'Rutas de Antioquia Cultural') e
+                    where ap.nombre = 'Rutas de Antioquia Cultural'),
+                  'Rutas de Antioquia Cultural: puntaje y total coinciden con sus reseñas publicadas');
 select pg_temp.ok((select rating is null and reviews_total = 0 and planes_count = 1
                      from public.agencias_publicas() where id = current_setting('t.nueva')::uuid),
                   'sin reseñas el puntaje es null (la app muestra «Nueva»), nunca 0');
