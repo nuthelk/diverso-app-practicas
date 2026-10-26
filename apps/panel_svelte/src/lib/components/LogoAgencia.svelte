@@ -1,6 +1,7 @@
 <script lang="ts">
   import { subirLogo, quitarLogo, mensajeError } from '../api';
-  import { colorDeAgencia, inicialesAgencia, validarLogo } from '../logo';
+  import AvatarAgencia from './AvatarAgencia.svelte';
+  import { validarLogo } from '../logo';
   import { avisar } from '../toast.svelte';
   import type { Agency } from '../types';
 
@@ -15,11 +16,9 @@
 
   let ocupado = $state<'' | 'subiendo' | 'quitando'>('');
   let error = $state('');
-  let urlRota = $state<string | null>(null);
   let entrada: HTMLInputElement;
 
   const logo = $derived(agencia.logo_url || null);
-  const mostrarImagen = $derived(logo !== null && logo !== urlRota);
 
   async function elegido(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
@@ -56,22 +55,7 @@
 
 <section class="tarjeta p-5" aria-labelledby="logo-titulo">
   <div class="flex flex-wrap items-center gap-5">
-    {#if mostrarImagen}
-      <img
-        src={logo}
-        alt="Logo de {agencia.nombre}"
-        class="size-[72px] shrink-0 rounded-full border border-slate-200/80 bg-white object-cover dark:border-ink-600"
-        onerror={() => (urlRota = logo)}
-      />
-    {:else}
-      <div
-        role="img"
-        aria-label="Iniciales de {agencia.nombre}"
-        class="flex size-[72px] shrink-0 items-center justify-center rounded-full text-[26px] font-extrabold tracking-wide text-white"
-        style="background-color:{colorDeAgencia(agencia.id)}"
-      >{inicialesAgencia(agencia.nombre)}</div
-      >
-    {/if}
+    <AvatarAgencia {agencia} tam={72} />
 
     <div class="min-w-[220px] flex-1">
       <h2 id="logo-titulo" class="text-[15px] font-bold">Logo</h2>

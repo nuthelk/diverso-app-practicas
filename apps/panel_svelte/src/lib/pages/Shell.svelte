@@ -6,8 +6,8 @@
   import { auth, signOut } from '../auth.svelte';
   import { router } from '../router.svelte';
   import { miAgencia } from '../api';
-  import { fechaTexto } from '../format';
-  import { estadoVigencia, diasParaVencer, type Agency } from '../types';
+  import { avisoVerificacion } from '../agencias';
+  import { estadoVigencia, type Agency } from '../types';
 
   let { children }: { children: Snippet } = $props();
 
@@ -52,39 +52,7 @@
   }
 
   /** Aviso principal sobre el estado de la agencia (uno a la vez, el más urgente). */
-  const aviso = $derived.by((): { tono: 'alerta' | 'error' | 'info'; texto: string } | null => {
-    const a = agencia;
-    if (!a) return null;
-    if (a.estado_verificacion === 'rechazado') {
-      return {
-        tono: 'error',
-        texto: `La verificación de tu agencia fue rechazada${a.motivo_rechazo ? `: ${a.motivo_rechazo}` : '.'} Corrige tus datos y escríbenos para revisarla de nuevo.`,
-      };
-    }
-    if (a.estado_verificacion === 'pendiente') {
-      return {
-        tono: 'info',
-        texto: `Tu agencia está en verificación (RNT ${a.numero_rnt}). Puedes preparar planes como borrador; se publicarán cuando el equipo Diverso confirme tu registro.`,
-      };
-    }
-    const est = estadoVigencia(a);
-    if (est === 'vencido' || est === 'sin_vigencia') {
-      return {
-        tono: 'error',
-        texto:
-          est === 'vencido'
-            ? 'El RNT de tu agencia está vencido: tus planes no se muestran ni reciben reservas. Renueva el registro y envíanos el soporte.'
-            : 'Tu agencia no tiene registrada la vigencia del RNT, así que tus planes no se muestran. Envíanos el certificado vigente para habilitarla.',
-      };
-    }
-    if (est === 'por_vencer') {
-      return {
-        tono: 'alerta',
-        texto: `Tu RNT vence el ${fechaTexto(a.rnt_vigente_hasta!)} (en ${diasParaVencer(a)} ${diasParaVencer(a) === 1 ? 'día' : 'días'}). Renuévalo a tiempo para no dejar de vender.`,
-      };
-    }
-    return null;
-  });
+  const aviso = $derived(agencia ? avisoVerificacion(agencia) : null);
 
   const TONOS = {
     info: 'bg-brand-600/10 text-brand-800 dark:text-brand-200',
@@ -222,7 +190,8 @@
       </div>
     {/if}
 
-    {#if aviso}
+    <!-- El Resumen muestra estos avisos arriba, con su acción: ahí el banner los repetiría. -->
+    {#if aviso && !activa('/dashboard')}
       <div class="px-5 py-2.5 text-[13px] leading-relaxed {TONOS[aviso.tono]}" role="status">
         {aviso.texto}
       </div>

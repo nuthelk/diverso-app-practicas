@@ -45,6 +45,25 @@ describe('Shell · navegación', () => {
     expect(activos).toEqual(['#/liquidaciones', '#/liquidaciones']);
   });
 
+  it('el aviso del RNT va en todas las secciones menos en el Resumen, que ya lo muestra arriba', async () => {
+    vi.mocked(miAgencia).mockResolvedValue(agencia({ rnt_vigente_hasta: '2026-11-10' }));
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 25, 12));
+    try {
+      router.path = '/planes';
+      render(Shell, { children });
+      expect(await screen.findByText(/Tu RNT vence el/)).toBeTruthy();
+      cleanup();
+
+      router.path = '/dashboard';
+      render(Shell, { children });
+      await screen.findAllByText('Aventuras Antioquia');
+      expect(screen.queryByText(/Tu RNT vence el/)).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('renderiza el contenido de la página', async () => {
     vi.mocked(miAgencia).mockResolvedValue(agencia());
     render(Shell, { children });

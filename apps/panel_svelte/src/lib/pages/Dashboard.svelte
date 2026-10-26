@@ -1,31 +1,58 @@
 <script lang="ts">
-  import StatCard from '../components/StatCard.svelte';
   import Skeleton from '../components/Skeleton.svelte';
-  import StatusPill from '../components/StatusPill.svelte';
   import Empty from '../components/Empty.svelte';
+  import AvatarAgencia from '../components/AvatarAgencia.svelte';
   import LogoAgencia from '../components/LogoAgencia.svelte';
-  import { misVentas, mensajeError } from '../api';
-  import { cop, fechaCorta, fechaLarga } from '../format';
+  import AvisoPrueba from '../components/AvisoPrueba.svelte';
+  import { misVentas, misLiquidaciones, cuentasResumen, mensajeError } from '../api';
+  import { cop } from '../format';
   import type { Agency, Plan, VentaRow } from '../types';
-  import { ventasPagadas, totalesVentas } from '../ventas';
-  import { resumenOcupacion, proximasSalidas } from '../ocupacion';
+  import type { Liquidacion } from '../liquidaciones';
+  import {
+    SALIDAS_VISIBLES,
+    avisosResumen,
+    etiquetaDia,
+    plural,
+    primerDiaDelMes,
+    proximasSalidasPorFecha,
+    proximoPago,
+    resumenDelMes,
+    textoDia,
+    type NivelSalida,
+  } from '../resumen';
   import { etiquetaEstadoAgencia } from '../agencias';
   import { go } from '../router.svelte';
+
+  const hoy = new Date();
 
   let cargando = $state(true);
   let error = $state('');
   let agencia = $state<Agency | null>(null);
   let planes = $state<Plan[]>([]);
   let ventasLista = $state<VentaRow[]>([]);
+  /** null: no se pudieron consultar (el resto del Resumen no depende de ellos). */
+  let liquidaciones = $state<Liquidacion[] | null>(null);
+  let hayCuenta = $state<boolean | null>(null);
+  let logoAbierto = $state(false);
 
   async function cargar() {
     cargando = true;
     error = '';
     try {
-      const r = await misVentas();
+      // Viajes desde el 1.º del mes: cubre «Este mes» y las próximas salidas sin el tope de 200.
+      const r = await misVentas({ desde: primerDiaDelMes() });
       agencia = r.agencia;
       planes = r.planes;
       ventasLista = r.ventas;
+      if (r.agencia) {
+        const id = r.agencia.id;
+        const [liqs, cuentas] = await Promise.all([
+          misLiquidaciones(id).catch(() => null),
+          cuentasResumen().catch(() => null),
+        ]);
+        liquidaciones = liqs;
+        hayCuenta = cuentas === null ? null : cuentas.some((c) => c.agency_id === id);
+      }
     } catch (e) {
       error = mensajeError(e);
     } finally {
@@ -40,37 +67,57 @@
   // Carga al montar (initState): llamada directa, sin $effect.
   cargar();
 
-  // Ventas efectivas: reservas pagadas, ya sea por viajar (confirmada) o realizadas (completada).
-  const confirmadas = $derived(ventasPagadas(ventasLista));
-  const totales = $derived(totalesVentas(confirmadas));
+  const salidas = $derived(proximasSalidasPorFecha(planes, ventasLista, hoy));
+  const mes = $derived(resumenDelMes(ventasLista, hoy));
+  const pago = $derived(liquidaciones ? proximoPago(liquidaciones, hoy) : null);
+  const avisos = $derived(agencia ? avisosResumen({ agencia, planes, hayCuenta, hoy }) : []);
+  const labelEstado = $derived(etiquetaEstadoAgencia(agencia, hoy));
 
-  const resumen = $derived(resumenOcupacion(planes));
-  const proximas = $derived(proximasSalidas(planes));
-  const labelEstado = $derived(etiquetaEstadoAgencia(agencia));
+  const TONOS = {
+    info: 'bg-brand-600/10 text-brand-800 dark:text-brand-200',
+    alerta: 'bg-orange-500/12 text-orange-800 dark:text-orange-300',
+    error: 'bg-red-500/10 text-red-700 dark:text-red-300',
+  } as const;
+
+  /** Marca breve para las salidas que piden atención; las normales no llevan nada. */
+  const MARCAS: Record<NivelSalida, { texto: string; clase: string } | null> = {
+    llena: { texto: 'Llena', clase: 'bg-ok-500/12 text-ok-600 dark:text-ok-500' },
+    casi_llena: { texto: 'Casi llena', clase: 'bg-orange-500/12 text-orange-700 dark:text-orange-300' },
+    vacia: { texto: 'Sin reservas', clase: 'bg-slate-500/15 text-slate-600 dark:text-slate-300' },
+    normal: null,
+  };
+
+  const TITULO_SECCION = 'text-[11.5px] font-bold tracking-[0.12em] text-slate-500 dark:text-slate-400';
+  const ENLACE = 'text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300';
 </script>
 
 {#if cargando}
-  <div class="space-y-4 p-7">
-    <Skeleton clase="h-8 w-72 rounded-lg" />
-    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
-      {#each Array(4) as _}<Skeleton clase="h-[124px]" />{/each}
-    </div>
-    <Skeleton clase="h-[200px]" />
-    <Skeleton clase="h-24" />
+  <div class="mx-auto max-w-[960px] space-y-4 px-4 py-6 sm:px-7">
+    <Skeleton clase="h-14 w-80 max-w-full rounded-lg" />
+    <Skeleton clase="h-[220px]" />
+    <Skeleton clase="h-[150px]" />
   </div>
 {:else if error}
   <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
 {:else if !agencia}
   <Empty icono="🏢" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
 {:else}
-  <div class="aparecer mx-auto max-w-[1200px] px-4 py-6 sm:px-7">
-    <!-- Cabecera -->
-    <div class="flex flex-wrap items-start gap-4">
-      <div class="min-w-[240px] flex-1">
+  <div class="aparecer mx-auto max-w-[960px] px-4 py-6 sm:px-7">
+    <!-- Saludo y estado -->
+    <header class="flex flex-wrap items-center gap-x-4 gap-y-3">
+      <AvatarAgencia {agencia} tam={52} decorativo />
+      <div class="min-w-[200px] flex-1">
         <h1 class="text-[24px] leading-tight font-extrabold tracking-tight sm:text-[26px]">Hola, {agencia.nombre}</h1>
-        <p class="mt-1 text-[13.5px] text-slate-500 dark:text-slate-400">
-          {labelEstado} · Comisión Diverso {agencia.comision_pct.toFixed(0)}%
-        </p>
+        <p class="mt-0.5 text-[13.5px] text-slate-600 dark:text-slate-400">{labelEstado}</p>
+        <button
+          type="button"
+          class="mt-1 rounded text-[12.5px] font-semibold text-brand-600 hover:underline dark:text-brand-300"
+          aria-expanded={logoAbierto}
+          aria-controls="panel-logo"
+          onclick={() => (logoAbierto = !logoAbierto)}
+        >
+          Cambiar logo
+        </button>
       </div>
       <button
         class="shrink-0 rounded-full bg-brand-600 px-5 py-2.5 text-[13.5px] font-bold text-white
@@ -79,112 +126,112 @@
       >
         + Nuevo plan
       </button>
-    </div>
+    </header>
 
-    <!-- Logo -->
-    <div class="mt-6"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
+    {#if logoAbierto}
+      <div id="panel-logo" class="mt-4"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
+    {/if}
 
-    <!-- Métricas -->
-    <div class="mt-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-      <StatCard icono={'💵'} valor={cop(totales.total)} etiqueta="Ventas pagadas" />
-      <StatCard icono={'📊'} valor={'- ' + cop(totales.comision)} etiqueta="Comisión Diverso" color="bg-orange-500/15 text-orange-600" />
-      <StatCard icono={'🏦'} valor={cop(totales.saldo)} etiqueta="Tu saldo a recibir" color="bg-ok-500/15 text-ok-600" />
-      <StatCard icono={'🎟️'} valor={String(confirmadas.length)} etiqueta="Reservas pagadas" />
-    </div>
-
-    <!-- Ocupación por salida -->
-    <div class="mt-8 flex items-center justify-between">
-      <div>
-        <h2 class="text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
-          OCUPACIÓN POR SALIDA · DE LA MÁS LLENA A LA MÁS VACÍA
+    <!-- Avisos: solo lo que la agencia puede resolver -->
+    {#if avisos.length > 0}
+      <section class="mt-5" aria-labelledby="avisos-titulo">
+        <h2 id="avisos-titulo" class="text-[13.5px] font-bold">
+          <span aria-hidden="true">⚠</span>
+          {avisos.length}
+          {plural(avisos.length, 'aviso', 'avisos')}
         </h2>
-        <p class="mt-0.5 text-[12px] text-slate-400">
-          {resumen.vendidos} de {resumen.total} cupos vendidos en las próximas 8
-          semanas ({(resumen.ocup * 100).toFixed(0)}%)
-        </p>
+        <ul class="mt-2 space-y-2">
+          {#each avisos as a (a.clave)}
+            <li class="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl px-4 py-3 text-[13.5px] leading-snug {TONOS[a.tono]}">
+              <span class="min-w-[200px] flex-1">{a.texto}</span>
+              {#if a.accion}
+                <a href={'#' + a.accion.ruta} class="shrink-0 font-bold underline underline-offset-2">{a.accion.texto}</a>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
+    <!-- Próximas salidas, en orden de fecha -->
+    <section class="mt-8" aria-labelledby="salidas-titulo">
+      <div class="flex items-baseline justify-between gap-3">
+        <h2 id="salidas-titulo" class={TITULO_SECCION}>PRÓXIMAS SALIDAS</h2>
+        <a href="#/planes" class={ENLACE}>Ver todas</a>
       </div>
-      <a href="#/planes" class="text-[13px] font-semibold text-brand-600 hover:underline dark:text-brand-300"
-        >Ver planes</a
-      >
-    </div>
-    <div class="mt-3 space-y-2.5">
-      {#if proximas.length === 0}
-        <div
-          class="rounded-2xl border border-slate-200/80 bg-white p-4 text-[13.5px] text-slate-500
-            dark:border-ink-600 dark:bg-ink-800 dark:text-slate-400"
-        >
-          No tienes fechas futuras con cupos. Agrega fechas en la sección Planes.
+      {#if salidas.length === 0}
+        <div class="tarjeta mt-3 p-4 text-[13.5px] text-slate-600 dark:text-slate-400">
+          No tienes salidas próximas. Agrega fechas en la sección Planes.
         </div>
       {:else}
-        {#each proximas as s (s.fecha + s.titulo)}
-          {@const llena = s.ocup >= 0.66 || s.cupos <= 3}
-          <div
-            class="flex items-center gap-3.5 rounded-2xl border border-slate-200/80 bg-white p-3.5
-              transition hover:shadow-sm dark:border-ink-600 dark:bg-ink-800"
-          >
-            <div
-              class="flex size-[50px] shrink-0 flex-col items-center justify-center rounded-[15px]
-                leading-none
-                {llena ? 'bg-orange-500/15 text-orange-600' : 'bg-brand-600/12 text-brand-700 dark:text-brand-200'}"
-            >
-              <span class="text-[17px] font-extrabold">{new Date(s.fecha + 'T12:00:00').getDate()}</span>
-              <span class="mt-1 text-[9.5px] font-bold tracking-wider">
-                {fechaCorta(s.fecha).split(' ').pop()?.toUpperCase()}
-              </span>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex items-baseline justify-between gap-3">
-                <div class="truncate text-[14px] font-bold">{s.titulo}</div>
-                <div class="shrink-0 text-[11.5px] font-bold tabular-nums {llena ? 'text-orange-600' : 'text-slate-400'}">
-                  {(s.ocup * 100).toFixed(0)}% lleno
+        <ul class="mt-3 space-y-2.5">
+          {#each salidas.slice(0, SALIDAS_VISIBLES) as s (s.fecha + s.titulo)}
+            {@const marca = MARCAS[s.nivel]}
+            <li data-salida class="tarjeta flex items-center gap-3 p-3.5 sm:gap-4">
+              <time
+                datetime={s.fecha}
+                class="w-[5.5rem] shrink-0 text-[13.5px] font-extrabold text-brand-700 dark:text-brand-200"
+                title={textoDia(s.fecha)}
+              >{etiquetaDia(s.fecha, hoy)}</time
+              >
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-[14.5px] font-bold">{s.titulo}</div>
+                <div class="mt-0.5 text-[12.5px] text-slate-600 dark:text-slate-400">
+                  {s.personas}
+                  {plural(s.personas, 'persona', 'personas')} · {s.libres}
+                  {plural(s.libres, 'cupo libre', 'cupos libres')}
                 </div>
               </div>
-              <div class="mt-0.5 text-[12.5px] text-slate-500 dark:text-slate-400">
-                {fechaLarga(s.fecha)} · {s.vendidos} vendidos · {s.cupos} libres
-              </div>
-              <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200/70 dark:bg-ink-700">
-                <div
-                  class="h-full rounded-full {llena ? 'bg-orange-500' : 'bg-brand-600'}"
-                  style="width:{Math.max(s.ocup * 100, 1.5).toFixed(1)}%"
-                ></div>
-              </div>
-            </div>
-          </div>
-        {/each}
+              {#if marca}
+                <span class="shrink-0 rounded-full px-2.5 py-0.5 text-[11px] leading-5 font-bold whitespace-nowrap {marca.clase}"
+                  >{marca.texto}</span
+                >
+              {/if}
+            </li>
+          {/each}
+        </ul>
       {/if}
-    </div>
+    </section>
 
-    <!-- Últimas ventas -->
-    <h2 class="mt-8 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">ÚLTIMAS VENTAS</h2>
-    <div class="mt-3 space-y-2.5">
-      {#if ventasLista.length === 0}
-        <div
-          class="rounded-2xl border border-slate-200/80 bg-white p-4 text-[13.5px] text-slate-500
-            dark:border-ink-600 dark:bg-ink-800 dark:text-slate-400"
-        >
-          Aún no tienes ventas registradas.
-        </div>
-      {:else}
-        {#each ventasLista.slice(0, 6) as v (v.booking_id)}
-          <div
-            class="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-2xl border border-slate-200/80 bg-white p-3.5
-              dark:border-ink-600 dark:bg-ink-800"
-          >
-            <div class="min-w-[200px] flex-1">
-              <div class="truncate text-[13.5px] font-bold">
-                {v.codigo} · {v.plan_titulo}
-              </div>
-              <div class="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">
-                {fechaCorta(v.fecha)} · {v.pax} pax · saldo {cop(v.saldo_agencia)}
-              </div>
-            </div>
-            <StatusPill estado={v.booking_estado} />
-            <div class="w-24 text-right text-[14.5px] font-extrabold tabular-nums">
-              {cop(v.monto_total)}
-            </div>
+    <!-- Este mes: la plata -->
+    <section class="mt-8" aria-labelledby="mes-titulo">
+      <div class="flex items-baseline justify-between gap-3">
+        <h2 id="mes-titulo" class={TITULO_SECCION}>ESTE MES ({mes.mes})</h2>
+        <a href="#/ventas" class={ENLACE}>Ver ventas</a>
+      </div>
+      <p class="mt-0.5 text-[12.5px] text-slate-600 dark:text-slate-400">
+        Reservas pagadas de los viajes de {mes.mes}.
+      </p>
+
+      <div class="tarjeta mt-3 overflow-hidden">
+        <dl class="grid divide-y divide-slate-200/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0 dark:divide-ink-600">
+          <div class="flex items-baseline justify-between gap-3 px-5 py-4 sm:block">
+            <dt class="text-[13px] text-slate-600 dark:text-slate-400">Vendiste</dt>
+            <dd class="text-[19px] font-extrabold tracking-tight tabular-nums sm:mt-1 sm:text-[22px]">{cop(mes.vendido)}</dd>
           </div>
-        {/each}
-      {/if}
-    </div>
+          <div class="flex items-baseline justify-between gap-3 px-5 py-4 sm:block">
+            <dt class="text-[13px] text-slate-600 dark:text-slate-400">Comisión {agencia.comision_pct}%</dt>
+            <dd class="text-[19px] font-extrabold tracking-tight tabular-nums sm:mt-1 sm:text-[22px]">− {cop(mes.comision)}</dd>
+          </div>
+          <div class="flex items-baseline justify-between gap-3 px-5 py-4 sm:block">
+            <dt class="text-[13px] font-semibold text-slate-700 dark:text-slate-300">Te corresponde</dt>
+            <dd class="text-[19px] font-extrabold tracking-tight text-ok-600 tabular-nums sm:mt-1 sm:text-[22px] dark:text-ok-500">
+              {cop(mes.aRecibir)}
+            </dd>
+          </div>
+        </dl>
+        <p class="border-t border-slate-200/80 px-5 py-3.5 text-[14px] dark:border-ink-600">
+          <span class="font-bold">Próximo pago:</span>
+          {#if liquidaciones === null}
+            no pudimos consultarlo ahora.
+          {:else if pago}
+            {textoDia(pago.fecha)} · <strong class="font-extrabold tabular-nums">{cop(pago.monto)}</strong>
+          {:else}
+            no tienes pagos pendientes por ahora.
+          {/if}
+        </p>
+      </div>
+      <div class="mt-3"><AvisoPrueba /></div>
+    </section>
   </div>
 {/if}

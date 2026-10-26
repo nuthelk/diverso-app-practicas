@@ -52,6 +52,48 @@ export function filtrarAgencias(
     );
 }
 
+export type TonoAviso = 'alerta' | 'error' | 'info';
+
+/**
+ * Qué pasa con la verificación o el RNT de la agencia y qué tiene que hacer; null si está al día.
+ * Fuente única: lo muestran el banner del panel y los avisos del Resumen.
+ */
+export function avisoVerificacion(a: Agency, hoy = new Date()): { tono: TonoAviso; texto: string } | null {
+  if (a.estado_verificacion === 'rechazado') {
+    return {
+      tono: 'error',
+      texto: `La verificación de tu agencia fue rechazada${a.motivo_rechazo ? `: ${a.motivo_rechazo}` : '.'} Corrige tus datos y escríbenos para revisarla de nuevo.`,
+    };
+  }
+  if (a.estado_verificacion === 'pendiente') {
+    return {
+      tono: 'info',
+      texto: `Tu agencia está en verificación (RNT ${a.numero_rnt}). Puedes preparar planes como borrador; se publicarán cuando el equipo Diverso confirme tu registro.`,
+    };
+  }
+  const est = estadoVigencia(a, hoy);
+  if (est === 'vencido') {
+    return {
+      tono: 'error',
+      texto: 'El RNT de tu agencia está vencido: tus planes no se muestran ni reciben reservas. Renueva el registro y envíanos el soporte.',
+    };
+  }
+  if (est === 'sin_vigencia') {
+    return {
+      tono: 'error',
+      texto: 'Tu agencia no tiene registrada la vigencia del RNT, así que tus planes no se muestran. Envíanos el certificado vigente para habilitarla.',
+    };
+  }
+  if (est === 'por_vencer') {
+    const dias = diasParaVencer(a, hoy)!;
+    return {
+      tono: 'alerta',
+      texto: `Tu RNT vence el ${fechaTexto(a.rnt_vigente_hasta!)} (en ${dias} ${dias === 1 ? 'día' : 'días'}). Renuévalo a tiempo para no dejar de vender.`,
+    };
+  }
+  return null;
+}
+
 /** Texto y color de la vigencia del RNT en la tarjeta de cada agencia. */
 export function textoVigencia(a: Agency, hoy = new Date()): { texto: string; clase: string } {
   const dias = diasParaVencer(a, hoy);
