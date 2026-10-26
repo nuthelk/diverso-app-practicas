@@ -71,6 +71,7 @@ class _CatalogViewState extends State<CatalogView>
                             Expanded(
                               child: TextField(
                                 controller: _searchCtrl,
+                                onChanged: c.setTexto,
                                 onSubmitted: (_) => c.buscar(),
                                 textInputAction: TextInputAction.search,
                                 decoration: InputDecoration(

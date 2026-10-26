@@ -103,6 +103,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0006_politica_notas.sql` | `plans.politica_notas`: las frases de la política que no son reglas (p. ej. «Reprogramación gratuita por clima») nunca se pierden al regenerar el texto |
 | `0007_notas_sin_politica.sql` | Las notas no pueden contener reglas de reembolso que contradigan los números (`NOTAS_CON_POLITICA`); `horas_antes` se trunca para mostrarlo |
 | `0008_cancelar_antes_de_salir.sql` | `cancelar_reserva` y `vista_previa_cancelacion` rechazan con `RESERVA_YA_SALIO` una reserva viva cuyo viaje ya salió (`salida_at`); reintentar una cancelación ya hecha sigue siendo idempotente |
+| `0011_busqueda_sin_tildes.sql` | Buscador sin tildes ni mayúsculas: extensión `unaccent`, `f_unaccent` (IMMUTABLE) y la columna generada `plans.busqueda`, sobre la que el catálogo filtra con un solo `ilike` (la app normaliza el texto con `normalizarBusqueda`) |
 
 ### RPC y tareas programadas
 
@@ -320,6 +321,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0006 (notas de política) | ver «Pruebas SQL» | 49 |
 | SQL 0007 (notas sin reglas de reembolso) | ver «Pruebas SQL» | 62 |
 | SQL 0008 (cancelar solo antes de la salida) | ver «Pruebas SQL» | 14 |
+| SQL 0011 (búsqueda sin tildes) | ver «Pruebas SQL» | 11 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |

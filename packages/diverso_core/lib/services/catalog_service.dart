@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/agencia_resumen.dart';
 import '../models/enums.dart';
 import '../models/plan.dart';
+import '../utils/busqueda.dart';
 import '../utils/formatters.dart';
 
 /// Filtros del buscador del catálogo.
@@ -44,9 +45,11 @@ class CatalogService {
         .eq('estado', 'publicado')
         .gte('plan_dates.fecha', hoy);
 
-    final texto = filtros.texto?.trim();
-    if (texto != null && texto.isNotEmpty) {
-      query = query.or('titulo.ilike.%$texto%,destino.ilike.%$texto%,resumen.ilike.%$texto%');
+    // Un solo ilike sobre la columna generada `plans.busqueda` (0011: minúsculas y sin tildes).
+    // El texto ya no se interpola en un `or(...)`, así que comas y paréntesis no rompen el filtro.
+    final texto = normalizarBusqueda(filtros.texto ?? '');
+    if (texto.isNotEmpty) {
+      query = query.ilike('busqueda', '%$texto%');
     }
     if (filtros.categoria != null) {
       query = query.eq('categoria', filtros.categoria!.name);

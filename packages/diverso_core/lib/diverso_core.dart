@@ -19,6 +19,7 @@ export 'services/catalog_service.dart';
 export 'services/edge_functions.dart';
 export 'services/payment_gateway.dart';
 export 'services/review_service.dart';
+export 'utils/busqueda.dart';
 export 'utils/formatters.dart';
 export 'ui/diverso_logo.dart';
 export 'ui/page_transitions.dart';
