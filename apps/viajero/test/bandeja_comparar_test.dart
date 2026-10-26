@@ -177,6 +177,23 @@ void main() {
     expect(bandeja.bottom, lessThanOrEqualTo(1000));
   });
 
+  testWidgets('los lugares libres miden lo mismo que una miniatura, con su «+» decorativo', (tester) async {
+    await _abrir(tester);
+    await _agregar(tester);
+
+    final foto = tester.getSize(find.byKey(const ValueKey('foto-miniatura')));
+    final huecos = find.byKey(const ValueKey('hueco-bandeja'));
+    expect(huecos, findsNWidgets(2)); // 3 lugares, 1 ocupado
+    for (final h in huecos.evaluate().map((e) => e.widget).toList().asMap().keys) {
+      expect(tester.getSize(huecos.at(h)), foto);
+    }
+    expect(foto.width, greaterThan(40)); // no son cápsulas angostas
+    expect(find.descendant(of: huecos.first, matching: find.byIcon(Icons.add_rounded)), findsOneWidget);
+    // Decorativo: sin semántica ni foco.
+    expect(find.descendant(of: _bandeja, matching: find.byType(ExcludeSemantics)), findsWidgets);
+    expect(find.descendant(of: huecos.first, matching: find.byType(InkWell)), findsNothing);
+  });
+
   testWidgets('accesible: cada × y cada botón tienen etiqueta', (tester) async {
     await _abrir(tester);
     await _agregar(tester);

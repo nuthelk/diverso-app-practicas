@@ -125,6 +125,7 @@ class _Miniatura extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
+          key: const ValueKey('foto-miniatura'),
           height: 52,
           child: Stack(
             fit: StackFit.expand,
@@ -175,7 +176,7 @@ class _Miniatura extends StatelessWidget {
   }
 }
 
-/// Lugar libre para otro plan (deja ver cuántos caben).
+/// Lugar libre para otro plan (deja ver cuántos caben): del tamaño y radio de una miniatura.
 class _Hueco extends StatelessWidget {
   const _Hueco();
 
@@ -185,15 +186,18 @@ class _Hueco extends StatelessWidget {
     return ExcludeSemantics(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        // Sin esto el Column centra al hijo y el recuadro se encoge al ancho del «+».
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
+            key: const ValueKey('hueco-bandeja'),
             height: 52,
             decoration: BoxDecoration(
-              color: cs.surfaceContainerHigh.withValues(alpha: .6),
+              color: cs.surfaceContainerHigh.withValues(alpha: .4),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: cs.outlineVariant),
             ),
-            child: Icon(Icons.add_rounded, size: 18, color: cs.outline),
+            child: Icon(Icons.add_rounded, size: 20, color: cs.outline),
           ),
           const SizedBox(height: 4),
           const SizedBox(height: 14),

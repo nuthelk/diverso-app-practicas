@@ -191,6 +191,47 @@ void main() {
     });
   });
 
+  group('etiqueta de estado', () {
+    testWidgets('confirmada que ya salió dice «Realizada»; la próxima sigue «Confirmada»', (tester) async {
+      await _abrir(tester, [
+        _reserva('PASADA', const Duration(days: -5)),
+        _reserva('FUTURA', const Duration(days: 5)),
+      ]);
+
+      expect(find.text('Confirmada'), findsOneWidget);
+      expect(find.text('Realizada'), findsNothing);
+
+      await tester.tap(find.text('Historial (1)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Realizada'), findsOneWidget);
+      expect(find.text('Confirmada'), findsNothing);
+      // Solo cambia la etiqueta: las reglas de T9 siguen igual.
+      expect(find.text('Reseñar'), findsOneWidget);
+      expect(find.text('Cancelar'), findsNothing);
+    });
+
+    testWidgets('PRESERVE: «Cancelada», «Pendiente» y «Completada» no cambian aunque ya salieron', (tester) async {
+      await _abrir(tester, [
+        _reserva('CAN', const Duration(days: -5), estado: BookingStatus.cancelada),
+        _reserva('PEN', const Duration(days: -4), estado: BookingStatus.pendientePago),
+        _reserva('COM', const Duration(days: -3), estado: BookingStatus.completada),
+      ]);
+      await tester.tap(find.text('Historial (3)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cancelada'), findsOneWidget);
+      expect(find.text('Pendiente'), findsOneWidget);
+      expect(find.text('Completada'), findsOneWidget);
+      expect(find.text('Realizada'), findsNothing);
+    });
+
+    testWidgets('PRESERVE: «Pendiente» de un viaje próximo sigue igual', (tester) async {
+      await _abrir(tester, [_reserva('PEN', const Duration(days: 4), estado: BookingStatus.pendientePago)]);
+      expect(find.text('Pendiente'), findsOneWidget);
+    });
+  });
+
   testWidgets('PRESERVE: sin reservas muestra el estado vacío', (tester) async {
     await _abrir(tester, const []);
 

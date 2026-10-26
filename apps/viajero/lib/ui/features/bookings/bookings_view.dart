@@ -400,7 +400,17 @@ class _Encabezado extends StatelessWidget {
             ),
           ),
           if (fecha != null) Positioned(top: 12, left: 12, child: _InsigniaFecha(fecha: fecha)),
-          Positioned(top: 12, right: 12, child: _EstadoPill(estado: booking.estado)),
+          Positioned(
+            top: 12,
+            right: 12,
+            // Una confirmada que ya salió se muestra «Realizada» (solo etiqueta: el estado no cambia).
+            child: _EstadoPill(
+              estado: booking.estado,
+              realizada: booking.estado == BookingStatus.confirmada &&
+                  booking.salida != null &&
+                  !booking.esFutura(),
+            ),
+          ),
         ],
       ),
     );
@@ -447,13 +457,15 @@ class _InsigniaFecha extends StatelessWidget {
 
 /// Estado de la reserva: píldora de color sólido con texto blanco (legible sobre foto).
 class _EstadoPill extends StatelessWidget {
-  const _EstadoPill({required this.estado});
+  const _EstadoPill({required this.estado, this.realizada = false});
 
   final BookingStatus estado;
+  final bool realizada;
 
   @override
   Widget build(BuildContext context) {
     final (color, texto) = switch (estado) {
+      BookingStatus.confirmada when realizada => (const Color(0xFF4A5C6E), 'Realizada'),
       BookingStatus.confirmada => (const Color(0xFF1B7A4B), 'Confirmada'),
       BookingStatus.pendientePago => (const Color(0xFFB25E09), 'Pendiente'),
       BookingStatus.cancelada => (const Color(0xFFB3261E), 'Cancelada'),

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/agency_avatar.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets.dart';
 
@@ -273,17 +274,15 @@ class _TarjetaAgencia extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: cs.primaryContainer,
-                child: Text(
-                  agency.nombre.substring(0, 1),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 17,
-                    color: cs.onPrimaryContainer,
-                  ),
+              // Mismo avatar que la lista de agencias: logo o iniciales sobre el color de la agencia.
+              AgencyAvatar(
+                agencia: AgenciaResumen(
+                  id: agency.id,
+                  nombre: agency.nombre,
+                  ciudad: agency.ciudad,
+                  logoUrl: agency.logoUrl,
                 ),
+                size: 44,
               ),
               const SizedBox(width: 12),
               Expanded(
