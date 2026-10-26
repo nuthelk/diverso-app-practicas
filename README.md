@@ -410,6 +410,8 @@ solo servidor) · `payments` (pago aprobado, con id y método de la transacción
   favicon y PWA de la app y del panel) salen de esa máscara, ave blanca sobre `#0E6E4F`:
   `python -I -B tools/iconos/generar_iconos.py` (requiere Pillow) los regenera, y la zona
   segura y los márgenes por plataforma están documentados en el script.
+  La pantalla de arranque de Android muestra solo el colibrí grande, sin círculo ni fondo
+  (`splash_colibri.png`, verde en claro y menta en oscuro; Android 12+ vía `values-v31`).
 - **Ley 1581/2012:** autorización expresa con evidencia en `consents` (ver migración 0002);
   política y términos legibles en la app (`/legal/...`) y en el panel (`#/legal/...`).
   **PCI-DSS:** la plataforma no almacena datos de tarjeta: se digitan en la página de Wompi.

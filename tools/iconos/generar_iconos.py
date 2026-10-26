@@ -7,6 +7,9 @@ Resultado: ave blanca sobre #0E6E4F (el `ic_launcher_background` de la app) en
   - apps/viajero Android: primer plano adaptativo (mipmap-*/ic_launcher_foreground.png)
     e íconos heredados (mipmap-*/ic_launcher.png);
   - apps/viajero iOS: AppIcon.appiconset, todos los tamaños de su Contents.json, opacos;
+  - apps/viajero Android, pantalla de arranque: solo el ave, sin fondo, en
+    drawable-*/splash_colibri.png (verde de marca) y drawable-night-*/splash_colibri.png
+    (menta);
   - apps/viajero web y apps/panel_svelte/public: favicon.png, icons/Icon-{192,512}.png y
     los maskable;
   - apps/panel_svelte/public/logo_diverso.png: copia de la máscara para `Logo.svelte`.
@@ -14,6 +17,7 @@ Resultado: ave blanca sobre #0E6E4F (el `ic_launcher_background` de la app) en
 Márgenes: cada ícono se escala para que el punto más lejano del ave (medido desde el centro
 de su caja) quede dentro de un círculo de radio fijo; la caja del ave queda centrada.
   - adaptativo Android: círculo de 66 dp sobre el lienzo de 108 dp;
+  - arranque Android 12+ (ícono sin fondo): círculo de 192 dp sobre el lienzo de 288 dp;
   - maskable web: círculo de seguridad del 80 % del lado;
   - resto: círculo del 88 % del lado (el ave ocupa ~65 % de la altura).
 
@@ -30,10 +34,12 @@ RAIZ = Path(__file__).resolve().parents[2]
 MAESTRO = RAIZ / "packages/diverso_core/assets/logo_diverso.png"
 FONDO = (0x0E, 0x6E, 0x4F)  # ic_launcher_background
 TINTA = (255, 255, 255)
+MENTA = (0xA8, 0xF2, 0xCE)  # primaryContainer claro = onPrimaryContainer oscuro (logo del login)
 
 # Radio del círculo que debe contener al ave, como fracción del lado del lienzo.
 # El 0,98 deja un píxel de aire para el suavizado del borde.
 R_ADAPTATIVO = 33 / 108 * 0.98  # zona segura de 66 dp
+R_ARRANQUE = 96 / 288 * 0.98  # círculo de 192 dp (ícono de arranque sin fondo)
 R_MASCABLE = 0.40 * 0.98  # círculo de seguridad del 80 %
 R_ICONO = 0.44  # resto de íconos
 
@@ -82,9 +88,9 @@ def icono_opaco(lado, radio_rel):
     return lienzo
 
 
-def primer_plano(lado, radio_rel):
-    """Ave blanca sobre transparente (capa de primer plano / monocroma)."""
-    capa = Image.new("RGBA", (lado, lado), TINTA + (0,))
+def primer_plano(lado, radio_rel, tinta=TINTA):
+    """Ave de color `tinta` (blanca por defecto) sobre transparente."""
+    capa = Image.new("RGBA", (lado, lado), tinta + (0,))
     capa.putalpha(mascara(lado, radio_rel))
     return capa
 
@@ -100,6 +106,13 @@ def android():
         carpeta = RES / f"mipmap-{dpi}"
         guardar(primer_plano(round(108 * factor), R_ADAPTATIVO), carpeta / "ic_launcher_foreground.png")
         guardar(icono_opaco(round(48 * factor), R_ICONO), carpeta / "ic_launcher.png")
+
+
+def arranque():
+    for dpi, factor in DENSIDADES.items():
+        lado = round(288 * factor)
+        guardar(primer_plano(lado, R_ARRANQUE, FONDO), RES / f"drawable-{dpi}" / "splash_colibri.png")
+        guardar(primer_plano(lado, R_ARRANQUE, MENTA), RES / f"drawable-night-{dpi}" / "splash_colibri.png")
 
 
 def ios():
@@ -118,6 +131,7 @@ def web(carpeta):
 
 def main():
     android()
+    arranque()
     ios()
     web(VIAJERO / "web")
     web(PANEL_PUBLIC)
