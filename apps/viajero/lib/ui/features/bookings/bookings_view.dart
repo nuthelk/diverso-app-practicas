@@ -4,9 +4,10 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/widgets.dart';
-import '../checkout/pago_wompi.dart';
+import 'acciones_reserva.dart';
 import 'bookings_controller.dart';
-import 'cancel_dialog.dart';
+import 'reserva_formato.dart';
+import 'reserva_widgets.dart';
 
 /// Mis reservas: próximas e historial con acciones de reseña y cancelación.
 class BookingsView extends StatefulWidget {
@@ -45,28 +46,6 @@ class _BookingsViewState extends State<BookingsView>
     if (m != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
       _controller.mensaje = null;
-    }
-  }
-
-  Future<void> _confirmarCancelacion(BuildContext context, Booking b) async {
-    final vista = await _controller.vistaPrevia(b);
-    if (vista == null || !context.mounted) return;
-    final confirmo = await showDialog<bool>(
-      context: context,
-      builder: (context) => CancelacionDialog(codigo: b.codigo, vista: vista),
-    );
-    if (confirmo == true) await _controller.cancelar(b);
-  }
-
-  /// Retoma el pago de una reserva que sigue pendiente (mientras dure la retención de 30 min).
-  Future<void> _completarPago(Booking b) async {
-    try {
-      final terminado = await iniciarPago(context, pasarela: _pasarela, bookingId: b.id);
-      if (!terminado) {
-        _controller.avisar('Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar».');
-      }
-    } on DiversoException catch (e) {
-      _controller.avisar(e.mensajeUsuario);
     }
   }
 
@@ -156,15 +135,22 @@ class _BookingsViewState extends State<BookingsView>
         itemBuilder: (context, i) => _TarjetaReserva(
           booking: lista[i],
           historial: historial,
+          // Solo se recarga si en el detalle cambió algo (cancelación, pago, reseña): así volver
+          // de mirar una reserva no borra la lista ni pierde el desplazamiento.
+          onAbrir: () => context.push<bool>('/reservas/${lista[i].id}', extra: lista[i]).then((cambio) {
+            if (cambio == true) _controller.cargar();
+          }),
           onResenar: _controller.puedeResenar(lista[i])
               ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
               : null,
-          onPagar: lista[i].estado == BookingStatus.pendientePago ? () => _completarPago(lista[i]) : null,
+          onPagar: lista[i].estado == BookingStatus.pendientePago
+              ? () => completarPago(context, _controller, _pasarela, lista[i])
+              : null,
           onVerificar: lista[i].estado == BookingStatus.pendientePago
               ? () => context.go('${DiversoConfig.pagoResultadoPath}?reserva=${lista[i].id}')
               : null,
           onCancelar: _controller.puedeCancelar(lista[i])
-              ? () => _confirmarCancelacion(context, lista[i])
+              ? () => cancelarConConfirmacion(context, _controller, lista[i])
               : null,
         ),
       ),
@@ -172,13 +158,15 @@ class _BookingsViewState extends State<BookingsView>
   }
 }
 
-/// Tarjeta de una reserva: foto del plan como cabecera con la fecha de salida y el estado encima,
-/// y debajo título, agencia, código · pax · precio, pago, reembolso y las acciones. Sin foto,
-/// la cabecera usa un respaldo de color con el ícono de la categoría. El historial se ve más
-/// apagado.
+/// Tarjeta de una reserva, tocable (abre el detalle): foto del plan como cabecera con la fecha de
+/// salida, el estado y el código encima; debajo el título y la agencia, los datos que importan
+/// (salida con su cuenta regresiva y punto de encuentro), el reembolso, un pie con personas y
+/// total, y las acciones. Sin foto, la cabecera usa un respaldo de color con el ícono de la
+/// categoría. El historial se ve más apagado.
 class _TarjetaReserva extends StatelessWidget {
   const _TarjetaReserva({
     required this.booking,
+    required this.onAbrir,
     this.historial = false,
     this.onResenar,
     this.onCancelar,
@@ -187,6 +175,7 @@ class _TarjetaReserva extends StatelessWidget {
   });
 
   final Booking booking;
+  final VoidCallback onAbrir;
   final bool historial;
   final VoidCallback? onResenar;
   final VoidCallback? onCancelar;
@@ -197,135 +186,159 @@ class _TarjetaReserva extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final agencia = booking.plan?.agency?.nombre;
+    final salida = textoSalida(booking);
+    final puntoEncuentro = booking.plan?.puntoEncuentro ?? '';
+    final colorTexto = historial ? cs.onSurface.withValues(alpha: .72) : cs.onSurface;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Card(
         color: cs.surfaceContainerLow,
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _Encabezado(booking: booking, apagado: historial),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    booking.plan?.titulo ?? 'Plan',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      height: 1.25,
-                      color: historial ? cs.onSurface.withValues(alpha: .72) : cs.onSurface,
-                    ),
-                  ),
-                  if (agencia != null) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.storefront_outlined, size: 14, color: cs.onSurfaceVariant),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: Text(
-                            agencia,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
-                          ),
+        child: Semantics(
+          button: true,
+          label: 'Ver detalle de la reserva ${booking.codigo}',
+          child: InkWell(
+            onTap: onAbrir,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Encabezado(booking: booking, apagado: historial),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        booking.plan?.titulo ?? 'Plan',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, height: 1.25, color: colorTexto),
+                      ),
+                      if (agencia != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.storefront_outlined, size: 14, color: cs.onSurfaceVariant),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                agencia,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Text(
-                    '${booking.codigo} · ${booking.pax} pax · ${formatCOP(booking.montoTotal)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
-                  ),
-                  if (booking.pago != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      booking.pago!.textoReferencia,
-                      style: TextStyle(fontSize: 11.5, color: cs.outline),
-                    ),
-                  ],
-                  if (booking.etiquetaReembolso != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      booking.etiquetaReembolso!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: booking.reembolso?.estado == EstadoReembolso.rechazado ? cs.error : cs.primary,
-                      ),
-                    ),
-                  ],
-                  if (onPagar != null || onVerificar != null) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        if (onVerificar != null)
-                          TextButton(onPressed: onVerificar, child: const Text('Ya pagué, verificar')),
-                        if (onPagar != null)
-                          FilledButton.tonal(
-                            style: FilledButton.styleFrom(minimumSize: const Size(0, 38)),
-                            onPressed: onPagar,
-                            child: const Text('Completar pago'),
-                          ),
+                      const SizedBox(height: 12),
+                      if (salida != null)
+                        FilaDato(
+                          icono: Icons.event_rounded,
+                          texto: salida,
+                          acento: cuentaRegresiva(booking),
+                          compacto: true,
+                        ),
+                      if (puntoEncuentro.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        FilaDato(icono: Icons.place_outlined, texto: puntoEncuentro, compacto: true),
                       ],
-                    ),
-                  ],
-                  if (onResenar != null || onCancelar != null) ...[
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (onResenar != null)
-                          FilledButton.tonalIcon(
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 38),
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                            ),
-                            onPressed: onResenar,
-                            icon: const Icon(Icons.star_outline_rounded, size: 16),
-                            label: const Text('Reseñar'),
+                      if (booking.etiquetaReembolso != null) ...[
+                        const SizedBox(height: 6),
+                        FilaDato(
+                          icono: Icons.currency_exchange_rounded,
+                          texto: booking.etiquetaReembolso!,
+                          color: colorReembolso(booking, cs),
+                          compacto: true,
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      Divider(height: 1, color: cs.outlineVariant),
+                      const SizedBox(height: 12),
+                      // Wrap: con letra muy grande el total baja a su propia línea en vez de desbordar.
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.group_outlined, size: 16, color: cs.onSurfaceVariant),
+                              const SizedBox(width: 6),
+                              Text(textoPersonas(booking.pax), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                            ],
                           ),
-                        if (onCancelar != null) ...[
-                          if (onResenar != null) const SizedBox(width: 8),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: cs.error,
-                              minimumSize: const Size(0, 38),
-                            ),
-                            onPressed: onCancelar,
-                            child: const Text('Cancelar'),
+                          Text(
+                            formatCOP(booking.montoTotal),
+                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -.3, color: colorTexto),
                           ),
                         ],
+                      ),
+                      if (onPagar != null || onVerificar != null) ...[
+                        const SizedBox(height: 10),
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            if (onVerificar != null)
+                              TextButton(onPressed: onVerificar, child: const Text('Ya pagué, verificar')),
+                            if (onPagar != null)
+                              FilledButton.tonal(
+                                style: FilledButton.styleFrom(minimumSize: const Size(0, 38)),
+                                onPressed: onPagar,
+                                child: const Text('Completar pago'),
+                              ),
+                          ],
+                        ),
                       ],
-                    ),
-                  ] else if (booking.tieneResena) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.rate_review_rounded, size: 13, color: cs.primary),
-                        const SizedBox(width: 4),
-                        Text('Ya dejaste tu reseña',
-                            style: TextStyle(fontSize: 12, color: cs.primary)),
+                      if (onResenar != null || onCancelar != null) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (onResenar != null)
+                              FilledButton.tonalIcon(
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(0, 38),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                ),
+                                onPressed: onResenar,
+                                icon: const Icon(Icons.star_outline_rounded, size: 16),
+                                label: const Text('Reseñar'),
+                              ),
+                            if (onCancelar != null) ...[
+                              if (onResenar != null) const SizedBox(width: 8),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: cs.error,
+                                  minimumSize: const Size(0, 38),
+                                ),
+                                onPressed: onCancelar,
+                                child: const Text('Cancelar'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ] else if (booking.tieneResena) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.rate_review_rounded, size: 13, color: cs.primary),
+                            const SizedBox(width: 4),
+                            Text('Ya dejaste tu reseña', style: TextStyle(fontSize: 12, color: cs.primary)),
+                          ],
+                        ),
                       ],
-                    ),
-                  ],
-                ],
-              ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -333,7 +346,8 @@ class _TarjetaReserva extends StatelessWidget {
 }
 
 /// Cabecera de la tarjeta: foto (o respaldo) con un degradado arriba para que la insignia de fecha
-/// y la píldora de estado, ambas sólidas, se lean sobre cualquier imagen.
+/// y la píldora de estado, ambas sólidas, se lean sobre cualquier imagen; el código de la reserva
+/// va abajo a la izquierda.
 class _Encabezado extends StatelessWidget {
   const _Encabezado({required this.booking, required this.apagado});
 
@@ -344,43 +358,7 @@ class _Encabezado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final plan = booking.plan;
     final fecha = booking.planDate?.fecha ?? booking.salidaAt?.toLocal();
-    final foto = plan?.fotoPrincipal;
-
-    Widget respaldo({Key? key}) => ColoredBox(
-          key: key,
-          color: cs.primaryContainer,
-          child: Center(
-            child: plan == null
-                ? Icon(Icons.luggage_rounded, size: 40, color: cs.onPrimaryContainer)
-                : Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40)),
-          ),
-        );
-
-    Widget fondo = foto == null
-        ? respaldo(key: const ValueKey('sin-foto-reserva'))
-        : Image.network(
-            foto,
-            key: const ValueKey('foto-reserva'),
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.low,
-            errorBuilder: (_, _, _) => respaldo(),
-          );
-    if (apagado) {
-      // Historial: la foto pierde color para que las próximas destaquen.
-      fondo = ColorFiltered(
-        colorFilter: const ColorFilter.matrix(<double>[
-          .55, .35, .10, 0, 0, //
-          .20, .70, .10, 0, 0,
-          .20, .35, .45, 0, 0,
-          0, 0, 0, 1, 0,
-        ]),
-        child: fondo,
-      );
-    }
 
     return SizedBox(
       key: const ValueKey('encabezado-reserva'),
@@ -388,7 +366,7 @@ class _Encabezado extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          fondo,
+          FotoReserva(booking: booking, apagado: apagado),
           DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -400,15 +378,14 @@ class _Encabezado extends StatelessWidget {
             ),
           ),
           if (fecha != null) Positioned(top: 12, left: 12, child: _InsigniaFecha(fecha: fecha)),
+          Positioned(top: 12, right: 12, child: EstadoReservaPill(booking: booking)),
           Positioned(
-            top: 12,
+            left: 12,
             right: 12,
-            // Una confirmada que ya salió se muestra «Realizada» (solo etiqueta: el estado no cambia).
-            child: _EstadoPill(
-              estado: booking.estado,
-              realizada: booking.estado == BookingStatus.confirmada &&
-                  booking.salida != null &&
-                  !booking.esFutura(),
+            bottom: 10,
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: ChipCodigo(codigo: booking.codigo, sobreFoto: true),
             ),
           ),
         ],
@@ -450,37 +427,6 @@ class _InsigniaFecha extends StatelessWidget {
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .8, color: cs.onSurfaceVariant),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Estado de la reserva: píldora de color sólido con texto blanco (legible sobre foto).
-class _EstadoPill extends StatelessWidget {
-  const _EstadoPill({required this.estado, this.realizada = false});
-
-  final BookingStatus estado;
-  final bool realizada;
-
-  @override
-  Widget build(BuildContext context) {
-    final (color, texto) = switch (estado) {
-      BookingStatus.confirmada when realizada => (const Color(0xFF4A5C6E), 'Realizada'),
-      BookingStatus.confirmada => (const Color(0xFF1B7A4B), 'Confirmada'),
-      BookingStatus.pendientePago => (const Color(0xFFB25E09), 'Pendiente'),
-      BookingStatus.cancelada => (const Color(0xFFB3261E), 'Cancelada'),
-      BookingStatus.completada => (const Color(0xFF4A5C6E), 'Completada'),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppRadios.pill),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
-      child: Text(
-        texto,
-        style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700),
       ),
     );
   }

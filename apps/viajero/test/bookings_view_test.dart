@@ -143,7 +143,11 @@ void main() {
       expect(find.byKey(const ValueKey('sin-foto-reserva')), findsNothing);
       expect(find.text('Comuna 13 y memoria'), findsOneWidget);
       expect(find.text('EcoAndes Viajes'), findsOneWidget);
-      expect(find.textContaining('FUT · 2 pax'), findsOneWidget);
+      // Antes: una línea suelta «FUT · 2 pax · \$ 190.000». Ahora el código es una etiqueta y
+      // personas y total son un pie propio.
+      expect(find.text('FUT'), findsOneWidget);
+      expect(find.text('2 personas'), findsOneWidget);
+      expect(find.text('\$ 190.000'), findsOneWidget);
 
       // La insignia de fecha y la píldora de estado van DENTRO de la cabecera (sobre la foto).
       final cab = tester.getRect(encabezado);

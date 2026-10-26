@@ -335,8 +335,8 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 50 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 67 |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 69 |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 159 (4 omitidas) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`

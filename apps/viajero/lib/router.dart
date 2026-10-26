@@ -8,6 +8,7 @@ import 'ui/features/agencies/agencia_view.dart';
 import 'ui/features/agencies/agencias_view.dart';
 import 'ui/features/auth/login_view.dart';
 import 'ui/features/bookings/bookings_view.dart';
+import 'ui/features/bookings/reserva_detalle_view.dart';
 import 'ui/features/bookings/review_view.dart';
 import 'ui/features/catalog/catalog_view.dart';
 import 'ui/features/catalog/comparator_view.dart';
@@ -166,6 +167,18 @@ GoRouter buildViajeroRouter({
         pageBuilder: (context, state) => DiversoPageTransitions.zoomIn(
           key: state.pageKey,
           child: ReservaView(bookingId: state.pathParameters['bookingId']!),
+        ),
+      ),
+      // Detalle de una reserva propia (desde «Mis reservas»). Lleva el id en la URL y carga del
+      // backend; `extra` solo adelanta la reserva para pintar al instante (se pierde al recargar).
+      GoRoute(
+        path: '/reservas/:bookingId',
+        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
+          key: state.pageKey,
+          child: ReservaDetalleView(
+            bookingId: state.pathParameters['bookingId']!,
+            booking: state.extra as Booking?,
+          ),
         ),
       ),
       // Rutas anteriores (dependían de `state.extra`, que se pierde al recargar en web).

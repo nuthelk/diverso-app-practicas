@@ -196,12 +196,16 @@ class BookingService {
     return bookings;
   }
 
-  /// Una reserva propia cargada del backend (confirmación `/reserva/:bookingId`).
+  /// Una reserva propia cargada del backend (confirmación `/reserva/:bookingId` y detalle
+  /// `/reservas/:bookingId`), marcada si ya tiene reseña.
   Future<Booking> reserva(String bookingId) async {
     try {
       final res = await _client.from('bookings').select(_seleccionReserva).eq('id', bookingId).maybeSingle();
       if (res == null) throw DiversoException('RESERVA_NO_EXISTE');
-      return Booking.fromMap(res);
+      final booking = Booking.fromMap(res);
+      // Igual que en misReservas: sin esto, el detalle cargado en frío ofrecería «Reseñar» de nuevo.
+      final resena = await _client.from('reviews').select('id').eq('booking_id', bookingId).maybeSingle();
+      return resena == null ? booking : booking.conResena();
     } on DiversoException {
       rethrow;
     } catch (e) {
