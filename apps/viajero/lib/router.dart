@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'ui/features/agencies/agencia_view.dart';
+import 'ui/features/agencies/agencias_view.dart';
 import 'ui/features/auth/login_view.dart';
 import 'ui/features/bookings/bookings_view.dart';
 import 'ui/features/bookings/review_view.dart';
@@ -25,6 +27,7 @@ import 'package:diverso_core/diverso_core.dart';
 /// - movimiento Material 3: shared-axis en flujos, fade-through en pestañas,
 ///   zoom en la confirmación (ver DiversoPageTransitions)
 ///
+/// `/agencia/:id` también lleva el id en la URL y carga todo del backend.
 /// Las rutas del flujo de pago llevan los ids en la URL (`/checkout/:planId/:fechaId`,
 /// `/pago/resultado?id=…`, `/reserva/:bookingId`) y cargan todo del backend: sobreviven a una
 /// recarga en web. [haySesion], [refreshListenable] y [initialLocation] existen para probar
@@ -89,6 +92,18 @@ GoRouter buildViajeroRouter({
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/agencias',
+                pageBuilder: (context, state) =>
+                    DiversoPageTransitions.fadeThrough(
+                      key: state.pageKey,
+                      child: const AgenciasView(),
+                    ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/reservas',
                 pageBuilder: (context, state) =>
                     DiversoPageTransitions.fadeThrough(
@@ -111,6 +126,13 @@ GoRouter buildViajeroRouter({
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/agencia/:id',
+        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
+          key: state.pageKey,
+          child: AgenciaView(agencyId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/plan/:id',

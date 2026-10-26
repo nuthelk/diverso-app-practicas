@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/agencia_resumen.dart';
 import '../models/enums.dart';
 import '../models/plan.dart';
 import '../utils/formatters.dart';
@@ -12,6 +13,7 @@ class FiltrosCatalogo {
     this.destino,
     this.precioMax,
     this.fecha,
+    this.agencyId,
     this.orden = OrdenCatalogo.rating,
   });
 
@@ -20,6 +22,9 @@ class FiltrosCatalogo {
   final String? destino;
   final double? precioMax;
   final DateTime? fecha;
+
+  /// Solo los planes de esta agencia (página de agencia).
+  final String? agencyId;
   final OrdenCatalogo orden;
 }
 
@@ -55,6 +60,9 @@ class CatalogService {
     if (filtros.fecha != null) {
       query = query.eq('plan_dates.fecha', fechaToIso(filtros.fecha!));
     }
+    if (filtros.agencyId != null) {
+      query = query.eq('agency_id', filtros.agencyId!);
+    }
 
     // Ordenes (transform builder) y límite.
     final ordenado = query.order('fecha', ascending: true, referencedTable: 'plan_dates');
@@ -70,6 +78,26 @@ class CatalogService {
         res = await ordenado.order('created_at', ascending: false).limit(60);
     }
     return res.map((e) => Plan.fromMap((e as Map).cast<String, dynamic>())).toList();
+  }
+
+  /// Agencias con planes publicados (función `agencias_publicas`: solo columnas públicas y agregados).
+  Future<List<AgenciaResumen>> agencias() async {
+    final res = await _client.rpc('agencias_publicas');
+    return (res as List).map((e) => AgenciaResumen.fromMap((e as Map).cast<String, dynamic>())).toList();
+  }
+
+  /// Una agencia y sus planes publicados (misma consulta y modelo que el catálogo). Null si no
+  /// existe o no está habilitada.
+  Future<({AgenciaResumen agencia, List<Plan> planes})?> agenciaConPlanes(String agencyId) async {
+    final (filas, planes) = await (
+      _client.rpc('agencias_publicas', params: {'p_agency_id': agencyId}),
+      search(FiltrosCatalogo(agencyId: agencyId)),
+    ).wait;
+    if ((filas as List).isEmpty) return null;
+    return (
+      agencia: AgenciaResumen.fromMap((filas.first as Map).cast<String, dynamic>()),
+      planes: planes,
+    );
   }
 
   Future<Plan> planDetalle(String planId) async {

@@ -186,7 +186,7 @@ class _CatalogViewState extends State<CatalogView>
                 // un sliver cambian en cada cuadro de scroll y re-ejecutarían
                 // este subárbol a 120 Hz, matando la fluidez.
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     sliver: SliverGrid.builder(
                       itemCount: c.planes.length,
                       gridDelegate:
@@ -205,7 +205,7 @@ class _CatalogViewState extends State<CatalogView>
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     sliver: SliverList.builder(
                       itemCount: c.planes.length,
                       itemBuilder: (context, i) => Padding(
@@ -231,7 +231,7 @@ class _CatalogViewState extends State<CatalogView>
           if (sel.isEmpty) return const SizedBox.shrink();
           return SafeArea(
             child: Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 90),
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 color: cs.inverseSurface,
@@ -296,7 +296,7 @@ class _CatalogViewState extends State<CatalogView>
       final esGrid = constraints.maxWidth > AppTheme.bpCompact;
       final n = esGrid ? 4 : 3;
       return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 140),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: esGrid
             ? GridView.builder(
                 shrinkWrap: true,

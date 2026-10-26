@@ -41,7 +41,7 @@ class _ProfileViewState extends State<ProfileView> {
 
     return Scaffold(
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 140),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         children: [
           SizedBox(height: MediaQuery.paddingOf(context).top + 24),
           Center(

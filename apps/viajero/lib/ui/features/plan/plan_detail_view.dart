@@ -269,6 +269,7 @@ class _PlanDetailViewState extends State<PlanDetailView> {
   }
 }
 
+/// Agencia del plan (confianza, Anexo 4); abre la página de la agencia con sus demás planes.
 class _TarjetaAgencia extends StatelessWidget {
   const _TarjetaAgencia({required this.agency});
 
@@ -277,48 +278,53 @@ class _TarjetaAgencia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadios.card),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: cs.primaryContainer,
-            child: Text(
-              agency.nombre.substring(0, 1),
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 17,
-                color: cs.onPrimaryContainer,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(agency.nombre,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                const SizedBox(height: 2),
-                Text(
-                  'Agencia local · RNT ${agency.numeroRnt}',
-                  style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
-                ),
-                if (agency.rntVigenteHasta != null)
-                  Text(
-                    'RNT vigente hasta el ${formatFechaTexto(agency.rntVigenteHasta!)}',
-                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+    return Material(
+      color: cs.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(AppRadios.card),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/agencia/${agency.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: cs.primaryContainer,
+                child: Text(
+                  agency.nombre.substring(0, 1),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    color: cs.onPrimaryContainer,
                   ),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(agency.nombre,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Agencia local · RNT ${agency.numeroRnt}',
+                      style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                    ),
+                    if (agency.rntVigenteHasta != null)
+                      Text(
+                        'RNT vigente hasta el ${formatFechaTexto(agency.rntVigenteHasta!)}',
+                        style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                      ),
+                  ],
+                ),
+              ),
+              if (agency.verificada) const VerifiedBadge(),
+              Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
+            ],
           ),
-          if (agency.verificada) const VerifiedBadge(),
-        ],
+        ),
       ),
     );
   }

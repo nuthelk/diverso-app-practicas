@@ -158,7 +158,7 @@ class _BookingsViewState extends State<BookingsView>
     return RefreshIndicator(
       onRefresh: _controller.cargar,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 140),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         itemCount: lista.length,
         itemBuilder: (context, i) => _TarjetaReserva(
           booking: lista[i],

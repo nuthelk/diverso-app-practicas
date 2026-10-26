@@ -109,13 +109,25 @@ abstract final class AppTheme {
         side: BorderSide.none,
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
+      // Barra inferior fija y sólida: íconos grandes, el activo en verde con su píldora.
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        height: 68,
-        backgroundColor: Colors.transparent,
+        height: 72,
+        backgroundColor: scheme.surfaceContainerLowest,
+        surfaceTintColor: Colors.transparent,
         indicatorColor: scheme.primaryContainer,
-        labelTextStyle: const WidgetStatePropertyAll(
-          TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 28,
+            color: states.contains(WidgetState.selected) ? scheme.primary : scheme.onSurfaceVariant,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w600,
+            color: states.contains(WidgetState.selected) ? scheme.primary : scheme.onSurfaceVariant,
+          ),
         ),
       ),
       navigationRailTheme: NavigationRailThemeData(

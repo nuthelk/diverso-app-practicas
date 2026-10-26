@@ -10,13 +10,15 @@ class PlanCard extends StatelessWidget {
   const PlanCard({
     super.key,
     required this.plan,
-    required this.comparada,
-    required this.onToggleComparar,
+    this.comparada = false,
+    this.onToggleComparar,
   });
 
   final Plan plan;
   final bool comparada;
-  final ValueChanged<Plan> onToggleComparar;
+
+  /// Null oculta el botón de comparar (p. ej. en la página de una agencia).
+  final ValueChanged<Plan>? onToggleComparar;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +62,7 @@ class PlanCard extends StatelessWidget {
                         ? const VerifiedBadge(blanco: true, compacto: true)
                         : const SizedBox.shrink(),
                   ),
+                  if (onToggleComparar != null)
                   Positioned(
                     top: 6,
                     right: 6,
@@ -76,7 +79,7 @@ class PlanCard extends StatelessWidget {
                       tooltip: comparada
                           ? 'Quitar del comparador'
                           : 'Agregar al comparador',
-                      onPressed: () => onToggleComparar(plan),
+                      onPressed: () => onToggleComparar!(plan),
                       icon: Icon(
                         comparada
                             ? Icons.check_rounded
