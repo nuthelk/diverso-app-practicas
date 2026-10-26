@@ -29,6 +29,34 @@ class RatingStars extends StatelessWidget {
   }
 }
 
+/// Calificación de una reseña: cinco estrellas, llenas hasta [calificacion] (1 a 5). A diferencia de
+/// [RatingStars] (resumen «★ 4.8»), aquí la cantidad de estrellas ES el dato.
+class EstrellasCalificacion extends StatelessWidget {
+  const EstrellasCalificacion({super.key, required this.calificacion, this.size = 15});
+
+  final int calificacion;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    const dorado = Color(0xFFE8A33D);
+    final vacia = Theme.of(context).colorScheme.outlineVariant;
+    return Semantics(
+      label: '$calificacion de 5 estrellas',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 1; i <= 5; i++)
+            i <= calificacion
+                ? Icon(Icons.star_rounded, size: size, color: dorado)
+                : Icon(Icons.star_outline_rounded, size: size, color: vacia),
+        ],
+      ),
+    );
+  }
+}
+
 /// Puntaje de un plan: ★ con su valor y la cantidad de reseñas, o «Nueva» mientras no tenga
 /// ninguna (un 0.0 sería engañoso). [detallado] escribe «· n reseñas verificadas» (ficha del plan)
 /// en vez de «(n)» (tarjeta).
@@ -266,8 +294,8 @@ class PriceText extends StatelessWidget {
             color: cs.onSurface,
           ),
         ),
-        const Text('por persona · precio final',
-            style: TextStyle(fontSize: 10.5, color: Colors.black45)),
+        Text('por persona · precio final',
+            style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant)),
       ],
     );
   }
@@ -377,6 +405,104 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(color: base, borderRadius: BorderRadius.circular(widget.radius)),
+      ),
+    );
+  }
+}
+
+/// Política de cancelación del plan (Anexo 5), en una tarjeta tintada.
+class TarjetaCancelacion extends StatelessWidget {
+  const TarjetaCancelacion({super.key, required this.texto});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cs.tertiaryContainer.withValues(alpha: .45),
+        borderRadius: BorderRadius.circular(AppRadios.card),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.shield_outlined, size: 19, color: cs.onTertiaryContainer),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Política de cancelación',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                const SizedBox(height: 3),
+                Text(
+                  texto,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.45,
+                    color: cs.onSurface.withValues(alpha: .8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Un paso del itinerario: hora a la izquierda y la actividad en una línea de tiempo.
+class PasoItinerario extends StatelessWidget {
+  const PasoItinerario({super.key, required this.paso});
+
+  final ItinerarioPaso paso;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 62,
+            child: Text(
+              paso.hora,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: cs.primary,
+                height: 1.35,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
+              ),
+              Expanded(child: Container(width: 1.6, color: cs.outlineVariant)),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                paso.actividad,
+                style: const TextStyle(height: 1.45, fontSize: 14),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

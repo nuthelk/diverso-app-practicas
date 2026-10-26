@@ -281,7 +281,7 @@ class _CheckoutViewState extends State<CheckoutView> {
                             ),
                             Text(
                               'total por ${c.pax} ${c.pax == 1 ? 'persona' : 'personas'}',
-                              style: const TextStyle(fontSize: 11, color: Colors.black45),
+                              style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                             ),
                           ],
                         ),

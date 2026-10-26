@@ -70,183 +70,182 @@ class _PlanDetailViewState extends State<PlanDetailView> {
           }
           final (plan, reviews) = snap.data!;
 
-          return Stack(
+          // La barra va debajo del scroll, no encima: así el contenido termina donde ella empieza,
+          // mida lo que mida (barra de gestos del sistema, tamaño de letra).
+          return Column(
             children: [
-              CustomScrollView(
-                slivers: [
-                  // Galería hero ------------------------------------------------
-                  CabeceraColapsable(
-                    titulo: plan.titulo,
-                    alturaExpandida: 300,
-                    onVolver: () => context.pop(),
-                    fondo: plan.fotos.isEmpty
-                        ? Container(color: cs.primaryContainer)
-                        // Asentado cinematográfico: la foto entra con un
-                        // leve zoom y se calma al hacerlo visible.
-                        : TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 1.06, end: 1),
-                            duration: const Duration(milliseconds: 900),
-                            curve: Curves.easeOutCubic,
-                            builder: (context, t, child) =>
-                                Transform.scale(scale: t, child: child),
-                            child: PageView.builder(
-                              controller: _pageCtrl,
-                              itemCount: plan.fotos.length,
-                              itemBuilder: (context, i) => Image.network(
-                                plan.fotos[i],
-                                fit: BoxFit.cover,
-                                gaplessPlayback: true,
-                                filterQuality: FilterQuality.low,
-                                errorBuilder: (_, _, _) =>
-                                    Container(color: cs.primaryContainer),
-                              ),
-                            ),
-                          ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(22, 20, 22, 170),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Encabezado -----------------------------------------
-                          Text(
-                            plan.titulo,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              height: 1.15,
-                              letterSpacing: -.8,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              PuntajePlan(plan: plan, detallado: true),
-                              const Spacer(),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: cs.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.schedule_rounded,
-                                        size: 14, color: cs.onSecondaryContainer),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      plan.duracionTexto,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: cs.onSecondaryContainer,
-                                      ),
-                                    ),
-                                  ],
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    // Galería hero ------------------------------------------------
+                    CabeceraColapsable(
+                      titulo: plan.titulo,
+                      alturaExpandida: 300,
+                      onVolver: () => context.pop(),
+                      fondo: plan.fotos.isEmpty
+                          ? Container(color: cs.primaryContainer)
+                          // Asentado cinematográfico: la foto entra con un
+                          // leve zoom y se calma al hacerlo visible.
+                          : TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 1.06, end: 1),
+                              duration: const Duration(milliseconds: 900),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, t, child) =>
+                                  Transform.scale(scale: t, child: child),
+                              child: PageView.builder(
+                                controller: _pageCtrl,
+                                itemCount: plan.fotos.length,
+                                itemBuilder: (context, i) => Image.network(
+                                  plan.fotos[i],
+                                  fit: BoxFit.cover,
+                                  gaplessPlayback: true,
+                                  filterQuality: FilterQuality.low,
+                                  errorBuilder: (_, _, _) =>
+                                      Container(color: cs.primaryContainer),
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 18),
-
-                          // Agencia (confianza, Anexo 4) -----------------------
-                          if (plan.agency != null) _TarjetaAgencia(agency: plan.agency!),
-                          const SizedBox(height: 24),
-
-                          if (plan.descripcion.isNotEmpty) ...[
-                            const SectionLabel('La experiencia'),
+                            ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                          padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Encabezado -----------------------------------------
                             Text(
-                              plan.descripcion,
-                              style: TextStyle(
-                                height: 1.55,
-                                fontSize: 14.5,
-                                color: cs.onSurface.withValues(alpha: .85),
+                              plan.titulo,
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                height: 1.15,
+                                letterSpacing: -.8,
                               ),
                             ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Qué incluye (transparencia de precio) --------------
-                          if (plan.incluye.isNotEmpty ||
-                              plan.incluyeTransporte ||
-                              plan.incluyeComida ||
-                              plan.incluyeHospedaje) ...[
-                            const SectionLabel('Qué incluye · precio final'),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                if (plan.incluyeTransporte)
-                                  const _IncluyePill(icono: Icons.directions_bus_rounded, texto: 'Transporte'),
-                                if (plan.incluyeComida)
-                                  const _IncluyePill(icono: Icons.restaurant_rounded, texto: 'Comida'),
-                                if (plan.incluyeHospedaje)
-                                  const _IncluyePill(icono: Icons.hotel_rounded, texto: 'Hospedaje'),
-                                ...plan.incluye.map(
-                                  (i) => _IncluyePill(
-                                    icono: Icons.check_circle_rounded,
-                                    texto: i,
-                                    textoLargo: true,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Itinerario ------------------------------------------
-                          if (plan.itinerario.isNotEmpty) ...[
-                            const SectionLabel('Itinerario'),
-                            ...plan.itinerario.map((paso) => _PasoItinerario(paso: paso)),
-                            const SizedBox(height: 24),
-                          ],
-
-                          if (plan.puntoEncuentro.isNotEmpty) ...[
-                            const SectionLabel('Punto de encuentro'),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                Icon(Icons.flag_rounded, size: 17, color: cs.primary),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    plan.puntoEncuentro,
-                                    style: const TextStyle(fontSize: 14.5),
+                                PuntajePlan(plan: plan, detallado: true),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: cs.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.schedule_rounded,
+                                          size: 14, color: cs.onSecondaryContainer),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        plan.duracionTexto,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: cs.onSecondaryContainer,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
-                          ],
+                            const SizedBox(height: 18),
 
-                          // Política de cancelación visible (Anexo 5) ----------
-                          if (plan.politicaCancelacion.isNotEmpty)
-                            _TarjetaCancelacion(texto: plan.politicaCancelacion),
+                            // Agencia (confianza, Anexo 4) -----------------------
+                            if (plan.agency != null) _TarjetaAgencia(agency: plan.agency!),
+                            const SizedBox(height: 24),
 
-                          // Reseñas verificadas ---------------------------------
-                          if (reviews.isNotEmpty) ...[
-                            const SizedBox(height: 24),
-                            SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
-                            ...reviews.map((r) => _ResenaItem(review: r)),
-                          ] else if (plan.reviewsCount > 0) ...[
-                            const SizedBox(height: 24),
-                            SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
-                            Text('Carga al volver a abrir…',
-                                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+                            if (plan.descripcion.isNotEmpty) ...[
+                              const SectionLabel('La experiencia'),
+                              Text(
+                                plan.descripcion,
+                                style: TextStyle(
+                                  height: 1.55,
+                                  fontSize: 14.5,
+                                  color: cs.onSurface.withValues(alpha: .85),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+
+                            // Qué incluye (transparencia de precio) --------------
+                            if (plan.incluye.isNotEmpty ||
+                                plan.incluyeTransporte ||
+                                plan.incluyeComida ||
+                                plan.incluyeHospedaje) ...[
+                              const SectionLabel('Qué incluye · precio final'),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (plan.incluyeTransporte)
+                                    const _IncluyePill(icono: Icons.directions_bus_rounded, texto: 'Transporte'),
+                                  if (plan.incluyeComida)
+                                    const _IncluyePill(icono: Icons.restaurant_rounded, texto: 'Comida'),
+                                  if (plan.incluyeHospedaje)
+                                    const _IncluyePill(icono: Icons.hotel_rounded, texto: 'Hospedaje'),
+                                  ...plan.incluye.map(
+                                    (i) => _IncluyePill(
+                                      icono: Icons.check_circle_rounded,
+                                      texto: i,
+                                      textoLargo: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+
+                            // Itinerario ------------------------------------------
+                            if (plan.itinerario.isNotEmpty) ...[
+                              const SectionLabel('Itinerario'),
+                              ...plan.itinerario.map((paso) => PasoItinerario(paso: paso)),
+                              const SizedBox(height: 24),
+                            ],
+
+                            if (plan.puntoEncuentro.isNotEmpty) ...[
+                              const SectionLabel('Punto de encuentro'),
+                              Row(
+                                children: [
+                                  Icon(Icons.flag_rounded, size: 17, color: cs.primary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      plan.puntoEncuentro,
+                                      style: const TextStyle(fontSize: 14.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+
+                            // Política de cancelación visible (Anexo 5) ----------
+                            if (plan.politicaCancelacion.isNotEmpty)
+                              TarjetaCancelacion(texto: plan.politicaCancelacion),
+
+                            // Reseñas verificadas ---------------------------------
+                            if (reviews.isNotEmpty) ...[
+                              const SizedBox(height: 24),
+                              SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
+                              ...reviews.map((r) => _ResenaItem(review: r)),
+                            ] else if (plan.reviewsCount > 0) ...[
+                              const SizedBox(height: 24),
+                              SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
+                              Text('Carga al volver a abrir…',
+                                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               // Barra de reserva ----------------------------------------------
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _BarraReserva(plan: plan),
-              ),
+              _BarraReserva(plan: plan),
             ],
           );
         },
@@ -301,57 +300,23 @@ class _TarjetaAgencia extends StatelessWidget {
                         'RNT vigente hasta el ${formatFechaTexto(agency.rntVigenteHasta!)}',
                         style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                       ),
+                    // Debajo del texto y no a su lado: en celulares angostos le robaba el ancho al nombre.
+                    if (agency.verificada) ...[
+                      const SizedBox(height: 6),
+                      // Con letra del sistema grande, se achica antes que desbordar.
+                      const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: VerifiedBadge(),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              if (agency.verificada) const VerifiedBadge(),
               Icon(Icons.chevron_right_rounded, color: cs.onSurfaceVariant),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _TarjetaCancelacion extends StatelessWidget {
-  const _TarjetaCancelacion({required this.texto});
-
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cs.tertiaryContainer.withValues(alpha: .45),
-        borderRadius: BorderRadius.circular(AppRadios.card),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.shield_outlined, size: 19, color: cs.onTertiaryContainer),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Política de cancelación',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                const SizedBox(height: 3),
-                Text(
-                  texto,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: cs.onSurface.withValues(alpha: .8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -383,59 +348,6 @@ class _IncluyePill extends StatelessWidget {
               texto,
               overflow: textoLargo ? TextOverflow.ellipsis : TextOverflow.visible,
               style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PasoItinerario extends StatelessWidget {
-  const _PasoItinerario({required this.paso});
-
-  final ItinerarioPaso paso;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 62,
-            child: Text(
-              paso.hora,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-                color: cs.primary,
-                height: 1.35,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 4),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-              ),
-              Expanded(child: Container(width: 1.6, color: cs.outlineVariant)),
-            ],
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                paso.actividad,
-                style: const TextStyle(height: 1.45, fontSize: 14),
-              ),
             ),
           ),
         ],
@@ -478,7 +390,7 @@ class _ResenaItem extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
                 ),
               ),
-              RatingStars(calificacion: review.calificacion.toDouble(), size: 13),
+              EstrellasCalificacion(calificacion: review.calificacion, size: 14),
               const SizedBox(width: 5),
               Tooltip(
                 message: 'Reseña verificada: solo quien compró puede opinar',
@@ -526,9 +438,12 @@ class _BarraReservaState extends State<_BarraReserva> {
                 child: Text('Sin fechas disponibles por ahora',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text('Ver otros planes'),
+              // Flexible: en celulares angostos o con letra grande el botón parte su texto en vez de desbordar.
+              Flexible(
+                child: TextButton(
+                  onPressed: () => context.pop(),
+                  child: const Text('Ver otros planes', textAlign: TextAlign.center),
+                ),
               ),
             ],
           ),
@@ -614,8 +529,8 @@ class _BarraReservaState extends State<_BarraReserva> {
                         color: cs.onSurface,
                       ),
                     ),
-                    const Text('por persona · precio final',
-                        style: TextStyle(fontSize: 10.5, color: Colors.black45)),
+                    Text('por persona · precio final',
+                        style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant)),
                   ],
                 ),
                 const Spacer(),

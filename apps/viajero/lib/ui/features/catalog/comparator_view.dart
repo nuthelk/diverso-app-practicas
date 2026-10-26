@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
@@ -27,7 +29,6 @@ class _ComparatorViewState extends State<ComparatorView> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final filas = buildComparisonRows(planes, pax: _pax);
-    final barato = planes.map((p) => p.precioCop).reduce((a, b) => a < b ? a : b);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Comparar planes')),
@@ -62,128 +63,204 @@ class _ComparatorViewState extends State<ComparatorView> {
                   max: _maxViajeros,
                 ),
                 const SizedBox(height: 20),
-                // Cabecera con las fotos/títulos
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(width: 92),
-                    for (final p in planes)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 10),
-                          child: Column(
-                            children: [
-                              AspectRatio(
-                                aspectRatio: 1.5,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(14),
-                                    color: cs.primaryContainer,
-                                    image: p.fotoPrincipal == null
-                                        ? null
-                                        : DecorationImage(
-                                            image: NetworkImage(p.fotoPrincipal!),
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                  child: p.fotoPrincipal == null
-                                      ? Center(child: Text(p.categoria.emoji, style: const TextStyle(fontSize: 26)))
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                p.titulo,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 13.5, height: 1.25),
-                              ),
-                              if (p.precioCop == barato) ...[
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: cs.primaryContainer,
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    'Mejor precio',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: cs.onPrimaryContainer,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Filas comparables
-                for (final fila in filas)
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: cs.outlineVariant.withValues(alpha: .5)),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 92,
-                          child: Text(
-                            fila.titulo,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: cs.onSurfaceVariant,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                        for (final valor in fila.valores)
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: _ValorComparado(
-                                valor: valor,
-                                esPrecio: fila.icono == 'precio' || fila.icono == 'total',
-                                destacado: (fila.icono == 'precio' || fila.icono == 'total') &&
-                                    valor.replaceAll(RegExp(r'[^0-9]'), '') ==
-                                        barato.toStringAsFixed(0),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                // CTAs por plan
-                for (final p in planes)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: cs.onSurface,
-                      ),
-                      onPressed: () => context.push('/plan/${p.id}'),
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                      label: Text('Ver "${_cortar(p.titulo, 32)}"'),
-                    ),
-                  ),
+                _TablaComparacion(planes: planes, filas: filas),
               ],
             ),
     );
   }
+}
 
-  String _cortar(String s, int n) => s.length <= n ? s : '${s.substring(0, n)}…';
+/// Tabla de comparación: una columna por plan con ancho mínimo legible. Si no caben todas, la tabla
+/// se desliza de lado en vez de aplastar las columnas. La columna del plan más barato va resaltada.
+class _TablaComparacion extends StatelessWidget {
+  const _TablaComparacion({required this.planes, required this.filas});
+
+  final List<Plan> planes;
+  final List<ComparisonRow> filas;
+
+  static const _anchoEtiqueta = 92.0;
+  static const _anchoMinColumna = 132.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final barato = planes.map((p) => p.precioCop).reduce(math.min);
+    bool esBarato(int i) => planes[i].precioCop == barato;
+
+    return LayoutBuilder(
+      builder: (context, restricciones) {
+        final anchoColumna = math.max(
+          _anchoMinColumna,
+          (restricciones.maxWidth - _anchoEtiqueta) / planes.length,
+        );
+        final anchoTabla = _anchoEtiqueta + anchoColumna * planes.length;
+        final desliza = anchoTabla > restricciones.maxWidth + .5;
+
+        // Celda de la columna [i]; la del más barato lleva un fondo tenue de punta a punta.
+        Widget celda(int i, Widget hijo, {bool arriba = false, bool abajo = false}) => Container(
+              width: anchoColumna,
+              padding: EdgeInsets.fromLTRB(8, arriba ? 8 : 12, 8, abajo ? 10 : 12),
+              decoration: BoxDecoration(
+                color: esBarato(i) ? cs.primary.withValues(alpha: .07) : null,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(arriba ? 16 : 0),
+                  bottom: Radius.circular(abajo ? 16 : 0),
+                ),
+              ),
+              child: hijo,
+            );
+
+        final tabla = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cabecera: foto, título y sello de mejor precio.
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(width: _anchoEtiqueta),
+                  for (var i = 0; i < planes.length; i++)
+                    celda(i, _CabeceraPlan(plan: planes[i], mejorPrecio: esBarato(i)), arriba: true),
+                ],
+              ),
+            ),
+            // Filas comparables.
+            for (final fila in filas)
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: .5))),
+                ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: _anchoEtiqueta,
+                        padding: const EdgeInsets.fromLTRB(0, 12, 8, 12),
+                        child: Text(
+                          fila.titulo,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurfaceVariant,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      for (var i = 0; i < fila.valores.length; i++)
+                        celda(
+                          i,
+                          _ValorComparado(
+                            valor: fila.valores[i],
+                            esPrecio: fila.icono == 'precio' || fila.icono == 'total',
+                            destacado: (fila.icono == 'precio' || fila.icono == 'total') && esBarato(i),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            // Un botón por plan, alineado con su columna.
+            Row(
+              children: [
+                const SizedBox(width: _anchoEtiqueta),
+                for (var i = 0; i < planes.length; i++)
+                  celda(
+                    i,
+                    FilledButton.tonal(
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size.fromHeight(40),
+                      ),
+                      onPressed: () => context.push('/plan/${planes[i].id}'),
+                      child: const Text('Ver plan'),
+                    ),
+                    abajo: true,
+                  ),
+              ],
+            ),
+          ],
+        );
+
+        if (!desliza) return tabla;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.swipe_left_rounded, size: 16, color: cs.onSurfaceVariant),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Desliza la tabla para ver todos los planes',
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(width: anchoTabla, child: tabla),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CabeceraPlan extends StatelessWidget {
+  const _CabeceraPlan({required this.plan, required this.mejorPrecio});
+
+  final Plan plan;
+  final bool mejorPrecio;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AspectRatio(
+          aspectRatio: 1.5,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: cs.primaryContainer,
+              image: plan.fotoPrincipal == null
+                  ? null
+                  : DecorationImage(image: NetworkImage(plan.fotoPrincipal!), fit: BoxFit.cover),
+            ),
+            child: plan.fotoPrincipal == null
+                ? Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 26)))
+                : null,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          plan.titulo,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, height: 1.25),
+        ),
+        if (mejorPrecio) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: cs.primaryContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Mejor precio',
+              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: cs.onPrimaryContainer),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 /// Control "¿Cuántos viajan?" (− / +) que recalcula el total de la tabla.
@@ -251,12 +328,19 @@ class _ValorComparado extends StatelessWidget {
 
     if (esPrecio) {
       final numero = double.tryParse(valor);
-      return Text(
-        numero == null ? valor : formatCOP(numero),
-        style: TextStyle(
-          fontSize: destacado ? 16 : 14.5,
-          fontWeight: destacado ? FontWeight.w800 : FontWeight.w600,
-          color: destacado ? cs.primary : cs.onSurface,
+      // Una sola línea: el «$» nunca queda separado del monto; si no cabe, se achica.
+      return FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.topLeft,
+        child: Text(
+          numero == null ? valor : formatCOP(numero),
+          maxLines: 1,
+          softWrap: false,
+          style: TextStyle(
+            fontSize: destacado ? 16 : 14.5,
+            fontWeight: destacado ? FontWeight.w800 : FontWeight.w600,
+            color: destacado ? cs.primary : cs.onSurface,
+          ),
         ),
       );
     }

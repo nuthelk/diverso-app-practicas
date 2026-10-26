@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:viajero/ui/core/agency_avatar.dart';
 import 'package:viajero/ui/core/app_theme.dart';
+import 'package:viajero/ui/core/widgets.dart';
 import 'package:viajero/ui/features/plan/plan_detail_view.dart';
 
 /// La tarjeta de la agencia en la ficha del plan usa el mismo avatar que la lista de agencias:
@@ -25,6 +26,7 @@ Plan _plan({String? logoUrl}) => Plan(
         numeroRnt: '12345',
         matriculaCamaraComercio: '999',
         estadoVerificacion: VerificationStatus.verificado,
+        rntVigenteHasta: DateTime.now().add(const Duration(days: 365)),
         logoUrl: logoUrl,
       ),
     );
@@ -49,8 +51,8 @@ class _Resenas implements ReviewService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<void> _abrir(WidgetTester tester, Plan plan) async {
-  tester.view.physicalSize = const Size(600, 1000);
+Future<void> _abrir(WidgetTester tester, Plan plan, {double ancho = 600}) async {
+  tester.view.physicalSize = Size(ancho, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final router = GoRouter(routes: [
@@ -85,6 +87,15 @@ void main() {
     await _abrir(tester, _plan(logoUrl: 'https://logos.test/rutas.png'));
 
     expect(find.descendant(of: find.byType(AgencyAvatar), matching: find.byType(Image)), findsOneWidget);
+  });
+
+  testWidgets('celular angosto (320): el sello va debajo del nombre y el texto usa todo el ancho', (tester) async {
+    await _abrir(tester, _plan(), ancho: 320);
+
+    final nombre = tester.getRect(find.text('Rutas de Antioquia Cultural'));
+    final sello = tester.getRect(find.byType(VerifiedBadge));
+    expect(sello.top, greaterThanOrEqualTo(nombre.bottom));
+    expect(sello.left, lessThan(nombre.right));
   });
 
   testWidgets('PRESERVE: la tarjeta sigue mostrando RNT y abre la página de la agencia', (tester) async {

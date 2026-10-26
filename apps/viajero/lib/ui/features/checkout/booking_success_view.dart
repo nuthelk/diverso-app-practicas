@@ -138,17 +138,18 @@ class BookingSuccessView extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           if (fecha != null)
-                            _fila(Icons.event_rounded, formatFechaLarga(fecha)),
+                            _fila(context, Icons.event_rounded, formatFechaLarga(fecha)),
                           _fila(
+                            context,
                             Icons.group_rounded,
                             '${booking.pax} ${booking.pax == 1 ? 'persona' : 'personas'}',
                           ),
                           if (puntoEncuentro.isNotEmpty)
-                            _fila(Icons.flag_rounded, puntoEncuentro),
+                            _fila(context, Icons.flag_rounded, puntoEncuentro),
                           const Divider(height: 22),
-                          _fila(Icons.payments_rounded, formatCOP(booking.montoTotal)),
+                          _fila(context, Icons.payments_rounded, formatCOP(booking.montoTotal)),
                           if (pago != null)
-                            _fila(Icons.receipt_rounded, pago.textoReferencia),
+                            _fila(context, Icons.receipt_rounded, pago.textoReferencia),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -258,12 +259,12 @@ class BookingSuccessView extends StatelessWidget {
     );
   }
 
-  Widget _fila(IconData icono, String texto) {
+  Widget _fila(BuildContext context, IconData icono, String texto) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icono, size: 16, color: Colors.black45),
+          Icon(icono, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 10),
           Expanded(child: Text(texto, style: const TextStyle(fontSize: 13.5))),
         ],
