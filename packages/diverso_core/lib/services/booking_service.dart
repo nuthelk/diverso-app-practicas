@@ -55,6 +55,7 @@ class DiversoException implements Exception {
         'AGENCIA_NO_VERIFICADA',
         'AGENCIA_NO_HABILITADA',
         'FECHA_PASADA',
+        'RESERVA_YA_SALIO',
         'RNT_VENCIDO',
       ];
       for (final c in conocidos) {
@@ -85,6 +86,8 @@ class DiversoException implements Exception {
         return 'Este plan ya no está disponible.';
       case 'RESERVA_PENDIENTE_EXISTENTE':
         return 'Ya tienes una reserva pendiente de pago para esta fecha. Complétala o cancélala para empezar de nuevo.';
+      case 'RESERVA_YA_SALIO':
+        return 'Este viaje ya salió, así que la reserva no se puede cancelar.';
       case 'RESERVA_NO_EXISTE':
         return 'No encontramos esa reserva.';
       case 'NO_AUTENTICADO':

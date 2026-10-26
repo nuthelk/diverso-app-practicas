@@ -1,24 +1,40 @@
 import 'package:flutter/foundation.dart';
 import 'package:diverso_core/diverso_core.dart';
 
-/// ViewModel de "Mis reservas": carga la lista y ejecuta cancelaciones.
+/// ViewModel de "Mis reservas": carga la lista, la separa por salida y ejecuta cancelaciones.
 class BookingsController extends ChangeNotifier {
-  BookingsController({required BookingService reservas}) : _reservas = reservas;
+  BookingsController({required BookingService reservas, DateTime Function()? reloj})
+      : _reservas = reservas,
+        _reloj = reloj ?? DateTime.now;
 
   final BookingService _reservas;
+  final DateTime Function() _reloj;
 
   List<Booking> reservas = const [];
   bool cargando = true;
   String? error;
   String? mensaje;
 
-  List<Booking> get activas => reservas
-      .where((b) => b.estado == BookingStatus.confirmada || b.estado == BookingStatus.pendientePago)
-      .toList(growable: false);
+  bool _vigente(Booking b) =>
+      (b.estado == BookingStatus.confirmada || b.estado == BookingStatus.pendientePago) &&
+      b.esFutura(_reloj());
 
-  List<Booking> get historial => reservas
-      .where((b) => b.estado == BookingStatus.cancelada || b.estado == BookingStatus.completada)
-      .toList(growable: false);
+  /// Próximas: pendientes o confirmadas que aún no salen, la salida más cercana primero.
+  List<Booking> get activas =>
+      reservas.where(_vigente).toList()..sort((a, b) => a.salida!.compareTo(b.salida!));
+
+  /// Historial: todo lo demás, la salida más reciente primero.
+  List<Booking> get historial => reservas.where((b) => !_vigente(b)).toList()
+    ..sort((a, b) {
+      final sa = a.salida, sb = b.salida;
+      if (sa == null || sb == null) return sa == sb ? 0 : (sa == null ? 1 : -1);
+      return sb.compareTo(sa);
+    });
+
+  /// Cancelar solo tiene sentido antes de la salida (el servidor lo rechaza después).
+  bool puedeCancelar(Booking b) => _vigente(b);
+
+  bool puedeResenar(Booking b) => b.puedeResenar(_reloj());
 
   Future<void> cargar() async {
     cargando = true;

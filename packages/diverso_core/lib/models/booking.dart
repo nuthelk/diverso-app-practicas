@@ -50,6 +50,7 @@ class Booking {
     required this.montoTotal,
     required this.estado,
     required this.createdAt,
+    this.salidaAt,
     this.planDate,
     this.plan,
     this.payments = const [],
@@ -65,6 +66,9 @@ class Booking {
   final double montoTotal;
   final BookingStatus estado;
   final DateTime createdAt;
+
+  /// Salida congelada al reservar (`bookings.salida_at`): no cambia aunque la agencia edite el plan.
+  final DateTime? salidaAt;
   final PlanDate? planDate;
   final Plan? plan;
   final List<Payment> payments;
@@ -102,6 +106,7 @@ class Booking {
         montoTotal: montoTotal,
         estado: estado,
         createdAt: createdAt,
+        salidaAt: salidaAt,
         planDate: planDate,
         plan: plan,
         payments: payments,
@@ -109,15 +114,18 @@ class Booking {
         tieneResena: true,
       );
 
-  bool get esFutura =>
-      planDate != null &&
-      planDate!.fecha.isAfter(DateTime.now().add(const Duration(days: 1)));
+  /// Momento de la salida: la congelada de la reserva o, si falta, el inicio de la fecha del plan.
+  DateTime? get salida => salidaAt ?? planDate?.fecha;
 
-  /// Una reseña solo es posible si el viaje ya ocurrió, la reserva está
-  /// confirmada/completada y aún no se reseñó (RLS lo respalda en el servidor).
-  bool get puedeResenar =>
+  /// El viaje aún no sale. [ahora] permite fijar el reloj; sin salida conocida no es futuro.
+  bool esFutura([DateTime? ahora]) => salida?.isAfter(ahora ?? DateTime.now()) ?? false;
+
+  /// Una reseña solo es posible si el viaje ya salió, la reserva está confirmada/completada
+  /// y aún no se reseñó (RLS lo respalda en el servidor).
+  bool puedeResenar([DateTime? ahora]) =>
       (estado == BookingStatus.confirmada || estado == BookingStatus.completada) &&
-      !esFutura &&
+      salida != null &&
+      !esFutura(ahora) &&
       !tieneResena;
 
   factory Booking.fromMap(Map<String, dynamic> map) {
@@ -137,6 +145,7 @@ class Booking {
       estado: enumFromString(BookingStatus.values, map['estado'] as String?) ??
           BookingStatus.pendientePago,
       createdAt: DateTime.parse(map['created_at'] as String),
+      salidaAt: map['salida_at'] == null ? null : DateTime.parse(map['salida_at'] as String),
       planDate: planDate,
       plan: planMap is Map ? Plan.fromMap(planMap.cast<String, dynamic>()) : null,
       payments: pays is List

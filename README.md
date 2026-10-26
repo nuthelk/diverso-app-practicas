@@ -101,6 +101,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0005_endurecimiento_pagos.sql` | Política congelada en cada reserva, regla de una reserva pendiente por fecha, reembolso por monto distinto, ventanas exactas, texto de política sincronizado con sus números, protección de fechas con reservas y versión legal `v2-2026-10` |
 | `0006_politica_notas.sql` | `plans.politica_notas`: las frases de la política que no son reglas (p. ej. «Reprogramación gratuita por clima») nunca se pierden al regenerar el texto |
 | `0007_notas_sin_politica.sql` | Las notas no pueden contener reglas de reembolso que contradigan los números (`NOTAS_CON_POLITICA`); `horas_antes` se trunca para mostrarlo |
+| `0008_cancelar_antes_de_salir.sql` | `cancelar_reserva` y `vista_previa_cancelacion` rechazan con `RESERVA_YA_SALIO` una reserva viva cuyo viaje ya salió (`salida_at`); reintentar una cancelación ya hecha sigue siendo idempotente |
 
 ### RPC y tareas programadas
 
@@ -110,7 +111,8 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
   plan en la reserva (`politica_*`, `salida_at`), de modo que editar el plan después no cambia
   lo que se le prometió al viajero.
 - `vista_previa_cancelacion(booking)`: lo que reembolsaría la política *ahora* (aplica,
-  porcentaje, monto, horas antes, motivo); la usa el diálogo de cancelar.
+  porcentaje, monto, horas antes, motivo); la usa el diálogo de cancelar. Si el viaje ya salió
+  responde `RESERVA_YA_SALIO` (igual que `cancelar_reserva`).
 - `expire_stale_bookings`: libera cupos de reservas sin pagar tras 30 minutos y vence sus
   intentos de pago; la ejecuta el cron (la app ya no la llama).
 - Solo `service_role` (las llama el servidor, no la app): `crear_intento_pago`,
@@ -316,11 +318,12 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0005 (endurecimiento) | ver «Pruebas SQL» | 81 |
 | SQL 0006 (notas de política) | ver «Pruebas SQL» | 49 |
 | SQL 0007 (notas sin reglas de reembolso) | ver «Pruebas SQL» | 62 |
+| SQL 0008 (cancelar solo antes de la salida) | ver «Pruebas SQL» | 14 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 315 (18 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 31 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 58 |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 47 |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 67 |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`
@@ -335,7 +338,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).

@@ -15,6 +15,7 @@ const MENSAJES: Record<string, string> = {
   RESERVA_NO_EXISTE: "La reserva no existe.",
   NO_ES_DUENO: "Esta reserva no es tuya.",
   ESTADO_INVALIDO: "La reserva no está en un estado que permita esta operación.",
+  RESERVA_YA_SALIO: "El viaje ya salió: la reserva no se puede cancelar.",
   RESERVA_VENCIDA: "La reserva venció (la retención de cupos dura 30 minutos).",
   REDIRECT_NO_PERMITIDO: "La URL de retorno no está permitida.",
   REFERENCIA_DESCONOCIDA: "No hay un intento de pago con esa referencia.",

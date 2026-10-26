@@ -77,73 +77,69 @@ class _BookingsViewState extends State<BookingsView>
 
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        body: ListenableBuilder(
-          listenable: _controller,
-          builder: (context, _) {
-            final c = _controller;
-            return NestedScrollView(
-              headerSliverBuilder: (context, _) => [
-                SliverAppBar(
-                  pinned: true,
-                  title: Text(
-                    'Mis reservas',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                  bottom: TabBar(
-                    indicatorSize: TabBarIndicatorSize.label,
-                    labelColor: cs.primary,
-                    unselectedLabelColor: cs.onSurfaceVariant,
-                    indicatorWeight: 2.5,
-                    dividerColor: Colors.transparent,
-                    tabs: [
-                      Tab(text: 'Próximas (${c.activas.length})'),
-                      Tab(text: 'Historial (${c.historial.length})'),
-                    ],
-                  ),
+      child: ListenableBuilder(
+        listenable: _controller,
+        builder: (context, _) {
+          final c = _controller;
+          return Scaffold(
+            // AppBar + TabBar fuera del área de la lista: las tarjetas no pueden pasar por encima.
+            appBar: AppBar(
+              title: Text(
+                'Mis reservas',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  color: cs.onSurface,
                 ),
-              ],
-              body: c.cargando
-                  ? ListView(
-                      padding: const EdgeInsets.all(20),
-                      children: List.generate(
-                        3,
-                        (_) => const Padding(
-                          padding: EdgeInsets.only(bottom: 12),
-                          child: Skeleton(height: 108, radius: 20),
-                        ),
+              ),
+              bottom: TabBar(
+                indicatorSize: TabBarIndicatorSize.label,
+                labelColor: cs.primary,
+                unselectedLabelColor: cs.onSurfaceVariant,
+                indicatorWeight: 2.5,
+                dividerColor: Colors.transparent,
+                tabs: [
+                  Tab(text: 'Próximas (${c.activas.length})'),
+                  Tab(text: 'Historial (${c.historial.length})'),
+                ],
+              ),
+            ),
+            body: c.cargando
+                ? ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: List.generate(
+                      3,
+                      (_) => const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Skeleton(height: 108, radius: 20),
                       ),
-                    )
-                  : c.error != null
-                      ? EmptyState(
-                          icono: Icons.cloud_off_rounded,
-                          titulo: 'Sin conexión',
-                          mensaje: c.error!,
-                          accion: FilledButton.tonal(
-                            onPressed: c.cargar,
-                            child: const Text('Reintentar'),
+                    ),
+                  )
+                : c.error != null
+                    ? EmptyState(
+                        icono: Icons.cloud_off_rounded,
+                        titulo: 'Sin conexión',
+                        mensaje: c.error!,
+                        accion: FilledButton.tonal(
+                          onPressed: c.cargar,
+                          child: const Text('Reintentar'),
+                        ),
+                      )
+                    : c.reservas.isEmpty
+                        ? const EmptyState(
+                            icono: Icons.luggage_rounded,
+                            titulo: 'Aún no tienes reservas',
+                            mensaje:
+                                'Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario.',
+                          )
+                        : TabBarView(
+                            children: [
+                              _lista(c.activas, vacio: 'Sin viajes próximos — ¡hora de explorar!'),
+                              _lista(c.historial, vacio: 'Todavía no hay historial.'),
+                            ],
                           ),
-                        )
-                      : c.reservas.isEmpty
-                          ? const EmptyState(
-                              icono: Icons.luggage_rounded,
-                              titulo: 'Aún no tienes reservas',
-                              mensaje:
-                                  'Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario.',
-                            )
-                          : TabBarView(
-                              children: [
-                                _lista(c.activas, vacio: 'Sin viajes próximos — ¡hora de explorar!'),
-                                _lista(c.historial, vacio: 'Todavía no hay historial.'),
-                              ],
-                            ),
-            );
-          },
-        ),
+          );
+        },
       ),
     );
   }
@@ -166,15 +162,14 @@ class _BookingsViewState extends State<BookingsView>
         itemCount: lista.length,
         itemBuilder: (context, i) => _TarjetaReserva(
           booking: lista[i],
-          onResenar: lista[i].puedeResenar
+          onResenar: _controller.puedeResenar(lista[i])
               ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
               : null,
           onPagar: lista[i].estado == BookingStatus.pendientePago ? () => _completarPago(lista[i]) : null,
           onVerificar: lista[i].estado == BookingStatus.pendientePago
               ? () => context.go('${DiversoConfig.pagoResultadoPath}?reserva=${lista[i].id}')
               : null,
-          onCancelar: lista[i].estado == BookingStatus.confirmada ||
-                  lista[i].estado == BookingStatus.pendientePago
+          onCancelar: _controller.puedeCancelar(lista[i])
               ? () => _confirmarCancelacion(context, lista[i])
               : null,
         ),
