@@ -16,12 +16,13 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  final _auth = AuthService();
+  late final AuthService _auth;
   Profile? _perfil;
 
   @override
   void initState() {
     super.initState();
+    _auth = context.read<AuthService>();
     _cargar();
   }
 
@@ -40,10 +41,10 @@ class _ProfileViewState extends State<ProfileView> {
     final inicial = nombre.isEmpty ? 'V' : nombre.substring(0, 1).toUpperCase();
 
     return Scaffold(
+      appBar: AppBar(title: const TituloPagina('Perfil')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          SizedBox(height: MediaQuery.paddingOf(context).top + 24),
           Center(
             child: Column(
               children: [
@@ -108,11 +109,10 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           const SizedBox(height: 24),
           const SectionLabel('Documentos legales'),
-          Container(
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(AppRadios.card),
-            ),
+          // Material (no Container con color): el ListTile pinta sus toques sobre el Material más cercano.
+          Material(
+            color: cs.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(AppRadios.card),
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [

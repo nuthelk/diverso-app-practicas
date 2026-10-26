@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
 
+import 'package:provider/provider.dart';
+
 import '../../../ui/core/app_theme.dart';
 import '../../../ui/core/widgets.dart';
+import 'bandeja_comparar.dart';
 import 'catalog_controller.dart';
 import 'plan_card.dart';
 
 /// Catálogo: buscador, filtros (texto, categoría, destino, fecha, precio),
-/// grid responsivo y barra de comparación. El estado vive en
+/// grid responsivo y bandeja de comparación. El estado vive en
 /// [CatalogController] (MVVM).
 class CatalogView extends StatefulWidget {
   const CatalogView({super.key});
@@ -19,7 +22,7 @@ class CatalogView extends StatefulWidget {
 
 class _CatalogViewState extends State<CatalogView>
     with AutomaticKeepAliveClientMixin {
-  final _controller = CatalogController();
+  late final CatalogController _controller;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -28,7 +31,7 @@ class _CatalogViewState extends State<CatalogView>
   @override
   void initState() {
     super.initState();
-    _controller.cargar();
+    _controller = CatalogController(catalogo: context.read<CatalogService>())..cargar();
   }
 
   @override
@@ -41,12 +44,14 @@ class _CatalogViewState extends State<CatalogView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final cs = Theme.of(context).colorScheme;
     // El ancho de la ventana no cambia al hacer scroll: decidir aquí (una
     // vez por rebuild real) en vez de dentro del scroll view.
     final esGrid = MediaQuery.sizeOf(context).width > AppTheme.bpCompact;
 
     return Scaffold(
+      // El título vive en el AppBar del Scaffold, fuera del scroll: las tarjetas no pueden pasar
+      // por encima ni por debajo de la barra de estado.
+      appBar: AppBar(title: const TituloPagina('Descubre Antioquia')),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
@@ -55,19 +60,6 @@ class _CatalogViewState extends State<CatalogView>
             onRefresh: c.cargar,
             child: CustomScrollView(
               slivers: [
-                // Encabezado compacto: el contenido arranca de una vez,
-                // sin gastar media pantalla en un título expandido vacío.
-                SliverAppBar(
-                  pinned: true,
-                  title: Text(
-                    'Descubre Antioquia',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
@@ -223,68 +215,31 @@ class _CatalogViewState extends State<CatalogView>
           );
         },
       ),
-      // Barra de comparación (Anexo 6, idea 7)
+      // Bandeja de comparación (Anexo 6, idea 7): como bottomNavigationBar, la lista termina donde
+      // empieza y el último plan nunca queda tapado.
       bottomNavigationBar: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
           final sel = _controller.seleccion;
-          if (sel.isEmpty) return const SizedBox.shrink();
-          return SafeArea(
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: cs.inverseSurface,
-                borderRadius: BorderRadius.circular(AppRadios.pill),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: cs.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${sel.length}',
-                      style: TextStyle(
-                        color: cs.onPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      sel.length == 1 ? 'Elige uno más para comparar' : 'Planes listos',
-                      style: TextStyle(
-                        color: cs.onInverseSurface,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13.5,
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _controller.limpiarComparar,
-                    child: const Text('Limpiar'),
-                  ),
-                  const SizedBox(width: 6),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 42),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                    ),
-                    onPressed: sel.length >= 2
-                        ? () => context.push('/comparar', extra: sel)
-                        : null,
-                    child: const Text('Comparar'),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-              ),
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) => SizeTransition(
+              sizeFactor: anim,
+              alignment: Alignment.topCenter,
+              child: FadeTransition(opacity: anim, child: child),
             ),
+            child: sel.isEmpty
+                ? const SizedBox.shrink(key: ValueKey('sin-bandeja'))
+                : BandejaComparar(
+                    key: const ValueKey('bandeja'),
+                    seleccion: sel,
+                    maximo: CatalogController.maxComparar,
+                    onQuitar: _controller.toggleComparar,
+                    onLimpiar: _controller.limpiarComparar,
+                    onComparar: () => context.push('/comparar', extra: sel),
+                  ),
           );
         },
       ),

@@ -29,7 +29,187 @@ class RatingStars extends StatelessWidget {
   }
 }
 
-/// Sello de confianza: agencia verificada (RNT + Cámara de Comercio).
+/// Puntaje de un plan: ★ con su valor y la cantidad de reseñas, o «Nueva» mientras no tenga
+/// ninguna (un 0.0 sería engañoso). [detallado] escribe «· n reseñas verificadas» (ficha del plan)
+/// en vez de «(n)» (tarjeta).
+class PuntajePlan extends StatelessWidget {
+  const PuntajePlan({super.key, required this.plan, this.detallado = false});
+
+  final Plan plan;
+  final bool detallado;
+
+  @override
+  Widget build(BuildContext context) {
+    if (plan.esNuevo) return const InsigniaNueva();
+    final suave = TextStyle(
+      fontSize: detallado ? 13 : 12,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RatingStars(calificacion: plan.ratingPromedio, mostrarNumero: true),
+        if (detallado)
+          Text(' · ${plan.reviewsCount} reseñas verificadas', style: suave)
+        else ...[
+          const SizedBox(width: 3),
+          Text('(${plan.reviewsCount})', style: suave),
+        ],
+      ],
+    );
+  }
+}
+
+/// Píldora «Nueva» de lo que aún no tiene reseñas (planes y agencias).
+class InsigniaNueva extends StatelessWidget {
+  const InsigniaNueva({super.key, this.texto = 'Nueva'});
+
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(AppRadios.pill),
+      ),
+      child: Text(
+        texto,
+        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: cs.primary),
+      ),
+    );
+  }
+}
+
+/// Título de página compartido (Explorar, Agencias, Reservas, Perfil): grande y en negrita.
+class TituloPagina extends StatelessWidget {
+  const TituloPagina(this.texto, {super.key});
+
+  final String texto;
+
+  static TextStyle estilo(ColorScheme cs) => TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -1,
+        height: 1.1,
+        color: cs.onSurface,
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      texto,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: estilo(Theme.of(context).colorScheme),
+    );
+  }
+}
+
+/// Cabecera colapsable con foto (detalle del plan, página de la agencia): con la foto a la vista
+/// el botón de volver flota sobre ella; al desplazarse termina SÓLIDA, del color de la página, con
+/// [titulo] y el botón de volver, de modo que nada se dibuja debajo de la barra de estado.
+class CabeceraColapsable extends StatelessWidget {
+  const CabeceraColapsable({
+    super.key,
+    required this.titulo,
+    required this.fondo,
+    required this.onVolver,
+    this.alturaExpandida = 260,
+  });
+
+  final String titulo;
+  final Widget fondo;
+  final VoidCallback onVolver;
+  final double alturaExpandida;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      pinned: true,
+      expandedHeight: alturaExpandida,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      surfaceTintColor: Colors.transparent,
+      leading: Padding(
+        padding: const EdgeInsets.all(8),
+        child: IconButton.filled(
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.black.withValues(alpha: .45),
+            foregroundColor: Colors.white,
+          ),
+          tooltip: 'Volver',
+          icon: const Icon(Icons.arrow_back_rounded, size: 20),
+          onPressed: onVolver,
+        ),
+      ),
+      flexibleSpace: Stack(
+        fit: StackFit.expand,
+        children: [
+          FlexibleSpaceBar(background: fondo),
+          _FondoSolido(titulo: titulo),
+        ],
+      ),
+    );
+  }
+}
+
+/// Capa que aparece (fundido) sobre la foto cuando la cabecera está casi colapsada.
+class _FondoSolido extends StatelessWidget {
+  const _FondoSolido({required this.titulo});
+
+  final String titulo;
+
+  @override
+  Widget build(BuildContext context) {
+    final ajustes = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    if (ajustes == null) return const SizedBox.shrink();
+    final rango = ajustes.maxExtent - ajustes.minExtent;
+    final colapso =
+        rango <= 0 ? 1.0 : (1 - (ajustes.currentExtent - ajustes.minExtent) / rango).clamp(0.0, 1.0);
+    final solido = ((colapso - .6) / .4).clamp(0.0, 1.0);
+    if (solido == 0) return const SizedBox.shrink();
+    final tema = Theme.of(context);
+    return Opacity(
+      opacity: solido,
+      child: Stack(
+        children: [
+          Positioned.fill(child: ColoredBox(color: tema.scaffoldBackgroundColor)),
+          Positioned(
+            left: 64,
+            right: 20,
+            top: MediaQuery.paddingOf(context).top,
+            height: kToolbarHeight,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                titulo,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.4,
+                  color: tema.colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Divider(height: 1, color: tema.colorScheme.outlineVariant),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sello de confianza: agencia verificada (RNT + Cámara de Comercio). [blanco] es la versión para
+/// ir sobre una foto: fondo oscuro casi opaco con texto blanco, legible sobre cualquier imagen.
 class VerifiedBadge extends StatelessWidget {
   const VerifiedBadge({super.key, this.compacto = false, this.blanco = false});
 
@@ -40,7 +220,7 @@ class VerifiedBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final fg = blanco ? Colors.white : cs.primary;
-    final bg = blanco ? Colors.white.withValues(alpha: .18) : cs.primary.withValues(alpha: .10);
+    final bg = blanco ? Colors.black.withValues(alpha: .66) : cs.primary.withValues(alpha: .10);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: compacto ? 7 : 10, vertical: compacto ? 2.5 : 5),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(AppRadios.pill)),
@@ -52,7 +232,7 @@ class VerifiedBadge extends StatelessWidget {
           Text(
             'Verificada RNT',
             style: TextStyle(
-              fontSize: compacto ? 10 : 11,
+              fontSize: compacto ? 10.5 : 11,
               fontWeight: FontWeight.w700,
               color: fg,
             ),

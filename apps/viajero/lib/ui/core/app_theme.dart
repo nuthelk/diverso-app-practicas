@@ -27,19 +27,24 @@ abstract final class AppTheme {
 
   static ThemeData _build(Color seed, Brightness brightness) {
     final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+    final fondoPagina =
+        brightness == Brightness.light ? const Color(0xFFFAFAF8) : const Color(0xFF101312);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor:
-          brightness == Brightness.light ? const Color(0xFFFAFAF8) : const Color(0xFF101312),
+      scaffoldBackgroundColor: fondoPagina,
       splashFactory: InkSparkle.splashFactory,
       visualDensity: VisualDensity.standard,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0.5,
-        backgroundColor: Colors.transparent,
+        titleSpacing: 20,
+        // Sólido y del color de la página: un AppBar fijo transparente deja ver pasar el contenido
+        // por debajo (y bajo la barra de estado).
+        backgroundColor: fondoPagina,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         titleTextStyle: TextStyle(
           fontSize: 15,

@@ -103,6 +103,9 @@ class Plan {
 
   String? get fotoPrincipal => fotos.isEmpty ? null : fotos.first;
 
+  /// Sin reseñas todavía: se muestra «Nueva» en vez de un 0.0 engañoso.
+  bool get esNuevo => reviewsCount == 0;
+
   /// Próximas fechas con cupos, de la más cercana a la más lejana.
   List<PlanDate> get fechasDisponibles {
     final hoy = DateTime.now();

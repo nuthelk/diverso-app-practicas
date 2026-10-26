@@ -186,20 +186,7 @@ class PlanCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      RatingStars(
-                        calificacion: plan.ratingPromedio,
-                        mostrarNumero: true,
-                      ),
-                      if (plan.reviewsCount > 0) ...[
-                        const SizedBox(width: 3),
-                        Text(
-                          '(${plan.reviewsCount})',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                      PuntajePlan(plan: plan),
                       const Spacer(),
                       PriceText(monto: plan.precioCop),
                     ],

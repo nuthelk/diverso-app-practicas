@@ -25,6 +25,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ThemeModeController()),
         Provider<BookingService>(create: (_) => BookingService()),
         Provider<CatalogService>(create: (_) => CatalogService()),
+        Provider<ReviewService>(create: (_) => ReviewService()),
+        Provider<AuthService>(create: (_) => AuthService()),
         Provider<PaymentGateway>(create: (_) => WompiPaymentGateway()),
       ],
       child: const DiversoApp(),

@@ -14,6 +14,7 @@ Booking _reserva(
   String codigo,
   Duration salida, {
   BookingStatus estado = BookingStatus.confirmada,
+  Plan? plan,
 }) =>
     Booking(
       id: codigo,
@@ -25,6 +26,27 @@ Booking _reserva(
       estado: estado,
       createdAt: DateTime.now().subtract(const Duration(days: 40)),
       salidaAt: DateTime.now().add(salida),
+      plan: plan,
+    );
+
+Plan _plan({List<String> fotos = const [], bool conAgencia = true}) => Plan(
+      id: 'plan-1',
+      agencyId: 'ag',
+      titulo: 'Comuna 13 y memoria',
+      destino: 'Medellín',
+      categoria: ExperienceCategory.cultura,
+      precioCop: 95000,
+      estado: PlanStatus.publicado,
+      fotos: fotos,
+      agency: conAgencia
+          ? Agency(
+              id: 'ag',
+              nombre: 'EcoAndes Viajes',
+              numeroRnt: '12345',
+              matriculaCamaraComercio: '999',
+              estadoVerificacion: VerificationStatus.verificado,
+            )
+          : null,
     );
 
 class _Reservas implements BookingService {
@@ -107,6 +129,66 @@ void main() {
     expect(tester.getTopLeft(find.byType(ListView)).dy, greaterThanOrEqualTo(pestanas.bottom));
     expect(find.text('Mis reservas'), findsOneWidget);
     expect(tester.getRect(find.text('Mis reservas')).bottom, lessThanOrEqualTo(pestanas.top));
+  });
+
+  group('tarjeta con la foto del plan', () {
+    final encabezado = find.byKey(const ValueKey('encabezado-reserva'));
+
+    testWidgets('con foto: imagen de cabecera con la fecha y el estado encima, título y agencia', (tester) async {
+      await _abrir(tester, [
+        _reserva('FUT', const Duration(days: 5), plan: _plan(fotos: const ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg'])),
+      ]);
+
+      expect(find.byKey(const ValueKey('foto-reserva')), findsOneWidget);
+      expect(find.byKey(const ValueKey('sin-foto-reserva')), findsNothing);
+      expect(find.text('Comuna 13 y memoria'), findsOneWidget);
+      expect(find.text('EcoAndes Viajes'), findsOneWidget);
+      expect(find.textContaining('FUT · 2 pax'), findsOneWidget);
+
+      // La insignia de fecha y la píldora de estado van DENTRO de la cabecera (sobre la foto).
+      final cab = tester.getRect(encabezado);
+      for (final f in [find.byKey(const ValueKey('insignia-fecha')), find.text('Confirmada')]) {
+        final r = tester.getRect(f);
+        expect(r.top, greaterThanOrEqualTo(cab.top));
+        expect(r.bottom, lessThanOrEqualTo(cab.bottom));
+        expect(r.left, greaterThanOrEqualTo(cab.left));
+        expect(r.right, lessThanOrEqualTo(cab.right));
+      }
+      // El título queda debajo de la foto.
+      expect(tester.getTopLeft(find.text('Comuna 13 y memoria')).dy, greaterThanOrEqualTo(cab.bottom));
+    });
+
+    testWidgets('sin foto: respaldo en su lugar, sin pedir imagen, con fecha, estado y acciones', (tester) async {
+      await _abrir(tester, [_reserva('FUT', const Duration(days: 5), plan: _plan(conAgencia: false))]);
+
+      expect(find.byKey(const ValueKey('foto-reserva')), findsNothing);
+      expect(find.byKey(const ValueKey('sin-foto-reserva')), findsOneWidget);
+      expect(find.byType(Image), findsNothing);
+      expect(find.byKey(const ValueKey('insignia-fecha')), findsOneWidget);
+      expect(find.text('Confirmada'), findsOneWidget);
+      expect(find.text('Comuna 13 y memoria'), findsOneWidget);
+      expect(find.text('EcoAndes Viajes'), findsNothing); // sin agencia no hay línea de agencia
+      expect(find.text('Cancelar'), findsOneWidget);
+    });
+
+    testWidgets('reserva sin plan cargado: título de respaldo y respaldo de foto', (tester) async {
+      await _abrir(tester, [_reserva('FUT', const Duration(days: 5))]);
+
+      expect(find.text('Plan'), findsOneWidget);
+      expect(find.byKey(const ValueKey('sin-foto-reserva')), findsOneWidget);
+    });
+
+    testWidgets('el historial se ve más apagado que las próximas', (tester) async {
+      await _abrir(tester, [
+        _reserva('PASADA', const Duration(days: -5), plan: _plan(fotos: const ['https://fotos.test/a.jpg'])),
+        _reserva('FUTURA', const Duration(days: 5), plan: _plan(fotos: const ['https://fotos.test/a.jpg'])),
+      ]);
+      final proxima = tester.widget<Text>(find.text('Comuna 13 y memoria'));
+      await tester.tap(find.text('Historial (1)'));
+      await tester.pumpAndSettle();
+      final pasada = tester.widget<Text>(find.text('Comuna 13 y memoria'));
+      expect(pasada.style!.color!.a, lessThan(proxima.style!.color?.a ?? 1));
+    });
   });
 
   testWidgets('PRESERVE: sin reservas muestra el estado vacío', (tester) async {

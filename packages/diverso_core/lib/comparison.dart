@@ -42,7 +42,7 @@ List<ComparisonRow> buildComparisonRows(List<Plan> planes, {int pax = 2}) {
       'rating',
       'Calificación',
       planes
-          .map((p) => '${p.ratingPromedio.toStringAsFixed(1)} ★ (${p.reviewsCount})')
+          .map((p) => p.esNuevo ? 'Nueva' : '${p.ratingPromedio.toStringAsFixed(1)} ★ (${p.reviewsCount})')
           .toList(),
     ),
     ComparisonRow(

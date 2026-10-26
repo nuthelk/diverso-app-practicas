@@ -38,10 +38,10 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final cs = Theme.of(context).colorScheme;
     final esGrid = MediaQuery.sizeOf(context).width > AppTheme.bpCompact;
 
     return Scaffold(
+      appBar: AppBar(title: const TituloPagina('Agencias')),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
@@ -52,17 +52,6 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
               // Permite el gesto de recargar aunque la lista sea corta o esté vacía.
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverAppBar(
-                  pinned: true,
-                  title: Text(
-                    'Agencias',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                      color: cs.onSurface,
-                    ),
-                  ),
-                ),
                 if (c.hayAgencias || c.cargando)
                   SliverToBoxAdapter(
                     child: Padding(

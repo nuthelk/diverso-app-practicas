@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
 import '../../core/widgets.dart';
@@ -17,14 +18,16 @@ class PlanDetailView extends StatefulWidget {
 }
 
 class _PlanDetailViewState extends State<PlanDetailView> {
-  final _catalogo = CatalogService();
-  final _resenas = ReviewService();
+  late final CatalogService _catalogo;
+  late final ReviewService _resenas;
   late Future<(Plan, List<Review>)> _future;
   final _pageCtrl = PageController();
 
   @override
   void initState() {
     super.initState();
+    _catalogo = context.read<CatalogService>();
+    _resenas = context.read<ReviewService>();
     _cargar();
   }
 
@@ -71,46 +74,33 @@ class _PlanDetailViewState extends State<PlanDetailView> {
               CustomScrollView(
                 slivers: [
                   // Galería hero ------------------------------------------------
-                  SliverAppBar(
-                    pinned: true,
-                    expandedHeight: 300,
-                    leading: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: IconButton.filled(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.black.withValues(alpha: .30),
-                          foregroundColor: Colors.white,
-                        ),
-                        tooltip: 'Volver',
-                        icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                        onPressed: () => context.pop(),
-                      ),
-                    ),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: plan.fotos.isEmpty
-                          ? Container(color: cs.primaryContainer)
-                          // Asentado cinematográfico: la foto entra con un
-                          // leve zoom y se calma al hacerlo visible.
-                          : TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 1.06, end: 1),
-                              duration: const Duration(milliseconds: 900),
-                              curve: Curves.easeOutCubic,
-                              builder: (context, t, child) =>
-                                  Transform.scale(scale: t, child: child),
-                              child: PageView.builder(
-                                controller: _pageCtrl,
-                                itemCount: plan.fotos.length,
-                                itemBuilder: (context, i) => Image.network(
-                                  plan.fotos[i],
-                                  fit: BoxFit.cover,
-                                  gaplessPlayback: true,
-                                  filterQuality: FilterQuality.low,
-                                  errorBuilder: (_, _, _) =>
-                                      Container(color: cs.primaryContainer),
-                                ),
+                  CabeceraColapsable(
+                    titulo: plan.titulo,
+                    alturaExpandida: 300,
+                    onVolver: () => context.pop(),
+                    fondo: plan.fotos.isEmpty
+                        ? Container(color: cs.primaryContainer)
+                        // Asentado cinematográfico: la foto entra con un
+                        // leve zoom y se calma al hacerlo visible.
+                        : TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 1.06, end: 1),
+                            duration: const Duration(milliseconds: 900),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, t, child) =>
+                                Transform.scale(scale: t, child: child),
+                            child: PageView.builder(
+                              controller: _pageCtrl,
+                              itemCount: plan.fotos.length,
+                              itemBuilder: (context, i) => Image.network(
+                                plan.fotos[i],
+                                fit: BoxFit.cover,
+                                gaplessPlayback: true,
+                                filterQuality: FilterQuality.low,
+                                errorBuilder: (_, _, _) =>
+                                    Container(color: cs.primaryContainer),
                               ),
                             ),
-                    ),
+                          ),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -131,12 +121,7 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              RatingStars(calificacion: plan.ratingPromedio, mostrarNumero: true),
-                              if (plan.reviewsCount > 0)
-                                Text(
-                                  ' · ${plan.reviewsCount} reseñas verificadas',
-                                  style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
-                                ),
+                              PuntajePlan(plan: plan, detallado: true),
                               const Spacer(),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

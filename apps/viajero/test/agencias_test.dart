@@ -84,6 +84,14 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _Resenas implements ReviewService {
+  @override
+  Future<List<Review>> porPlan(String planId, {int limit = 20}) async => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<GoRouter> _abrir(WidgetTester tester, _Catalogo catalogo, {String url = '/agencias', bool settle = true}) async {
   // 600 de ancho: lista de una columna; la tipografía de prueba (Ahem) es más ancha que la real y desbordaría el precio de PlanCard en 400.
   tester.view.physicalSize = const Size(600, 1400);
@@ -94,6 +102,7 @@ Future<GoRouter> _abrir(WidgetTester tester, _Catalogo catalogo, {String url = '
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeModeController()),
       Provider<CatalogService>.value(value: catalogo),
+      Provider<ReviewService>.value(value: _Resenas()),
     ],
     child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
   ));

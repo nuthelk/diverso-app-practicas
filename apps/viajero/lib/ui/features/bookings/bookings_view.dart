@@ -84,14 +84,7 @@ class _BookingsViewState extends State<BookingsView>
           return Scaffold(
             // AppBar + TabBar fuera del área de la lista: las tarjetas no pueden pasar por encima.
             appBar: AppBar(
-              title: Text(
-                'Mis reservas',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
-                  color: cs.onSurface,
-                ),
-              ),
+              title: const TituloPagina('Mis reservas'),
               bottom: TabBar(
                 indicatorSize: TabBarIndicatorSize.label,
                 labelColor: cs.primary,
@@ -135,7 +128,7 @@ class _BookingsViewState extends State<BookingsView>
                         : TabBarView(
                             children: [
                               _lista(c.activas, vacio: 'Sin viajes próximos — ¡hora de explorar!'),
-                              _lista(c.historial, vacio: 'Todavía no hay historial.'),
+                              _lista(c.historial, vacio: 'Todavía no hay historial.', historial: true),
                             ],
                           ),
           );
@@ -144,7 +137,7 @@ class _BookingsViewState extends State<BookingsView>
     );
   }
 
-  Widget _lista(List<Booking> lista, {required String vacio}) {
+  Widget _lista(List<Booking> lista, {required String vacio, bool historial = false}) {
     if (lista.isEmpty) {
       return ListView(
         children: [
@@ -162,6 +155,7 @@ class _BookingsViewState extends State<BookingsView>
         itemCount: lista.length,
         itemBuilder: (context, i) => _TarjetaReserva(
           booking: lista[i],
+          historial: historial,
           onResenar: _controller.puedeResenar(lista[i])
               ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
               : null,
@@ -178,9 +172,14 @@ class _BookingsViewState extends State<BookingsView>
   }
 }
 
+/// Tarjeta de una reserva: foto del plan como cabecera con la fecha de salida y el estado encima,
+/// y debajo título, agencia, código · pax · precio, pago, reembolso y las acciones. Sin foto,
+/// la cabecera usa un respaldo de color con el ícono de la categoría. El historial se ve más
+/// apagado.
 class _TarjetaReserva extends StatelessWidget {
   const _TarjetaReserva({
     required this.booking,
+    this.historial = false,
     this.onResenar,
     this.onCancelar,
     this.onPagar,
@@ -188,6 +187,7 @@ class _TarjetaReserva extends StatelessWidget {
   });
 
   final Booking booking;
+  final bool historial;
   final VoidCallback? onResenar;
   final VoidCallback? onCancelar;
   final VoidCallback? onPagar;
@@ -196,51 +196,19 @@ class _TarjetaReserva extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final fecha = booking.planDate?.fecha;
+    final agencia = booking.plan?.agency?.nombre;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppRadios.card),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Card(
+        color: cs.surfaceContainerLow,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Fecha grande
-            if (fecha != null)
-              SizedBox(
-                width: 62,
-                child: Column(
-                  children: [
-                    Text(
-                      '${fecha.day}',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        height: 1,
-                        letterSpacing: -1,
-                        color: cs.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _mesCorto(fecha.month),
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: .8,
-                        color: cs.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            if (fecha != null) const SizedBox(width: 14),
-            // Info
-            Expanded(
+            _Encabezado(booking: booking, apagado: historial),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -248,22 +216,36 @@ class _TarjetaReserva extends StatelessWidget {
                     booking.plan?.titulo ?? 'Plan',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, height: 1.25),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      height: 1.25,
+                      color: historial ? cs.onSurface.withValues(alpha: .72) : cs.onSurface,
+                    ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${booking.codigo} · ${booking.pax} pax · ${formatCOP(booking.montoTotal)}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                  if (agencia != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.storefront_outlined, size: 14, color: cs.onSurfaceVariant),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            agencia,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      _EstadoPill(estado: booking.estado),
-                    ],
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    '${booking.codigo} · ${booking.pax} pax · ${formatCOP(booking.montoTotal)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
                   ),
                   if (booking.pago != null) ...[
                     const SizedBox(height: 4),
@@ -348,13 +330,122 @@ class _TarjetaReserva extends StatelessWidget {
       ),
     );
   }
-
-  String _mesCorto(int m) => const [
-        'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
-        'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
-      ][m - 1];
 }
 
+/// Cabecera de la tarjeta: foto (o respaldo) con un degradado arriba para que la insignia de fecha
+/// y la píldora de estado, ambas sólidas, se lean sobre cualquier imagen.
+class _Encabezado extends StatelessWidget {
+  const _Encabezado({required this.booking, required this.apagado});
+
+  final Booking booking;
+  final bool apagado;
+
+  static const _altura = 132.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final plan = booking.plan;
+    final fecha = booking.planDate?.fecha ?? booking.salidaAt?.toLocal();
+    final foto = plan?.fotoPrincipal;
+
+    Widget respaldo({Key? key}) => ColoredBox(
+          key: key,
+          color: cs.primaryContainer,
+          child: Center(
+            child: plan == null
+                ? Icon(Icons.luggage_rounded, size: 40, color: cs.onPrimaryContainer)
+                : Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40)),
+          ),
+        );
+
+    Widget fondo = foto == null
+        ? respaldo(key: const ValueKey('sin-foto-reserva'))
+        : Image.network(
+            foto,
+            key: const ValueKey('foto-reserva'),
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            filterQuality: FilterQuality.low,
+            errorBuilder: (_, _, _) => respaldo(),
+          );
+    if (apagado) {
+      // Historial: la foto pierde color para que las próximas destaquen.
+      fondo = ColorFiltered(
+        colorFilter: const ColorFilter.matrix(<double>[
+          .55, .35, .10, 0, 0, //
+          .20, .70, .10, 0, 0,
+          .20, .35, .45, 0, 0,
+          0, 0, 0, 1, 0,
+        ]),
+        child: fondo,
+      );
+    }
+
+    return SizedBox(
+      key: const ValueKey('encabezado-reserva'),
+      height: _altura,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          fondo,
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.black.withValues(alpha: .38), Colors.transparent],
+                stops: const [0, .55],
+              ),
+            ),
+          ),
+          if (fecha != null) Positioned(top: 12, left: 12, child: _InsigniaFecha(fecha: fecha)),
+          Positioned(top: 12, right: 12, child: _EstadoPill(estado: booking.estado)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Día y mes de la salida en una insignia opaca (legible sobre cualquier foto).
+class _InsigniaFecha extends StatelessWidget {
+  const _InsigniaFecha({required this.fecha});
+
+  final DateTime fecha;
+
+  static const _meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('insignia-fecha'),
+      width: 52,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${fecha.day}',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1, letterSpacing: -.5, color: cs.primary),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            _meses[fecha.month - 1],
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .8, color: cs.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Estado de la reserva: píldora de color sólido con texto blanco (legible sobre foto).
 class _EstadoPill extends StatelessWidget {
   const _EstadoPill({required this.estado});
 
@@ -369,14 +460,15 @@ class _EstadoPill extends StatelessWidget {
       BookingStatus.completada => (const Color(0xFF4A5C6E), 'Completada'),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: .12),
-        borderRadius: BorderRadius.circular(999),
+        color: color,
+        borderRadius: BorderRadius.circular(AppRadios.pill),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       child: Text(
         texto,
-        style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w700),
+        style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700),
       ),
     );
   }

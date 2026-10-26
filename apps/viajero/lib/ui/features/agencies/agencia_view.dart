@@ -87,26 +87,6 @@ void _volver(BuildContext context) {
   }
 }
 
-class _BotonVolver extends StatelessWidget {
-  const _BotonVolver();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: IconButton.filled(
-        style: IconButton.styleFrom(
-          backgroundColor: Colors.black.withValues(alpha: .30),
-          foregroundColor: Colors.white,
-        ),
-        tooltip: 'Volver',
-        icon: const Icon(Icons.arrow_back_rounded, size: 20),
-        onPressed: () => _volver(context),
-      ),
-    );
-  }
-}
-
 /// Pantalla sin cabecera de portada (cargando, error, no encontrada): solo el botón de volver.
 class _Aviso extends StatelessWidget {
   const _Aviso({required this.child});
@@ -169,11 +149,11 @@ class _Contenido extends StatelessWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 220,
-            leading: const _BotonVolver(),
-            flexibleSpace: FlexibleSpaceBar(background: PortadaAgencia(agencia: agencia)),
+          CabeceraColapsable(
+            titulo: agencia.nombre,
+            alturaExpandida: 220,
+            onVolver: () => _volver(context),
+            fondo: PortadaAgencia(agencia: agencia),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -190,15 +170,7 @@ class _Contenido extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              agencia.nombre,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                height: 1.15,
-                                letterSpacing: -.6,
-                              ),
-                            ),
+                            Text(agencia.nombre, style: TituloPagina.estilo(cs).copyWith(fontSize: 24)),
                             const SizedBox(height: 8),
                             DatosAgencia(agencia: agencia),
                           ],

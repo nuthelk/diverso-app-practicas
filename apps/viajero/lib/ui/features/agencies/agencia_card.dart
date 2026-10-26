@@ -88,17 +88,7 @@ class DatosAgencia extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (agencia.esNueva)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: cs.primary.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(AppRadios.pill),
-            ),
-            child: Text(
-              agencia.puntajeTexto,
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: cs.primary),
-            ),
-          )
+          InsigniaNueva(texto: agencia.puntajeTexto)
         else
           Row(
             mainAxisSize: MainAxisSize.min,
