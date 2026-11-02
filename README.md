@@ -47,7 +47,9 @@ tools/iconos          → generador de los íconos de la app y de las webs (Pill
 ```
 
 - **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
-  aprendizaje y capítulos para quien viene de React Native y TypeScript).
+  aprendizaje y capítulos para quien viene de React Native y TypeScript). **Guía del panel y de
+  Svelte 5:** [`docs/guia/svelte/`](docs/guia/svelte/README.md) (Svelte desde React, runes y la
+  arquitectura por funcionalidad de `apps/panel_svelte`).
 - **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
   `BookingApi`, `CatalogApi`, `AgencyApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
   y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
@@ -159,7 +161,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - **Ley 1581 de 2012:** autorización expresa (casillas no marcadas) en el registro
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
-  piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/legal.ts` y
+  piden aceptar de nuevo. Textos en `apps/panel_svelte/src/features/legal/legal.ts` y
   `packages/diverso_core/lib/legal/documento_legal.dart` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias
@@ -355,7 +357,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0013 (el checkout vence en la salida) | ver «Pruebas SQL» | 8 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
+| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 509 (31 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 146 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 163 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |

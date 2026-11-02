@@ -14,9 +14,13 @@ qué hacer y cómo saber que ya la entendiste.
 - Prefieres aprender con una app real, con rutas reales, que con ejemplos de juguete.
 - No necesitas conocer el backend: la guía solo toca Supabase donde la app lo llama.
 
-Qué **no** cubre: el panel de agencias en Svelte (`apps/panel_svelte`), el panel Flutter legado
-(`apps/panel_agencias`), las migraciones SQL ni las Edge Functions. Para eso está el
-[README principal](../../README.md).
+Qué **no** cubre: el panel Flutter legado (`apps/panel_agencias`), las migraciones SQL ni las Edge
+Functions. Para eso está el [README principal](../../README.md).
+
+**¿Vienes por el panel de agencias en Svelte (`apps/panel_svelte`)?** Tiene su propia guía, escrita
+igual (desde React y TypeScript, con el código real del panel): la
+[guía de Svelte 5 y del panel](svelte/README.md), con 6 sesiones, la arquitectura por funcionalidad
+y cómo probarlo.
 
 ## La app en 5 líneas
 
