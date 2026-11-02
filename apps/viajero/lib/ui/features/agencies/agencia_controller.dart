@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/foundation.dart';
 
 /// ViewModel de la página de una agencia: su resumen público y sus planes publicados.
 class AgenciaController extends ChangeNotifier {

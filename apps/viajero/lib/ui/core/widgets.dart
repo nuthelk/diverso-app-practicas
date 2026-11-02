@@ -1,8 +1,8 @@
 /// Widgets compartidos del sistema de diseño Diverso.
 library;
 
-import 'package:flutter/material.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/material.dart';
 
 /// Estrellas compactas + valor numérico opcional.
 class RatingStars extends StatelessWidget {

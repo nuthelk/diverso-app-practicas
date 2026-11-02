@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/material.dart';
 
 import 'consent_checkboxes.dart';
 

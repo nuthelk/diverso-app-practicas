@@ -26,7 +26,7 @@ DiversoException _falla(Object? e) => e as DiversoException;
 void main() {
   group('WompiPaymentGateway.iniciar', () {
     test('llama a pagos-iniciar y lee checkout_url, referencia, monto y vencimiento', () async {
-      final inv = _Invocador((_, __) => {
+      final inv = _Invocador((_, _) => {
             'checkout_url': 'https://checkout.wompi.co/p/?public-key=pub_test_x',
             'referencia': 'DIV-ABC123-1',
             'amount_in_cents': 30000000,
@@ -48,7 +48,7 @@ void main() {
     });
 
     test('RESERVA_VENCIDA (409): reserva vencida sin cobro', () async {
-      final inv = _Invocador((_, __) => _http(409, {'error': 'RESERVA_VENCIDA', 'mensaje': 'x'}));
+      final inv = _Invocador((_, _) => _http(409, {'error': 'RESERVA_VENCIDA', 'mensaje': 'x'}));
       await expectLater(
         WompiPaymentGateway(invocar: inv.call).iniciar(bookingId: 'b', redirectUrl: 'u'),
         throwsA(isA<DiversoException>()
@@ -65,7 +65,7 @@ void main() {
         (404, 'RESERVA_NO_EXISTE'),
         (401, 'NO_AUTENTICADO'),
       ]) {
-        final inv = _Invocador((_, __) => _http(status, {'error': codigo}));
+        final inv = _Invocador((_, _) => _http(status, {'error': codigo}));
         try {
           await WompiPaymentGateway(invocar: inv.call).iniciar(bookingId: 'b', redirectUrl: 'u');
           fail('debía fallar con $codigo');
@@ -77,7 +77,7 @@ void main() {
     });
 
     test('SOLO_MODO_PRUEBA (503) → «La pasarela de prueba no está configurada»', () async {
-      final inv = _Invocador((_, __) => _http(503, {'error': 'SOLO_MODO_PRUEBA'}));
+      final inv = _Invocador((_, _) => _http(503, {'error': 'SOLO_MODO_PRUEBA'}));
       try {
         await WompiPaymentGateway(invocar: inv.call).iniciar(bookingId: 'b', redirectUrl: 'u');
         fail('debía fallar');
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('sin red (FunctionsFetchException) → SIN_CONEXION', () async {
-      final inv = _Invocador((_, __) => const FunctionsFetchException(details: 'offline'));
+      final inv = _Invocador((_, _) => const FunctionsFetchException(details: 'offline'));
       try {
         await WompiPaymentGateway(invocar: inv.call).iniciar(bookingId: 'b', redirectUrl: 'u');
         fail('debía fallar');
@@ -108,7 +108,7 @@ void main() {
         };
 
     test('con transaction_id envía solo ese campo y parsea un pago aprobado', () async {
-      final inv = _Invocador((_, __) => ok('aprobado'));
+      final inv = _Invocador((_, _) => ok('aprobado'));
       final r = await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 'tx-9');
       expect(inv.llamadas.single.$1, 'pagos-verificar');
       expect(inv.llamadas.single.$2, {'transaction_id': 'tx-9'});
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('con booking_id (fallback «Ya pagué, verificar») envía solo ese campo', () async {
-      final inv = _Invocador((_, __) => ok('pendiente', metodo: null));
+      final inv = _Invocador((_, _) => ok('pendiente', metodo: null));
       final r = await WompiPaymentGateway(invocar: inv.call).verificar(bookingId: 'b-1');
       expect(inv.llamadas.single.$2, {'booking_id': 'b-1'});
       expect(r.estado, EstadoPago.pendiente);
@@ -129,7 +129,7 @@ void main() {
     });
 
     test('exige exactamente uno de transaction_id / booking_id', () async {
-      final gateway = WompiPaymentGateway(invocar: _Invocador((_, __) => ok('aprobado')).call);
+      final gateway = WompiPaymentGateway(invocar: _Invocador((_, _) => ok('aprobado')).call);
       expect(() => gateway.verificar(), throwsArgumentError);
       expect(() => gateway.verificar(transactionId: 'a', bookingId: 'b'), throwsArgumentError);
     });
@@ -139,7 +139,7 @@ void main() {
         ('rechazado', EstadoPago.rechazado),
         ('error', EstadoPago.error),
       ]) {
-        final r = await WompiPaymentGateway(invocar: _Invocador((_, __) => ok(raw)).call)
+        final r = await WompiPaymentGateway(invocar: _Invocador((_, _) => ok(raw)).call)
             .verificar(transactionId: 't');
         expect(r.estado, esperado);
         expect(r.mensajeUsuario, isNotEmpty);
@@ -152,7 +152,7 @@ void main() {
         ('otro', PaymentMethodOption.otro),
         ('pse', PaymentMethodOption.pse),
       ]) {
-        final r = await WompiPaymentGateway(invocar: _Invocador((_, __) => ok('aprobado', metodo: raw)).call)
+        final r = await WompiPaymentGateway(invocar: _Invocador((_, _) => ok('aprobado', metodo: raw)).call)
             .verificar(transactionId: 't');
         expect(r.metodo, esperado);
       }
@@ -161,7 +161,7 @@ void main() {
     });
 
     test('MONTO_NO_COINCIDE (409)', () async {
-      final inv = _Invocador((_, __) => _http(409, {'error': 'MONTO_NO_COINCIDE'}));
+      final inv = _Invocador((_, _) => _http(409, {'error': 'MONTO_NO_COINCIDE'}));
       try {
         await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
         fail('debía fallar');
@@ -177,7 +177,7 @@ void main() {
         ('pendiente', 'pendiente'),
         ('rechazado', 'rechazado'),
       ]) {
-        final inv = _Invocador((_, __) => _http(409, {
+        final inv = _Invocador((_, _) => _http(409, {
               'error': 'RESERVA_VENCIDA',
               'estado_pago': 'aprobado_tarde',
               'reembolso': reembolso,
@@ -197,7 +197,7 @@ void main() {
     });
 
     test('WOMPI_NO_DISPONIBLE y WOMPI_NO_AUTORIZADO (502)', () async {
-      final noDisp = _Invocador((_, __) => _http(502, {'error': 'WOMPI_NO_DISPONIBLE'}));
+      final noDisp = _Invocador((_, _) => _http(502, {'error': 'WOMPI_NO_DISPONIBLE'}));
       try {
         await WompiPaymentGateway(invocar: noDisp.call).verificar(bookingId: 'b');
         fail('debía fallar');
@@ -205,7 +205,7 @@ void main() {
         expect(_falla(e).codigo, 'WOMPI_NO_DISPONIBLE');
         expect(_falla(e).mensajeUsuario, contains('Wompi no está disponible'));
       }
-      final noAut = _Invocador((_, __) => _http(502, {'error': 'WOMPI_NO_AUTORIZADO'}));
+      final noAut = _Invocador((_, _) => _http(502, {'error': 'WOMPI_NO_AUTORIZADO'}));
       try {
         await WompiPaymentGateway(invocar: noAut.call).verificar(bookingId: 'b');
         fail('debía fallar');
@@ -216,7 +216,7 @@ void main() {
 
     test('TRANSACCION_NO_EXISTE y REFERENCIA_DESCONOCIDA (404) invitan a verificar después', () async {
       for (final codigo in ['TRANSACCION_NO_EXISTE', 'REFERENCIA_DESCONOCIDA']) {
-        final inv = _Invocador((_, __) => _http(404, {'error': codigo}));
+        final inv = _Invocador((_, _) => _http(404, {'error': codigo}));
         try {
           await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
           fail('debía fallar');
@@ -228,7 +228,7 @@ void main() {
     });
 
     test('un 500 sin código no filtra detalles internos', () async {
-      final inv = _Invocador((_, __) => _http(500, {'error': 'ERROR_INTERNO', 'mensaje': 'Error interno.'}));
+      final inv = _Invocador((_, _) => _http(500, {'error': 'ERROR_INTERNO', 'mensaje': 'Error interno.'}));
       try {
         await WompiPaymentGateway(invocar: inv.call).verificar(bookingId: 'b');
         fail('debía fallar');
@@ -242,7 +242,7 @@ void main() {
     Map<String, dynamic> cancelada(Map<String, dynamic> r) => {'estado': 'cancelada', 'reembolso': r};
 
     test('llama a reservas-cancelar y lee el reembolso aprobado', () async {
-      final inv = _Invocador((_, __) => cancelada({
+      final inv = _Invocador((_, _) => cancelada({
             'aplica': true,
             'porcentaje': 50,
             'monto': 150000,
@@ -265,7 +265,7 @@ void main() {
         ('rechazado', EstadoReembolso.rechazado, 'Reembolso de prueba rechazado'),
         ('no_aplica', EstadoReembolso.noAplica, 'Sin reembolso'),
       ]) {
-        final inv = _Invocador((_, __) => cancelada({
+        final inv = _Invocador((_, _) => cancelada({
               'aplica': raw != 'no_aplica',
               'porcentaje': raw == 'no_aplica' ? 0 : 100,
               'monto': raw == 'no_aplica' ? 0 : 300000,
@@ -279,7 +279,7 @@ void main() {
     });
 
     test('errores de la función: ESTADO_INVALIDO y NO_ES_DUENO', () async {
-      final inv = _Invocador((_, __) => _http(409, {'error': 'ESTADO_INVALIDO'}));
+      final inv = _Invocador((_, _) => _http(409, {'error': 'ESTADO_INVALIDO'}));
       await expectLater(
         BookingService(invocar: inv.call).cancelar('b-1'),
         throwsA(isA<DiversoException>().having((e) => e.codigo, 'codigo', 'ESTADO_INVALIDO')),

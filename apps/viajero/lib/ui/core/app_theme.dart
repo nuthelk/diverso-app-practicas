@@ -109,10 +109,10 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rCard))),
       ),
-      chipTheme: ChipThemeData(
-        shape: const StadiumBorder(),
+      chipTheme: const ChipThemeData(
+        shape: StadiumBorder(),
         side: BorderSide.none,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
       // Barra inferior fija y sólida: íconos grandes, el activo en verde con su píldora.
       navigationBarTheme: NavigationBarThemeData(

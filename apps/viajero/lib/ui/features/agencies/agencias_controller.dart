@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/foundation.dart';
 
 /// ViewModel de la pestaña «Agencias» (MVVM): lista pública de agencias y su orden.
 class AgenciasController extends ChangeNotifier {

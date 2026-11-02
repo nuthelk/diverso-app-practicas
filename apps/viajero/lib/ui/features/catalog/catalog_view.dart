@@ -1,7 +1,6 @@
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:diverso_core/diverso_core.dart';
-
 import 'package:provider/provider.dart';
 
 import '../../../ui/core/app_theme.dart';
@@ -282,16 +281,16 @@ class _TarjetaSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Skeleton(height: 168, radius: 0),
+          Skeleton(height: 168, radius: 0),
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Skeleton(width: 200, height: 16),
                 SizedBox(height: 10),
                 Skeleton(width: 120, height: 12),
@@ -483,7 +482,7 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
             ],
           ),
           const SizedBox(height: 20),
-          SectionLabel('Precio máximo por persona'),
+          const SectionLabel('Precio máximo por persona'),
           Row(
             children: [
               Expanded(

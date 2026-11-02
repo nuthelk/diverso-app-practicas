@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 /// El sello "Verificada RNT" solo se muestra si la agencia está verificada
 /// y su RNT sigue vigente (misma regla que agencia_habilitada() en SQL).

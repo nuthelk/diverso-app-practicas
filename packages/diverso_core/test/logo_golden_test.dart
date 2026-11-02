@@ -1,6 +1,6 @@
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:diverso_core/diverso_core.dart';
 
 /// Espera a que el asset del colibrí esté decodificado antes de capturar el golden.
 Future<void> _cargarLogo(WidgetTester tester) async {

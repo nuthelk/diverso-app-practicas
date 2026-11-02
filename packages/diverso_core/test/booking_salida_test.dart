@@ -99,7 +99,7 @@ void main() {
           'monto_total': 100000,
           'estado': 'confirmada',
           'created_at': '2026-09-01T10:00:00+00:00',
-          if (salida != null) 'salida_at': salida,
+          'salida_at': ?salida,
         };
 
     test('lee la salida congelada con su zona horaria', () {

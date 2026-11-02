@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'shell/app_shell.dart';
 import 'ui/features/agencies/agencia_view.dart';
 import 'ui/features/agencies/agencias_view.dart';
 import 'ui/features/auth/login_view.dart';
@@ -12,15 +14,13 @@ import 'ui/features/bookings/reserva_detalle_view.dart';
 import 'ui/features/bookings/review_view.dart';
 import 'ui/features/catalog/catalog_view.dart';
 import 'ui/features/catalog/comparator_view.dart';
-import 'ui/features/legal/consent_view.dart';
-import 'ui/features/legal/legal_view.dart';
 import 'ui/features/checkout/checkout_loader.dart';
 import 'ui/features/checkout/pago_resultado_view.dart';
 import 'ui/features/checkout/reserva_view.dart';
+import 'ui/features/legal/consent_view.dart';
+import 'ui/features/legal/legal_view.dart';
 import 'ui/features/plan/plan_detail_view.dart';
 import 'ui/features/profile/profile_view.dart';
-import 'shell/app_shell.dart';
-import 'package:diverso_core/diverso_core.dart';
 
 /// Router de la app del viajero (go_router):
 /// - redirect global por sesión

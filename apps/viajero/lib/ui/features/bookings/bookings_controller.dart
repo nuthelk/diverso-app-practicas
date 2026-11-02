@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/foundation.dart';
 
 /// ViewModel de "Mis reservas": carga la lista, la separa por salida y ejecuta cancelaciones.
 class BookingsController extends ChangeNotifier {

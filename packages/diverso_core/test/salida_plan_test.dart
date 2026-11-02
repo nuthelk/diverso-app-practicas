@@ -150,7 +150,7 @@ void main() {
 
   group('FECHA_YA_SALIO', () {
     test('el RPC create_booking la reporta y la app la explica', () {
-      final e = DiversoException.fromPostgrest(PostgrestException(message: 'FECHA_YA_SALIO', code: 'P0001'));
+      final e = DiversoException.fromPostgrest(const PostgrestException(message: 'FECHA_YA_SALIO', code: 'P0001'));
       expect(e.codigo, 'FECHA_YA_SALIO');
       expect(e.mensajeUsuario, 'Esta salida ya partió. Elige otra fecha.');
     });

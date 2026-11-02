@@ -1,6 +1,8 @@
+import 'dart:async';
+
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:diverso_core/diverso_core.dart';
 
 /// ViewModel del checkout: crea la reserva atómica (cupos retenidos 30 min) y pide a la
 /// pasarela abrir el pago de prueba de Wompi.
@@ -106,7 +108,7 @@ class CheckoutController extends ChangeNotifier {
     procesando = true;
     error = null;
     notifyListeners();
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
 
     try {
       await accion();

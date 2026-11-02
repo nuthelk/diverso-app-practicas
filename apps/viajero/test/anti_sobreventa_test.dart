@@ -1,9 +1,9 @@
 import 'dart:io' show Platform;
 
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:diverso_core/diverso_core.dart';
 
 /// Prueba de integración contra el Supabase local (docker). Verifica el
 /// requisito central del Anexo 6: dos reservas simultáneas que compiten por

@@ -1,11 +1,11 @@
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:diverso_core/diverso_core.dart';
 
+import '../../../theme_mode_controller.dart';
 import '../../core/app_theme.dart';
 import '../../core/widgets.dart';
-import '../../../theme_mode_controller.dart';
 
 /// Perfil del viajero: identidad, apariencia (claro/oscuro) y confianza.
 class ProfileView extends StatefulWidget {
@@ -92,7 +92,7 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           const SizedBox(height: 24),
           const SectionLabel('Confianza'),
-          _TarjetaInfo(
+          const _TarjetaInfo(
             icono: Icons.verified_user_rounded,
             titulo: 'Compra protegida',
             cuerpo: 'Solo mostramos agencias con RNT vigente y matrícula mercantil '
@@ -100,7 +100,7 @@ class _ProfileViewState extends State<ProfileView> {
                 'se le vence el RNT, sus planes se ocultan hasta revalidarla.',
           ),
           const SizedBox(height: 12),
-          _TarjetaInfo(
+          const _TarjetaInfo(
             icono: Icons.privacy_tip_rounded,
             titulo: 'Tus datos',
             cuerpo: 'Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), '
@@ -119,7 +119,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ListTile(
                   leading: const Icon(Icons.shield_outlined),
                   title: const Text('Política de tratamiento de datos'),
-                  subtitle: Text('Versión $kVersionLegal'),
+                  subtitle: const Text('Versión $kVersionLegal'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/legal/privacidad'),
                 ),
@@ -127,7 +127,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ListTile(
                   leading: const Icon(Icons.description_outlined),
                   title: const Text('Términos y condiciones'),
-                  subtitle: Text('Versión $kVersionLegal'),
+                  subtitle: const Text('Versión $kVersionLegal'),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/legal/terminos-viajeros'),
                 ),

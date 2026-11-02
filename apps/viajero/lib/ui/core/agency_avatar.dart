@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:flutter/material.dart';
 
 /// Colores de marca para el círculo de iniciales (todos con buen contraste con texto blanco).
 const _paleta = <Color>[

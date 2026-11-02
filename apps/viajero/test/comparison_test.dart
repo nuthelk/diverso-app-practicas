@@ -1,6 +1,6 @@
+import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:diverso_core/diverso_core.dart';
 import 'package:viajero/ui/features/catalog/comparator_view.dart';
 
 void main() {

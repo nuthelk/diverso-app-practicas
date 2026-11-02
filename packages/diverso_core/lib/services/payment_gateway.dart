@@ -42,8 +42,8 @@ class WompiPaymentGateway implements PaymentGateway {
       throw ArgumentError('Indica exactamente uno de transactionId o bookingId');
     }
     final res = await llamarEdgeFunction(_invocar, 'pagos-verificar', {
-      if (transactionId != null) 'transaction_id': transactionId,
-      if (bookingId != null) 'booking_id': bookingId,
+      'transaction_id': ?transactionId,
+      'booking_id': ?bookingId,
     });
     return PagoVerificado.fromMap(res);
   }
