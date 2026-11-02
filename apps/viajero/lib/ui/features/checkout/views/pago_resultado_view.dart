@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../pago_wompi.dart';
 import '../view_models/pago_resultado_view_model.dart';
@@ -37,7 +38,7 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
     )..addListener(_alCambiar);
     if (_controller.sinDatos) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go('/reservas');
+        if (mounted) context.go(AppRoutes.reservas);
       });
     } else {
       _controller.verificar();
@@ -55,7 +56,7 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
   void _alCambiar() {
     final r = _controller.resultado;
     if (!_controller.cargando && r?.estado == EstadoPago.aprobado && mounted) {
-      context.go('/reserva/${r!.bookingId}');
+      context.go(AppRoutes.reserva(r!.bookingId));
     }
   }
 
@@ -154,7 +155,7 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
   }
 
   Widget _verReservas(bool principal) {
-    void ir() => context.go('/reservas');
+    void ir() => context.go(AppRoutes.reservas);
     const texto = Text('Ver mis reservas');
     return principal
         ? FilledButton(onPressed: ir, child: texto)

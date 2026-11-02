@@ -1,206 +1,185 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../ui/features/agencies/views/agencia_view.dart';
 import '../ui/features/agencies/views/agencias_view.dart';
 import '../ui/features/auth/views/login_view.dart';
 import '../ui/features/bookings/views/bookings_view.dart';
 import '../ui/features/bookings/views/reserva_detalle_view.dart';
-import '../ui/features/bookings/views/review_view.dart';
+import '../ui/features/bookings/views/review_loader.dart';
+import '../ui/features/catalog/view_models/catalog_view_model.dart';
 import '../ui/features/catalog/views/catalog_view.dart';
-import '../ui/features/catalog/views/comparator_view.dart';
+import '../ui/features/catalog/views/comparator_loader.dart';
 import '../ui/features/checkout/views/checkout_loader.dart';
 import '../ui/features/checkout/views/pago_resultado_view.dart';
 import '../ui/features/checkout/views/reserva_view.dart';
+import '../ui/features/legal/view_models/consent_view_model.dart';
 import '../ui/features/legal/views/consent_view.dart';
 import '../ui/features/legal/views/legal_view.dart';
 import '../ui/features/plan/views/plan_detail_view.dart';
 import '../ui/features/profile/views/profile_view.dart';
 import '../ui/shell/app_shell.dart';
+import '../ui/shell/pagina_no_encontrada_view.dart';
+import 'app_routes.dart';
 import 'go_router_refresh_stream.dart';
+import 'sesion_redirect.dart';
 
-/// Router de la app del viajero (go_router):
-/// - redirect global por sesión
-/// - StatefulShellRoute con estado por pestaña
-/// - movimiento Material 3: shared-axis en flujos, fade-through en pestañas,
-///   zoom en la confirmación (ver DiversoPageTransitions)
+typedef _Transicion =
+    CustomTransitionPage<void> Function({required LocalKey key, required Widget child});
+
+/// Una ruta con su transición de página (ver [DiversoPageTransitions]).
+GoRoute _ruta(String path, _Transicion transicion, Widget Function(GoRouterState) pantalla) =>
+    GoRoute(
+      path: path,
+      pageBuilder: (context, state) => transicion(key: state.pageKey, child: pantalla(state)),
+    );
+
+/// Ids de `?ids=a,b,c` (sin vacíos ni repetidos, como mucho los que caben en el comparador).
+List<String> _idsAComparar(GoRouterState state) => (state.uri.queryParameters['ids'] ?? '')
+    .split(',')
+    .where((id) => id.isNotEmpty)
+    .toSet()
+    .take(CatalogViewModel.maxComparar)
+    .toList();
+
+/// Router de la app del viajero (go_router): tabla de rutas, redirect por sesión y
+/// consentimiento ([sesionRedirect]), `StatefulShellRoute` con estado por pestaña y movimiento
+/// Material 3 (shared-axis en flujos, fade-through en pestañas, zoom en la confirmación).
 ///
-/// `/agencia/:id` también lleva el id en la URL y carga todo del backend.
-/// Las rutas del flujo de pago llevan los ids en la URL (`/checkout/:planId/:fechaId`,
-/// `/pago/resultado?id=…`, `/reserva/:bookingId`) y cargan todo del backend: sobreviven a una
-/// recarga en web. [haySesion], [refreshListenable] y [initialLocation] existen para probar
-/// el router sin Supabase.
+/// Se crea **una sola vez** (ver `DiversoApp`): recrearlo reiniciaría la navegación. La sesión se
+/// lee de [auth]; el router se reevalúa cuando cambia la sesión o el estado de [consentimiento].
+///
+/// Todas las pantallas llevan sus ids en la URL (`/plan/:id`, `/reservas/:bookingId`,
+/// `/resena/:bookingId`, `/comparar?ids=…`, `/pago/resultado?reserva=…`) y cargan sus datos del
+/// backend, así sobreviven a una recarga en web; `state.extra` solo adelanta datos que ya se
+/// tenían para pintar al instante.
 GoRouter buildViajeroRouter({
-  bool Function()? haySesion,
-  Listenable? refreshListenable,
-  String initialLocation = '/',
+  required AuthRepository auth,
+  required ConsentViewModel consentimiento,
+  String initialLocation = AppRoutes.explorar,
 }) {
-  final auth = haySesion == null ? Supabase.instance.client.auth : null;
-
   return GoRouter(
     initialLocation: initialLocation,
-    refreshListenable:
-        refreshListenable ?? (auth == null ? null : GoRouterRefreshStream(auth.onAuthStateChange)),
-    redirect: (context, state) {
-      final logueado = haySesion != null ? haySesion() : auth!.currentUser != null;
-      final enLogin = state.matchedLocation == '/login';
-      // Los documentos legales se leen antes de crear la cuenta.
-      final enLegal = state.matchedLocation.startsWith('/legal/');
-      if (!logueado && !enLogin && !enLegal) return '/login';
-      if (logueado && enLogin) return '/';
-      return null;
-    },
+    refreshListenable: Listenable.merge([
+      GoRouterRefreshStream(auth.onAuthStateChanged),
+      consentimiento,
+    ]),
+    redirect: (context, state) => sesionRedirect(
+      haySesion: auth.currentUserId != null,
+      consentimiento: consentimiento.estado,
+      ubicacion: state.matchedLocation,
+    ),
+    errorBuilder: (context, state) => PaginaNoEncontradaView(ubicacion: state.uri.toString()),
     routes: [
-      GoRoute(
-        path: '/login',
-        pageBuilder: (context, state) =>
-            DiversoPageTransitions.fadeThrough(key: state.pageKey, child: const LoginView()),
+      _ruta(AppRoutes.login, DiversoPageTransitions.fadeThrough, (_) => const LoginView()),
+      _ruta(
+        AppRoutes.legalPatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => LegalView(docId: state.pathParameters['doc']!),
       ),
-      GoRoute(
-        path: '/legal/:doc',
-        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-          key: state.pageKey,
-          child: LegalView(docId: state.pathParameters['doc']!),
-        ),
-      ),
-      GoRoute(
-        path: '/consentimiento',
-        pageBuilder: (context, state) =>
-            DiversoPageTransitions.fadeThrough(key: state.pageKey, child: const ConsentView()),
+      _ruta(
+        AppRoutes.consentimiento,
+        DiversoPageTransitions.fadeThrough,
+        (_) => const ConsentView(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/',
-                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-                  key: state.pageKey,
-                  child: const CatalogView(),
-                ),
+              _ruta(
+                AppRoutes.explorar,
+                DiversoPageTransitions.fadeThrough,
+                (_) => const CatalogView(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/agencias',
-                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-                  key: state.pageKey,
-                  child: const AgenciasView(),
-                ),
+              _ruta(
+                AppRoutes.agencias,
+                DiversoPageTransitions.fadeThrough,
+                (_) => const AgenciasView(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/reservas',
-                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-                  key: state.pageKey,
-                  child: const BookingsView(),
-                ),
+              _ruta(
+                AppRoutes.reservas,
+                DiversoPageTransitions.fadeThrough,
+                (_) => const BookingsView(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/perfil',
-                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-                  key: state.pageKey,
-                  child: const ProfileView(),
-                ),
+              _ruta(
+                AppRoutes.perfil,
+                DiversoPageTransitions.fadeThrough,
+                (_) => const ProfileView(),
               ),
             ],
           ),
         ],
       ),
-      GoRoute(
-        path: '/agencia/:id',
-        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-          key: state.pageKey,
-          child: AgenciaView(agencyId: state.pathParameters['id']!),
+      _ruta(
+        AppRoutes.agenciaPatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => AgenciaView(agencyId: state.pathParameters['id']!),
+      ),
+      _ruta(
+        AppRoutes.planPatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => PlanDetailView(planId: state.pathParameters['id']!),
+      ),
+      _ruta(
+        AppRoutes.checkoutPatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => CheckoutLoader(
+          planId: state.pathParameters['planId']!,
+          fechaId: state.pathParameters['fechaId']!,
         ),
       ),
-      GoRoute(
-        path: '/plan/:id',
-        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-          key: state.pageKey,
-          child: PlanDetailView(planId: state.pathParameters['id']!),
+      _ruta(
+        AppRoutes.pagoResultado,
+        DiversoPageTransitions.fadeThrough,
+        (state) => PagoResultadoView(
+          transactionId: state.uri.queryParameters['id'],
+          bookingId: state.uri.queryParameters['reserva'],
         ),
       ),
-      GoRoute(
-        path: '/checkout/:planId/:fechaId',
-        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-          key: state.pageKey,
-          child: CheckoutLoader(
-            planId: state.pathParameters['planId']!,
-            fechaId: state.pathParameters['fechaId']!,
-          ),
+      _ruta(
+        AppRoutes.reservaPatron,
+        DiversoPageTransitions.zoomIn,
+        (state) => ReservaView(bookingId: state.pathParameters['bookingId']!),
+      ),
+      _ruta(
+        AppRoutes.reservaDetallePatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => ReservaDetalleView(
+          bookingId: state.pathParameters['bookingId']!,
+          booking: state.extra as Booking?,
         ),
       ),
-      GoRoute(
-        path: DiversoConfig.pagoResultadoPath,
-        pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-          key: state.pageKey,
-          child: PagoResultadoView(
-            transactionId: state.uri.queryParameters['id'],
-            bookingId: state.uri.queryParameters['reserva'],
-          ),
+      _ruta(
+        AppRoutes.resenaPatron,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => ReviewLoader(
+          bookingId: state.pathParameters['bookingId']!,
+          booking: state.extra as Booking?,
         ),
       ),
-      GoRoute(
-        path: '/reserva/:bookingId',
-        pageBuilder: (context, state) => DiversoPageTransitions.zoomIn(
-          key: state.pageKey,
-          child: ReservaView(bookingId: state.pathParameters['bookingId']!),
-        ),
-      ),
-      // Detalle de una reserva propia (desde «Mis reservas»). Lleva el id en la URL y carga del
-      // backend; `extra` solo adelanta la reserva para pintar al instante (se pierde al recargar).
-      GoRoute(
-        path: '/reservas/:bookingId',
-        pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-          key: state.pageKey,
-          child: ReservaDetalleView(
-            bookingId: state.pathParameters['bookingId']!,
-            booking: state.extra as Booking?,
-          ),
-        ),
+      _ruta(
+        AppRoutes.comparar,
+        DiversoPageTransitions.sharedAxisX,
+        (state) => ComparatorLoader(ids: _idsAComparar(state), planes: state.extra as List<Plan>?),
       ),
       // Rutas anteriores (dependían de `state.extra`, que se pierde al recargar en web).
-      GoRoute(path: '/checkout', redirect: (context, state) => '/'),
-      GoRoute(path: '/exito', redirect: (context, state) => '/reservas'),
-      GoRoute(
-        path: '/resena',
-        pageBuilder: (context, state) {
-          final booking = state.extra as Booking?;
-          if (booking == null) {
-            return DiversoPageTransitions.fadeThrough(
-              key: state.pageKey,
-              child: const BookingsView(),
-            );
-          }
-          return DiversoPageTransitions.sharedAxisX(
-            key: state.pageKey,
-            child: ReviewView(booking: booking),
-          );
-        },
-      ),
-      GoRoute(
-        path: '/comparar',
-        pageBuilder: (context, state) {
-          final planes = (state.extra as List<Plan>?) ?? const <Plan>[];
-          return DiversoPageTransitions.sharedAxisX(
-            key: state.pageKey,
-            child: ComparatorView(planes: planes),
-          );
-        },
-      ),
+      GoRoute(path: '/checkout', redirect: (context, state) => AppRoutes.explorar),
+      GoRoute(path: '/exito', redirect: (context, state) => AppRoutes.reservas),
+      GoRoute(path: AppRoutes.resenaBase, redirect: (context, state) => AppRoutes.reservas),
     ],
   );
 }

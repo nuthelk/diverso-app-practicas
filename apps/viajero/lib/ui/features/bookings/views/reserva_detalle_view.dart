@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/feedback/skeleton.dart';
@@ -82,7 +83,7 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
     }
   }
 
-  void _volver() => context.canPop() ? context.pop(_cambio) : context.go('/reservas');
+  void _volver() => context.canPop() ? context.pop(_cambio) : context.go(AppRoutes.reservas);
 
   Future<void> _cancelar(Booking b) async {
     if (!await cancelarConConfirmacion(context, _controller, b)) return;
@@ -97,7 +98,7 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
   }
 
   Future<void> _resenar(Booking b) async {
-    final reseno = await context.push<bool>('/resena', extra: b);
+    final reseno = await context.push<bool>(AppRoutes.resena(b.id), extra: b);
     if (reseno != true || !mounted) return;
     _cambio = true;
     setState(() => _reserva = b.conResena());
@@ -127,7 +128,7 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
         onVolver: _volver,
         onCancelar: () => _cancelar(b),
         onPagar: () => _pagar(b),
-        onVerificar: () => context.go('${DiversoConfig.pagoResultadoPath}?reserva=${b.id}'),
+        onVerificar: () => context.go(AppRoutes.pagoDeReserva(b.id)),
         onResenar: () => _resenar(b),
       );
     } else if (_error != null) {
@@ -334,7 +335,7 @@ class _Detalle extends StatelessWidget {
                       if (planId != null)
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => context.push('/plan/$planId'),
+                            onPressed: () => context.push(AppRoutes.plan(planId)),
                             child: const Text('Ver plan'),
                           ),
                         ),

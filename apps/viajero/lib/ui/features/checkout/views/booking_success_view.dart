@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 
 /// Confirmación inmediata con código e itinerario (Anexo 4: KPI < 5 min), cargada del
@@ -216,12 +217,12 @@ class BookingSuccessView extends StatelessWidget {
                   ],
                   const SizedBox(height: 24),
                   FilledButton(
-                    onPressed: () => context.go('/reservas'),
+                    onPressed: () => context.go(AppRoutes.reservas),
                     child: const Text('Ver mis reservas'),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () => context.go('/'),
+                    onPressed: () => context.go(AppRoutes.explorar),
                     child: const Text('Seguir explorando'),
                   ),
                 ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/widgets/agency_avatar.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
@@ -289,7 +290,7 @@ class _TarjetaAgencia extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadios.card),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/agencia/${agency.id}'),
+        onTap: () => context.push(AppRoutes.agencia(agency.id)),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -563,7 +564,7 @@ class _BarraReservaState extends State<_BarraReserva> {
                 const Spacer(),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(minimumSize: const Size(150, 52)),
-                  onPressed: () => context.push('/checkout/${widget.plan.id}/${fecha.id}'),
+                  onPressed: () => context.push(AppRoutes.checkout(widget.plan.id, fecha.id)),
                   icon: const Icon(Icons.lock_outline_rounded, size: 17),
                   label: const Text('Reservar'),
                 ),

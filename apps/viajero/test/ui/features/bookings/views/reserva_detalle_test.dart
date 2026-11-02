@@ -4,9 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:viajero/router/app_router.dart';
 import 'package:viajero/ui/core/theme/app_theme.dart';
 import 'package:viajero/ui/core/theme/theme_mode_view_model.dart';
+
+import '../../../../support/router_de_prueba.dart';
 
 /// Tarjeta de «Mis reservas» tocable + pantalla «Detalle de la reserva» (`/reservas/:bookingId`).
 /// Se prueba con el router real para fijar también el registro de la ruta. Sin red ni Supabase.
@@ -137,7 +138,7 @@ Future<GoRouter> _abrir(
   tester.view.physicalSize = tamano;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  final router = buildViajeroRouter(haySesion: () => true, initialLocation: url);
+  final router = routerDePrueba(url);
   await tester.pumpWidget(
     MultiProvider(
       providers: [

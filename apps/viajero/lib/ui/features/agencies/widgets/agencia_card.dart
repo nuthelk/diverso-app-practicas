@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/agency_avatar.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
 import '../../../core/widgets/rating/insignia_nueva.dart';
@@ -20,7 +21,7 @@ class AgenciaCard extends StatelessWidget {
       color: cs.surfaceContainerLow,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/agencia/${agencia.id}'),
+        onTap: () => context.push(AppRoutes.agencia(agencia.id)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

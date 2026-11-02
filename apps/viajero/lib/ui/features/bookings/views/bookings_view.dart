@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/feedback/skeleton.dart';
 import '../../../core/widgets/page/titulo_pagina.dart';
@@ -141,18 +142,21 @@ class _BookingsViewState extends State<BookingsView> with AutomaticKeepAliveClie
           historial: historial,
           // Solo se recarga si en el detalle cambió algo (cancelación, pago, reseña): así volver
           // de mirar una reserva no borra la lista ni pierde el desplazamiento.
-          onAbrir: () =>
-              context.push<bool>('/reservas/${lista[i].id}', extra: lista[i]).then((cambio) {
+          onAbrir: () => context
+              .push<bool>(AppRoutes.reservaDetalle(lista[i].id), extra: lista[i])
+              .then((cambio) {
                 if (cambio == true) _controller.cargar();
               }),
           onResenar: _controller.puedeResenar(lista[i])
-              ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
+              ? () => context
+                    .push(AppRoutes.resena(lista[i].id), extra: lista[i])
+                    .then((_) => _controller.cargar())
               : null,
           onPagar: lista[i].estado == BookingStatus.pendientePago
               ? () => completarPago(context, _controller, _pasarela, lista[i])
               : null,
           onVerificar: lista[i].estado == BookingStatus.pendientePago
-              ? () => context.go('${DiversoConfig.pagoResultadoPath}?reserva=${lista[i].id}')
+              ? () => context.go(AppRoutes.pagoDeReserva(lista[i].id))
               : null,
           onCancelar: _controller.puedeCancelar(lista[i])
               ? () => cancelarConConfirmacion(context, _controller, lista[i])

@@ -6,11 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:viajero/router/app_router.dart';
 import 'package:viajero/ui/core/theme/app_theme.dart';
 import 'package:viajero/ui/core/theme/theme_mode_view_model.dart';
 import 'package:viajero/ui/core/widgets/agency_avatar.dart';
 import 'package:viajero/ui/core/widgets/feedback/skeleton.dart';
+
+import '../../../../support/router_de_prueba.dart';
 
 /// Pestaña «Agencias» y página `/agencia/:id`: lista con puntaje («Nueva» sin reseñas), logo o
 /// iniciales, orden elegible, estados de carga/vacío/error, y la página de una agencia con sus
@@ -102,7 +103,7 @@ Future<GoRouter> _abrir(
   tester.view.physicalSize = const Size(600, 1400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  final router = buildViajeroRouter(haySesion: () => true, initialLocation: url);
+  final router = routerDePrueba(url);
   await tester.pumpWidget(
     MultiProvider(
       providers: [

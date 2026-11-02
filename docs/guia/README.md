@@ -117,7 +117,7 @@ Las rutas parten de la raíz del repo; `core` es `packages/diverso_core/lib/` y 
 **Lee.**
 - Capítulo 3, secciones 1 y 2 (mapa de carpetas y capas).
 - `apps/viajero/lib/main.dart` y `apps/viajero/lib/app.dart` (arranque).
-- `apps/viajero/lib/router/app_router.dart` (solo mira la lista de rutas).
+- `apps/viajero/lib/router/app_router.dart` (solo mira la lista de rutas; las constantes están en `app_routes.dart`).
 - `apps/viajero/lib/ui/features/catalog/views/catalog_view.dart` (solo hasta el primer `build`).
 
 **Ejercicio.**
@@ -292,7 +292,7 @@ router.
 
 **Lee.**
 - Capítulo 3, sección 8.
-- `viajero/router/app_router.dart` completo.
+- `viajero/router/app_router.dart` completo, y `app_routes.dart` y `sesion_redirect.dart`.
 - `viajero/ui/shell/app_shell.dart` (la barra de pestañas).
 - `apps/viajero/test/router/rutas_pago_test.dart` (cómo se prueba el router).
 
@@ -313,8 +313,10 @@ router.
 **Ya lo entendí si…**
 - [ ] Dices qué impide que alguien sin sesión vea `/reservas`.
 - [ ] Explicas la diferencia entre `context.push` y `context.go`.
-- [ ] Explicas por qué `/resena` se rompe al recargar la página en web y `/reserva/:bookingId`
-      no.
+- [ ] Explicas por qué una ruta que dependiera de `state.extra` se rompería al recargar la página
+      en web y `/reserva/:bookingId` o `/comparar?ids=…` no.
+- [ ] Dices qué pasa si falla la consulta del consentimiento (`ConsentViewModel`) y cómo se
+      reintenta.
 
 ---
 

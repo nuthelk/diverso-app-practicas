@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import 'checkout_view.dart';
 
@@ -64,7 +65,7 @@ class _CheckoutLoaderState extends State<CheckoutLoader> {
               titulo: 'Fecha no disponible',
               mensaje: 'Esa fecha ya no está disponible. Elige otra salida de este plan.',
               accion: FilledButton.tonal(
-                onPressed: () => context.go('/plan/${plan.id}'),
+                onPressed: () => context.go(AppRoutes.plan(plan.id)),
                 child: const Text('Ver fechas del plan'),
               ),
             ),

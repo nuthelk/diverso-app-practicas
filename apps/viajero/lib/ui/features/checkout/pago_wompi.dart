@@ -7,13 +7,14 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../router/app_routes.dart';
+
 /// URL a la que Wompi devuelve al viajero, según la plataforma:
 /// - Web: `<origen de la app>/pago/resultado` (misma ventana; el origen debe estar en la lista
 ///   de permitidos del backend, p. ej. http://localhost:8080).
 /// - Android/iOS: `https://diverso.app/pago/resultado`, interceptada por el WebView.
-String urlRetornoPago() => kIsWeb
-    ? '${Uri.base.origin}${DiversoConfig.pagoResultadoPath}'
-    : DiversoConfig.pagoRetornoMovil;
+String urlRetornoPago() =>
+    kIsWeb ? '${Uri.base.origin}${AppRoutes.pagoResultado}' : DiversoConfig.pagoRetornoMovil;
 
 /// ¿Es [url] la redirección final de Wompi (`https://diverso.app/pago/resultado[?id=…]`)?
 bool esRedireccionDePago(String url) {
@@ -54,7 +55,7 @@ Future<bool> iniciarPago(
     MaterialPageRoute(builder: (_) => PagoWompiPage(checkoutUrl: checkout.checkoutUrl)),
   );
   if (id == null || !context.mounted) return false;
-  context.go('${DiversoConfig.pagoResultadoPath}?id=${Uri.encodeQueryComponent(id)}');
+  context.go(AppRoutes.pagoDeTransaccion(id));
   return true;
 }
 

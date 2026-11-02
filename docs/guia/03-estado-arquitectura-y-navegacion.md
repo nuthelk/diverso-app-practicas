@@ -8,9 +8,9 @@ más te sirve para empezar a tocar código.
 
 > ### En construcción
 > La fase **F4a** ya separó en `diverso_core` los *services* (consultas) de los *repositories*
-> (mapeo y reglas) y pasó el cliente de Supabase por constructor. Las fases **F4b–F5** van a
-> centralizar la creación de dependencias en un solo punto, a mover reglas a los modelos y a
-> hacer privado el estado de los view models.
+> (mapeo y reglas) y pasó el cliente de Supabase por constructor; la **F4b** dejó un solo punto de
+> creación de dependencias, partió el router y pasó el consentimiento a un redirect. La fase
+> **F5** va a mover reglas a los modelos y a hacer privado el estado de los view models.
 > Las rutas y los nombres de este capítulo describen el repo **ahora**; algunos cambiarán.
 > **Este capítulo se actualiza al terminar.** Los puntos que van a cambiar están marcados con
 > "Hoy".
@@ -36,15 +36,17 @@ que también usa el panel Flutter legado (`apps/panel_agencias`).
 ```
 apps/viajero/lib/
 |-- main.dart                 arranque: Supabase + dependencias + runApp
-|-- app.dart                  MaterialApp.router + tema
+|-- app.dart                  MaterialApp.router + tema; crea el router una sola vez
 |-- router/
-|   |-- app_router.dart       rutas, redirect de sesión, pestañas
+|   |-- app_routes.dart       constantes de rutas y helpers que arman cada URL
+|   |-- sesion_redirect.dart  función pura: sesión + consentimiento + ubicación -> redirect
+|   |-- app_router.dart       la tabla de rutas (GoRoute, pestañas, errorBuilder)
 |   `-- go_router_refresh_stream.dart   Stream de sesión -> router
 `-- ui/
     |-- core/                 lo compartido por todas las pantallas
     |   |-- theme/            app_theme, app_radii, theme_mode_view_model
     |   `-- widgets/          {feedback,page,plan,rating}/ + section_label, agency_avatar
-    |-- shell/app_shell.dart  barra inferior de pestañas
+    |-- shell/                app_shell (barra inferior de pestañas), pagina_no_encontrada_view
     `-- features/<funcionalidad>/      agencies, auth, bookings, catalog, checkout,
         |-- views/                     legal, plan, profile
         |-- view_models/
@@ -301,6 +303,7 @@ runApp(
       ),
       Provider<ReviewRepository>.value(value: ReviewRepository(client: client)),
       Provider<AuthRepository>.value(value: AuthRepository(client: client)),
+      ChangeNotifierProvider(create: (context) => ConsentViewModel(auth: context.read())),
       Provider<PaymentGateway>.value(value: WompiPaymentGateway(edgeFunctions: edgeFunctions)),
     ],
     child: const DiversoApp(),
@@ -319,9 +322,9 @@ con `--dart-define=SUPABASE_URL=http://10.0.2.2:54331` (ver el [README principal
 `PaymentGateway` es la única abstracción del repo: una clase abstracta con una implementación
 real (`WompiPaymentGateway`) que los tests reemplazan por un doble.
 
-> **Hoy.** Falta una pieza: `router/app_router.dart` todavía lee `Supabase.instance.client.auth`
-> (un global) para el redirect de sesión. La fase F4b la saca de ahí y deja **un solo** punto de
-> creación de dependencias.
+El router tampoco toca `Supabase.instance`: `DiversoApp` lo construye con el `AuthRepository` y el
+`ConsentViewModel` que salen de este mismo `MultiProvider` (sección 8). Desde `main.dart` no hay
+ningún otro lugar en `lib/` que lea el global.
 
 ## 7. Seguir un toque de punta a punta
 
@@ -342,6 +345,9 @@ Consumer<ThemeModeViewModel>    (app.dart) se reconstruye
    v
 MaterialApp.router(themeMode: modo.mode)  ->  todo Theme.of(context) usa el esquema oscuro
 ```
+
+El router **no** se reconstruye con el tema: `DiversoApp` lo crea una sola vez en `initState` y el
+`Consumer` solo repinta el `MaterialApp.router` (sección 8, «Se crea una sola vez»).
 
 ### B. Elegir una categoría en el catálogo (con red)
 
@@ -366,46 +372,58 @@ Para cada flecha hay un archivo y una función: ese es el ejercicio de la sesió
 
 ## 8. Navegación con `go_router`
 
-La navegación está en `apps/viajero/lib/router/app_router.dart`, en una función
-`buildViajeroRouter()` que devuelve un `GoRouter`. `app.dart` se lo entrega a
-`MaterialApp.router(routerConfig: …)`.
+La navegación vive en tres archivos de `apps/viajero/lib/router/`:
+
+| Archivo | Qué contiene |
+|---|---|
+| `app_routes.dart` | `AppRoutes`: los patrones (`/plan/:id`) y los helpers que arman cada URL (`AppRoutes.plan(id)`, `AppRoutes.pagoDeReserva(id)`, `AppRoutes.compararPlanes(ids)`). Ninguna pantalla escribe una ruta a mano |
+| `sesion_redirect.dart` | `sesionRedirect(...)`: una función pura que decide a dónde mandar al usuario |
+| `app_router.dart` | `buildViajeroRouter(auth:, consentimiento:)`: la tabla de rutas, que devuelve un `GoRouter` |
+
+`app.dart` entrega ese router a `MaterialApp.router(routerConfig: …)`.
 
 **Una diferencia de fondo con expo-router:** aquí **no hay rutas por archivos**. Todas las rutas
 están declaradas en un solo árbol de `GoRoute`.
 
 | expo-router / React Navigation | `go_router` | Ejemplo en el repo |
 |---|---|---|
-| `app/plan/[id].tsx` | `GoRoute(path: '/plan/:id', …)` | `app_router.dart` |
+| `app/plan/[id].tsx` | `GoRoute(path: AppRoutes.planPatron, …)` | `app_router.dart`, `app_routes.dart` |
 | `useLocalSearchParams().id` | `state.pathParameters['id']!` | idem |
 | `?id=…` (search params) | `state.uri.queryParameters['id']` | ruta `/pago/resultado` |
-| `router.push('/x')` | `context.push('/x')` | `plan_card.dart` |
+| `router.push('/x')` | `context.push(AppRoutes.plan(id))` | `plan_card.dart` |
 | `router.replace` / navegar | `context.go('/x')` | `bookings_view.dart` |
 | `router.back()` | `context.pop()` | `agencia_view.dart` |
-| parámetros-objeto (`params`) | `state.extra` | `/resena`, `/comparar` |
+| parámetros-objeto (`params`) | `state.extra` (solo como atajo) | `/resena/:bookingId`, `/comparar?ids=…` |
 | `(tabs)/_layout.tsx` | `StatefulShellRoute.indexedStack` | `app_router.dart` |
 | `<Tabs>` con su barra | el widget `AppShell` | `ui/shell/app_shell.dart` |
-| guardia con `<Redirect>` en el layout | `redirect:` | `app_router.dart` |
-| `<Stack.Screen options>` / animación | `pageBuilder` + `DiversoPageTransitions` | `app_router.dart` |
+| guardia con `<Redirect>` en el layout | `redirect:` | `sesion_redirect.dart` |
+| `<Stack.Screen options>` / animación | `pageBuilder` + `DiversoPageTransitions` | `app_router.dart` (`_ruta`) |
+| pantalla `+not-found.tsx` | `errorBuilder:` | `pagina_no_encontrada_view.dart` |
 
 ### Rutas con parámetros
 
 ```dart
-GoRoute(
-  path: '/plan/:id',
-  pageBuilder: (context, state) => DiversoPageTransitions.sharedAxisX(
-    key: state.pageKey,
-    child: PlanDetailView(planId: state.pathParameters['id']!),
-  ),
+_ruta(
+  AppRoutes.planPatron,                      // '/plan/:id'
+  DiversoPageTransitions.sharedAxisX,
+  (state) => PlanDetailView(planId: state.pathParameters['id']!),
 ),
 ```
+
+`_ruta` (en `app_router.dart`) es un ayudante pequeño que arma el `GoRoute` con su
+`pageBuilder` y la transición; evita repetir quince veces
+`DiversoPageTransitions.X(key: state.pageKey, child: …)`.
 
 La ruta pasa solo el **id** a la vista y la vista carga el plan del backend. Así la pantalla se
 reconstruye igual si se recarga la página en web. `DiversoPageTransitions` (en
 `packages/diverso_core/lib/ui/page_transitions.dart`) define las animaciones de entrada.
 
-Los objetos pasados con `state.extra` se **pierden al recargar** en web; por eso las rutas
-importantes (`/checkout/:planId/:fechaId`, `/reserva/:bookingId`, `/pago/resultado?id=…`) llevan
-ids en la URL. `/resena` y `/comparar` todavía usan `extra`; está previsto cambiar `extra` por ids en la fase F4b.
+Los objetos pasados con `state.extra` se **pierden al recargar** en web; por eso **todas** las
+pantallas llevan sus ids en la URL (`/checkout/:planId/:fechaId`, `/reserva/:bookingId`,
+`/pago/resultado?id=…`, `/resena/:bookingId`, `/comparar?ids=a,b`) y cargan sus datos del backend.
+`extra` queda solo como atajo para pintar al instante lo que ya se tenía: `/resena/:bookingId`
+recibe la `Booking` de «Mis reservas» y `/comparar` los `Plan` del catálogo (`ReviewLoader` y
+`ComparatorLoader` los usan solo si coinciden con los ids de la URL; si no, los piden).
 
 ### Pestañas: `StatefulShellRoute`
 
@@ -429,28 +447,67 @@ pestañas que ya abriste: es el comportamiento de `<Tabs>` en expo-router. `AppS
 `shell.goBranch(i, initialLocation: i == shell.currentIndex)` (tocar la pestaña activa vuelve a su
 raíz).
 
-### `redirect`: la guardia de sesión
+### `redirect`: la guardia de sesión y de consentimiento
 
 ```dart
-redirect: (context, state) {
-  final logueado = haySesion != null ? haySesion() : auth!.currentUser != null;
-  final enLogin = state.matchedLocation == '/login';
-  // Los documentos legales se leen antes de crear la cuenta.
-  final enLegal = state.matchedLocation.startsWith('/legal/');
-  if (!logueado && !enLogin && !enLegal) return '/login';
-  if (logueado && enLogin) return '/';
-  return null;
-},
+redirect: (context, state) => sesionRedirect(
+  haySesion: auth.currentUserId != null,
+  consentimiento: consentimiento.estado,
+  ubicacion: state.matchedLocation,
+),
 ```
 
 Se ejecuta en **cada** navegación. Devolver una ruta redirige; devolver `null` deja pasar. Es tu
-guardia de autenticación. Para que reaccione al login y logout sin que el usuario navegue,
-`refreshListenable` recibe `GoRouterRefreshStream(auth.onAuthStateChange)` (el `Stream` del
-capítulo 1, sección 10): cada cambio de sesión fuerza a reevaluar el `redirect`.
+guardia de autenticación, y la decisión vive en una función pura (`sesion_redirect.dart`) que se
+prueba sin Flutter (`test/router/sesion_redirect_test.dart`):
 
-`buildViajeroRouter` recibe `haySesion`, `refreshListenable` e `initialLocation` solo para probar
-el router sin Supabase: `buildViajeroRouter(haySesion: () => true, initialLocation: url)` en
-`apps/viajero/test/router/rutas_pago_test.dart`.
+| Sesión | Consentimiento | Resultado |
+|---|---|---|
+| no | (da igual) | todo va a `/login`, salvo `/login` y `/legal/*` |
+| sí | `pendiente` o `error` | todo va a `/consentimiento`, salvo él mismo y `/legal/*` |
+| sí | `verificando` | no mueve a nadie (`/login` va a `/`) |
+| sí | `aceptado` | `/login` y `/consentimiento` van a `/` |
+
+Para que reaccione al login y logout sin que el usuario navegue, `refreshListenable` junta el
+`GoRouterRefreshStream(auth.onAuthStateChanged)` (el `Stream` del capítulo 1, sección 10) con el
+`ConsentViewModel`: cualquier cambio de sesión o de consentimiento reevalúa el `redirect`. La
+sesión se lee del `AuthRepository`, no de `Supabase.instance`.
+
+### El consentimiento es estado de enrutamiento
+
+La Ley 1581 de 2012 exige la autorización vigente de los documentos legales. Antes, `AppShell`
+la consultaba una vez en `initState` y, si la consulta fallaba (sin red), nunca volvía a mirar.
+Ahora `ConsentViewModel` (`ui/features/legal/view_models/`) expone un `EstadoConsentimiento`:
+
+- `verificando`: consulta en curso o sin sesión.
+- `pendiente`: falta aceptar algún documento.
+- `aceptado`: al día.
+- `error`: la consulta falló, **no se sabe**; se trata como pendiente. `ConsentView` se muestra con
+  un aviso y el botón «Reintentar» en vez de dejar entrar.
+
+Se vuelve a consultar cuando **cambia la sesión** (otro usuario), al pulsar **«Reintentar»** y al
+**volver a primer plano** si el último intento falló (`DiversoApp` escucha el ciclo de vida de la
+app y llama a `reintentar()`). Es el MVVM de siempre: la vista solo pinta el estado del view model
+y el router lo usa para decidir la pantalla.
+
+### Se crea una sola vez
+
+`DiversoApp` es un `StatefulWidget` que llama a `buildViajeroRouter` en `initState` y guarda el
+`GoRouter`. Si se construyera en `build` (por ejemplo dentro del `Consumer<ThemeModeViewModel>`),
+cada cambio de tema crearía un router nuevo y la navegación volvería a `/`. Es la misma idea que no
+crear un `NavigationContainer` nuevo en cada render en React Navigation.
+
+### Página no encontrada
+
+`errorBuilder` muestra `PaginaNoEncontradaView` («No encontramos esta página») con el botón «Ir al
+inicio» cuando la URL no coincide con ninguna ruta.
+
+### Probar el router
+
+`buildViajeroRouter` recibe un `AuthRepository` y un `ConsentViewModel`; las pruebas usan
+`AuthFalso` (`test/support/auth_falso.dart`) y `routerDePrueba(url)`
+(`test/support/router_de_prueba.dart`), por ejemplo `routerDePrueba('/checkout/plan-1/fecha-1')`
+en `apps/viajero/test/router/rutas_pago_test.dart`.
 
 ### Tabla de rutas
 
@@ -458,7 +515,7 @@ el router sin Supabase: `buildViajeroRouter(haySesion: () => true, initialLocati
 |---|---|---|
 | `/login` | `LoginView` | inicio de sesión y registro |
 | `/legal/:doc` | `LegalView` | pública (se lee antes de registrarse) |
-| `/consentimiento` | `ConsentView` | pide aceptar la versión vigente de los documentos |
+| `/consentimiento` | `ConsentView` | destino del redirect cuando falta (o no se pudo verificar) la autorización |
 | `/` | `CatalogView` | pestaña Explorar |
 | `/agencias` | `AgenciasView` | pestaña Agencias |
 | `/reservas` | `BookingsView` | pestaña Reservas |
@@ -469,9 +526,10 @@ el router sin Supabase: `buildViajeroRouter(haySesion: () => true, initialLocati
 | `/pago/resultado` | `PagoResultadoView` | `?id=` (transacción) o `?reserva=` |
 | `/reserva/:bookingId` | `ReservaView` | confirmación de una reserva |
 | `/reservas/:bookingId` | `ReservaDetalleView` | detalle desde "Mis reservas" |
-| `/resena` | `ReviewView` | recibe la reserva en `extra` |
-| `/comparar` | `ComparatorView` | recibe los planes en `extra` |
-| `/checkout`, `/exito` | (redirigen) | rutas antiguas que ya no existen como pantalla |
+| `/resena/:bookingId` | `ReviewLoader` | carga la reserva y muestra `ReviewView`; `extra` opcional |
+| `/comparar?ids=a,b` | `ComparatorLoader` | carga los planes y muestra `ComparatorView`; `extra` opcional |
+| `/checkout`, `/exito`, `/resena` | (redirigen) | rutas antiguas que ya no existen como pantalla |
+| cualquier otra | `PaginaNoEncontradaView` | `errorBuilder` |
 
 `/pago/resultado` es `DiversoConfig.pagoResultadoPath` (`diverso_config.dart`), la URL a la que
 Wompi devuelve al viajero.

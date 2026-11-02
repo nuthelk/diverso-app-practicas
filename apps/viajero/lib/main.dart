@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
 import 'ui/core/theme/theme_mode_view_model.dart';
+import 'ui/features/legal/view_models/consent_view_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,7 @@ Future<void> main() async {
         ),
         Provider<ReviewRepository>.value(value: ReviewRepository(client: client)),
         Provider<AuthRepository>.value(value: AuthRepository(client: client)),
+        ChangeNotifierProvider(create: (context) => ConsentViewModel(auth: context.read())),
         Provider<PaymentGateway>.value(value: WompiPaymentGateway(edgeFunctions: edgeFunctions)),
       ],
       child: const DiversoApp(),

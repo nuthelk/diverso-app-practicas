@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/theme_mode_view_model.dart';
 import '../../../core/widgets/page/titulo_pagina.dart';
@@ -149,7 +150,7 @@ class _ProfileViewState extends State<ProfileView> {
                   title: const Text('Política de tratamiento de datos'),
                   subtitle: const Text('Versión $kVersionLegal'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push('/legal/privacidad'),
+                  onTap: () => context.push(AppRoutes.legal('privacidad')),
                 ),
                 Divider(height: 1, indent: 56, color: cs.outlineVariant.withValues(alpha: .5)),
                 ListTile(
@@ -157,7 +158,7 @@ class _ProfileViewState extends State<ProfileView> {
                   title: const Text('Términos y condiciones'),
                   subtitle: const Text('Versión $kVersionLegal'),
                   trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => context.push('/legal/terminos-viajeros'),
+                  onTap: () => context.push(AppRoutes.legal('terminos-viajeros')),
                 ),
               ],
             ),

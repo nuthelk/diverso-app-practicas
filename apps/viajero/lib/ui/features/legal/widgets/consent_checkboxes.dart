@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/app_routes.dart';
+
 /// Casillas de autorización expresa (Ley 1581 de 2012). Nunca vienen
 /// marcadas: el titular debe aceptarlas de forma activa.
 class ConsentCheckboxes extends StatelessWidget {
@@ -38,7 +40,7 @@ class ConsentCheckboxes extends StatelessWidget {
                   'Autorizo de manera previa, expresa e informada el tratamiento de mis '
                   'datos personales según la ',
             ),
-            _enlace(context, 'política de tratamiento de datos', '/legal/privacidad'),
+            _enlace(context, 'política de tratamiento de datos', AppRoutes.legal('privacidad')),
             const TextSpan(text: ' (Ley 1581 de 2012).'),
           ],
         ),
@@ -49,7 +51,7 @@ class ConsentCheckboxes extends StatelessWidget {
           error: mostrarError && !aceptaTerminos,
           partes: [
             const TextSpan(text: 'Acepto los '),
-            _enlace(context, 'términos y condiciones', '/legal/terminos-viajeros'),
+            _enlace(context, 'términos y condiciones', AppRoutes.legal('terminos-viajeros')),
             const TextSpan(text: '.'),
           ],
         ),

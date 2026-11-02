@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/agency_avatar.dart';
@@ -91,7 +92,7 @@ void _volver(BuildContext context) {
   if (context.canPop()) {
     context.pop();
   } else {
-    context.go('/agencias');
+    context.go(AppRoutes.agencias);
   }
 }
 

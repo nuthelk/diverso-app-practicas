@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/widgets/section_label.dart';
 import '../pago_wompi.dart';
@@ -46,8 +47,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   Future<void> _pagar() => _controller.pagar(widget.fecha, _abrirPago);
 
   /// Fallback si la redirección no llegó: el servidor consulta a Wompi por la reserva.
-  void _yaPague(String bookingId) =>
-      context.go('${DiversoConfig.pagoResultadoPath}?reserva=$bookingId');
+  void _yaPague(String bookingId) => context.go(AppRoutes.pagoDeReserva(bookingId));
 
   @override
   Widget build(BuildContext context) {

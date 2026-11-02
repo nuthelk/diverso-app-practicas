@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../legal/widgets/consent_checkboxes.dart';
 
@@ -282,7 +283,7 @@ class _LoginViewState extends State<LoginView> {
                       foregroundColor: cs.onSurfaceVariant,
                       textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                     ),
-                    onPressed: () => context.push('/legal/privacidad'),
+                    onPressed: () => context.push(AppRoutes.legal('privacidad')),
                     child: const Text('Política de datos'),
                   ),
                   TextButton(
@@ -290,7 +291,7 @@ class _LoginViewState extends State<LoginView> {
                       foregroundColor: cs.onSurfaceVariant,
                       textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
                     ),
-                    onPressed: () => context.push('/legal/terminos-viajeros'),
+                    onPressed: () => context.push(AppRoutes.legal('terminos-viajeros')),
                     child: const Text('Términos y condiciones'),
                   ),
                 ],

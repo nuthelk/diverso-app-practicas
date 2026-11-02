@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/widgets/plan/price_text.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
@@ -26,7 +27,7 @@ class PlanCard extends StatelessWidget {
       color: cs.surfaceContainerLow,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push('/plan/${plan.id}'),
+        onTap: () => context.push(AppRoutes.plan(plan.id)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

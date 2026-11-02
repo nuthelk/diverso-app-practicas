@@ -4,6 +4,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 
 /// Comparador de planes "todo incluido" (Anexo 6, idea 7): enfrenta hasta 3
@@ -177,7 +178,7 @@ class _TablaComparacion extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         minimumSize: const Size.fromHeight(40),
                       ),
-                      onPressed: () => context.push('/plan/${planes[i].id}'),
+                      onPressed: () => context.push(AppRoutes.plan(planes[i].id)),
                       child: const Text('Ver plan'),
                     ),
                     abajo: true,

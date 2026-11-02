@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:viajero/router/app_router.dart';
 import 'package:viajero/ui/core/theme/app_theme.dart';
 import 'package:viajero/ui/core/theme/theme_mode_view_model.dart';
 import 'package:viajero/ui/features/checkout/view_models/checkout_view_model.dart';
 import 'package:viajero/ui/features/checkout/widgets/reserva_pendiente_aviso.dart';
+
+import '../../../support/router_de_prueba.dart';
 
 /// Reserva pendiente de pago ya existente: el checkout no debe crear otra (retendría cupos
 /// dos veces durante 30 min), sino ofrecer completarla o cancelarla. Sin red ni Supabase.
@@ -306,10 +307,7 @@ void main() {
       tester.view.physicalSize = const Size(900, 2600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      final router = buildViajeroRouter(
-        haySesion: () => true,
-        initialLocation: '/checkout/plan-1/fecha-1',
-      );
+      final router = routerDePrueba('/checkout/plan-1/fecha-1');
       await tester.pumpWidget(
         MultiProvider(
           providers: [

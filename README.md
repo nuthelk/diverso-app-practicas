@@ -100,7 +100,9 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - **Móvil vs. web:** en Android/iOS el checkout se abre en un WebView y la app intercepta la
   URL de retorno `https://diverso.app/pago/resultado` (nunca se carga); en web se navega a
   Wompi y vuelve a `/pago/resultado`. Las rutas `/checkout/:planId/:fechaId`,
-  `/reserva/:bookingId` y `/pago/resultado` sobreviven a recargar la página.
+  `/reserva/:bookingId`, `/pago/resultado`, `/resena/:bookingId` y `/comparar?ids=a,b` llevan los
+  ids en la URL y sobreviven a recargar la página; una URL desconocida muestra «No encontramos
+  esta página».
 
 ### Migraciones
 
@@ -404,6 +406,11 @@ cd apps/viajero && flutter test
   `test/ui/features/checkout/checkout_pendiente_test.dart`,
   `test/ui/features/bookings/widgets/cancel_dialog_test.dart` — pasarela, rutas que sobreviven
   a la recarga, aviso de reserva pendiente y diálogo de cancelación.
+- `test/router/sesion_redirect_test.dart`, `test/router/consentimiento_test.dart`,
+  `test/router/rutas_con_ids_test.dart`, `test/app_test.dart` — el redirect de sesión y
+  consentimiento (función pura y recorrido completo con «Reintentar»), las rutas con ids
+  (`/resena/:bookingId`, `/comparar?ids=…`), la página no encontrada y que cambiar el tema no
+  reinicie la navegación.
 - `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
   `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
   y sello de verificación/documentos legales.

@@ -1,12 +1,16 @@
-import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../view_models/consent_view_model.dart';
 import '../widgets/consent_checkboxes.dart';
 
 /// Pide la autorización vigente a cuentas que no la tienen (creadas antes
 /// de la versión actual o tras un cambio de los documentos). No se puede
 /// cerrar sin aceptar; la alternativa es cerrar sesión.
+///
+/// Es el destino del redirect por consentimiento ([ConsentViewModel]): si no se pudo verificar
+/// qué falta aceptar, muestra un aviso con «Reintentar» en vez de dejar pasar. Al aceptar, el
+/// router saca al usuario de aquí.
 class ConsentView extends StatefulWidget {
   const ConsentView({super.key});
 
@@ -15,42 +19,66 @@ class ConsentView extends StatefulWidget {
 }
 
 class _ConsentViewState extends State<ConsentView> {
-  late final AuthRepository _auth;
   bool _datos = false;
   bool _terminos = false;
   bool _intentado = false;
   bool _guardando = false;
   String? _error;
 
-  @override
-  void initState() {
-    super.initState();
-    _auth = context.read<AuthRepository>();
-  }
-
-  Future<void> _aceptar() async {
+  Future<void> _aceptar(ConsentViewModel consentimiento) async {
     setState(() => _intentado = true);
     if (!_datos || !_terminos) return;
     setState(() {
       _guardando = true;
       _error = null;
     });
-    try {
-      final pendientes = await _auth.consentimientosPendientes();
-      for (final tipo in pendientes) {
-        await _auth.registrarConsentimiento(tipo);
-      }
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'No pudimos guardar tu autorización. Intenta de nuevo.');
-    } finally {
-      if (mounted) setState(() => _guardando = false);
-    }
+    final guardado = await consentimiento.aceptar();
+    if (!mounted) return;
+    setState(() {
+      _guardando = false;
+      if (!guardado) _error = 'No pudimos guardar tu autorización. Intenta de nuevo.';
+    });
   }
+
+  /// No se pudo saber qué falta aceptar: no se deja pasar, se avisa y se ofrece reintentar.
+  List<Widget> _sinVerificar(ConsentViewModel consentimiento, ColorScheme cs) => [
+    Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(14)),
+      child: Text(
+        'No pudimos verificar tu autorización. Revisa tu conexión e intenta de nuevo.',
+        style: TextStyle(color: cs.onErrorContainer, fontSize: 13.5, height: 1.4),
+      ),
+    ),
+    const SizedBox(height: 16),
+    FilledButton(onPressed: consentimiento.reintentar, child: const Text('Reintentar')),
+  ];
+
+  List<Widget> _formulario(ConsentViewModel consentimiento, ColorScheme cs) => [
+    ConsentCheckboxes(
+      aceptaDatos: _datos,
+      aceptaTerminos: _terminos,
+      mostrarError: _intentado,
+      onDatos: (v) => setState(() => _datos = v),
+      onTerminos: (v) => setState(() => _terminos = v),
+    ),
+    if (_error != null) ...[
+      const SizedBox(height: 12),
+      Text(_error!, style: TextStyle(color: cs.error, fontSize: 13.5)),
+    ],
+    const SizedBox(height: 24),
+    FilledButton(
+      onPressed: _guardando ? null : () => _aceptar(consentimiento),
+      child: _guardando
+          ? const SizedBox(height: 19, width: 19, child: CircularProgressIndicator(strokeWidth: 2))
+          : const Text('Aceptar y continuar'),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final consentimiento = context.watch<ConsentViewModel>();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -89,31 +117,15 @@ class _ConsentViewState extends State<ConsentView> {
                     style: TextStyle(fontSize: 14, height: 1.5, color: cs.onSurfaceVariant),
                   ),
                   const SizedBox(height: 20),
-                  ConsentCheckboxes(
-                    aceptaDatos: _datos,
-                    aceptaTerminos: _terminos,
-                    mostrarError: _intentado,
-                    onDatos: (v) => setState(() => _datos = v),
-                    onTerminos: (v) => setState(() => _terminos = v),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: cs.error, fontSize: 13.5)),
-                  ],
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: _guardando ? null : _aceptar,
-                    child: _guardando
-                        ? const SizedBox(
-                            height: 19,
-                            width: 19,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Aceptar y continuar'),
-                  ),
+                  if (consentimiento.estado == EstadoConsentimiento.error)
+                    ..._sinVerificar(consentimiento, cs)
+                  else if (consentimiento.estado == EstadoConsentimiento.verificando && !_guardando)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    ..._formulario(consentimiento, cs),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: _guardando ? null : () => _auth.signOut(),
+                    onPressed: _guardando ? null : consentimiento.cerrarSesion,
                     child: const Text('Cerrar sesión'),
                   ),
                 ],

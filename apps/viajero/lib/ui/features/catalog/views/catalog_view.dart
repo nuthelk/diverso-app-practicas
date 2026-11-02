@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
@@ -240,7 +241,8 @@ class _CatalogViewState extends State<CatalogView> with AutomaticKeepAliveClient
                     maximo: CatalogViewModel.maxComparar,
                     onQuitar: _controller.toggleComparar,
                     onLimpiar: _controller.limpiarComparar,
-                    onComparar: () => context.push('/comparar', extra: sel),
+                    onComparar: () =>
+                        context.push(AppRoutes.compararPlanes(sel.map((p) => p.id)), extra: sel),
                   ),
           );
         },

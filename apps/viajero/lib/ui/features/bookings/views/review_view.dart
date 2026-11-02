@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
+
 /// Reseña verificada: solo se llega desde una reserva propia ya viajada
 /// (RLS lo garantiza en el servidor).
 class ReviewView extends StatefulWidget {
@@ -44,7 +46,8 @@ class _ReviewViewState extends State<ReviewView> {
       msg.showSnackBar(
         const SnackBar(content: Text('¡Gracias! Tu reseña ayudará a otros viajeros.')),
       );
-      if (mounted) context.pop(true);
+      // Abierta directo (recarga en web) no hay pantalla anterior a la que volver.
+      if (mounted) context.canPop() ? context.pop(true) : context.go(AppRoutes.reservas);
     } on DiversoException catch (e) {
       msg.showSnackBar(SnackBar(content: Text(e.mensajeUsuario)));
       if (mounted) setState(() => _enviando = false);
@@ -159,9 +162,11 @@ class _ReviewViewState extends State<ReviewView> {
                   children: [
                     Icon(Icons.verified_rounded, size: 13, color: cs.tertiary),
                     const SizedBox(width: 5),
-                    Text(
-                      'Reseña verificada: solo quien viajó puede opinar',
-                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                    Flexible(
+                      child: Text(
+                        'Reseña verificada: solo quien viajó puede opinar',
+                        style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                      ),
                     ),
                   ],
                 ),

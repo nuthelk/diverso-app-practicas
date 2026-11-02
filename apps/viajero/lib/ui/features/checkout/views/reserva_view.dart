@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import 'booking_success_view.dart';
 
@@ -47,7 +48,7 @@ class _ReservaViewState extends State<ReservaView> {
               titulo: 'No pudimos cargar la reserva',
               mensaje: f.mensajeUsuario,
               accion: FilledButton.tonal(
-                onPressed: () => context.go('/reservas'),
+                onPressed: () => context.go(AppRoutes.reservas),
                 child: const Text('Ver mis reservas'),
               ),
             ),
@@ -60,7 +61,7 @@ class _ReservaViewState extends State<ReservaView> {
             return BookingSuccessView(booking: reserva);
           case BookingStatus.pendientePago:
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) context.go('${DiversoConfig.pagoResultadoPath}?reserva=${reserva.id}');
+              if (mounted) context.go(AppRoutes.pagoDeReserva(reserva.id));
             });
             return _estado(const Center(child: CircularProgressIndicator()));
           case BookingStatus.cancelada:
@@ -72,7 +73,7 @@ class _ReservaViewState extends State<ReservaView> {
                     'La reserva ${reserva.codigo} está cancelada.'
                     '${reserva.etiquetaReembolso == null ? '' : ' ${reserva.etiquetaReembolso}.'}',
                 accion: FilledButton.tonal(
-                  onPressed: () => context.go('/reservas'),
+                  onPressed: () => context.go(AppRoutes.reservas),
                   child: const Text('Ver mis reservas'),
                 ),
               ),
