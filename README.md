@@ -46,6 +46,8 @@ supabase/             → migraciones SQL, seed, pruebas SQL, Edge Functions de 
 tools/iconos          → generador de los íconos de la app y de las webs (Pillow)
 ```
 
+- **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
+  aprendizaje y capítulos para quien viene de React Native y TypeScript).
 - **Backend:** Supabase (PostgreSQL + Auth + Storage + API REST auto-generada + Edge
   Functions), enfoque API-first como pide el Anexo 6.
 - **Anti-sobreventa (el reto de ingeniería central):** la reserva vive en la RPC
