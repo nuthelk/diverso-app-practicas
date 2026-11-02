@@ -7,9 +7,10 @@ más te sirve para empezar a tocar código.
 > Volver al [plan de aprendizaje](README.md). Este capítulo cubre las sesiones 6 y 7.
 
 > ### En construcción
-> Las fases **F4–F5** del trabajo de arquitectura van a introducir *repositories* (hoy los
-> servicios de `diverso_core` mezclan consultas, mapeo y reglas), a mover reglas a los modelos,
-> a centralizar la creación de dependencias y a hacer privado el estado de los view models.
+> La fase **F4a** ya separó en `diverso_core` los *services* (consultas) de los *repositories*
+> (mapeo y reglas) y pasó el cliente de Supabase por constructor. Las fases **F4b–F5** van a
+> centralizar la creación de dependencias en un solo punto, a mover reglas a los modelos y a
+> hacer privado el estado de los view models.
 > Las rutas y los nombres de este capítulo describen el repo **ahora**; algunos cambiarán.
 > **Este capítulo se actualiza al terminar.** Los puntos que van a cambiar están marcados con
 > "Hoy".
@@ -51,8 +52,11 @@ apps/viajero/lib/
 
 packages/diverso_core/lib/
 |-- diverso_core.dart         barril: re-exporta todo lo público
+|-- data/
+|   |-- services/             *_api.dart: consultas crudas a Supabase y a las Edge Functions
+|   `-- repositories/         *_repository.dart: convierten filas en modelos y aplican reglas
+|-- errors/                   DiversoException y los mensajes en español de cada código
 |-- models/                   Plan, Booking, enums... (clases de datos)
-|-- services/                 hablan con Supabase y las Edge Functions
 |-- utils/                    formatters, hora de Bogotá, búsqueda
 |-- config/                   DiversoConfig (URL y llave de Supabase)
 |-- legal/                    documentos legales
@@ -85,9 +89,9 @@ Es el patrón recomendado por la guía oficial de arquitectura de Flutter (MVVM 
                                                          | llama
  +--------------- Datos (packages/diverso_core/lib) -----v-----------------+
  |                                                                          |
- |   Services  ---- consultan ---->  Supabase / Edge Functions             |
- |       |                                                                  |
- |       `---- devuelven --->  Models (Plan, Booking, ...)                  |
+ |   Repository  --- pide filas --->  Service (Api)  --->  Supabase /       |
+ |       |                                                Edge Functions    |
+ |       `---- devuelve --->  Models (Plan, Booking, ...)                   |
  +--------------------------------------------------------------------------+
 ```
 
@@ -95,7 +99,8 @@ Es el patrón recomendado por la guía oficial de arquitectura de Flutter (MVVM 
 |---|---|---|---|
 | View | Pintar y reenviar eventos del usuario | el componente / pantalla | `ui/features/*/views`, `widgets` |
 | ViewModel | Estado de la pantalla y qué hacer ante cada evento | un custom hook o un store | `ui/features/*/view_models` |
-| Service | Hablar con el backend (consultas, RPC, funciones) | una capa `api/` o `services/` | `diverso_core/lib/services` |
+| Repository | Convertir filas en modelos, aplicar reglas de datos y traducir errores a `DiversoException` | un hook de datos o un repositorio sobre el cliente HTTP | `diverso_core/lib/data/repositories` |
+| Service (Api) | Hablar con el backend y devolver filas (consultas, RPC, funciones) | el cliente HTTP / `api/` | `diverso_core/lib/data/services` |
 | Model | Datos tipados y reglas simples | tipos + funciones puras | `diverso_core/lib/models` |
 
 Reglas de dependencia (quién puede importar a quién):
@@ -103,17 +108,18 @@ Reglas de dependencia (quién puede importar a quién):
 - Una **View** puede usar su ViewModel, los widgets de `ui/core` y los modelos.
 - Un **ViewModel** no dibuja nada: importa `package:flutter/foundation.dart` (para `ChangeNotifier`),
   no `material.dart`. La excepción es `ThemeModeViewModel`, que usa `ThemeMode`.
-- Un **Service** no sabe que existe la UI.
+- Un **Repository** usa uno o más Services, devuelve modelos y lanza `DiversoException`; no sabe
+  que existe la UI.
+- Un **Service** no sabe que existe la UI ni los modelos: recibe el `SupabaseClient` por
+  constructor y devuelve filas (`Map<String, dynamic>`).
 - Un **Model** no depende de nadie más que de otros modelos y utilidades.
 
 Por qué las reglas viven en modelos y view models y no en el widget: se **prueban sin dibujar
 nada**. `Plan.esNuevo` o `BookingsViewModel.activas` se verifican con un `test(...)` normal.
 
-> **Hoy.** Varias vistas leen servicios con `context.read<...Service>()` y llaman a la API ellas
-> mismas (`checkout_loader.dart`, `reserva_view.dart`), o crean el servicio a mano
-> (`final _auth = AuthService();` en `login_view.dart`), y `diverso_core/lib/services` mezcla
-> consultas y mapeo. La arquitectura objetivo agrega una
-> capa **repository** entre ViewModel y Service y deja a las vistas solo con su ViewModel.
+> **Hoy.** Varias vistas leen repositorios con `context.read<...Repository>()` y los llaman ellas
+> mismas (`checkout_loader.dart`, `reserva_view.dart`, `login_view.dart`) en vez de pasar por un
+> view model. Las fases F5 las dejan solo con su ViewModel.
 
 ## 3. `ChangeNotifier`: el view model
 
@@ -139,9 +145,9 @@ function useCatalogo(api: CatalogApi) {
 
 ```dart
 class CatalogViewModel extends ChangeNotifier {
-  CatalogViewModel({CatalogService? catalogo}) : _catalogo = catalogo ?? CatalogService();
+  CatalogViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
-  final CatalogService _catalogo;
+  final CatalogRepository _catalogo;
 
   List<Plan> planes = const [];
   bool cargando = true;
@@ -161,7 +167,7 @@ Diferencias con un hook:
 | Estado inmutable: `setPlanes(nuevo)` | Campos que **se mutan** y luego se avisa con `notifyListeners()` |
 | React decide cuándo repintar | **Tú** llamas a `notifyListeners()` (si lo olvidas, no se repinta) |
 | Vive y muere con el componente | Es un objeto: alguien lo crea y alguien lo libera con `dispose()` |
-| Se prueba montando un componente | Se prueba con `test(...)` y un servicio falso |
+| Se prueba montando un componente | Se prueba con `test(...)` y un repositorio falso |
 
 El view model más pequeño del repo, `viajero/ui/core/theme/theme_mode_view_model.dart`, ya tiene
 la forma ideal: estado **privado** y un *getter* de solo lectura:
@@ -221,7 +227,7 @@ Y quién crea y libera el view model: el `State` de la vista.
 @override
 void initState() {
   super.initState();
-  _controller = CatalogViewModel(catalogo: context.read<CatalogService>())..cargar();
+  _controller = CatalogViewModel(catalogo: context.read<CatalogRepository>())..cargar();
 }
 
 @override
@@ -256,13 +262,13 @@ El paquete `provider` reparte objetos por el árbol, como un Context.
 Dos puntos finos:
 
 - `context.read<T>()` **no** repinta cuando `T` cambia: se usa para obtener una herramienta
-  (un servicio) o llamar a un método. Para repintar con los cambios se usa `Consumer` o
+  (un repositorio) o llamar a un método. Para repintar con los cambios se usa `Consumer` o
   `ListenableBuilder`.
 - `Provider<T>` guarda un objeto simple; `ChangeNotifierProvider` además lo escucha y lo
   libera. Por defecto la creación es perezosa: el objeto se crea la primera vez que alguien lo lee.
 
 En las pruebas se reemplaza lo registrado con un doble:
-`Provider<CatalogService>.value(value: _Catalogo(plan))`
+`Provider<CatalogRepository>.value(value: _Catalogo(plan))`
 (`apps/viajero/test/ui/core/widgets/rating/puntaje_nueva_test.dart`). Es el "mock del
 contexto" de las pruebas con React Native Testing Library (capítulo 4).
 
@@ -280,18 +286,31 @@ Es tu `index.js` más el `AppRegistry.registerComponent`. El paso 5 es el que re
 dependencias (recortado):
 
 ```dart
+final client = Supabase.instance.client;
+final edgeFunctions = EdgeFunctionsApi(client: client);
+
 runApp(
   MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-      Provider<BookingService>(create: (_) => BookingService()),
-      Provider<CatalogService>(create: (_) => CatalogService()),
-      Provider<ReviewService>(create: (_) => ReviewService()),
-      Provider<AuthService>(create: (_) => AuthService()),
-      Provider<PaymentGateway>(create: (_) => WompiPaymentGateway()),
+      Provider<BookingRepository>.value(
+        value: BookingRepository(api: BookingApi(client: client), edgeFunctions: edgeFunctions),
+      ),
+      Provider<CatalogRepository>.value(
+        value: CatalogRepository(api: CatalogApi(client: client)),
+      ),
+      Provider<ReviewRepository>.value(value: ReviewRepository(client: client)),
+      Provider<AuthRepository>.value(value: AuthRepository(client: client)),
+      Provider<PaymentGateway>.value(value: WompiPaymentGateway(edgeFunctions: edgeFunctions)),
     ],
     child: const DiversoApp(),
 ```
+
+Es el **único** sitio donde se crean el cliente, los services y los repositories: cada uno recibe
+lo que necesita **por constructor** (`BookingRepository` recibe su `BookingApi`, y este el
+`SupabaseClient`). Nada en `diverso_core` lee `Supabase.instance`, así que en las pruebas basta
+con pasar un doble donde iría el real. Las pantallas no crean nada: hacen
+`context.read<BookingRepository>()`.
 
 La URL y la llave de Supabase salen de `DiversoConfig` (`packages/diverso_core/lib/config/diverso_config.dart`),
 que lee `--dart-define=SUPABASE_URL=...` al compilar. Por eso en el emulador de Android se ejecuta
@@ -300,10 +319,9 @@ con `--dart-define=SUPABASE_URL=http://10.0.2.2:54331` (ver el [README principal
 `PaymentGateway` es la única abstracción del repo: una clase abstracta con una implementación
 real (`WompiPaymentGateway`) que los tests reemplazan por un doble.
 
-> **Hoy.** Hay tres maneras de obtener dependencias: `Provider` aquí, el valor por defecto de un
-> constructor (`catalogo ?? CatalogService()`) y un `AuthService()` creado a mano en
-> `ui/shell/app_shell.dart`. Además cada servicio lee `Supabase.instance.client` (un global). La
-> fase F4 deja **un solo** punto de creación y pasa el cliente de Supabase por constructor.
+> **Hoy.** Falta una pieza: `router/app_router.dart` todavía lee `Supabase.instance.client.auth`
+> (un global) para el redirect de sesión. La fase F4b la saca de ahí y deja **un solo** punto de
+> creación de dependencias.
 
 ## 7. Seguir un toque de punta a punta
 
@@ -336,8 +354,8 @@ CatalogViewModel.toggleCategoria    categoria = cat;  await cargar();
 cargar()   cargando = true;  notifyListeners()
    |        ListenableBuilder repinta -> c.cargando -> esqueletos (Skeleton)
    v
-CatalogService.search(FiltrosCatalogo(...))   consulta a la tabla `plans` de Supabase
-   |        Plan.fromMap(fila) por cada fila   (models/plan.dart)
+CatalogRepository.search(FiltrosCatalogo(...))   -> CatalogApi.planesPublicados: consulta a `plans` de Supabase
+   |        Plan.fromMap(fila) por cada fila, filtro de fecha   (catalog_repository.dart, models/plan.dart)
    v
 cargar()   planes = resultados;  cargando = false;  notifyListeners()
    v

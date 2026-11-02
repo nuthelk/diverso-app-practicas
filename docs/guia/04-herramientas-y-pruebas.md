@@ -208,7 +208,7 @@ lo manipula con un `WidgetTester`. Es el papel de React Native Testing Library.
 | `fireEvent.press(el)` | `await tester.tap(finder)` |
 | `await waitFor(…)` / `findBy` | `await tester.pump()` o `await tester.pumpAndSettle()` |
 | `toHaveStyle(…)` | `tester.widget<Text>(finder).style?.color` |
-| `jest.fn()` / `jest.mock` | una clase falsa que `implements` el servicio |
+| `jest.fn()` / `jest.mock` | una clase falsa que `implements` el repositorio |
 | `render` con un *wrapper* de providers | envolver en `MultiProvider` dentro de `pumpWidget` |
 
 `pump()` avanza **un fotograma**; `pumpAndSettle()` avanza hasta que no queden animaciones. Si el
@@ -260,11 +260,11 @@ addTearDown(tester.view.reset);
 
 ### Dobles de prueba (fakes)
 
-El repo no usa una librería de *mocks*. Escribe una clase que `implements` el servicio y
+El repo no usa una librería de *mocks*. Escribe una clase que `implements` el repositorio y
 sobrescribe solo los métodos que la prueba ejecuta. `puntaje_nueva_test.dart`:
 
 ```dart
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   _Catalogo(this.plan);
 
   final Plan plan;
@@ -279,8 +279,13 @@ class _Catalogo implements CatalogService {
 
 `implements` obliga a declarar **todos** los métodos de la clase. `noSuchMethod` es el comodín
 que cubre los demás: si la prueba llama a uno que no definiste, falla con un error claro. El
-doble se entrega con `Provider<CatalogService>.value(value: _Catalogo(plan))` (capítulo 3,
+doble se entrega con `Provider<CatalogRepository>.value(value: _Catalogo(plan))` (capítulo 3,
 sección 5). Es el `jest.mock` de este proyecto.
+
+La misma idea una capa más abajo: los repositorios de `diverso_core` se prueban con una **Api
+falsa** (`class _CatalogApiFalsa implements CatalogApi`) que devuelve las filas que le indiques y
+anota con qué filtros le pidieron los datos; así se comprueban el mapeo, el filtro de fecha, la
+ventana de 30 minutos o la traducción de errores sin red (`packages/diverso_core/test/data/repositories/`).
 
 ## 8. Pruebas de un view model
 
@@ -296,7 +301,7 @@ Future<BookingsViewModel> _cargado(List<Booking> reservas) async {
 }
 ```
 
-Tres ideas que repiten las pruebas bien hechas del repo: el servicio es un doble, el reloj se
+Tres ideas que repiten las pruebas bien hechas del repo: el repositorio es un doble, el reloj se
 inyecta (`reloj: () => _ahora`) y `addTearDown(c.dispose)` libera el `ChangeNotifier`.
 
 ## 9. Goldens
@@ -379,13 +384,15 @@ Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`
 |---|---|
 | `apps/viajero/test/ui/core/widgets/widget_test.dart` | Las pruebas de widget más simples: `RatingStars` y `VerifiedBadge` |
 | `apps/viajero/test/ui/core/theme/modo_oscuro_test.dart` | Probar un color del tema |
-| `apps/viajero/test/ui/core/widgets/rating/puntaje_nueva_test.dart` | Tarjeta del catálogo y ficha del plan con servicios falsos y `Provider` |
+| `apps/viajero/test/ui/core/widgets/rating/puntaje_nueva_test.dart` | Tarjeta del catálogo y ficha del plan con repositorios falsos y `Provider` |
 | `apps/viajero/test/ui/features/bookings/widgets/cancel_dialog_test.dart` | Tocar un botón y revisar un diálogo |
-| `apps/viajero/test/ui/features/catalog/views/buscador_test.dart` | Que lo escrito en el buscador llegue a `CatalogService.search` |
+| `apps/viajero/test/ui/features/catalog/views/buscador_test.dart` | Que lo escrito en el buscador llegue a `CatalogRepository.search` |
 | `apps/viajero/test/ui/features/bookings/view_models/bookings_view_model_test.dart` | Un view model con reloj inyectado |
 | `apps/viajero/test/ui/shell/app_shell_test.dart` | La barra inferior de pestañas |
 | `apps/viajero/test/router/rutas_pago_test.dart` | El router completo con sesión simulada |
 | `packages/diverso_core/test/models/salida_plan_test.dart` | Reglas de un modelo con el reloj fijo |
+| `packages/diverso_core/test/data/repositories/catalog_repository_test.dart` | Un repositorio con una Api falsa (filtro de fecha, búsqueda) |
+| `packages/diverso_core/test/models/enums_bd_test.dart` | Que cada enum reconozca todos los valores de la BD |
 | `packages/diverso_core/test/ui/logo_golden_test.dart` | Goldens |
 | `apps/viajero/test/integration/anti_sobreventa_test.dart` | Contra el Supabase local |
 

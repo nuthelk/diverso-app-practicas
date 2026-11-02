@@ -240,7 +240,7 @@ El `context` que recibe `build` es **la posición de ese widget en el árbol**. 
 |---|---|---|
 | `Theme.of(context)` | el tema más cercano | `useTheme()` |
 | `MediaQuery.sizeOf(context)` | tamaño de la pantalla | `useWindowDimensions()` |
-| `context.read<CatalogService>()` | un objeto registrado con `Provider` | `useContext(Ctx)` |
+| `context.read<CatalogRepository>()` | un objeto registrado con `Provider` | `useContext(Ctx)` |
 | `context.push('/plan/…')` | el router | `router.push(…)` de expo-router |
 
 Ejemplos reales: `Theme.of(context).colorScheme` en `price_text.dart`, y

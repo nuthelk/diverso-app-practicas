@@ -41,13 +41,22 @@ la evidencia de ventas del piloto.
 apps/viajero          → Flutter (Android/iOS/Web) — app del viajero
 apps/panel_svelte     → Svelte 5 + Tailwind 4 (SPA/PWA) — panel B2B + admin
 apps/panel_agencias   → (legado) versión Flutter Web del panel, misma API
-packages/diverso_core → modelos, servicios y PaymentGateway (WompiPaymentGateway) compartidos
+packages/diverso_core → modelos, errores, `data/services` y `data/repositories` compartidos
 supabase/             → migraciones SQL, seed, pruebas SQL, Edge Functions de pagos y métricas
 tools/iconos          → generador de los íconos de la app y de las webs (Pillow)
 ```
 
 - **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
   aprendizaje y capítulos para quien viene de React Native y TypeScript).
+- **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
+  `BookingApi`, `CatalogApi`, `AgencyApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
+  y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
+  reglas de datos (ventana de 30 minutos, filtro de fecha del catálogo, reseñas de «Mis
+  reservas»…) y traduce los fallos a `DiversoException` (`errors/`). `AuthRepository` y
+  `ReviewRepository` usan el cliente directo, y `PaymentGateway` (`WompiPaymentGateway`) es la
+  única interfaz. Nada en `diverso_core` lee `Supabase.instance`: cada app crea el
+  `SupabaseClient` una vez en su `main.dart`, arma los servicios y repositorios por constructor y
+  los entrega con Provider; las pantallas hacen `context.read<…Repository>()`.
 - **Backend:** Supabase (PostgreSQL + Auth + Storage + API REST auto-generada + Edge
   Functions), enfoque API-first como pide el Anexo 6.
 - **Anti-sobreventa (el reto de ingeniería central):** la reserva vive en la RPC
@@ -345,7 +354,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 90 |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 146 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 163 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 

@@ -24,8 +24,8 @@ Qué **no** cubre: el panel de agencias en Svelte (`apps/panel_svelte`), el pane
    turísticas antioqueñas **verificadas** (RNT + Cámara de Comercio).
 2. **`apps/viajero`** es la app Flutter (Android, iOS y web): catálogo con buscador y filtros,
    comparador, ficha del plan, reserva, pago, "Mis reservas" con cancelación y reseñas verificadas.
-3. **`packages/diverso_core`** es el paquete compartido: modelos, servicios que hablan con el
-   backend, utilidades y el logo.
+3. **`packages/diverso_core`** es el paquete compartido: modelos, servicios y repositorios que
+   hablan con el backend, utilidades y el logo.
 4. El backend es **Supabase** (Postgres, Auth, funciones SQL y Edge Functions); reglas críticas
    como no vender más cupos de los que hay viven en la base de datos, no en la app.
 5. **Todo el dinero es de prueba**: los pagos van por Wompi en modo sandbox.
@@ -171,10 +171,11 @@ router.
 
 **Lee.**
 - Capítulo 1, secciones 8 a 14.
-- `core/services/catalog_service.dart` (`search`, `agenciaConPlanes`).
-- `core/services/auth_service.dart` (`onAuthStateChanged`).
+- `core/data/repositories/catalog_repository.dart` (`search`, `agenciaConPlanes`).
+- `core/data/repositories/auth_repository.dart` (`onAuthStateChanged`).
 - `viajero/router/go_router_refresh_stream.dart` (la clase completa).
-- `core/services/edge_functions.dart` (`on … catch`, `typedef`).
+- `core/data/repositories/llamar_edge_function.dart` (`on … catch`) y
+  `core/data/repositories/agency_repository.dart` (`typedef`).
 
 **Ejercicio.**
 1. Dibuja en papel la ruta: *Supabase emite un evento de sesión* -> `GoRouterRefreshStream` ->
@@ -409,8 +410,8 @@ Los términos de Flutter están contados con el equivalente de React Native cuan
 | **ChangeNotifier** | Objeto que avisa con `notifyListeners()` cuando cambia |
 | **ListenableBuilder** | Widget que se reconstruye cuando un `ChangeNotifier` avisa |
 | **Provider** | Paquete que reparte objetos por el árbol. Como Context; se lee con `context.read<T>()` |
-| **Service** | Clase que habla con el backend (Supabase, Edge Functions) y devuelve modelos. Vive en `diverso_core/lib/services` |
-| **Repository** | Capa entre el view model y el service que convierte datos crudos en modelos y concentra reglas de datos. **Todavía no existe en este repo**: se introduce en la fase F4 |
+| **Service** (`*_api.dart`) | Clase que habla con el backend (Supabase, Edge Functions) y devuelve filas sin interpretar. Recibe el `SupabaseClient` por constructor. Vive en `diverso_core/lib/data/services` |
+| **Repository** (`*_repository.dart`) | Capa entre el view model y el service: convierte las filas en modelos, concentra reglas de datos y traduce los fallos a `DiversoException`. Vive en `diverso_core/lib/data/repositories` |
 | **Model** | Clase de datos del dominio (`Plan`, `Booking`…) con sus reglas simples |
 | **Shell** | La estructura con barra de pestañas (`AppShell`) dentro de la que se muestran las pantallas principales |
 | **PaymentGateway** | La única interfaz del repo: oculta cómo se paga (hoy, Wompi en sandbox) |

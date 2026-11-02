@@ -19,7 +19,7 @@ líneas; el recorte se marca con `// …`.
 
 | Abreviatura | Significa |
 |---|---|
-| `core` | `packages/diverso_core/lib/` (modelos y servicios compartidos) |
+| `core` | `packages/diverso_core/lib/` (modelos, servicios y repositorios compartidos) |
 | `viajero` | `apps/viajero/lib/` (la app del viajero) |
 
 ## Contenido
@@ -300,11 +300,13 @@ Lo que va después de `:` se ejecuta **antes** del cuerpo y sirve para inicializ
 `final` con una expresión. `viajero/ui/features/catalog/view_models/catalog_view_model.dart`:
 
 ```dart
-CatalogViewModel({CatalogService? catalogo}) : _catalogo = catalogo ?? CatalogService();
+CatalogViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 ```
 
-Si no te pasan un servicio, crea uno. Es la inyección de dependencias de bolsillo que usan los
-view models (y que permite pasarles un doble en las pruebas).
+Copia el parámetro al campo `final`. El repositorio llega de fuera (la vista lo lee con
+`context.read<CatalogRepository>()`), así que el view model no sabe de dónde sale y en las
+pruebas se le pasa un doble. Es inyección de dependencias por constructor: nada se crea por
+dentro con un valor por defecto.
 
 ### `factory` y constructores con nombre
 
@@ -322,7 +324,7 @@ factory Plan.fromMap(Map<String, dynamic> map) {
     agencyId: map['agency_id'] as String,
     titulo: map['titulo'] as String,
     categoria:
-        enumFromString(ExperienceCategory.values, map['categoria'] as String?) ??
+        enumFromDb(ExperienceCategory.values, map['categoria'] as String?) ??
         ExperienceCategory.aventura,
     resumen: (map['resumen'] as String?) ?? '',
     // …
@@ -431,10 +433,28 @@ función auxiliar o ampliar un prototipo). Se usa como si el miembro fuera propi
 un valor a `BookingStatus` y olvidas la etiqueta, no compila (como un chequeo de exhaustividad
 con `never` en TS, pero obligatorio).
 
-**Del texto al enum.** La base de datos guarda el estado como texto. En `enums.dart`,
-`enumFromString<T extends Enum>(Iterable<T> values, String? value)` busca el valor cuyo `.name`
+**Del texto al enum.** La base de datos guarda el estado como texto y no siempre se escribe como
+el nombre de Dart: `pendiente_pago` en SQL, `pendientePago` en Dart. Por eso cada enum que se
+lee de la BD lleva su valor explícito (`enums.dart`): es un *enum mejorado*, con campos y un
+constructor `const`, que implementa `DbEnum`.
+
+```dart
+enum BookingStatus implements DbEnum {
+  pendientePago('pendiente_pago'),
+  confirmada('confirmada'),
+  // …
+  ;
+  const BookingStatus(this.db);
+
+  @override
+  final String db;
+}
+```
+
+`enumFromDb<T extends DbEnum>(Iterable<T> values, String? valor)` busca el valor cuyo `db`
 coincide y devuelve `null` si no existe; los modelos le ponen el valor por defecto con `??`
-(`plan.dart`: `?? ExperienceCategory.aventura`).
+(`plan.dart`: `?? ExperienceCategory.aventura`). Comparar con `.name` fue el bug M: nunca
+coincidía con `pendiente_pago` y solo funcionaba porque el valor por defecto era justo ese.
 
 ## 8. Colecciones, spread y `if`/`for` dentro de listas
 
@@ -549,12 +569,12 @@ Future<void> cargar() async {
 Es la misma forma que el `cargar` de TS de arriba; `notifyListeners()` es el `setState` del
 view model (capítulo 3).
 
-**Esperar varias cosas a la vez.** `packages/diverso_core/lib/services/catalog_service.dart`,
+**Esperar varias cosas a la vez.** `packages/diverso_core/lib/data/repositories/catalog_repository.dart`,
 `agenciaConPlanes`:
 
 ```dart
 final (filas, planes) = await (
-  _client.rpc('agencias_publicas', params: {'p_agency_id': agencyId}),
+  _api.agenciasPublicas(agencyId: agencyId),
   search(FiltrosCatalogo(agencyId: agencyId)),
 ).wait;
 ```
@@ -606,7 +626,7 @@ sub.cancel();
 
 **En este repo** el estado de sesión de Supabase es un `Stream`:
 
-- `packages/diverso_core/lib/services/auth_service.dart`:
+- `packages/diverso_core/lib/data/repositories/auth_repository.dart`:
   `Stream<String?> get onAuthStateChanged => _client.auth.onAuthStateChange.map((s) => s.session?.user.id);`
 - `viajero/router/go_router_refresh_stream.dart` (la clase completa) convierte ese stream en algo
   que el router sabe escuchar:
@@ -651,7 +671,7 @@ const [nombre, planes] = agencia();
 final (nombre, planes) = agencia();
 ```
 
-**Con nombres** — `packages/diverso_core/lib/services/catalog_service.dart`:
+**Con nombres** — `packages/diverso_core/lib/data/repositories/catalog_repository.dart`:
 
 ```dart
 Future<({AgenciaResumen agencia, List<Plan> planes})?> agenciaConPlanes(String agencyId) async {
@@ -678,8 +698,9 @@ y la primera lleva una guarda `when`. Como el valor es un enum, el compilador co
 falte ninguna rama. Otra forma, con comodín `_`: `viajero/ui/features/bookings/reserva_formato.dart`
 (`0 => 'Hoy'`, `1 => 'Mañana'`, `_ => 'en $dias días'`).
 
-**`typedef`** es el `type` de TS para dar nombre a un tipo de función
-(`packages/diverso_core/lib/services/edge_functions.dart`: `typedef FunctionInvoker = Future<Map<String, dynamic>> Function(String funcion, Map<String, dynamic> cuerpo);`).
+**`typedef`** es el `type` de TS para dar otro nombre a un tipo
+(`packages/diverso_core/lib/data/repositories/agency_repository.dart`: `typedef AgencyRef = Agency;`);
+también sirve para tipos de función, como el `Toggle` de arriba.
 
 ## 12. Errores y `try`/`catch`
 
@@ -693,19 +714,21 @@ try { await invocar(); }
 catch (e) { if (e instanceof FunctionException) throw new DiversoException(e); throw e; }
 ```
 
-**Dart** — `packages/diverso_core/lib/services/edge_functions.dart`:
+**Dart** — `packages/diverso_core/lib/data/repositories/llamar_edge_function.dart`:
 
 ```dart
 try {
-  return await invocar(funcion, cuerpo);
+  return await edgeFunctions.invocar(funcion, cuerpo);
 } on FunctionException catch (e) {
   throw DiversoException.fromFunction(e);
 }
 ```
 
 `on Tipo catch (e)` atrapa solo ese tipo; cualquier otro error sigue subiendo. `DiversoException`
-(`packages/diverso_core/lib/services/booking_service.dart`) es el error de dominio de la app: lleva
-un `codigo` estable (`SIN_CUPO`, `RESERVA_YA_SALIO`…) que la UI traduce a un mensaje.
+(`packages/diverso_core/lib/errors/diverso_exception.dart`) es el error de dominio de la app: lleva
+un `codigo` estable (`SIN_CUPO`, `RESERVA_YA_SALIO`…) que la UI traduce a un mensaje
+(`errors/mensaje_usuario.dart`). En `diverso_core` la regla `avoid_catches_without_on_clauses`
+prohíbe el `catch (e)` pelado: siempre se escribe `on Tipo catch`.
 
 ## 13. Imports, paquetes y barriles
 
@@ -736,13 +759,13 @@ export 'models/plan.dart';                         // re-exportar
 
 **En este repo:**
 
-- `packages/diverso_core/lib/diverso_core.dart` es el barril: re-exporta modelos, servicios y
-  utilidades. Por eso `apps/viajero` solo escribe `import 'package:diverso_core/diverso_core.dart';`.
+- `packages/diverso_core/lib/diverso_core.dart` es el barril: re-exporta modelos, errores,
+  servicios (`data/services`), repositorios (`data/repositories`) y utilidades. Por eso `apps/viajero` solo escribe `import 'package:diverso_core/diverso_core.dart';`.
 - `apps/viajero/pubspec.yaml` declara `diverso_core: path: ../../packages/diverso_core`.
 - Convención de imports: dentro de `lib/` se usan imports **relativos** (`'../../../core/theme/app_radii.dart'`);
   las pruebas usan `package:viajero/…` porque viven fuera de `lib/`.
-- `show` en uso real: `packages/diverso_core/lib/services/edge_functions.dart` hace
-  `import 'booking_service.dart' show DiversoException;`.
+- `show` en uso real: `packages/diverso_core/test/data/repositories/payment_gateway_test.dart` hace
+  `import 'package:supabase_flutter/supabase_flutter.dart' show FunctionException, FunctionsFetchException;`.
 - El orden de los imports lo valida la regla `directives_ordering` (dart:, package:, relativos);
   `dart fix --apply` y el formateador te lo corrigen.
 
