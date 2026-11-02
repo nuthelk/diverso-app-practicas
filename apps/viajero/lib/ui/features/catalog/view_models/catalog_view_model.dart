@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
@@ -6,100 +8,125 @@ import 'package:flutter/foundation.dart';
 class CatalogViewModel extends ChangeNotifier {
   CatalogViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
-  final CatalogRepository _catalogo;
-
-  // Estado expuesto (inmutable hacia la vista)
-  List<Plan> planes = const [];
-  List<String> destinos = const [];
-  bool cargando = true;
-  String? error;
-  String? errorDetalle;
-
-  // Filtros
-  String texto = '';
-  ExperienceCategory? categoria;
-  String? destino;
-  double? precioMax;
-  DateTime? fecha;
-  OrdenCatalogo orden = OrdenCatalogo.rating;
-
-  // Selección para el comparador (máx. 3)
-  final List<String> _seleccion = [];
-  List<Plan> get seleccion =>
-      planes.where((p) => _seleccion.contains(p.id)).toList(growable: false);
-  bool comparando(Plan p) => _seleccion.contains(p.id);
+  /// Cuántos planes se pueden comparar a la vez.
   static const int maxComparar = 3;
 
+  final CatalogRepository _catalogo;
+  bool _desechado = false;
+
+  // Estado expuesto (solo lectura hacia la vista)
+  List<Plan> _planes = const [];
+  List<String> _destinos = const [];
+  bool _cargando = true;
+  String? _error;
+  String? _errorDetalle;
+
+  // Filtros
+  String _texto = '';
+  ExperienceCategory? _categoria;
+  String? _destino;
+  double? _precioMax;
+  DateTime? _fecha;
+  OrdenCatalogo _orden = OrdenCatalogo.rating;
+
+  // Selección para el comparador (máx. [maxComparar])
+  final List<String> _seleccion = [];
+
+  List<Plan> get planes => _planes;
+  List<String> get destinos => _destinos;
+  bool get cargando => _cargando;
+
+  /// Mensaje para el usuario si la última carga falló.
+  String? get error => _error;
+
+  /// Detalle técnico del último error (para soporte).
+  String? get errorDetalle => _errorDetalle;
+
+  String get texto => _texto;
+  ExperienceCategory? get categoria => _categoria;
+  String? get destino => _destino;
+  double? get precioMax => _precioMax;
+  DateTime? get fecha => _fecha;
+  OrdenCatalogo get orden => _orden;
+
+  List<Plan> get seleccion =>
+      _planes.where((p) => _seleccion.contains(p.id)).toList(growable: false);
+  bool comparando(Plan p) => _seleccion.contains(p.id);
+
   int get filtrosActivos =>
-      (destino != null ? 1 : 0) + (precioMax != null ? 1 : 0) + (fecha != null ? 1 : 0);
+      (_destino != null ? 1 : 0) + (_precioMax != null ? 1 : 0) + (_fecha != null ? 1 : 0);
 
   Future<void> cargar() async {
-    cargando = true;
-    error = null;
-    errorDetalle = null;
-    notifyListeners();
+    _cargando = true;
+    _error = null;
+    _errorDetalle = null;
+    _notificar();
     try {
       final resultados = await _catalogo.search(
         FiltrosCatalogo(
-          texto: texto,
-          categoria: categoria,
-          destino: destino,
-          precioMax: precioMax,
-          fecha: fecha,
-          orden: orden,
+          texto: _texto,
+          categoria: _categoria,
+          destino: _destino,
+          precioMax: _precioMax,
+          fecha: _fecha,
+          orden: _orden,
         ),
       );
       final listaDestinos = await _catalogo.destinos();
       // La selección puede referenciar planes que ya no aparecen.
       _seleccion.removeWhere((id) => !resultados.any((p) => p.id == id));
-      planes = resultados;
-      destinos = listaDestinos;
-    } catch (e) {
+      _planes = UnmodifiableListView(resultados);
+      _destinos = UnmodifiableListView(listaDestinos);
+    } on Object catch (e) {
       debugPrint('CatalogViewModel.cargar: $e');
-      error = 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.';
-      errorDetalle = e.toString();
+      _error = 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.';
+      _errorDetalle = e.toString();
     } finally {
-      cargando = false;
-      notifyListeners();
+      _cargando = false;
+      _notificar();
     }
   }
 
   void setTexto(String valor) {
-    texto = valor;
-    notifyListeners();
+    _texto = valor;
+    _notificar();
   }
 
   Future<void> buscar() => cargar();
 
   Future<void> toggleCategoria(ExperienceCategory? c) async {
-    categoria = c == categoria ? null : c;
+    _categoria = c == _categoria ? null : c;
     await cargar();
   }
 
   Future<void> setDestino(String? d) async {
-    destino = d;
+    _destino = d;
     await cargar();
   }
 
   Future<void> setPrecioMax(double? valor) async {
-    precioMax = valor;
+    _precioMax = valor;
     await cargar();
   }
 
   Future<void> setFecha(DateTime? f) async {
-    fecha = f;
+    _fecha = f;
     await cargar();
   }
 
-  Future<void> limpiarFiltros() async {
-    destino = null;
-    precioMax = null;
-    fecha = null;
+  /// Fija destino, precio máximo y fecha a la vez (la hoja de filtros) con una sola consulta.
+  /// Un valor null quita ese filtro.
+  Future<void> aplicarFiltros({String? destino, double? precioMax, DateTime? fecha}) async {
+    _destino = destino;
+    _precioMax = precioMax;
+    _fecha = fecha;
     await cargar();
   }
+
+  Future<void> limpiarFiltros() => aplicarFiltros();
 
   Future<void> cambiarOrden(OrdenCatalogo o) async {
-    orden = o;
+    _orden = o;
     await cargar();
   }
 
@@ -109,11 +136,22 @@ class CatalogViewModel extends ChangeNotifier {
     } else if (_seleccion.length < maxComparar) {
       _seleccion.add(p.id);
     }
-    notifyListeners();
+    _notificar();
   }
 
   void limpiarComparar() {
     _seleccion.clear();
-    notifyListeners();
+    _notificar();
+  }
+
+  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
+  void _notificar() {
+    if (!_desechado) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _desechado = true;
+    super.dispose();
   }
 }

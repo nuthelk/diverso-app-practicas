@@ -8,6 +8,14 @@ import '../../../core/widgets/plan/price_text.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
 import '../../../core/widgets/rating/puntaje_plan.dart';
 
+/// Rejilla de tarjetas de plan en pantallas anchas (catálogo y su marcador de carga).
+const planCardGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+  maxCrossAxisExtent: 430,
+  mainAxisSpacing: 14,
+  crossAxisSpacing: 14,
+  childAspectRatio: .82,
+);
+
 /// Tarjeta de plan del catálogo: foto protagonista, destino sobre la imagen,
 /// precio final visible desde el inicio y check de comparación.
 class PlanCard extends StatelessWidget {

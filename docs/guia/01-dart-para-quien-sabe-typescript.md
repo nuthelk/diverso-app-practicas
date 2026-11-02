@@ -157,7 +157,7 @@ Más ejemplos:
 - `plan.agency?.verificada == true` — `plan_card.dart`, cadena opcional.
 - `state.pathParameters['doc']!` — `viajero/router/app_router.dart`: la ruta `/legal/:doc` garantiza
   que el parámetro existe.
-- `late final CatalogViewModel _controller;` — `viajero/ui/features/catalog/views/catalog_view.dart`:
+- `late final CatalogViewModel _viewModel;` — `viajero/ui/features/catalog/views/catalog_view.dart`:
   se asigna en `initState`, no en el constructor (capítulo 2).
 
 > **Ojo:** `!` y `late` mal usados fallan en ejecución, no al compilar. Úsalos cuando el código
@@ -551,23 +551,23 @@ async function cargar() {
 
 ```dart
 Future<void> cargar() async {
-  cargando = true;
-  error = null;
-  notifyListeners();
+  _cargando = true;
+  _error = null;
+  _notificar();
   try {
     final resultados = await _catalogo.search(FiltrosCatalogo(/* … */));
-    planes = resultados;
-  } catch (e) {
-    error = 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.';
+    _planes = resultados;
+  } on Object catch (e) {
+    _error = 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.';
   } finally {
-    cargando = false;
-    notifyListeners();
+    _cargando = false;
+    _notificar();
   }
 }
 ```
 
-Es la misma forma que el `cargar` de TS de arriba; `notifyListeners()` es el `setState` del
-view model (capítulo 3).
+Es la misma forma que el `cargar` de TS de arriba; `_notificar()` llama a `notifyListeners()`, el
+`setState` del view model, salvo que la pantalla ya se haya cerrado (capítulo 3).
 
 **Esperar varias cosas a la vez.** `packages/diverso_core/lib/data/repositories/catalog_repository.dart`,
 `agenciaConPlanes`:

@@ -267,20 +267,20 @@ router.
 - Capítulo 3, secciones 3 a 7.
 - `viajero/ui/features/catalog/view_models/catalog_view_model.dart`.
 - `viajero/ui/features/catalog/views/catalog_view.dart` (`initState`, `dispose`,
-  `ListenableBuilder` y `_ChipCategoria`).
+  `ListenableBuilder` y `ChipCategoria` (`catalog/widgets/chip_categoria.dart`)).
 - `viajero/ui/core/theme/theme_mode_view_model.dart` (el view model más pequeño).
 - `viajero/main.dart` (los providers).
 
 **Ejercicio.**
 1. Con el código abierto, completa una tabla con cada flecha del recorrido B del capítulo 3
-   (sección 7): *archivo y función* por paso. Empieza en `_ChipCategoria.onTap` y termina en
+   (sección 7): *archivo y función* por paso. Empieza en `ChipCategoria.onTap` y termina en
    `PlanCard`.
 2. En la app, toca una categoría en Explorar y comprueba que ves primero los esqueletos de carga
    y luego las tarjetas filtradas.
 3. Repite con el recorrido A (modo oscuro): ¿qué notifica, y qué widgets escuchan?
 
 **Ya lo entendí si…**
-- [ ] Dices qué pasaría si `cargar()` no llamara a `notifyListeners()` al terminar.
+- [ ] Dices qué pasaría si `cargar()` no avisara (`_notificar()`) al terminar, y por qué avisar después de `dispose()` sería un error.
 - [ ] Explicas por qué la vista llama a `dispose()` del view model.
 - [ ] Distingues `context.read`, `Consumer` y `ListenableBuilder` y cuándo usar cada uno.
 

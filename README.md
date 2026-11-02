@@ -414,6 +414,12 @@ cd apps/viajero && flutter test
   aceptar), las rutas con ids
   (`/resena/:bookingId`, `/comparar?ids=…`), la página no encontrada y que cambiar el tema no
   reinicie la navegación.
+- `test/ui/features/catalog/view_models/catalog_view_model_test.dart`,
+  `test/ui/features/plan/view_models/plan_detail_view_model_test.dart`,
+  `test/ui/features/catalog/views/filtros_test.dart`,
+  `test/ui/features/plan/views/detalle_fechas_test.dart`, `detalle_resena_test.dart` — los view models
+  del catálogo y de la ficha con repositorios falsos (carga, error, vacío, una sola consulta al
+  aplicar filtros, guardia de `dispose`), la barra de reserva y la inicial de las reseñas.
 - `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
   `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
   y sello de verificación/documentos legales.

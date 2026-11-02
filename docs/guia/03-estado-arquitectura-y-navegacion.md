@@ -9,8 +9,9 @@ más te sirve para empezar a tocar código.
 > ### En construcción
 > La fase **F4a** ya separó en `diverso_core` los *services* (consultas) de los *repositories*
 > (mapeo y reglas) y pasó el cliente de Supabase por constructor; la **F4b** dejó un solo punto de
-> creación de dependencias, partió el router y pasó el consentimiento a un redirect. La fase
-> **F5** va a mover reglas a los modelos y a hacer privado el estado de los view models.
+> creación de dependencias, partió el router y pasó el consentimiento a un redirect; la **F5a**
+> dejó el catálogo y la ficha del plan con view models de estado privado. Las fases **F5b** y
+> **F5c** hacen lo mismo con el resto de las pantallas.
 > Las rutas y los nombres de este capítulo describen el repo **ahora**; algunos cambiarán.
 > **Este capítulo se actualiza al terminar.** Los puntos que van a cambiar están marcados con
 > "Hoy".
@@ -119,9 +120,10 @@ Reglas de dependencia (quién puede importar a quién):
 Por qué las reglas viven en modelos y view models y no en el widget: se **prueban sin dibujar
 nada**. `Plan.esNuevo` o `BookingsViewModel.activas` se verifican con un `test(...)` normal.
 
-> **Hoy.** Varias vistas leen repositorios con `context.read<...Repository>()` y los llaman ellas
-> mismas (`checkout_loader.dart`, `reserva_view.dart`, `login_view.dart`) en vez de pasar por un
-> view model. Las fases F5 las dejan solo con su ViewModel.
+> **Hoy.** El catálogo y la ficha del plan (`PlanDetailViewModel`) ya pasan siempre por su view
+> model. Otras vistas leen repositorios con `context.read<...Repository>()` y los llaman ellas
+> mismas (`checkout_loader.dart`, `reserva_view.dart`, `login_view.dart`); la fase F5b las deja
+> solo con su ViewModel.
 
 ## 3. `ChangeNotifier`: el view model
 
@@ -151,14 +153,18 @@ class CatalogViewModel extends ChangeNotifier {
 
   final CatalogRepository _catalogo;
 
-  List<Plan> planes = const [];
-  bool cargando = true;
-  String? error;
+  List<Plan> _planes = const [];
+  bool _cargando = true;
+  String? _error;
+
+  List<Plan> get planes => _planes;
+  bool get cargando => _cargando;
+  String? get error => _error;
 
   Future<void> cargar() async {
-    cargando = true;
-    notifyListeners();
-    // … await _catalogo.search(...), planes = resultados, finally cargando = false …
+    _cargando = true;
+    _notificar();
+    // … await _catalogo.search(...), _planes = resultados, finally _cargando = false …
   }
 ```
 
@@ -198,10 +204,29 @@ List<Booking> get activas =>
 La lista de reservas se guarda una vez y "próximas" se calcula a partir de ella. `BookingsViewModel`
 recibe un reloj (`DateTime Function()? reloj`) para que las pruebas fijen la hora.
 
-> **Hoy.** `CatalogViewModel` y `BookingsViewModel` exponen `planes`, `cargando`, `error`… como
-> **campos públicos** (la vista podría escribirlos). La fase F5 los hará privados con getters de
-> solo lectura, como `ThemeModeViewModel`. El patrón con `_seleccion` en `CatalogViewModel`
-> (`final List<String> _seleccion` + `List<Plan> get seleccion`) ya es el definitivo.
+`CatalogViewModel` y `PlanDetailViewModel` siguen esa forma: todo el estado es privado (`_planes`,
+`_cargando`, `_error`…) y la vista solo ve getters de solo lectura; para cambiar algo llama a un
+**comando** (`toggleCategoria`, `aplicarFiltros`, `seleccionarFecha`…). Un comando que cambia
+varios filtros a la vez los fija todos y consulta **una sola vez**: `aplicarFiltros(destino:,
+precioMax:, fecha:)` es lo que usa «Aplicar filtros» (antes eran tres consultas seguidas).
+
+Una carga puede terminar cuando la pantalla ya se cerró. Si el view model llamara a
+`notifyListeners()` después de `dispose()`, Flutter lanzaría un error; por eso ambos pasan por un
+método privado `_notificar()` que lo ignora si `_desechado` es `true` (es el `if (!mounted)` del
+view model):
+
+```dart
+void _notificar() {
+  if (!_desechado) notifyListeners();
+}
+```
+
+Un valor **derivado** no se guarda ni se corrige dentro de `build`: `PlanDetailViewModel` solo
+guarda el id de la fecha elegida y `fechaSeleccionada` la calcula a partir de `fechas` cada vez que
+se lee (si esa fecha ya no está disponible, vale la primera). Así `build` solo lee y nunca muta.
+
+> **Hoy.** `BookingsViewModel` y otros view models todavía exponen sus campos como **públicos**
+> (la vista podría escribirlos); las fases F5b y F5c los dejan como los anteriores.
 
 ## 4. `ListenableBuilder`: suscribirse y repintar
 
@@ -213,14 +238,14 @@ que el objeto avisa, el `builder` se ejecuta de nuevo. Es lo más parecido a
 
 ```dart
 body: ListenableBuilder(
-  listenable: _controller,
+  listenable: _viewModel,
   builder: (context, _) {
-    final c = _controller;
+    final vm = _viewModel;
     return RefreshIndicator(
-      onRefresh: c.cargar,
+      onRefresh: vm.cargar,
       child: CustomScrollView(
         slivers: [
-          // … lee c.cargando, c.error, c.planes …
+          // … lee vm.cargando, vm.error, vm.planes …
 ```
 
 Y quién crea y libera el view model: el `State` de la vista.
@@ -229,20 +254,19 @@ Y quién crea y libera el view model: el `State` de la vista.
 @override
 void initState() {
   super.initState();
-  _controller = CatalogViewModel(catalogo: context.read<CatalogRepository>())..cargar();
+  _viewModel = CatalogViewModel(catalogo: context.read<CatalogRepository>())..cargar();
 }
 
 @override
 void dispose() {
   _searchCtrl.dispose();
-  _controller.dispose();
+  _viewModel.dispose();
   super.dispose();
 }
 ```
 
 `initState` es "al montar" y `dispose` es la limpieza (capítulo 2, sección 3). `..cargar()` es la
-cascada del capítulo 1: crea el view model **y** dispara la primera carga. El campo todavía se
-llama `_controller` aunque la clase ya es `CatalogViewModel`; se renombra en F5.
+cascada del capítulo 1: crea el view model **y** dispara la primera carga.
 
 Solo se repinta lo que está **dentro** del `builder`. El catálogo usa varios
 `ListenableBuilder`; dos de ellos son el del cuerpo y el de la bandeja de comparación (el
@@ -353,17 +377,17 @@ El router **no** se reconstruye con el tema: `DiversoApp` lo crea una sola vez e
 
 ```
 [Explorar] toque en un chip de categoría
-   |  catalog_view.dart: _ChipCategoria(onTap: () => c.toggleCategoria(cat))
+   |  catalog_view.dart: ChipCategoria(onTap: () => vm.toggleCategoria(cat))
    v
-CatalogViewModel.toggleCategoria    categoria = cat;  await cargar();
+CatalogViewModel.toggleCategoria    _categoria = cat;  await cargar();
    v
-cargar()   cargando = true;  notifyListeners()
-   |        ListenableBuilder repinta -> c.cargando -> esqueletos (Skeleton)
+cargar()   _cargando = true;  _notificar()
+   |        ListenableBuilder repinta -> vm.cargando -> esqueletos (Skeleton)
    v
 CatalogRepository.search(FiltrosCatalogo(...))   -> CatalogApi.planesPublicados: consulta a `plans` de Supabase
    |        Plan.fromMap(fila) por cada fila, filtro de fecha   (catalog_repository.dart, models/plan.dart)
    v
-cargar()   planes = resultados;  cargando = false;  notifyListeners()
+cargar()   _planes = resultados;  _cargando = false;  _notificar()
    v
 ListenableBuilder repinta -> SliverGrid con un PlanCard por plan
 ```

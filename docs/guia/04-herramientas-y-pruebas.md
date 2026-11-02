@@ -388,6 +388,9 @@ Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`
 | `apps/viajero/test/ui/features/bookings/widgets/cancel_dialog_test.dart` | Tocar un botón y revisar un diálogo |
 | `apps/viajero/test/ui/features/catalog/views/buscador_test.dart` | Que lo escrito en el buscador llegue a `CatalogRepository.search` |
 | `apps/viajero/test/ui/features/bookings/view_models/bookings_view_model_test.dart` | Un view model con reloj inyectado |
+| `apps/viajero/test/ui/features/catalog/view_models/catalog_view_model_test.dart` | Un view model con un catálogo falso (`test/support/catalogo_falso.dart`): carga, error, vacío, una sola consulta por comando y el guardia de `dispose` con un `Completer` |
+| `apps/viajero/test/ui/features/plan/view_models/plan_detail_view_model_test.dart` | La ficha del plan: plan + reseñas, error, fecha elegida derivada (leer no muta) |
+| `apps/viajero/test/ui/features/catalog/views/filtros_test.dart` | Abrir la hoja de filtros, deslizar el precio y comprobar que «Aplicar filtros» consulta una sola vez |
 | `apps/viajero/test/ui/shell/app_shell_test.dart` | La barra inferior de pestañas |
 | `apps/viajero/test/router/rutas_pago_test.dart` | El router completo con sesión simulada |
 | `apps/viajero/test/router/sesion_redirect_test.dart` | Una función pura (sesión + consentimiento + ubicación) sin Flutter |
