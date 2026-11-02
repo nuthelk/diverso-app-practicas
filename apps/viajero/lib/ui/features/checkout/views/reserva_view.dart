@@ -26,7 +26,7 @@ class _ReservaViewState extends State<ReservaView> {
     _cargar();
   }
 
-  void _cargar() => _reserva = context.read<BookingService>().reserva(widget.bookingId);
+  void _cargar() => _reserva = context.read<BookingRepository>().reserva(widget.bookingId);
 
   Widget _estado(Widget hijo) => Scaffold(appBar: AppBar(), body: hijo);
 

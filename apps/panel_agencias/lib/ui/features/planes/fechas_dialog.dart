@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/widgets.dart';
 
@@ -21,7 +22,7 @@ class FechasDialog extends StatefulWidget {
 }
 
 class _FechasDialogState extends State<FechasDialog> {
-  final _servicio = AgencyService();
+  late final AgencyRepository _servicio;
   late List<PlanDate> _fechas;
   DateTime _fechaSel = DateTime.now().add(const Duration(days: 1));
   final _cupoCtrl = TextEditingController(text: '15');
@@ -30,6 +31,7 @@ class _FechasDialogState extends State<FechasDialog> {
   @override
   void initState() {
     super.initState();
+    _servicio = context.read<AgencyRepository>();
     final ahora = DateTime.now();
     final hoy = DateTime(ahora.year, ahora.month, ahora.day);
     _fechas = widget.initialFechas

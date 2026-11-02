@@ -153,7 +153,7 @@ class Plan {
       titulo: map['titulo'] as String,
       destino: map['destino'] as String,
       categoria:
-          enumFromString(ExperienceCategory.values, map['categoria'] as String?) ??
+          enumFromDb(ExperienceCategory.values, map['categoria'] as String?) ??
           ExperienceCategory.aventura,
       resumen: (map['resumen'] as String?) ?? '',
       descripcion: (map['descripcion'] as String?) ?? '',
@@ -173,7 +173,7 @@ class Plan {
           const [],
       politicaCancelacion: (map['politica_cancelacion'] as String?) ?? '',
       fotos: (map['fotos'] as List?)?.map((e) => e as String).toList() ?? const [],
-      estado: enumFromString(PlanStatus.values, map['estado'] as String?) ?? PlanStatus.borrador,
+      estado: enumFromDb(PlanStatus.values, map['estado'] as String?) ?? PlanStatus.borrador,
       ratingPromedio: (map['rating_promedio'] as num?)?.toDouble() ?? 0,
       reviewsCount: (map['reviews_count'] as num?)?.toInt() ?? 0,
       agency: agencyMap is Map ? Agency.fromMap(agencyMap.cast<String, dynamic>()) : null,

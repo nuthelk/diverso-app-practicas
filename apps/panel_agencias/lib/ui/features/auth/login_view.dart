@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 /// Acceso al panel: hero de marca a la izquierda (desktop) y formulario a
 /// la derecha; en pantallas angostas colapsa a una sola columna.
@@ -14,9 +15,15 @@ class _LoginViewState extends State<LoginView> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _auth = AuthService();
+  late final AuthRepository _auth;
   bool _cargando = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthRepository>();
+  }
 
   @override
   void dispose() {

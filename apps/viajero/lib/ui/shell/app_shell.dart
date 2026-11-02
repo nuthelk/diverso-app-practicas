@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 /// Shell inferior de la app: barra fija al borde, sólida y con línea superior, con la píldora
 /// indicadora en el destino activo. El contenido termina donde empieza la barra.
@@ -30,7 +31,7 @@ class _AppShellState extends State<AppShell> {
     if (_revisado) return;
     _revisado = true;
     try {
-      final pendientes = await AuthService().consentimientosPendientes();
+      final pendientes = await context.read<AuthRepository>().consentimientosPendientes();
       if (pendientes.isNotEmpty && mounted) {
         await context.push('/consentimiento');
       }

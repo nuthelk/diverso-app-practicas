@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../legal/widgets/consent_checkboxes.dart';
@@ -19,13 +20,19 @@ class _LoginViewState extends State<LoginView> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _nombreCtrl = TextEditingController();
-  final _auth = AuthService();
+  late final AuthRepository _auth;
   bool _esRegistro = false;
   bool _cargando = false;
   bool _aceptaDatos = false;
   bool _aceptaTerminos = false;
   bool _intentoRegistro = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthRepository>();
+  }
 
   @override
   void dispose() {

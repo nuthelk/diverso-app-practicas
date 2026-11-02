@@ -1,19 +1,107 @@
 /// Enums de dominio espejo de los tipos PostgreSQL del esquema.
+///
+/// Cada valor lleva el texto exacto que guarda la BD ([DbEnum.db]): el nombre de Dart (camelCase)
+/// y el de la BD (snake_case) no tienen por qué coincidir, p. ej. `pendientePago` ↔ `pendiente_pago`.
 library;
 
-enum UserRole { viajero, agencia, admin }
+/// Enum con un valor explícito en la BD (o en la respuesta de una Edge Function).
+abstract interface class DbEnum {
+  String get db;
+}
 
-enum VerificationStatus { pendiente, verificado, rechazado }
+/// El valor de [values] cuyo texto en la BD es [valor], o null si no existe.
+T? enumFromDb<T extends DbEnum>(Iterable<T> values, String? valor) {
+  if (valor == null) return null;
+  for (final v in values) {
+    if (v.db == valor) return v;
+  }
+  return null;
+}
 
-enum PlanStatus { borrador, publicado, archivado }
+enum UserRole implements DbEnum {
+  viajero('viajero'),
+  agencia('agencia'),
+  admin('admin');
 
-enum BookingStatus { pendientePago, confirmada, cancelada, completada }
+  const UserRole(this.db);
 
-enum PaymentMethodOption { pse, nequi, daviplata, tarjeta, bancolombia, otro }
+  @override
+  final String db;
+}
 
-enum PaymentStatus { pendiente, aprobado, rechazado, reembolsado }
+enum VerificationStatus implements DbEnum {
+  pendiente('pendiente'),
+  verificado('verificado'),
+  rechazado('rechazado');
 
-enum ExperienceCategory { aventura, naturaleza, cultura, gastronomia, relax, urbano }
+  const VerificationStatus(this.db);
+
+  @override
+  final String db;
+}
+
+enum PlanStatus implements DbEnum {
+  borrador('borrador'),
+  publicado('publicado'),
+  archivado('archivado');
+
+  const PlanStatus(this.db);
+
+  @override
+  final String db;
+}
+
+enum BookingStatus implements DbEnum {
+  pendientePago('pendiente_pago'),
+  confirmada('confirmada'),
+  cancelada('cancelada'),
+  completada('completada');
+
+  const BookingStatus(this.db);
+
+  @override
+  final String db;
+}
+
+enum PaymentMethodOption implements DbEnum {
+  pse('pse'),
+  nequi('nequi'),
+  daviplata('daviplata'),
+  tarjeta('tarjeta'),
+  bancolombia('bancolombia'),
+  otro('otro');
+
+  const PaymentMethodOption(this.db);
+
+  @override
+  final String db;
+}
+
+enum PaymentStatus implements DbEnum {
+  pendiente('pendiente'),
+  aprobado('aprobado'),
+  rechazado('rechazado'),
+  reembolsado('reembolsado');
+
+  const PaymentStatus(this.db);
+
+  @override
+  final String db;
+}
+
+enum ExperienceCategory implements DbEnum {
+  aventura('aventura'),
+  naturaleza('naturaleza'),
+  cultura('cultura'),
+  gastronomia('gastronomia'),
+  relax('relax'),
+  urbano('urbano');
+
+  const ExperienceCategory(this.db);
+
+  @override
+  final String db;
+}
 
 extension ExperienceCategoryX on ExperienceCategory {
   String get label {
@@ -83,12 +171,4 @@ extension PaymentMethodX on PaymentMethodOption {
         return 'Otro medio';
     }
   }
-}
-
-T? enumFromString<T extends Enum>(Iterable<T> values, String? value) {
-  if (value == null) return null;
-  for (final v in values) {
-    if (v.name == value) return v;
-  }
-  return null;
 }

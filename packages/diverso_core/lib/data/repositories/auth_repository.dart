@@ -1,10 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../legal/documento_legal.dart';
-import '../models/profile.dart';
+import '../../legal/documento_legal.dart';
+import '../../models/profile.dart';
 
-class AuthService {
-  SupabaseClient get _client => Supabase.instance.client;
+class AuthRepository {
+  AuthRepository({required SupabaseClient client}) : _client = client;
+
+  final SupabaseClient _client;
 
   /// Inicia sesión con email y contraseña.
   Future<void> signIn({required String email, required String password}) async {

@@ -29,7 +29,7 @@ class _BookingsViewState extends State<BookingsView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    _controller = BookingsViewModel(reservas: context.read<BookingService>());
+    _controller = BookingsViewModel(reservas: context.read<BookingRepository>());
     _pasarela = context.read<PaymentGateway>();
     _controller.cargar();
     _controller.addListener(_escucharMensaje);

@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 /// ViewModel del catálogo (MVVM): filtros, resultados y selección para
 /// comparar. La vista lo escucha con [ListenableBuilder].
 class CatalogViewModel extends ChangeNotifier {
-  CatalogViewModel({CatalogService? catalogo}) : _catalogo = catalogo ?? CatalogService();
+  CatalogViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
-  final CatalogService _catalogo;
+  final CatalogRepository _catalogo;
 
   // Estado expuesto (inmutable hacia la vista)
   List<Plan> planes = const [];

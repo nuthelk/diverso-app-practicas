@@ -35,7 +35,7 @@ class _AgenciaViewState extends State<AgenciaView> {
   void initState() {
     super.initState();
     _controller = AgenciaViewModel(
-      catalogo: context.read<CatalogService>(),
+      catalogo: context.read<CatalogRepository>(),
       agencyId: widget.agencyId,
     )..cargar();
   }

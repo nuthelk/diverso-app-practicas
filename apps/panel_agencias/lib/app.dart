@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'router.dart';
 import 'theme_mode_controller.dart';
@@ -17,7 +18,7 @@ class PanelAgenciasApp extends StatelessWidget {
         theme: AppTheme.panelLight(),
         darkTheme: AppTheme.panelDark(),
         themeMode: modo.mode,
-        routerConfig: buildPanelRouter(),
+        routerConfig: buildPanelRouter(context.read<SupabaseClient>()),
       ),
     );
   }

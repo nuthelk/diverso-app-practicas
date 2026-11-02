@@ -44,7 +44,7 @@ Plan _plan(int i) => Plan(
   reviewsCount: 2,
 );
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   final planes = [for (var i = 1; i <= 8; i++) _plan(i)];
 
   @override
@@ -67,7 +67,7 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Resenas implements ReviewService {
+class _Resenas implements ReviewRepository {
   @override
   Future<List<Review>> porPlan(String planId, {int limit = 20}) async => const [];
 
@@ -75,7 +75,7 @@ class _Resenas implements ReviewService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Auth implements AuthService {
+class _Auth implements AuthRepository {
   @override
   String? get currentUserEmail => 'ana@correo.test';
 
@@ -86,7 +86,7 @@ class _Auth implements AuthService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   @override
   Future<List<Booking>> misReservas() async => [
     for (var i = 0; i < 9; i++)
@@ -121,10 +121,10 @@ Future<void> _abrir(WidgetTester tester, Widget vista, {ThemeData? tema}) async 
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-        Provider<CatalogService>.value(value: _Catalogo()),
-        Provider<ReviewService>.value(value: _Resenas()),
-        Provider<AuthService>.value(value: _Auth()),
-        Provider<BookingService>.value(value: _Reservas()),
+        Provider<CatalogRepository>.value(value: _Catalogo()),
+        Provider<ReviewRepository>.value(value: _Resenas()),
+        Provider<AuthRepository>.value(value: _Auth()),
+        Provider<BookingRepository>.value(value: _Reservas()),
         Provider<PaymentGateway>.value(value: _Pasarela()),
       ],
       child: MaterialApp(theme: tema ?? AppTheme.viajeroLight(), home: vista),

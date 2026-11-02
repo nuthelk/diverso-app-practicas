@@ -27,7 +27,7 @@ class _CheckoutLoaderState extends State<CheckoutLoader> {
     _cargar();
   }
 
-  void _cargar() => _plan = context.read<CatalogService>().planDetalle(widget.planId);
+  void _cargar() => _plan = context.read<CatalogRepository>().planDetalle(widget.planId);
 
   Widget _estado(Widget hijo) => Scaffold(
     appBar: AppBar(title: const Text('Confirmar y pagar')),

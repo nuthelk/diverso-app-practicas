@@ -29,7 +29,7 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    _controller = AgenciasViewModel(catalogo: context.read<CatalogService>())..cargar();
+    _controller = AgenciasViewModel(catalogo: context.read<CatalogRepository>())..cargar();
   }
 
   @override

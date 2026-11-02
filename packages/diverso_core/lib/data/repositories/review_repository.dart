@@ -1,10 +1,12 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/review.dart';
-import 'booking_service.dart';
+import '../../errors/diverso_exception.dart';
+import '../../models/review.dart';
 
-class ReviewService {
-  SupabaseClient get _client => Supabase.instance.client;
+class ReviewRepository {
+  ReviewRepository({required SupabaseClient client}) : _client = client;
+
+  final SupabaseClient _client;
 
   Future<List<Review>> porPlan(String planId, {int limit = 20}) async {
     final res = await _client
@@ -30,7 +32,7 @@ class ReviewService {
         'calificacion': calificacion,
         'comentario': comentario?.trim().isEmpty == true ? null : comentario?.trim(),
       });
-    } catch (e) {
+    } on Object catch (e) {
       throw DiversoException.fromPostgrest(e);
     }
   }

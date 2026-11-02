@@ -42,7 +42,7 @@ void main() {
   );
 
   late SupabaseClient client;
-  final bookings = BookingService();
+  late BookingRepository bookings;
 
   final llaveServicio = Platform.environment['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
   final String? sinLlave = llaveServicio.isEmpty
@@ -109,6 +109,10 @@ void main() {
       // Si ya fue inicializado en este proceso, continuar con la instancia.
     }
     client = Supabase.instance.client;
+    bookings = BookingRepository(
+      api: BookingApi(client: client),
+      edgeFunctions: EdgeFunctionsApi(client: client),
+    );
     try {
       await client.auth.signInWithPassword(email: 'santiago@demo.com', password: 'demo1234');
     } catch (e) {

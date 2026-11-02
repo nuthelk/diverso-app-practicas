@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/widgets.dart';
 import '../shell/panel_controller.dart';
@@ -15,11 +16,12 @@ class PlanesView extends StatefulWidget {
 }
 
 class _PlanesViewState extends State<PlanesView> {
-  final _controller = PanelController();
+  late final PanelController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = PanelController(servicio: context.read<AgencyRepository>());
     _controller.cargarTodo();
     _controller.addListener(_escucharMensaje);
   }

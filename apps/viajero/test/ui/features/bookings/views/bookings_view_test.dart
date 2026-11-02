@@ -48,7 +48,7 @@ Plan _plan({List<String> fotos = const [], bool conAgencia = true}) => Plan(
       : null,
 );
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   _Reservas(this.lista);
 
   final List<Booking> lista;
@@ -72,7 +72,7 @@ Future<void> _abrir(WidgetTester tester, List<Booking> reservas) async {
   await tester.pumpWidget(
     MultiProvider(
       providers: [
-        Provider<BookingService>.value(value: _Reservas(reservas)),
+        Provider<BookingRepository>.value(value: _Reservas(reservas)),
         Provider<PaymentGateway>.value(value: _Pasarela()),
       ],
       child: MaterialApp(theme: AppTheme.viajeroLight(), home: const BookingsView()),

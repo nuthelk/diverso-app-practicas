@@ -1,4 +1,5 @@
-# Reglas estrictas compartidas con apps/viajero (mantenerlas iguales en ambos).
+# Reglas estrictas compartidas con apps/viajero. avoid_catches_without_on_clauses y
+# avoid_dynamic_calls solo están en el núcleo por ahora (viajero las suma en F5).
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -8,6 +9,8 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
+    - avoid_catches_without_on_clauses
+    - avoid_dynamic_calls
     - avoid_void_async
     - cancel_subscriptions
     - close_sinks

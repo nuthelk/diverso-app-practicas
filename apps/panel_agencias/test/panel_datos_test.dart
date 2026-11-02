@@ -23,7 +23,7 @@ void main() {
     return true;
   });
 
-  final servicio = AgencyService();
+  late AgencyRepository servicio;
 
   setUpAll(() async {
     try {
@@ -34,6 +34,7 @@ void main() {
     } catch (_) {
       // Ya inicializado en este proceso.
     }
+    servicio = AgencyRepository(api: AgencyApi(client: Supabase.instance.client));
     try {
       await Supabase.instance.client.auth.signInWithPassword(
         email: 'graffiti@demo.com',

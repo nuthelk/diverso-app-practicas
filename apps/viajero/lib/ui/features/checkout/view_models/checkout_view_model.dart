@@ -11,9 +11,9 @@ import 'package:flutter/services.dart';
 /// Si ya existe (p. ej. volvió atrás desde Wompi), `pagar` no crea otra: expone [pendiente]
 /// para que el viajero la complete o la cancele.
 class CheckoutViewModel extends ChangeNotifier {
-  CheckoutViewModel({required BookingService reservas}) : _reservas = reservas;
+  CheckoutViewModel({required BookingRepository reservas}) : _reservas = reservas;
 
-  final BookingService _reservas;
+  final BookingRepository _reservas;
 
   bool procesando = false;
   String? error;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 /// Pantalla de arranque: decide a dónde va cada usuario según su rol y
 /// si ya registró su agencia (viaje completo del onboarding).
@@ -21,7 +22,8 @@ class _StarterViewState extends State<StarterView> {
   Future<void> _decidir() async {
     await Future.delayed(const Duration(milliseconds: 150));
     if (!mounted) return;
-    final auth = AuthService();
+    final auth = context.read<AuthRepository>();
+    final agencias = context.read<AgencyRepository>();
     if (auth.currentUserId == null) {
       context.go('/login');
       return;
@@ -33,7 +35,7 @@ class _StarterViewState extends State<StarterView> {
         context.go('/admin');
         return;
       }
-      final agencia = await AgencyService().miAgencia();
+      final agencia = await agencias.miAgencia();
       if (!mounted) return;
       context.go(agencia == null ? '/onboarding' : '/dashboard');
     } catch (_) {

@@ -16,9 +16,18 @@ Future<void> main() async {
     publishableKey: DiversoConfig.supabaseKey,
   );
 
+  // Composición de dependencias: el cliente de Supabase se crea una vez y se pasa por
+  // constructor a los servicios (Api) y estos a los repositorios; la UI solo ve repositorios.
+  final client = Supabase.instance.client;
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeModeController(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModeController()),
+        Provider<SupabaseClient>.value(value: client),
+        Provider<AuthRepository>.value(value: AuthRepository(client: client)),
+        Provider<AgencyRepository>.value(value: AgencyRepository(api: AgencyApi(client: client))),
+      ],
       child: const PanelAgenciasApp(),
     ),
   );

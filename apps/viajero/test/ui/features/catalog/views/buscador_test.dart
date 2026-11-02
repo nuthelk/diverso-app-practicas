@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:viajero/ui/core/theme/app_theme.dart';
 import 'package:viajero/ui/features/catalog/views/catalog_view.dart';
 
-/// Buscador del catálogo: lo que el viajero escribe llega a `CatalogService.search` en
+/// Buscador del catálogo: lo que el viajero escribe llega a `CatalogRepository.search` en
 /// `FiltrosCatalogo.texto`. Sin red ni Supabase: el catálogo es un doble que registra los filtros.
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   final busquedas = <FiltrosCatalogo>[];
 
   @override
@@ -30,7 +30,7 @@ Future<_Catalogo> _abrir(WidgetTester tester) async {
   addTearDown(tester.view.reset);
   final catalogo = _Catalogo();
   await tester.pumpWidget(
-    Provider<CatalogService>.value(
+    Provider<CatalogRepository>.value(
       value: catalogo,
       child: MaterialApp(theme: AppTheme.viajeroLight(), home: const CatalogView()),
     ),

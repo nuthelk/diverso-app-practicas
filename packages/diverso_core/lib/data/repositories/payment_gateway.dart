@@ -1,5 +1,6 @@
-import '../models/pago.dart';
-import 'edge_functions.dart';
+import '../../models/pago.dart';
+import '../services/edge_functions_api.dart';
+import 'llamar_edge_function.dart';
 
 /// Abstracción de pasarela de pago (Anexo 6: pagos locales seguros).
 ///
@@ -17,13 +18,13 @@ abstract class PaymentGateway {
 
 /// Pasarela Wompi en modo prueba: delega en las Edge Functions `pagos-iniciar` y `pagos-verificar`.
 class WompiPaymentGateway implements PaymentGateway {
-  WompiPaymentGateway({FunctionInvoker? invocar}) : _invocar = invocar ?? invocarEdgeFunction;
+  WompiPaymentGateway({required EdgeFunctionsApi edgeFunctions}) : _edgeFunctions = edgeFunctions;
 
-  final FunctionInvoker _invocar;
+  final EdgeFunctionsApi _edgeFunctions;
 
   @override
   Future<CheckoutIniciado> iniciar({required String bookingId, required String redirectUrl}) async {
-    final res = await llamarEdgeFunction(_invocar, 'pagos-iniciar', {
+    final res = await llamarEdgeFunction(_edgeFunctions, 'pagos-iniciar', {
       'booking_id': bookingId,
       'redirect_url': redirectUrl,
     });
@@ -35,7 +36,7 @@ class WompiPaymentGateway implements PaymentGateway {
     if ((transactionId == null) == (bookingId == null)) {
       throw ArgumentError('Indica exactamente uno de transactionId o bookingId');
     }
-    final res = await llamarEdgeFunction(_invocar, 'pagos-verificar', {
+    final res = await llamarEdgeFunction(_edgeFunctions, 'pagos-verificar', {
       'transaction_id': ?transactionId,
       'booking_id': ?bookingId,
     });

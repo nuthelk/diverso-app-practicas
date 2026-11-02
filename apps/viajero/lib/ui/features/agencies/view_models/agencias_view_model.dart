@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 
 /// ViewModel de la pestaña «Agencias» (MVVM): lista pública de agencias y su orden.
 class AgenciasViewModel extends ChangeNotifier {
-  AgenciasViewModel({required CatalogService catalogo}) : _catalogo = catalogo;
+  AgenciasViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
-  final CatalogService _catalogo;
+  final CatalogRepository _catalogo;
 
   List<AgenciaResumen> _agencias = const [];
   bool cargando = true;

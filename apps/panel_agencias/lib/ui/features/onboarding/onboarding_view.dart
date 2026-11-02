@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
 
@@ -43,7 +44,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     setState(() => _enviando = true);
     final msg = ScaffoldMessenger.of(context);
     try {
-      await AgencyService().registrarAgencia(
+      await context.read<AgencyRepository>().registrarAgencia(
         nombre: _nombre.text.trim(),
         numeroRnt: _rnt.text.trim(),
         matriculaCamaraComercio: _matricula.text.trim(),

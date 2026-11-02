@@ -4,9 +4,9 @@ import 'package:diverso_core/diverso_core.dart';
 
 /// ViewModel compartido del panel: agencia, planes y ventas de la agencia.
 class PanelController extends ChangeNotifier {
-  PanelController({AgencyService? servicio}) : _servicio = servicio ?? AgencyService();
+  PanelController({required AgencyRepository servicio}) : _servicio = servicio;
 
-  final AgencyService _servicio;
+  final AgencyRepository _servicio;
 
   AgencyRef? agencia;
   List<Plan> planes = const [];

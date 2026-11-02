@@ -29,7 +29,7 @@ class _CheckoutViewState extends State<CheckoutView> {
   @override
   void initState() {
     super.initState();
-    _controller = CheckoutViewModel(reservas: context.read<BookingService>());
+    _controller = CheckoutViewModel(reservas: context.read<BookingRepository>());
     _pasarela = context.read<PaymentGateway>();
     _controller.cargarPendiente(widget.fecha);
   }

@@ -17,13 +17,13 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  late final AuthService _auth;
+  late final AuthRepository _auth;
   Profile? _perfil;
 
   @override
   void initState() {
     super.initState();
-    _auth = context.read<AuthService>();
+    _auth = context.read<AuthRepository>();
     _cargar();
   }
 

@@ -37,7 +37,7 @@ Plan _plan() => Plan(
   ],
 );
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   @override
   Future<Plan> planDetalle(String planId) async => _plan();
 
@@ -45,7 +45,7 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Resenas implements ReviewService {
+class _Resenas implements ReviewRepository {
   @override
   Future<List<Review>> porPlan(String planId, {int limit = 20}) async => const [];
 
@@ -75,8 +75,8 @@ void main() {
       await tester.pumpWidget(
         MultiProvider(
           providers: [
-            Provider<CatalogService>.value(value: _Catalogo()),
-            Provider<ReviewService>.value(value: _Resenas()),
+            Provider<CatalogRepository>.value(value: _Catalogo()),
+            Provider<ReviewRepository>.value(value: _Resenas()),
           ],
           child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
         ),

@@ -29,7 +29,7 @@ class _PanelShellState extends State<PanelShell> {
 
   Future<void> _cargarAgencia() async {
     try {
-      final a = await AgencyService().miAgencia();
+      final a = await context.read<AgencyRepository>().miAgencia();
       if (mounted) setState(() => _agencia = a);
     } catch (_) {}
   }
@@ -189,7 +189,7 @@ class _PanelShellState extends State<PanelShell> {
                       seleccionado: false,
                       extendido: extendido,
                       onTap: () async {
-                        await AuthService().signOut();
+                        await context.read<AuthRepository>().signOut();
                         if (context.mounted) context.go('/login');
                       },
                     ),

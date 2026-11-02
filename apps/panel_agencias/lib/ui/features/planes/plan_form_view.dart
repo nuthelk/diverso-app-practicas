@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/app_theme.dart';
 
@@ -17,7 +18,7 @@ class PlanFormView extends StatefulWidget {
 
 class _PlanFormViewState extends State<PlanFormView> {
   final _formKey = GlobalKey<FormState>();
-  final _servicio = AgencyService();
+  late final AgencyRepository _servicio;
   final _titulo = TextEditingController();
   final _destino = TextEditingController();
   final _precio = TextEditingController();
@@ -43,6 +44,7 @@ class _PlanFormViewState extends State<PlanFormView> {
   @override
   void initState() {
     super.initState();
+    _servicio = context.read<AgencyRepository>();
     _planId = widget.planId;
     if (_planId != null) {
       _cargarExistente();

@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 /// Reseña verificada: solo se llega desde una reserva propia ya viajada
 /// (RLS lo garantiza en el servidor).
@@ -15,9 +16,15 @@ class ReviewView extends StatefulWidget {
 
 class _ReviewViewState extends State<ReviewView> {
   final _comentarioCtrl = TextEditingController();
-  final _servicio = ReviewService();
+  late final ReviewRepository _servicio;
   int _calificacion = 5;
   bool _enviando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _servicio = context.read<ReviewRepository>();
+  }
 
   @override
   void dispose() {

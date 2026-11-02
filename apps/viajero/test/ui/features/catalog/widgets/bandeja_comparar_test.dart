@@ -24,7 +24,7 @@ Plan _plan(int i, {List<String> fotos = const ['https://fotos.test/p.jpg']}) => 
   reviewsCount: 3,
 );
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   _Catalogo(this.planes);
 
   final List<Plan> planes;
@@ -61,7 +61,7 @@ Future<void> _abrir(WidgetTester tester, {int planes = 4}) async {
     ],
   );
   await tester.pumpWidget(
-    Provider<CatalogService>.value(
+    Provider<CatalogRepository>.value(
       value: _Catalogo([for (var i = 1; i <= planes; i++) _plan(i)]),
       child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
     ),

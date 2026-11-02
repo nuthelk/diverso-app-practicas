@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import 'ui/features/admin/admin_view.dart';
 import 'ui/features/auth/login_view.dart';
@@ -17,8 +18,8 @@ import 'starter_view.dart';
 
 /// Router del panel (go_router): URLs persistentes (PWA), decisión de rol
 /// en /starter y shell con estado por sección.
-GoRouter buildPanelRouter() {
-  final auth = Supabase.instance.client.auth;
+GoRouter buildPanelRouter(SupabaseClient client) {
+  final auth = client.auth;
 
   return GoRouter(
     initialLocation: '/starter',
@@ -119,7 +120,7 @@ class AdminRouteGuard extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
       future: () async {
-        final perfil = await AuthService().currentProfile();
+        final perfil = await context.read<AuthRepository>().currentProfile();
         return perfil.rol == UserRole.admin;
       }(),
       builder: (context, snap) {

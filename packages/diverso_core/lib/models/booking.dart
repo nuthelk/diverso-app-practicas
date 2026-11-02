@@ -30,10 +30,9 @@ class Payment {
     id: map['id'] as String,
     bookingId: map['booking_id'] as String,
     metodo:
-        enumFromString(PaymentMethodOption.values, map['metodo'] as String?) ??
+        enumFromDb(PaymentMethodOption.values, map['metodo'] as String?) ??
         PaymentMethodOption.otro,
-    estado:
-        enumFromString(PaymentStatus.values, map['estado'] as String?) ?? PaymentStatus.pendiente,
+    estado: enumFromDb(PaymentStatus.values, map['estado'] as String?) ?? PaymentStatus.pendiente,
     monto: (map['monto'] as num?)?.toDouble() ?? 0,
     referencia: (map['referencia'] as String?) ?? '',
     provider: (map['provider'] as String?) ?? 'simulado',
@@ -143,8 +142,7 @@ class Booking {
       pax: (map['pax'] as num).toInt(),
       montoTotal: (map['monto_total'] as num?)?.toDouble() ?? 0,
       estado:
-          enumFromString(BookingStatus.values, map['estado'] as String?) ??
-          BookingStatus.pendientePago,
+          enumFromDb(BookingStatus.values, map['estado'] as String?) ?? BookingStatus.pendientePago,
       createdAt: DateTime.parse(map['created_at'] as String),
       salidaAt: map['salida_at'] == null ? null : DateTime.parse(map['salida_at'] as String),
       planDate: planDate,

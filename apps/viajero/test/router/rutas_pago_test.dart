@@ -57,7 +57,7 @@ Booking _reserva(BookingStatus estado) => Booking(
   ],
 );
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   final consultas = <String>[];
 
   @override
@@ -71,7 +71,7 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   _Reservas(this.estado);
 
   final BookingStatus estado;
@@ -133,8 +133,8 @@ Future<GoRouter> _abrir(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-        Provider<CatalogService>.value(value: catalogo),
-        Provider<BookingService>.value(value: reservas),
+        Provider<CatalogRepository>.value(value: catalogo),
+        Provider<BookingRepository>.value(value: reservas),
         Provider<PaymentGateway>.value(value: pasarela),
       ],
       child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),

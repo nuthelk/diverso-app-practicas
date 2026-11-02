@@ -42,7 +42,7 @@ Booking _pendiente({int pax = 2, Duration hace = const Duration(minutes: 5)}) =>
   createdAt: DateTime.now().subtract(hace),
 );
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   _Reservas({this.pendiente});
 
   Booking? pendiente;
@@ -97,7 +97,7 @@ class _Reservas implements BookingService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   @override
   Future<Plan> planDetalle(String planId) async => _plan();
 
@@ -314,8 +314,8 @@ void main() {
         MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-            Provider<CatalogService>.value(value: _Catalogo()),
-            Provider<BookingService>.value(value: reservas),
+            Provider<CatalogRepository>.value(value: _Catalogo()),
+            Provider<BookingRepository>.value(value: reservas),
             Provider<PaymentGateway>.value(value: pasarela),
           ],
           child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),

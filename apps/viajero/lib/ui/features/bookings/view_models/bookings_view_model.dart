@@ -3,11 +3,11 @@ import 'package:flutter/foundation.dart';
 
 /// ViewModel de "Mis reservas": carga la lista, la separa por salida y ejecuta cancelaciones.
 class BookingsViewModel extends ChangeNotifier {
-  BookingsViewModel({required BookingService reservas, DateTime Function()? reloj})
+  BookingsViewModel({required BookingRepository reservas, DateTime Function()? reloj})
     : _reservas = reservas,
       _reloj = reloj ?? DateTime.now;
 
-  final BookingService _reservas;
+  final BookingRepository _reservas;
   final DateTime Function() _reloj;
 
   List<Booking> reservas = const [];

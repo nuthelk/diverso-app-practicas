@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:diverso_core/diverso_core.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/widgets.dart';
 
@@ -15,12 +16,13 @@ class AdminView extends StatefulWidget {
 }
 
 class _AdminViewState extends State<AdminView> {
-  final _client = Supabase.instance.client;
+  late final SupabaseClient _client;
   late Future<List<Map<String, dynamic>>> _future;
 
   @override
   void initState() {
     super.initState();
+    _client = context.read<SupabaseClient>();
     _cargar();
   }
 
@@ -64,7 +66,7 @@ class _AdminViewState extends State<AdminView> {
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout_rounded),
             onPressed: () async {
-              await AuthService().signOut();
+              await context.read<AuthRepository>().signOut();
               if (context.mounted) context.go('/login');
             },
           ),

@@ -27,16 +27,16 @@ class PlanDetailView extends StatefulWidget {
 }
 
 class _PlanDetailViewState extends State<PlanDetailView> {
-  late final CatalogService _catalogo;
-  late final ReviewService _resenas;
+  late final CatalogRepository _catalogo;
+  late final ReviewRepository _resenas;
   late Future<(Plan, List<Review>)> _future;
   final _pageCtrl = PageController();
 
   @override
   void initState() {
     super.initState();
-    _catalogo = context.read<CatalogService>();
-    _resenas = context.read<ReviewService>();
+    _catalogo = context.read<CatalogRepository>();
+    _resenas = context.read<ReviewRepository>();
     _cargar();
   }
 

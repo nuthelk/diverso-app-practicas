@@ -33,7 +33,7 @@ class _CatalogViewState extends State<CatalogView> with AutomaticKeepAliveClient
   @override
   void initState() {
     super.initState();
-    _controller = CatalogViewModel(catalogo: context.read<CatalogService>())..cargar();
+    _controller = CatalogViewModel(catalogo: context.read<CatalogRepository>())..cargar();
   }
 
   @override

@@ -78,7 +78,7 @@ Booking _reserva({
       : const [],
 );
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   _Reservas(this.lista);
 
   final List<Booking> lista;
@@ -110,7 +110,7 @@ class _Reservas implements BookingService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   @override
   Future<Plan> planDetalle(String planId) async => throw DiversoException('PLAN_NO_PUBLICADO');
 
@@ -118,7 +118,7 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Resenas implements ReviewService {
+class _Resenas implements ReviewRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -142,9 +142,9 @@ Future<GoRouter> _abrir(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-        Provider<BookingService>.value(value: reservas),
-        Provider<CatalogService>.value(value: _Catalogo()),
-        Provider<ReviewService>.value(value: _Resenas()),
+        Provider<BookingRepository>.value(value: reservas),
+        Provider<CatalogRepository>.value(value: _Catalogo()),
+        Provider<ReviewRepository>.value(value: _Resenas()),
         Provider<PaymentGateway>.value(value: _Pasarela()),
       ],
       child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
@@ -299,7 +299,7 @@ void main() {
       },
     );
 
-    testWidgets('carga en frío por id (sin extra) con BookingService.reserva', (tester) async {
+    testWidgets('carga en frío por id (sin extra) con BookingRepository.reserva', (tester) async {
       final reservas = _Reservas([_reserva()]);
       await _abrir(tester, '/reservas/res-1', reservas);
 

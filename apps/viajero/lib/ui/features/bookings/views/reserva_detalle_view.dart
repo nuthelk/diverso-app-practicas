@@ -31,7 +31,7 @@ class ReservaDetalleView extends StatefulWidget {
 }
 
 class _ReservaDetalleViewState extends State<ReservaDetalleView> {
-  late final BookingService _servicio;
+  late final BookingRepository _servicio;
   late final PaymentGateway _pasarela;
   late final BookingsViewModel _controller;
   Booking? _reserva;
@@ -41,7 +41,7 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
   @override
   void initState() {
     super.initState();
-    _servicio = context.read<BookingService>();
+    _servicio = context.read<BookingRepository>();
     _pasarela = context.read<PaymentGateway>();
     _controller = BookingsViewModel(reservas: _servicio);
     _controller.addListener(_escucharMensaje);

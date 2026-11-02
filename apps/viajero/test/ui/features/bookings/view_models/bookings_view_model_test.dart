@@ -24,7 +24,7 @@ Booking _reserva(
   salidaAt: salida,
 );
 
-class _Reservas implements BookingService {
+class _Reservas implements BookingRepository {
   _Reservas(this.lista);
 
   final List<Booking> lista;

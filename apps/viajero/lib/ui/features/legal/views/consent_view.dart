@@ -1,5 +1,6 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/consent_checkboxes.dart';
 
@@ -14,12 +15,18 @@ class ConsentView extends StatefulWidget {
 }
 
 class _ConsentViewState extends State<ConsentView> {
-  final _auth = AuthService();
+  late final AuthRepository _auth;
   bool _datos = false;
   bool _terminos = false;
   bool _intentado = false;
   bool _guardando = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthRepository>();
+  }
 
   Future<void> _aceptar() async {
     setState(() => _intentado = true);

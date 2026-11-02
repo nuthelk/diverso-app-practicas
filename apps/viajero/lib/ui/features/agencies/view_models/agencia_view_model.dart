@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 
 /// ViewModel de la página de una agencia: su resumen público y sus planes publicados.
 class AgenciaViewModel extends ChangeNotifier {
-  AgenciaViewModel({required CatalogService catalogo, required this.agencyId})
+  AgenciaViewModel({required CatalogRepository catalogo, required this.agencyId})
     : _catalogo = catalogo;
 
-  final CatalogService _catalogo;
+  final CatalogRepository _catalogo;
   final String agencyId;
 
   AgenciaResumen? agencia;

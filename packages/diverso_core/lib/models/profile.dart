@@ -10,7 +10,7 @@ class Profile {
 
   factory Profile.fromMap(Map<String, dynamic> map) => Profile(
     id: map['id'] as String,
-    rol: enumFromString(UserRole.values, map['rol'] as String?) ?? UserRole.viajero,
+    rol: enumFromDb(UserRole.values, map['rol'] as String?) ?? UserRole.viajero,
     nombre: (map['nombre'] as String?) ?? '',
     telefono: map['telefono'] as String?,
   );
@@ -73,7 +73,7 @@ class Agency {
     whatsapp: map['whatsapp'] as String?,
     logoUrl: map['logo_url'] as String?,
     estadoVerificacion:
-        enumFromString(VerificationStatus.values, map['estado_verificacion'] as String?) ??
+        enumFromDb(VerificationStatus.values, map['estado_verificacion'] as String?) ??
         VerificationStatus.pendiente,
     comisionPct: (map['comision_pct'] as num?)?.toDouble() ?? 12,
     rntVigenteHasta: map['rnt_vigente_hasta'] == null

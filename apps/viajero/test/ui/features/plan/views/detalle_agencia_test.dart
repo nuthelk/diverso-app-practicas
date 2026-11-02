@@ -31,7 +31,7 @@ Plan _plan({String? logoUrl}) => Plan(
   ),
 );
 
-class _Catalogo implements CatalogService {
+class _Catalogo implements CatalogRepository {
   _Catalogo(this.plan);
 
   final Plan plan;
@@ -43,7 +43,7 @@ class _Catalogo implements CatalogService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _Resenas implements ReviewService {
+class _Resenas implements ReviewRepository {
   @override
   Future<List<Review>> porPlan(String planId, {int limit = 20}) async => const [];
 
@@ -70,8 +70,8 @@ Future<void> _abrir(WidgetTester tester, Plan plan, {double ancho = 600}) async 
   await tester.pumpWidget(
     MultiProvider(
       providers: [
-        Provider<CatalogService>.value(value: _Catalogo(plan)),
-        Provider<ReviewService>.value(value: _Resenas()),
+        Provider<CatalogRepository>.value(value: _Catalogo(plan)),
+        Provider<ReviewRepository>.value(value: _Resenas()),
       ],
       child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
     ),

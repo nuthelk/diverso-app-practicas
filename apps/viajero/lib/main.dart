@@ -19,15 +19,27 @@ Future<void> main() async {
     publishableKey: DiversoConfig.supabaseKey,
   );
 
+  // Composición de dependencias: el cliente de Supabase se crea una vez y se pasa por
+  // constructor a los servicios (Api) y estos a los repositorios; la UI solo ve repositorios.
+  final client = Supabase.instance.client;
+  final edgeFunctions = EdgeFunctionsApi(client: client);
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-        Provider<BookingService>(create: (_) => BookingService()),
-        Provider<CatalogService>(create: (_) => CatalogService()),
-        Provider<ReviewService>(create: (_) => ReviewService()),
-        Provider<AuthService>(create: (_) => AuthService()),
-        Provider<PaymentGateway>(create: (_) => WompiPaymentGateway()),
+        Provider<BookingRepository>.value(
+          value: BookingRepository(
+            api: BookingApi(client: client),
+            edgeFunctions: edgeFunctions,
+          ),
+        ),
+        Provider<CatalogRepository>.value(
+          value: CatalogRepository(api: CatalogApi(client: client)),
+        ),
+        Provider<ReviewRepository>.value(value: ReviewRepository(client: client)),
+        Provider<AuthRepository>.value(value: AuthRepository(client: client)),
+        Provider<PaymentGateway>.value(value: WompiPaymentGateway(edgeFunctions: edgeFunctions)),
       ],
       child: const DiversoApp(),
     ),
