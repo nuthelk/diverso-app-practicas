@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2D4A73" />
+    <link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
+    <title>Diverso — Panel de Agencias</title>
+    <script>
+      // Tema antes del primer render para evitar destello.
+      try {
+        const t = localStorage.getItem('diverso-panel-theme');
+        if (t === 'light') document.documentElement.classList.remove('dark');
+      } catch (_) {}
+    </script>
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="off">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>

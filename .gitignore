@@ -39,3 +39,4 @@ supabase/functions/.env
 # Python (pruebas HTTP de pagos)
 __pycache__/
 *.pyc
+.svelte-kit/
