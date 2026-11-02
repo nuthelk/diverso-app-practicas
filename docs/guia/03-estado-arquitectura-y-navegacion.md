@@ -464,9 +464,8 @@ prueba sin Flutter (`test/router/sesion_redirect_test.dart`):
 | Sesión | Consentimiento | Resultado |
 |---|---|---|
 | no | (da igual) | todo va a `/login`, salvo `/login` y `/legal/*` |
-| sí | `pendiente` o `error` | todo va a `/consentimiento`, salvo él mismo y `/legal/*` |
-| sí | `verificando` | no mueve a nadie (`/login` va a `/`) |
-| sí | `aceptado` | `/login` y `/consentimiento` van a `/` |
+| sí | `verificando`, `pendiente` o `error` | todo va a `/consentimiento?desde=<ubicación>`, salvo él mismo y `/legal/*` |
+| sí | `aceptado` | `/login` va a `/`; `/consentimiento` vuelve a `desde` (o a `/`) |
 
 Para que reaccione al login y logout sin que el usuario navegue, `refreshListenable` junta el
 `GoRouterRefreshStream(auth.onAuthStateChanged)` (el `Stream` del capítulo 1, sección 10) con el
@@ -479,11 +478,24 @@ La Ley 1581 de 2012 exige la autorización vigente de los documentos legales. An
 la consultaba una vez en `initState` y, si la consulta fallaba (sin red), nunca volvía a mirar.
 Ahora `ConsentViewModel` (`ui/features/legal/view_models/`) expone un `EstadoConsentimiento`:
 
-- `verificando`: consulta en curso o sin sesión.
+- `verificando`: consulta en curso o sin sesión. Tampoco deja pasar: la pantalla de consentimiento
+  muestra un indicador de progreso y ninguna pantalla protegida se abre ni carga datos antes de
+  saber si el usuario aceptó.
 - `pendiente`: falta aceptar algún documento.
 - `aceptado`: al día.
 - `error`: la consulta falló, **no se sabe**; se trata como pendiente. `ConsentView` se muestra con
   un aviso y el botón «Reintentar» en vez de dejar entrar.
+
+**El enlace original no se pierde.** El redirect manda a `/consentimiento?desde=<ubicación original,
+codificada>` (por ejemplo `/consentimiento?desde=%2Freservas%2Fb-1`). Cuando el consentimiento
+queda `aceptado`, quien está en `/consentimiento` vuelve a `desde`. Como `desde` viene de la URL, no
+se confía en él: `destinoSeguro` (en `sesion_redirect.dart`) solo lo acepta si empieza por `/`, no
+por `//` ni `/\`, no lleva esquema (`https:`) y no es `/login` ni `/consentimiento`; si no, se va a
+`/`. Es la defensa contra un *open redirect*.
+
+**Una consulta colgada no abre la puerta.** `ConsentViewModel` le pone un límite de tiempo
+(`ConsentViewModel.tiempoLimite`, 15 s) a la consulta: si el servidor no responde, el estado pasa a
+`error` y la pantalla ofrece «Reintentar».
 
 Se vuelve a consultar cuando **cambia la sesión** (otro usuario), al pulsar **«Reintentar»** y al
 **volver a primer plano** si el último intento falló (`DiversoApp` escucha el ciclo de vida de la

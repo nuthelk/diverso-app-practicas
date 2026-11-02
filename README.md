@@ -353,6 +353,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0011 (búsqueda sin tildes) | ver «Pruebas SQL» | 11 |
 | SQL 0012 (no reservar ni pagar tras la salida) | ver «Pruebas SQL» | 24 |
 | SQL 0013 (el checkout vence en la salida) | ver «Pruebas SQL» | 8 |
+| SQL 0014 (RLS: reservas ajenas y consentimientos) | ver «Pruebas SQL» | 10 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
@@ -372,7 +373,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`, `0014_rls_resena_ajena`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).
@@ -407,8 +408,10 @@ cd apps/viajero && flutter test
   `test/ui/features/bookings/widgets/cancel_dialog_test.dart` — pasarela, rutas que sobreviven
   a la recarga, aviso de reserva pendiente y diálogo de cancelación.
 - `test/router/sesion_redirect_test.dart`, `test/router/consentimiento_test.dart`,
-  `test/router/rutas_con_ids_test.dart`, `test/app_test.dart` — el redirect de sesión y
-  consentimiento (función pura y recorrido completo con «Reintentar»), las rutas con ids
+  `test/router/consentimiento_guard_test.dart`, `test/router/rutas_con_ids_test.dart`,
+  `test/app_test.dart` — el redirect de sesión y consentimiento (función pura, `?desde=` validado,
+  recorrido completo con «Reintentar», nada protegido se abre mientras se verifica, falla o falta
+  aceptar), las rutas con ids
   (`/resena/:bookingId`, `/comparar?ids=…`), la página no encontrada y que cambiar el tema no
   reinicie la navegación.
 - `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,

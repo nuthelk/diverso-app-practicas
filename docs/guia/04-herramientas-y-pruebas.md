@@ -391,6 +391,7 @@ Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`
 | `apps/viajero/test/ui/shell/app_shell_test.dart` | La barra inferior de pestañas |
 | `apps/viajero/test/router/rutas_pago_test.dart` | El router completo con sesión simulada |
 | `apps/viajero/test/router/sesion_redirect_test.dart` | Una función pura (sesión + consentimiento + ubicación) sin Flutter |
+| `apps/viajero/test/router/consentimiento_guard_test.dart` | Un repositorio falso cuya respuesta se controla a mano (`Completer`) para probar la guardia paso a paso |
 | `packages/diverso_core/test/models/salida_plan_test.dart` | Reglas de un modelo con el reloj fijo |
 | `packages/diverso_core/test/data/repositories/catalog_repository_test.dart` | Un repositorio con una Api falsa (filtro de fecha, búsqueda) |
 | `packages/diverso_core/test/models/enums_bd_test.dart` | Que cada enum reconozca todos los valores de la BD |

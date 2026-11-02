@@ -15,6 +15,10 @@ abstract final class AppRoutes {
   static const comparar = '/comparar';
   static const resenaBase = '/resena';
 
+  /// `/consentimiento` recordando a dónde volver al aceptar (`desde`: ubicación original completa).
+  static String consentimientoDesde(String ubicacion) =>
+      '$consentimiento?desde=${Uri.encodeQueryComponent(ubicacion)}';
+
   /// Los documentos legales se leen antes de crear la cuenta y mientras se pide el consentimiento.
   static const legalPrefijo = '/legal/';
 

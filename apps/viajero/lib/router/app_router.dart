@@ -68,7 +68,7 @@ GoRouter buildViajeroRouter({
     redirect: (context, state) => sesionRedirect(
       haySesion: auth.currentUserId != null,
       consentimiento: consentimiento.estado,
-      ubicacion: state.matchedLocation,
+      ubicacion: state.uri.toString(),
     ),
     errorBuilder: (context, state) => PaginaNoEncontradaView(ubicacion: state.uri.toString()),
     routes: [

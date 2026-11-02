@@ -197,6 +197,45 @@ void main() {
     expect(auth.currentUserId, isNull);
   });
 
+  group('una consulta que no responde', () {
+    testWidgets('pasado el tiempo límite queda en error y «reintentar» vuelve a consultar', (
+      tester,
+    ) async {
+      final auth = _AuthColgado();
+      final vm = _vm(auth);
+      await tester.pump();
+      expect(vm.estado, EstadoConsentimiento.verificando);
+
+      await tester.pump(ConsentViewModel.tiempoLimite - const Duration(seconds: 1));
+      expect(vm.estado, EstadoConsentimiento.verificando);
+
+      await tester.pump(const Duration(seconds: 1));
+      expect(vm.estado, EstadoConsentimiento.error);
+      expect(auth.consultas, 1);
+
+      unawaited(vm.reintentar());
+      await tester.pump();
+      expect(auth.consultas, 2);
+      expect(vm.estado, EstadoConsentimiento.verificando);
+      // La segunda consulta tampoco responde: se vence también y no queda ningún temporizador.
+      await tester.pump(ConsentViewModel.tiempoLimite);
+      expect(vm.estado, EstadoConsentimiento.error);
+    });
+
+    testWidgets('si responde a tiempo no hay error', (tester) async {
+      final tardia = Completer<List<String>>();
+      final vm = _vm(_AuthLento(tardia.future));
+      await tester.pump(ConsentViewModel.tiempoLimite - const Duration(seconds: 1));
+
+      tardia.complete(const []);
+      await tester.pump();
+
+      expect(vm.estado, EstadoConsentimiento.aceptado);
+      await tester.pump(ConsentViewModel.tiempoLimite);
+      expect(vm.estado, EstadoConsentimiento.aceptado);
+    });
+  });
+
   test('tras dispose una respuesta tardía no notifica', () async {
     final tardia = Completer<List<String>>();
     final vm = ConsentViewModel(auth: _AuthLento(tardia.future));
@@ -209,6 +248,15 @@ void main() {
 
     expect(avisos, 0);
   });
+}
+
+/// Una consulta de consentimiento que nunca responde.
+class _AuthColgado extends AuthFalso {
+  @override
+  Future<List<String>> consentimientosPendientes() {
+    consultas++;
+    return Completer<List<String>>().future;
+  }
 }
 
 /// Una consulta de consentimiento que no responde hasta que el test lo decide (solo la primera).

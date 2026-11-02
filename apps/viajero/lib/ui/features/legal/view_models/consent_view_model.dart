@@ -22,6 +22,10 @@ enum EstadoConsentimiento {
 /// cambia la sesión y a pedido ([reintentar], que la app llama al volver a primer plano y el
 /// botón «Reintentar»).
 class ConsentViewModel extends ChangeNotifier {
+  /// Una consulta que no responde en este tiempo cuenta como fallida (`error`, con «Reintentar»):
+  /// sin esto una petición colgada dejaría la verificación abierta para siempre.
+  static const tiempoLimite = Duration(seconds: 15);
+
   ConsentViewModel({required AuthRepository auth}) : _auth = auth {
     _usuario = _auth.currentUserId;
     _sesion = _auth.onAuthStateChanged.listen(_alCambiarSesion);
@@ -61,7 +65,7 @@ class ConsentViewModel extends ChangeNotifier {
       notifyListeners();
     }
     try {
-      final pendientes = await _auth.consentimientosPendientes();
+      final pendientes = await _auth.consentimientosPendientes().timeout(tiempoLimite);
       if (_desechado || revision != _revision) return;
       _pendientes = pendientes;
       _estado = pendientes.isEmpty ? EstadoConsentimiento.aceptado : EstadoConsentimiento.pendiente;
