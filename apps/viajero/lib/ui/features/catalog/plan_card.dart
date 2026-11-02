@@ -7,12 +7,7 @@ import '../../../ui/core/widgets.dart';
 /// Tarjeta de plan del catálogo: foto protagonista, destino sobre la imagen,
 /// precio final visible desde el inicio y check de comparación.
 class PlanCard extends StatelessWidget {
-  const PlanCard({
-    super.key,
-    required this.plan,
-    this.comparada = false,
-    this.onToggleComparar,
-  });
+  const PlanCard({super.key, required this.plan, this.comparada = false, this.onToggleComparar});
 
   final Plan plan;
   final bool comparada;
@@ -63,41 +58,31 @@ class PlanCard extends StatelessWidget {
                         : const SizedBox.shrink(),
                   ),
                   if (onToggleComparar != null)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: IconButton(
-                      visualDensity: VisualDensity.compact,
-                      style: IconButton.styleFrom(
-                        backgroundColor: comparada
-                            ? cs.primary
-                            : Colors.black.withValues(alpha: .28),
-                        foregroundColor: comparada
-                            ? cs.onPrimary
-                            : Colors.white,
-                      ),
-                      tooltip: comparada
-                          ? 'Quitar del comparador'
-                          : 'Agregar al comparador',
-                      onPressed: () => onToggleComparar!(plan),
-                      icon: Icon(
-                        comparada
-                            ? Icons.check_rounded
-                            : Icons.compare_arrows_rounded,
-                        size: 19,
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: IconButton(
+                        visualDensity: VisualDensity.compact,
+                        style: IconButton.styleFrom(
+                          backgroundColor: comparada
+                              ? cs.primary
+                              : Colors.black.withValues(alpha: .28),
+                          foregroundColor: comparada ? cs.onPrimary : Colors.white,
+                        ),
+                        tooltip: comparada ? 'Quitar del comparador' : 'Agregar al comparador',
+                        onPressed: () => onToggleComparar!(plan),
+                        icon: Icon(
+                          comparada ? Icons.check_rounded : Icons.compare_arrows_rounded,
+                          size: 19,
+                        ),
                       ),
                     ),
-                  ),
                   Positioned(
                     left: 12,
                     bottom: 10,
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.location_on_rounded,
-                          size: 14,
-                          color: Colors.white,
-                        ),
+                        const Icon(Icons.location_on_rounded, size: 14, color: Colors.white),
                         const SizedBox(width: 3),
                         Text(
                           plan.destino,
@@ -109,10 +94,7 @@ class PlanCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 2,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: .22),
                             borderRadius: BorderRadius.circular(AppRadios.pill),
@@ -134,10 +116,7 @@ class PlanCard extends StatelessWidget {
                       right: 12,
                       bottom: 10,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(AppRadios.pill),
@@ -145,11 +124,7 @@ class PlanCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              Icons.event_available_rounded,
-                              size: 12,
-                              color: cs.primary,
-                            ),
+                            Icon(Icons.event_available_rounded, size: 12, color: cs.primary),
                             const SizedBox(width: 3),
                             Text(
                               '${plan.fechasDisponibles.first.cupoDisponible} cupos',
@@ -213,12 +188,7 @@ class _PortadaPlan extends StatelessWidget {
     if (plan.fotoPrincipal == null) {
       return Container(
         color: cs.primaryContainer,
-        child: Center(
-          child: Text(
-            plan.categoria.emoji,
-            style: const TextStyle(fontSize: 40),
-          ),
-        ),
+        child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
       );
     }
     return Image.network(
@@ -231,12 +201,7 @@ class _PortadaPlan extends StatelessWidget {
       filterQuality: FilterQuality.low,
       errorBuilder: (_, _, _) => Container(
         color: cs.primaryContainer,
-        child: Center(
-          child: Text(
-            plan.categoria.emoji,
-            style: const TextStyle(fontSize: 40),
-          ),
-        ),
+        child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
       ),
     );
   }

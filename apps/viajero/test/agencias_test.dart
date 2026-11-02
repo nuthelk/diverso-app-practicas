@@ -41,16 +41,16 @@ const _cafe = AgenciaResumen(
 );
 
 Plan _plan(String id, String titulo, {String agencia = 'ag-rutas'}) => Plan(
-      id: id,
-      agencyId: agencia,
-      titulo: titulo,
-      destino: 'Guatapé',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 120000,
-      estado: PlanStatus.publicado,
-      ratingPromedio: 3.0,
-      reviewsCount: 1,
-    );
+  id: id,
+  agencyId: agencia,
+  titulo: titulo,
+  destino: 'Guatapé',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 120000,
+  estado: PlanStatus.publicado,
+  ratingPromedio: 3.0,
+  reviewsCount: 1,
+);
 
 class _Catalogo implements CatalogService {
   _Catalogo({this.lista = const [_rutas, _eco, _cafe]});
@@ -92,20 +92,27 @@ class _Resenas implements ReviewService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<GoRouter> _abrir(WidgetTester tester, _Catalogo catalogo, {String url = '/agencias', bool settle = true}) async {
+Future<GoRouter> _abrir(
+  WidgetTester tester,
+  _Catalogo catalogo, {
+  String url = '/agencias',
+  bool settle = true,
+}) async {
   // 600 de ancho: lista de una columna; la tipografía de prueba (Ahem) es más ancha que la real y desbordaría el precio de PlanCard en 400.
   tester.view.physicalSize = const Size(600, 1400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final router = buildViajeroRouter(haySesion: () => true, initialLocation: url);
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ThemeModeController()),
-      Provider<CatalogService>.value(value: catalogo),
-      Provider<ReviewService>.value(value: _Resenas()),
-    ],
-    child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModeController()),
+        Provider<CatalogService>.value(value: catalogo),
+        Provider<ReviewService>.value(value: _Resenas()),
+      ],
+      child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
+    ),
+  );
   if (settle) {
     await tester.pumpAndSettle();
   } else {
@@ -122,7 +129,9 @@ List<String> _ordenEnPantalla(WidgetTester tester) {
     for (final a in [_rutas, _eco, _cafe])
       if (find.text(a.nombre).evaluate().isNotEmpty) a.nombre,
   ];
-  visibles.sort((a, b) => tester.getTopLeft(find.text(a)).dy.compareTo(tester.getTopLeft(find.text(b)).dy));
+  visibles.sort(
+    (a, b) => tester.getTopLeft(find.text(a)).dy.compareTo(tester.getTopLeft(find.text(b)).dy),
+  );
   return visibles;
 }
 
@@ -130,68 +139,105 @@ void main() {
   setUpAll(() => initializeDateFormatting('es'));
 
   group('logo', () {
-    Future<void> montar(WidgetTester tester, AgenciaResumen a) => tester.pumpWidget(MaterialApp(
-          theme: AppTheme.viajeroLight(),
-          home: Scaffold(body: Center(child: AgencyAvatar(agencia: a))),
-        ));
+    Future<void> montar(WidgetTester tester, AgenciaResumen a) => tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.viajeroLight(),
+        home: Scaffold(
+          body: Center(child: AgencyAvatar(agencia: a)),
+        ),
+      ),
+    );
 
     testWidgets('con logo_url muestra la imagen de red', (tester) async {
-      await montar(tester, const AgenciaResumen(id: 'a', nombre: 'Rutas de Antioquia', ciudad: 'X', logoUrl: 'https://logos.test/a.png'));
+      await montar(
+        tester,
+        const AgenciaResumen(
+          id: 'a',
+          nombre: 'Rutas de Antioquia',
+          ciudad: 'X',
+          logoUrl: 'https://logos.test/a.png',
+        ),
+      );
       expect(find.byType(Image), findsOneWidget);
     });
 
-    testWidgets('sin logo_url (o vacío) muestra solo las iniciales, sin pedir imagen', (tester) async {
-      await montar(tester, const AgenciaResumen(id: 'a', nombre: 'Rutas de Antioquia', ciudad: 'X'));
+    testWidgets('sin logo_url (o vacío) muestra solo las iniciales, sin pedir imagen', (
+      tester,
+    ) async {
+      await montar(
+        tester,
+        const AgenciaResumen(id: 'a', nombre: 'Rutas de Antioquia', ciudad: 'X'),
+      );
       expect(find.byType(Image), findsNothing);
       expect(find.text('RA'), findsOneWidget);
-      await montar(tester, const AgenciaResumen(id: 'a', nombre: 'Rutas de Antioquia', ciudad: 'X', logoUrl: ''));
+      await montar(
+        tester,
+        const AgenciaResumen(id: 'a', nombre: 'Rutas de Antioquia', ciudad: 'X', logoUrl: ''),
+      );
       expect(find.byType(Image), findsNothing);
       expect(find.text('RA'), findsOneWidget);
     });
   });
 
   group('lista de agencias', () {
-    testWidgets('cada agencia muestra iniciales (sin logo), puntaje o «Nueva», ciudad, planes y sello', (tester) async {
-      await _abrir(tester, _Catalogo());
+    testWidgets(
+      'cada agencia muestra iniciales (sin logo), puntaje o «Nueva», ciudad, planes y sello',
+      (tester) async {
+        await _abrir(tester, _Catalogo());
 
-      expect(find.text('Agencias'), findsWidgets); // título de la página y destino de la barra
-      expect(find.text('Rutas de Antioquia Cultural'), findsOneWidget);
-      // Sin logo_url: iniciales en un círculo de color.
-      expect(find.text('RA'), findsOneWidget);
-      expect(find.text('EV'), findsOneWidget);
-      expect(find.text('CM'), findsOneWidget);
-      // Con reseñas: ★ puntaje y cantidad. Sin reseñas: «Nueva», nunca 0.
-      expect(find.text('4.5'), findsOneWidget);
-      expect(find.text('(2)'), findsOneWidget);
-      expect(find.text('Nueva'), findsOneWidget);
-      expect(find.text('0.0'), findsNothing);
-      expect(find.text('Medellín'), findsOneWidget);
-      expect(find.text('2 planes'), findsOneWidget);
-      expect(find.text('5 planes'), findsOneWidget);
-      expect(find.text('Verificada RNT'), findsNWidgets(3));
-    });
+        expect(find.text('Agencias'), findsWidgets); // título de la página y destino de la barra
+        expect(find.text('Rutas de Antioquia Cultural'), findsOneWidget);
+        // Sin logo_url: iniciales en un círculo de color.
+        expect(find.text('RA'), findsOneWidget);
+        expect(find.text('EV'), findsOneWidget);
+        expect(find.text('CM'), findsOneWidget);
+        // Con reseñas: ★ puntaje y cantidad. Sin reseñas: «Nueva», nunca 0.
+        expect(find.text('4.5'), findsOneWidget);
+        expect(find.text('(2)'), findsOneWidget);
+        expect(find.text('Nueva'), findsOneWidget);
+        expect(find.text('0.0'), findsNothing);
+        expect(find.text('Medellín'), findsOneWidget);
+        expect(find.text('2 planes'), findsOneWidget);
+        expect(find.text('5 planes'), findsOneWidget);
+        expect(find.text('Verificada RNT'), findsNWidgets(3));
+      },
+    );
 
     test('el color de las iniciales es estable por agencia y varía entre agencias', () {
       expect(colorDeAgencia('ag-rutas'), colorDeAgencia('ag-rutas'));
-      final colores = {for (final a in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']) colorDeAgencia(a)};
+      final colores = {
+        for (final a in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']) colorDeAgencia(a),
+      };
       expect(colores.length, greaterThan(1));
     });
 
     testWidgets('por defecto va por puntaje y el control cambia el orden', (tester) async {
       await _abrir(tester, _Catalogo());
       // Puntaje: 5.0, 4.5 y al final la «Nueva».
-      expect(_ordenEnPantalla(tester), ['Café y Montaña Tours', 'Rutas de Antioquia Cultural', 'EcoAndes Viajes']);
+      expect(_ordenEnPantalla(tester), [
+        'Café y Montaña Tours',
+        'Rutas de Antioquia Cultural',
+        'EcoAndes Viajes',
+      ]);
       for (final etiqueta in ['Puntaje', 'Más planes', 'Nombre']) {
         expect(find.text(etiqueta), findsOneWidget);
       }
 
       await tester.tap(find.text('Más planes'));
       await tester.pumpAndSettle();
-      expect(_ordenEnPantalla(tester), ['EcoAndes Viajes', 'Café y Montaña Tours', 'Rutas de Antioquia Cultural']);
+      expect(_ordenEnPantalla(tester), [
+        'EcoAndes Viajes',
+        'Café y Montaña Tours',
+        'Rutas de Antioquia Cultural',
+      ]);
 
       await tester.tap(find.text('Nombre'));
       await tester.pumpAndSettle();
-      expect(_ordenEnPantalla(tester), ['Café y Montaña Tours', 'EcoAndes Viajes', 'Rutas de Antioquia Cultural']);
+      expect(_ordenEnPantalla(tester), [
+        'Café y Montaña Tours',
+        'EcoAndes Viajes',
+        'Rutas de Antioquia Cultural',
+      ]);
     });
 
     testWidgets('muestra esqueletos mientras carga', (tester) async {
@@ -287,7 +333,9 @@ void main() {
       expect(find.text('Comuna 13 y memoria'), findsOneWidget);
     });
 
-    testWidgets('tras recargar (sin historial) «Volver» lleva a la lista de agencias', (tester) async {
+    testWidgets('tras recargar (sin historial) «Volver» lleva a la lista de agencias', (
+      tester,
+    ) async {
       final router = await _abrir(tester, _Catalogo(), url: '/agencia/ag-rutas');
       await tester.tap(find.byTooltip('Volver'));
       await tester.pumpAndSettle();

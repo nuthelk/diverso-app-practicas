@@ -17,8 +17,7 @@ class BookingsView extends StatefulWidget {
   State<BookingsView> createState() => _BookingsViewState();
 }
 
-class _BookingsViewState extends State<BookingsView>
-    with AutomaticKeepAliveClientMixin {
+class _BookingsViewState extends State<BookingsView> with AutomaticKeepAliveClientMixin {
   late final BookingsController _controller;
   late final PaymentGateway _pasarela;
 
@@ -88,28 +87,28 @@ class _BookingsViewState extends State<BookingsView>
                     ),
                   )
                 : c.error != null
-                    ? EmptyState(
-                        icono: Icons.cloud_off_rounded,
-                        titulo: 'Sin conexión',
-                        mensaje: c.error!,
-                        accion: FilledButton.tonal(
-                          onPressed: c.cargar,
-                          child: const Text('Reintentar'),
-                        ),
-                      )
-                    : c.reservas.isEmpty
-                        ? const EmptyState(
-                            icono: Icons.luggage_rounded,
-                            titulo: 'Aún no tienes reservas',
-                            mensaje:
-                                'Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario.',
-                          )
-                        : TabBarView(
-                            children: [
-                              _lista(c.activas, vacio: 'Sin viajes próximos — ¡hora de explorar!'),
-                              _lista(c.historial, vacio: 'Todavía no hay historial.', historial: true),
-                            ],
-                          ),
+                ? EmptyState(
+                    icono: Icons.cloud_off_rounded,
+                    titulo: 'Sin conexión',
+                    mensaje: c.error!,
+                    accion: FilledButton.tonal(
+                      onPressed: c.cargar,
+                      child: const Text('Reintentar'),
+                    ),
+                  )
+                : c.reservas.isEmpty
+                ? const EmptyState(
+                    icono: Icons.luggage_rounded,
+                    titulo: 'Aún no tienes reservas',
+                    mensaje:
+                        'Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario.',
+                  )
+                : TabBarView(
+                    children: [
+                      _lista(c.activas, vacio: 'Sin viajes próximos — ¡hora de explorar!'),
+                      _lista(c.historial, vacio: 'Todavía no hay historial.', historial: true),
+                    ],
+                  ),
           );
         },
       ),
@@ -122,7 +121,10 @@ class _BookingsViewState extends State<BookingsView>
         children: [
           const SizedBox(height: 120),
           Center(
-            child: Text(vacio, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            child: Text(
+              vacio,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
           ),
         ],
       );
@@ -137,9 +139,10 @@ class _BookingsViewState extends State<BookingsView>
           historial: historial,
           // Solo se recarga si en el detalle cambió algo (cancelación, pago, reseña): así volver
           // de mirar una reserva no borra la lista ni pierde el desplazamiento.
-          onAbrir: () => context.push<bool>('/reservas/${lista[i].id}', extra: lista[i]).then((cambio) {
-            if (cambio == true) _controller.cargar();
-          }),
+          onAbrir: () =>
+              context.push<bool>('/reservas/${lista[i].id}', extra: lista[i]).then((cambio) {
+                if (cambio == true) _controller.cargar();
+              }),
           onResenar: _controller.puedeResenar(lista[i])
               ? () => context.push('/resena', extra: lista[i]).then((_) => _controller.cargar())
               : null,
@@ -213,7 +216,12 @@ class _TarjetaReserva extends StatelessWidget {
                         booking.plan?.titulo ?? 'Plan',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, height: 1.25, color: colorTexto),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          height: 1.25,
+                          color: colorTexto,
+                        ),
                       ),
                       if (agencia != null) ...[
                         const SizedBox(height: 4),
@@ -226,7 +234,11 @@ class _TarjetaReserva extends StatelessWidget {
                                 agencia,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: cs.onSurfaceVariant,
+                                ),
                               ),
                             ),
                           ],
@@ -242,7 +254,11 @@ class _TarjetaReserva extends StatelessWidget {
                         ),
                       if (puntoEncuentro.isNotEmpty) ...[
                         const SizedBox(height: 6),
-                        FilaDato(icono: Icons.place_outlined, texto: puntoEncuentro, compacto: true),
+                        FilaDato(
+                          icono: Icons.place_outlined,
+                          texto: puntoEncuentro,
+                          compacto: true,
+                        ),
                       ],
                       if (booking.etiquetaReembolso != null) ...[
                         const SizedBox(height: 6),
@@ -268,12 +284,20 @@ class _TarjetaReserva extends StatelessWidget {
                             children: [
                               Icon(Icons.group_outlined, size: 16, color: cs.onSurfaceVariant),
                               const SizedBox(width: 6),
-                              Text(textoPersonas(booking.pax), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                              Text(
+                                textoPersonas(booking.pax),
+                                style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+                              ),
                             ],
                           ),
                           Text(
                             formatCOP(booking.montoTotal),
-                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, letterSpacing: -.3, color: colorTexto),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -.3,
+                              color: colorTexto,
+                            ),
                           ),
                         ],
                       ),
@@ -285,7 +309,10 @@ class _TarjetaReserva extends StatelessWidget {
                           runSpacing: 4,
                           children: [
                             if (onVerificar != null)
-                              TextButton(onPressed: onVerificar, child: const Text('Ya pagué, verificar')),
+                              TextButton(
+                                onPressed: onVerificar,
+                                child: const Text('Ya pagué, verificar'),
+                              ),
                             if (onPagar != null)
                               FilledButton.tonal(
                                 style: FilledButton.styleFrom(minimumSize: const Size(0, 38)),
@@ -329,7 +356,10 @@ class _TarjetaReserva extends StatelessWidget {
                           children: [
                             Icon(Icons.rate_review_rounded, size: 13, color: cs.primary),
                             const SizedBox(width: 4),
-                            Text('Ya dejaste tu reseña', style: TextStyle(fontSize: 12, color: cs.primary)),
+                            Text(
+                              'Ya dejaste tu reseña',
+                              style: TextStyle(fontSize: 12, color: cs.primary),
+                            ),
                           ],
                         ),
                       ],
@@ -400,7 +430,20 @@ class _InsigniaFecha extends StatelessWidget {
 
   final DateTime fecha;
 
-  static const _meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  static const _meses = [
+    'ENE',
+    'FEB',
+    'MAR',
+    'ABR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DIC',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -412,19 +455,36 @@ class _InsigniaFecha extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .25),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '${fecha.day}',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1, letterSpacing: -.5, color: cs.primary),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              height: 1,
+              letterSpacing: -.5,
+              color: cs.primary,
+            ),
           ),
           const SizedBox(height: 3),
           Text(
             _meses[fecha.month - 1],
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .8, color: cs.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .8,
+              color: cs.onSurfaceVariant,
+            ),
           ),
         ],
       ),

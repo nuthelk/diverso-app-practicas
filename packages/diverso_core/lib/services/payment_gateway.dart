@@ -8,10 +8,7 @@ import 'edge_functions.dart';
 /// app. La app solo pide la URL de pago y luego pregunta al servidor cómo quedó.
 abstract class PaymentGateway {
   /// Crea el intento de pago de una reserva pendiente y devuelve la URL del checkout.
-  Future<CheckoutIniciado> iniciar({
-    required String bookingId,
-    required String redirectUrl,
-  });
+  Future<CheckoutIniciado> iniciar({required String bookingId, required String redirectUrl});
 
   /// Verifica el pago en el servidor (nunca se confía en la redirección del navegador).
   /// Exactamente uno de [transactionId] (tras la redirección) o [bookingId] («Ya pagué»).
@@ -25,10 +22,7 @@ class WompiPaymentGateway implements PaymentGateway {
   final FunctionInvoker _invocar;
 
   @override
-  Future<CheckoutIniciado> iniciar({
-    required String bookingId,
-    required String redirectUrl,
-  }) async {
+  Future<CheckoutIniciado> iniciar({required String bookingId, required String redirectUrl}) async {
     final res = await llamarEdgeFunction(_invocar, 'pagos-iniciar', {
       'booking_id': bookingId,
       'redirect_url': redirectUrl,

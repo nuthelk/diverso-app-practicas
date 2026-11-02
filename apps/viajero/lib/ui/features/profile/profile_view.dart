@@ -54,13 +54,20 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Text(
                     inicial,
                     style: TextStyle(
-                        fontSize: 26, fontWeight: FontWeight.w800, color: cs.onPrimaryContainer),
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: cs.onPrimaryContainer,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   nombre,
-                  style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.5),
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -.5,
+                  ),
                 ),
                 Text(email, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
               ],
@@ -77,11 +84,29 @@ class _ProfileViewState extends State<ProfileView> {
             child: Consumer<ThemeModeController>(
               builder: (context, modo, _) => SegmentedButton<int>(
                 segments: const [
-                  ButtonSegment(value: 0, icon: Icon(Icons.brightness_auto_rounded, size: 18), label: Text('Sistema')),
-                  ButtonSegment(value: 1, icon: Icon(Icons.light_mode_rounded, size: 18), label: Text('Claro')),
-                  ButtonSegment(value: 2, icon: Icon(Icons.dark_mode_rounded, size: 18), label: Text('Oscuro')),
+                  ButtonSegment(
+                    value: 0,
+                    icon: Icon(Icons.brightness_auto_rounded, size: 18),
+                    label: Text('Sistema'),
+                  ),
+                  ButtonSegment(
+                    value: 1,
+                    icon: Icon(Icons.light_mode_rounded, size: 18),
+                    label: Text('Claro'),
+                  ),
+                  ButtonSegment(
+                    value: 2,
+                    icon: Icon(Icons.dark_mode_rounded, size: 18),
+                    label: Text('Oscuro'),
+                  ),
                 ],
-                selected: {switch (modo.mode) { ThemeMode.system => 0, ThemeMode.light => 1, _ => 2 }},
+                selected: {
+                  switch (modo.mode) {
+                    ThemeMode.system => 0,
+                    ThemeMode.light => 1,
+                    _ => 2,
+                  },
+                },
                 onSelectionChanged: (sel) => modo.setMode(switch (sel.first) {
                   0 => ThemeMode.system,
                   1 => ThemeMode.light,
@@ -95,7 +120,8 @@ class _ProfileViewState extends State<ProfileView> {
           const _TarjetaInfo(
             icono: Icons.verified_user_rounded,
             titulo: 'Compra protegida',
-            cuerpo: 'Solo mostramos agencias con RNT vigente y matrícula mercantil '
+            cuerpo:
+                'Solo mostramos agencias con RNT vigente y matrícula mercantil '
                 'verificadas por el equipo Diverso. Si una agencia cambia sus datos o '
                 'se le vence el RNT, sus planes se ocultan hasta revalidarla.',
           ),
@@ -103,7 +129,8 @@ class _ProfileViewState extends State<ProfileView> {
           const _TarjetaInfo(
             icono: Icons.privacy_tip_rounded,
             titulo: 'Tus datos',
-            cuerpo: 'Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), '
+            cuerpo:
+                'Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), '
                 'únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, '
                 'actualizar o pedir la supresión de tus datos en cualquier momento.',
           ),
@@ -170,10 +197,7 @@ class _TarjetaInfo extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: cs.primaryContainer,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: cs.primaryContainer, shape: BoxShape.circle),
             child: Icon(icono, size: 17, color: cs.onPrimaryContainer),
           ),
           const SizedBox(width: 13),

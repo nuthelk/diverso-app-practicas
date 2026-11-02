@@ -15,39 +15,38 @@ Booking _reserva(
   Duration salida, {
   BookingStatus estado = BookingStatus.confirmada,
   Plan? plan,
-}) =>
-    Booking(
-      id: codigo,
-      codigo: codigo,
-      planDateId: 'pd',
-      viajeroId: 'v',
-      pax: 2,
-      montoTotal: 190000,
-      estado: estado,
-      createdAt: DateTime.now().subtract(const Duration(days: 40)),
-      salidaAt: DateTime.now().add(salida),
-      plan: plan,
-    );
+}) => Booking(
+  id: codigo,
+  codigo: codigo,
+  planDateId: 'pd',
+  viajeroId: 'v',
+  pax: 2,
+  montoTotal: 190000,
+  estado: estado,
+  createdAt: DateTime.now().subtract(const Duration(days: 40)),
+  salidaAt: DateTime.now().add(salida),
+  plan: plan,
+);
 
 Plan _plan({List<String> fotos = const [], bool conAgencia = true}) => Plan(
-      id: 'plan-1',
-      agencyId: 'ag',
-      titulo: 'Comuna 13 y memoria',
-      destino: 'Medellín',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 95000,
-      estado: PlanStatus.publicado,
-      fotos: fotos,
-      agency: conAgencia
-          ? Agency(
-              id: 'ag',
-              nombre: 'EcoAndes Viajes',
-              numeroRnt: '12345',
-              matriculaCamaraComercio: '999',
-              estadoVerificacion: VerificationStatus.verificado,
-            )
-          : null,
-    );
+  id: 'plan-1',
+  agencyId: 'ag',
+  titulo: 'Comuna 13 y memoria',
+  destino: 'Medellín',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 95000,
+  estado: PlanStatus.publicado,
+  fotos: fotos,
+  agency: conAgencia
+      ? Agency(
+          id: 'ag',
+          nombre: 'EcoAndes Viajes',
+          numeroRnt: '12345',
+          matriculaCamaraComercio: '999',
+          estadoVerificacion: VerificationStatus.verificado,
+        )
+      : null,
+);
 
 class _Reservas implements BookingService {
   _Reservas(this.lista);
@@ -70,20 +69,24 @@ Future<void> _abrir(WidgetTester tester, List<Booking> reservas) async {
   tester.view.physicalSize = const Size(800, 1400);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      Provider<BookingService>.value(value: _Reservas(reservas)),
-      Provider<PaymentGateway>.value(value: _Pasarela()),
-    ],
-    child: MaterialApp(theme: AppTheme.viajeroLight(), home: const BookingsView()),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        Provider<BookingService>.value(value: _Reservas(reservas)),
+        Provider<PaymentGateway>.value(value: _Pasarela()),
+      ],
+      child: MaterialApp(theme: AppTheme.viajeroLight(), home: const BookingsView()),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
 void main() {
   setUpAll(() => initializeDateFormatting('es'));
 
-  testWidgets('una confirmada que ya salió está en «Historial», sin «Cancelar» y con «Reseñar»', (tester) async {
+  testWidgets('una confirmada que ya salió está en «Historial», sin «Cancelar» y con «Reseñar»', (
+    tester,
+  ) async {
     await _abrir(tester, [
       _reserva('PASADA', const Duration(days: -5)),
       _reserva('FUTURA', const Duration(days: 5)),
@@ -115,12 +118,13 @@ void main() {
   });
 
   testWidgets('la lista queda debajo del título y las pestañas aunque se desplace', (tester) async {
-    await _abrir(tester, [
-      for (var i = 0; i < 9; i++) _reserva('FUT$i', Duration(days: 3 + i)),
-    ]);
+    await _abrir(tester, [for (var i = 0; i < 9; i++) _reserva('FUT$i', Duration(days: 3 + i))]);
 
     final pestanas = tester.getRect(find.byType(TabBar));
-    expect(tester.getTopLeft(find.textContaining('FUT0')).dy, greaterThanOrEqualTo(pestanas.bottom));
+    expect(
+      tester.getTopLeft(find.textContaining('FUT0')).dy,
+      greaterThanOrEqualTo(pestanas.bottom),
+    );
 
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pumpAndSettle();
@@ -134,9 +138,15 @@ void main() {
   group('tarjeta con la foto del plan', () {
     final encabezado = find.byKey(const ValueKey('encabezado-reserva'));
 
-    testWidgets('con foto: imagen de cabecera con la fecha y el estado encima, título y agencia', (tester) async {
+    testWidgets('con foto: imagen de cabecera con la fecha y el estado encima, título y agencia', (
+      tester,
+    ) async {
       await _abrir(tester, [
-        _reserva('FUT', const Duration(days: 5), plan: _plan(fotos: const ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg'])),
+        _reserva(
+          'FUT',
+          const Duration(days: 5),
+          plan: _plan(fotos: const ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg']),
+        ),
       ]);
 
       expect(find.byKey(const ValueKey('foto-reserva')), findsOneWidget);
@@ -159,11 +169,18 @@ void main() {
         expect(r.right, lessThanOrEqualTo(cab.right));
       }
       // El título queda debajo de la foto.
-      expect(tester.getTopLeft(find.text('Comuna 13 y memoria')).dy, greaterThanOrEqualTo(cab.bottom));
+      expect(
+        tester.getTopLeft(find.text('Comuna 13 y memoria')).dy,
+        greaterThanOrEqualTo(cab.bottom),
+      );
     });
 
-    testWidgets('sin foto: respaldo en su lugar, sin pedir imagen, con fecha, estado y acciones', (tester) async {
-      await _abrir(tester, [_reserva('FUT', const Duration(days: 5), plan: _plan(conAgencia: false))]);
+    testWidgets('sin foto: respaldo en su lugar, sin pedir imagen, con fecha, estado y acciones', (
+      tester,
+    ) async {
+      await _abrir(tester, [
+        _reserva('FUT', const Duration(days: 5), plan: _plan(conAgencia: false)),
+      ]);
 
       expect(find.byKey(const ValueKey('foto-reserva')), findsNothing);
       expect(find.byKey(const ValueKey('sin-foto-reserva')), findsOneWidget);
@@ -184,8 +201,16 @@ void main() {
 
     testWidgets('el historial se ve más apagado que las próximas', (tester) async {
       await _abrir(tester, [
-        _reserva('PASADA', const Duration(days: -5), plan: _plan(fotos: const ['https://fotos.test/a.jpg'])),
-        _reserva('FUTURA', const Duration(days: 5), plan: _plan(fotos: const ['https://fotos.test/a.jpg'])),
+        _reserva(
+          'PASADA',
+          const Duration(days: -5),
+          plan: _plan(fotos: const ['https://fotos.test/a.jpg']),
+        ),
+        _reserva(
+          'FUTURA',
+          const Duration(days: 5),
+          plan: _plan(fotos: const ['https://fotos.test/a.jpg']),
+        ),
       ]);
       final proxima = tester.widget<Text>(find.text('Comuna 13 y memoria'));
       await tester.tap(find.text('Historial (1)'));
@@ -196,7 +221,9 @@ void main() {
   });
 
   group('etiqueta de estado', () {
-    testWidgets('confirmada que ya salió dice «Realizada»; la próxima sigue «Confirmada»', (tester) async {
+    testWidgets('confirmada que ya salió dice «Realizada»; la próxima sigue «Confirmada»', (
+      tester,
+    ) async {
       await _abrir(tester, [
         _reserva('PASADA', const Duration(days: -5)),
         _reserva('FUTURA', const Duration(days: 5)),
@@ -215,7 +242,9 @@ void main() {
       expect(find.text('Cancelar'), findsNothing);
     });
 
-    testWidgets('PRESERVE: «Cancelada», «Pendiente» y «Completada» no cambian aunque ya salieron', (tester) async {
+    testWidgets('PRESERVE: «Cancelada», «Pendiente» y «Completada» no cambian aunque ya salieron', (
+      tester,
+    ) async {
       await _abrir(tester, [
         _reserva('CAN', const Duration(days: -5), estado: BookingStatus.cancelada),
         _reserva('PEN', const Duration(days: -4), estado: BookingStatus.pendientePago),
@@ -231,7 +260,9 @@ void main() {
     });
 
     testWidgets('PRESERVE: «Pendiente» de un viaje próximo sigue igual', (tester) async {
-      await _abrir(tester, [_reserva('PEN', const Duration(days: 4), estado: BookingStatus.pendientePago)]);
+      await _abrir(tester, [
+        _reserva('PEN', const Duration(days: 4), estado: BookingStatus.pendientePago),
+      ]);
       expect(find.text('Pendiente'), findsOneWidget);
     });
   });

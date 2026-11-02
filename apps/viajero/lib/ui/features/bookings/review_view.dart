@@ -35,7 +35,8 @@ class _ReviewViewState extends State<ReviewView> {
         comentario: _comentarioCtrl.text,
       );
       msg.showSnackBar(
-          const SnackBar(content: Text('¡Gracias! Tu reseña ayudará a otros viajeros.')));
+        const SnackBar(content: Text('¡Gracias! Tu reseña ayudará a otros viajeros.')),
+      );
       if (mounted) context.pop(true);
     } on DiversoException catch (e) {
       msg.showSnackBar(SnackBar(content: Text(e.mensajeUsuario)));
@@ -64,7 +65,11 @@ class _ReviewViewState extends State<ReviewView> {
                     plan.titulo,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.5, height: 1.2),
+                      fontSize: 21,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -.5,
+                      height: 1.2,
+                    ),
                   ),
                   if (fecha != null) ...[
                     const SizedBox(height: 4),
@@ -134,7 +139,10 @@ class _ReviewViewState extends State<ReviewView> {
                   onPressed: _enviando ? null : _enviar,
                   icon: _enviando
                       ? const SizedBox(
-                          height: 17, width: 17, child: CircularProgressIndicator(strokeWidth: 2))
+                          height: 17,
+                          width: 17,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(Icons.send_rounded, size: 17),
                   label: const Text('Publicar reseña'),
                 ),
@@ -144,8 +152,10 @@ class _ReviewViewState extends State<ReviewView> {
                   children: [
                     Icon(Icons.verified_rounded, size: 13, color: cs.tertiary),
                     const SizedBox(width: 5),
-                    Text('Reseña verificada: solo quien viajó puede opinar',
-                        style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                    Text(
+                      'Reseña verificada: solo quien viajó puede opinar',
+                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ],

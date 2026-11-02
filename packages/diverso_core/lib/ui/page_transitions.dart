@@ -15,10 +15,7 @@ import 'package:go_router/go_router.dart';
 class DiversoPageTransitions {
   DiversoPageTransitions._();
 
-  static CustomTransitionPage<void> sharedAxisX({
-    required LocalKey key,
-    required Widget child,
-  }) {
+  static CustomTransitionPage<void> sharedAxisX({required LocalKey key, required Widget child}) {
     return CustomTransitionPage<void>(
       key: key,
       child: child,
@@ -38,13 +35,11 @@ class DiversoPageTransitions {
         return FadeTransition(
           opacity: Tween(begin: 1.0, end: 0.0).animate(salida),
           child: SlideTransition(
-            position: Tween(begin: Offset.zero, end: const Offset(-0.05, 0))
-                .animate(salida),
+            position: Tween(begin: Offset.zero, end: const Offset(-0.05, 0)).animate(salida),
             child: FadeTransition(
               opacity: Tween(begin: 0.0, end: 1.0).animate(entrada),
               child: SlideTransition(
-                position: Tween(begin: const Offset(0.08, 0), end: Offset.zero)
-                    .animate(entrada),
+                position: Tween(begin: const Offset(0.08, 0), end: Offset.zero).animate(entrada),
                 child: child,
               ),
             ),
@@ -54,10 +49,7 @@ class DiversoPageTransitions {
     );
   }
 
-  static CustomTransitionPage<void> fadeThrough({
-    required LocalKey key,
-    required Widget child,
-  }) {
+  static CustomTransitionPage<void> fadeThrough({required LocalKey key, required Widget child}) {
     return CustomTransitionPage<void>(
       key: key,
       child: child,
@@ -85,28 +77,19 @@ class DiversoPageTransitions {
     );
   }
 
-  static CustomTransitionPage<void> zoomIn({
-    required LocalKey key,
-    required Widget child,
-  }) {
+  static CustomTransitionPage<void> zoomIn({required LocalKey key, required Widget child}) {
     return CustomTransitionPage<void>(
       key: key,
       child: child,
       transitionDuration: const Duration(milliseconds: 440),
       transitionsBuilder: (context, animation, secondary, child) {
-        final escala = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutBack,
-        );
+        final escala = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
         final opacidad = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
           reverseCurve: Curves.easeInCubic,
         );
-        final salida = CurvedAnimation(
-          parent: secondary,
-          curve: Curves.easeInCubic,
-        );
+        final salida = CurvedAnimation(parent: secondary, curve: Curves.easeInCubic);
         return FadeTransition(
           opacity: Tween(begin: 1.0, end: 0.0).animate(salida),
           child: FadeTransition(

@@ -34,7 +34,8 @@ class ConsentCheckboxes extends StatelessWidget {
           error: mostrarError && !aceptaDatos,
           partes: [
             const TextSpan(
-              text: 'Autorizo de manera previa, expresa e informada el tratamiento de mis '
+              text:
+                  'Autorizo de manera previa, expresa e informada el tratamiento de mis '
                   'datos personales según la ',
             ),
             _enlace(context, 'política de tratamiento de datos', '/legal/privacidad'),
@@ -99,11 +100,7 @@ class _Fila extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(
-            value: valor,
-            isError: error,
-            onChanged: (v) => onChanged(v ?? false),
-          ),
+          Checkbox(value: valor, isError: error, onChanged: (v) => onChanged(v ?? false)),
           Expanded(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,

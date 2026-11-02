@@ -35,20 +35,12 @@ class BookingSuccessView extends StatelessWidget {
                     tween: Tween(begin: 0, end: 1),
                     duration: const Duration(milliseconds: 380),
                     curve: Curves.elasticOut,
-                    builder: (context, t, child) =>
-                        Transform.scale(scale: t, child: child),
+                    builder: (context, t, child) => Transform.scale(scale: t, child: child),
                     child: Container(
                       width: 84,
                       height: 84,
-                      decoration: BoxDecoration(
-                        color: cs.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check_rounded,
-                        color: cs.primary,
-                        size: 46,
-                      ),
+                      decoration: BoxDecoration(color: cs.primaryContainer, shape: BoxShape.circle),
+                      child: Icon(Icons.check_rounded, color: cs.primary, size: 46),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -70,10 +62,7 @@ class BookingSuccessView extends StatelessWidget {
                         Text(
                           'Tu reserva está confirmada y el cupo es tuyo.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: cs.onSurfaceVariant,
-                          ),
+                          style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -96,9 +85,7 @@ class BookingSuccessView extends StatelessWidget {
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.6,
-                              color: cs.onPrimaryContainer.withValues(
-                                alpha: .75,
-                              ),
+                              color: cs.onPrimaryContainer.withValues(alpha: .75),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -153,19 +140,12 @@ class BookingSuccessView extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              Icon(
-                                Icons.verified_user_rounded,
-                                size: 14,
-                                color: cs.tertiary,
-                              ),
+                              Icon(Icons.verified_user_rounded, size: 14, color: cs.tertiary),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   'Compra protegida: reembolso según la política de cancelación.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: cs.onSurfaceVariant,
-                                  ),
+                                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                                 ),
                               ),
                             ],
@@ -218,10 +198,7 @@ class BookingSuccessView extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         paso.actividad,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          height: 1.4,
-                                        ),
+                                        style: const TextStyle(fontSize: 13, height: 1.4),
                                       ),
                                     ),
                                   ],
@@ -230,10 +207,7 @@ class BookingSuccessView extends StatelessWidget {
                             if (itinerario.length > 5)
                               Text(
                                 '+ ${itinerario.length - 5} pasos más en la app',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: cs.onSurfaceVariant,
-                                ),
+                                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                               ),
                           ],
                         ),
@@ -288,17 +262,10 @@ class _Aparecer extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 640),
-      curve: Interval(
-        inicio,
-        (inicio + 0.42).clamp(0.0, 1.0),
-        curve: Curves.easeOutCubic,
-      ),
+      curve: Interval(inicio, (inicio + 0.42).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
       builder: (context, t, child) => Opacity(
         opacity: t,
-        child: Transform.translate(
-          offset: Offset(0, 14 * (1 - t)),
-          child: child,
-        ),
+        child: Transform.translate(offset: Offset(0, 14 * (1 - t)), child: child),
       ),
       child: child,
     );

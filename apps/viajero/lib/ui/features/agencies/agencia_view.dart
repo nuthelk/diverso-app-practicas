@@ -28,8 +28,10 @@ class _AgenciaViewState extends State<AgenciaView> {
   @override
   void initState() {
     super.initState();
-    _controller = AgenciaController(catalogo: context.read<CatalogService>(), agencyId: widget.agencyId)
-      ..cargar();
+    _controller = AgenciaController(
+      catalogo: context.read<CatalogService>(),
+      agencyId: widget.agencyId,
+    )..cargar();
   }
 
   @override
@@ -170,7 +172,10 @@ class _Contenido extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(agencia.nombre, style: TituloPagina.estilo(cs).copyWith(fontSize: 24)),
+                            Text(
+                              agencia.nombre,
+                              style: TituloPagina.estilo(cs).copyWith(fontSize: 24),
+                            ),
                             const SizedBox(height: 8),
                             DatosAgencia(agencia: agencia),
                           ],

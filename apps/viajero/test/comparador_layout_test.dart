@@ -8,36 +8,36 @@ import 'package:viajero/ui/features/catalog/comparator_view.dart';
 /// ancho legible, la tabla se desliza de lado y el precio nunca se parte en dos líneas.
 
 Plan _plan(String id, double precio) => Plan(
-      id: id,
-      agencyId: 'ag',
-      titulo: 'Plan $id con un nombre bastante largo',
-      destino: 'Santa Fe de Antioquia',
-      categoria: ExperienceCategory.cultura,
-      precioCop: precio,
-      estado: PlanStatus.publicado,
-    );
+  id: id,
+  agencyId: 'ag',
+  titulo: 'Plan $id con un nombre bastante largo',
+  destino: 'Santa Fe de Antioquia',
+  categoria: ExperienceCategory.cultura,
+  precioCop: precio,
+  estado: PlanStatus.publicado,
+);
 
 Future<void> _abrir(WidgetTester tester, {required double ancho}) async {
   tester.view.physicalSize = Size(ancho, 1600);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MaterialApp(
-    theme: AppTheme.viajeroLight(),
-    home: ComparatorView(planes: [
-      _plan('1', 189000),
-      _plan('2', 178000),
-      _plan('3', 179000),
-    ]),
-  ));
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.viajeroLight(),
+      home: ComparatorView(planes: [_plan('1', 189000), _plan('2', 178000), _plan('3', 179000)]),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
 Finder get _tablaHorizontal => find.byWidgetPredicate(
-    (w) => w is SingleChildScrollView && w.scrollDirection == Axis.horizontal);
+  (w) => w is SingleChildScrollView && w.scrollDirection == Axis.horizontal,
+);
 
 void main() {
-  testWidgets('320 px y 3 planes: precio en una sola línea, columnas legibles y tabla deslizable',
-      (tester) async {
+  testWidgets('320 px y 3 planes: precio en una sola línea, columnas legibles y tabla deslizable', (
+    tester,
+  ) async {
     await _abrir(tester, ancho: 320);
 
     expect(tester.takeException(), isNull);
@@ -53,14 +53,18 @@ void main() {
     expect(columna.width, greaterThanOrEqualTo(110));
   });
 
-  testWidgets('pantalla ancha: las columnas se reparten el ancho, sin quedar angostas', (tester) async {
+  testWidgets('pantalla ancha: las columnas se reparten el ancho, sin quedar angostas', (
+    tester,
+  ) async {
     await _abrir(tester, ancho: 900);
 
     final columna = tester.getSize(find.text('Plan 1 con un nombre bastante largo'));
     expect(columna.width, greaterThan(200));
   });
 
-  testWidgets('el más barato se marca en su columna y cada plan tiene su botón «Ver plan»', (tester) async {
+  testWidgets('el más barato se marca en su columna y cada plan tiene su botón «Ver plan»', (
+    tester,
+  ) async {
     await _abrir(tester, ancho: 900);
 
     expect(find.text('Mejor precio'), findsOneWidget);

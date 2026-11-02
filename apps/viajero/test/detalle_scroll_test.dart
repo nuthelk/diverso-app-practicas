@@ -56,42 +56,45 @@ class _Resenas implements ReviewService {
 void main() {
   setUpAll(() => initializeDateFormatting('es'));
 
-  testWidgets('con barra de gestos alta (48), el final del contenido queda sobre la barra de reserva', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(600, 800);
-    tester.view.devicePixelRatio = 1.0;
-    tester.view.padding = const FakeViewPadding(bottom: 48);
-    tester.view.viewPadding = const FakeViewPadding(bottom: 48);
-    addTearDown(tester.view.reset);
-    final router = GoRouter(
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (_, _) => const PlanDetailView(planId: 'plan-1'),
-        ),
-      ],
-    );
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider<CatalogService>.value(value: _Catalogo()),
-          Provider<ReviewService>.value(value: _Resenas()),
+  testWidgets(
+    'con barra de gestos alta (48), el final del contenido queda sobre la barra de reserva',
+    (tester) async {
+      tester.view.physicalSize = const Size(600, 800);
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.padding = const FakeViewPadding(bottom: 48);
+      tester.view.viewPadding = const FakeViewPadding(bottom: 48);
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const PlanDetailView(planId: 'plan-1'),
+          ),
         ],
-        child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<CatalogService>.value(value: _Catalogo()),
+            Provider<ReviewService>.value(value: _Resenas()),
+          ],
+          child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.fling(find.byType(CustomScrollView), const Offset(0, -5000), 4000);
-    await tester.pumpAndSettle();
+      await tester.fling(find.byType(CustomScrollView), const Offset(0, -5000), 4000);
+      await tester.pumpAndSettle();
 
-    final fechas = find.byWidgetPredicate((w) => w is ListView && w.scrollDirection == Axis.horizontal);
-    // La tarjeta entera (con su padding), no solo el texto.
-    final politica = tester.getRect(
-      find.ancestor(of: find.text(_politica), matching: find.byType(Container)).first,
-    );
-    expect(politica.bottom, lessThanOrEqualTo(tester.getRect(fechas).top));
-    expect(find.text('Reservar'), findsOneWidget);
-  });
+      final fechas = find.byWidgetPredicate(
+        (w) => w is ListView && w.scrollDirection == Axis.horizontal,
+      );
+      // La tarjeta entera (con su padding), no solo el texto.
+      final politica = tester.getRect(
+        find.ancestor(of: find.text(_politica), matching: find.byType(Container)).first,
+      );
+      expect(politica.bottom, lessThanOrEqualTo(tester.getRect(fechas).top));
+      expect(find.text('Reservar'), findsOneWidget);
+    },
+  );
 }

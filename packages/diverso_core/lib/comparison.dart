@@ -28,21 +28,17 @@ List<ComparisonRow> buildComparisonRows(List<Plan> planes, {int pax = 2}) {
       'Total para $pax ${pax == 1 ? 'persona' : 'personas'}',
       planes.map((p) => (p.precioCop * pax).toStringAsFixed(0)).toList(),
     ),
-    ComparisonRow(
-      'duracion',
-      'Duración',
-      planes.map((p) => p.duracionTexto).toList(),
-    ),
-    ComparisonRow(
-      'destino',
-      'Destino',
-      planes.map((p) => p.destino).toList(),
-    ),
+    ComparisonRow('duracion', 'Duración', planes.map((p) => p.duracionTexto).toList()),
+    ComparisonRow('destino', 'Destino', planes.map((p) => p.destino).toList()),
     ComparisonRow(
       'rating',
       'Calificación',
       planes
-          .map((p) => p.esNuevo ? 'Nueva' : '${p.ratingPromedio.toStringAsFixed(1)} ★ (${p.reviewsCount})')
+          .map(
+            (p) => p.esNuevo
+                ? 'Nueva'
+                : '${p.ratingPromedio.toStringAsFixed(1)} ★ (${p.reviewsCount})',
+          )
           .toList(),
     ),
     ComparisonRow(
@@ -64,10 +60,12 @@ List<ComparisonRow> buildComparisonRows(List<Plan> planes, {int pax = 2}) {
       'cupos',
       'Próximos cupos',
       planes
-          .map((p) => p.fechasDisponibles.isEmpty
-              ? 'Sin fechas'
-              : '${p.fechasDisponibles.first.cupoDisponible} el '
-                  '${p.fechasDisponibles.first.fecha.day}/${p.fechasDisponibles.first.fecha.month}')
+          .map(
+            (p) => p.fechasDisponibles.isEmpty
+                ? 'Sin fechas'
+                : '${p.fechasDisponibles.first.cupoDisponible} el '
+                      '${p.fechasDisponibles.first.fecha.day}/${p.fechasDisponibles.first.fecha.month}',
+          )
           .toList(),
     ),
     ComparisonRow(

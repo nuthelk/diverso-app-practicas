@@ -59,12 +59,8 @@ void main() {
   });
 
   test('el total se recalcula según el número de viajeros', () {
-    final planes = [
-      plan(id: '1', precio: 165000),
-      plan(id: '2', precio: 449000),
-    ];
-    final tres = buildComparisonRows(planes, pax: 3)
-        .firstWhere((r) => r.icono == 'total');
+    final planes = [plan(id: '1', precio: 165000), plan(id: '2', precio: 449000)];
+    final tres = buildComparisonRows(planes, pax: 3).firstWhere((r) => r.icono == 'total');
     expect(tres.titulo, 'Total para 3 personas');
     expect(tres.valores, ['495000', '1347000']);
 
@@ -80,8 +76,9 @@ void main() {
   });
 
   test('con un solo viajero la etiqueta va en singular', () {
-    final uno = buildComparisonRows([plan(id: '1', precio: 165000)], pax: 1)
-        .firstWhere((r) => r.icono == 'total');
+    final uno = buildComparisonRows([
+      plan(id: '1', precio: 165000),
+    ], pax: 1).firstWhere((r) => r.icono == 'total');
     expect(uno.titulo, 'Total para 1 persona');
     expect(uno.valores, ['165000']);
   });
@@ -95,21 +92,43 @@ void main() {
     final p = plan(
       id: 'x',
       fechas: [
-        PlanDate(id: 'a', planId: 'x', fecha: hoy.subtract(const Duration(days: 2)), cupoTotal: 10, cupoDisponible: 5),
-        PlanDate(id: 'b', planId: 'x', fecha: hoy.add(const Duration(days: 3)), cupoTotal: 10, cupoDisponible: 0),
-        PlanDate(id: 'c', planId: 'x', fecha: hoy.add(const Duration(days: 5)), cupoTotal: 10, cupoDisponible: 7),
+        PlanDate(
+          id: 'a',
+          planId: 'x',
+          fecha: hoy.subtract(const Duration(days: 2)),
+          cupoTotal: 10,
+          cupoDisponible: 5,
+        ),
+        PlanDate(
+          id: 'b',
+          planId: 'x',
+          fecha: hoy.add(const Duration(days: 3)),
+          cupoTotal: 10,
+          cupoDisponible: 0,
+        ),
+        PlanDate(
+          id: 'c',
+          planId: 'x',
+          fecha: hoy.add(const Duration(days: 5)),
+          cupoTotal: 10,
+          cupoDisponible: 7,
+        ),
       ],
     );
     expect(p.fechasDisponibles.map((d) => d.id), ['c']);
   });
 
   testWidgets('el comparador recalcula el total con el control de viajeros', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: ComparatorView(planes: [
-        plan(id: '1', precio: 100000),
-        plan(id: '2', precio: 200000),
-      ]),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ComparatorView(
+          planes: [
+            plan(id: '1', precio: 100000),
+            plan(id: '2', precio: 200000),
+          ],
+        ),
+      ),
+    );
 
     expect(find.text('¿Cuántos viajan?'), findsOneWidget);
     expect(find.text('Total para 2 personas'), findsOneWidget);

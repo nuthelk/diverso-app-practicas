@@ -33,11 +33,13 @@ void main() {
   // supabase_flutter persiste la sesión en shared_preferences; en tests no
   // hay implementación del plugin, así que simulamos un almacenamiento vacío.
   const canal = MethodChannel('plugins.flutter.io/shared_preferences');
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(canal, (call) async {
-    if (call.method == 'getAll') return <String, Object>{};
-    return true; // setValue/remove/clear reportan éxito
-  });
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    canal,
+    (call) async {
+      if (call.method == 'getAll') return <String, Object>{};
+      return true; // setValue/remove/clear reportan éxito
+    },
+  );
 
   late SupabaseClient client;
   final bookings = BookingService();
@@ -59,13 +61,19 @@ void main() {
   /// y la limpieza FALLA con su código: nunca deja residuos en silencio.
   Future<void> limpiar(List<String> ids) async {
     if (ids.isEmpty) return;
-    final filas = await admin.from('bookings').select('id, codigo, estado, viajero_id').inFilter('id', ids);
+    final filas = await admin
+        .from('bookings')
+        .select('id, codigo, estado, viajero_id')
+        .inFilter('id', ids);
     final sinCancelar = <String>[];
     final aBorrar = <String>[];
     for (final f in filas) {
       if (f['estado'] != 'cancelada') {
         try {
-          await admin.rpc('cancelar_reserva', params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']});
+          await admin.rpc(
+            'cancelar_reserva',
+            params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']},
+          );
         } catch (e) {
           sinCancelar.add('${f['codigo']} (${f['estado']}): $e');
           continue;
@@ -75,13 +83,19 @@ void main() {
     }
     if (aBorrar.isNotEmpty) await admin.from('bookings').delete().inFilter('id', aBorrar);
     if (sinCancelar.isNotEmpty) {
-      throw StateError('RESIDUO: la limpieza no pudo cancelar estas reservas de prueba, quedan en la base y '
-          'sus cupos retenidos: ${sinCancelar.join('; ')}');
+      throw StateError(
+        'RESIDUO: la limpieza no pudo cancelar estas reservas de prueba, quedan en la base y '
+        'sus cupos retenidos: ${sinCancelar.join('; ')}',
+      );
     }
   }
 
   Future<int> cupoDe(String planDateId) async {
-    final r = await admin.from('plan_dates').select('cupo_disponible').eq('id', planDateId).single();
+    final r = await admin
+        .from('plan_dates')
+        .select('cupo_disponible')
+        .eq('id', planDateId)
+        .single();
     return (r['cupo_disponible'] as num).toInt();
   }
 
@@ -96,10 +110,7 @@ void main() {
     }
     client = Supabase.instance.client;
     try {
-      await client.auth.signInWithPassword(
-        email: 'santiago@demo.com',
-        password: 'demo1234',
-      );
+      await client.auth.signInWithPassword(email: 'santiago@demo.com', password: 'demo1234');
     } catch (e) {
       fail('No se pudo conectar al Supabase local. ¿Está corriendo? ($e)');
     }
@@ -136,8 +147,9 @@ void main() {
     // consigo mismo: la carrera por el último cupo es entre DOS viajeros distintos.
     final email = 'carrera-${DateTime.now().millisecondsSinceEpoch}@example.com';
     final otro = SupabaseClient(DiversoConfig.supabaseUrl, DiversoConfig.supabaseKey);
-    final usuario = await admin.auth.admin
-        .createUser(AdminUserAttributes(email: email, password: 'Carrera-1234', emailConfirm: true));
+    final usuario = await admin.auth.admin.createUser(
+      AdminUserAttributes(email: email, password: 'Carrera-1234', emailConfirm: true),
+    );
     final otroId = usuario.user!.id;
 
     try {
@@ -164,7 +176,10 @@ void main() {
         intento(() => bookings.crearReserva(planDateId: planDateId, pax: 1)),
         intento(() async {
           try {
-            final res = await otro.rpc('create_booking', params: {'p_plan_date_id': planDateId, 'p_pax': 1});
+            final res = await otro.rpc(
+              'create_booking',
+              params: {'p_plan_date_id': planDateId, 'p_pax': 1},
+            );
             final map = (res as Map).cast<String, dynamic>();
             return CreatedBooking(
               bookingId: map['booking_id'] as String,
@@ -207,61 +222,77 @@ void main() {
     expect(await cupoDe(planDateId), cupo, reason: 'la limpieza debe devolver los cupos');
   });
 
-  test('el mismo viajero no abre una segunda reserva pendiente de la misma fecha (RESERVA_PENDIENTE_EXISTENTE)',
-      skip: sinLlave, () async {
-    final fechas = await admin
-        .from('plan_dates')
-        .select('id, cupo_disponible, plans!inner(estado)')
-        .gt('fecha', hoyIso())
-        .eq('plans.estado', 'publicado')
-        .gte('cupo_disponible', 3)
-        .limit(1);
-    expect(fechas, isNotEmpty, reason: 'el seed debe dejar una fecha con cupos');
-    final planDateId = fechas.first['id'] as String;
-    final cupo = await cupoDe(planDateId);
+  test(
+    'el mismo viajero no abre una segunda reserva pendiente de la misma fecha (RESERVA_PENDIENTE_EXISTENTE)',
+    skip: sinLlave,
+    () async {
+      final fechas = await admin
+          .from('plan_dates')
+          .select('id, cupo_disponible, plans!inner(estado)')
+          .gt('fecha', hoyIso())
+          .eq('plans.estado', 'publicado')
+          .gte('cupo_disponible', 3)
+          .limit(1);
+      expect(fechas, isNotEmpty, reason: 'el seed debe dejar una fecha con cupos');
+      final planDateId = fechas.first['id'] as String;
+      final cupo = await cupoDe(planDateId);
 
-    final primera = await bookings.crearReserva(planDateId: planDateId, pax: 1);
-    try {
-      final error = await bookings.crearReserva(planDateId: planDateId, pax: 1).then<DiversoException?>((_) => null,
-          onError: (Object e) => e as DiversoException);
-      expect(error, isNotNull, reason: 'la segunda reserva pendiente debe rechazarse');
-      expect(error!.codigo, 'RESERVA_PENDIENTE_EXISTENTE');
-      expect(error.detalle?['booking_id'], primera.bookingId, reason: 'el error trae el id de la reserva existente');
-      expect(await cupoDe(planDateId), cupo - 1, reason: 'el rechazo no retiene cupos');
-    } finally {
-      await limpiar([primera.bookingId]);
-    }
-    expect(await cupoDe(planDateId), cupo);
-  });
+      final primera = await bookings.crearReserva(planDateId: planDateId, pax: 1);
+      try {
+        final error = await bookings
+            .crearReserva(planDateId: planDateId, pax: 1)
+            .then<DiversoException?>((_) => null, onError: (Object e) => e as DiversoException);
+        expect(error, isNotNull, reason: 'la segunda reserva pendiente debe rechazarse');
+        expect(error!.codigo, 'RESERVA_PENDIENTE_EXISTENTE');
+        expect(
+          error.detalle?['booking_id'],
+          primera.bookingId,
+          reason: 'el error trae el id de la reserva existente',
+        );
+        expect(await cupoDe(planDateId), cupo - 1, reason: 'el rechazo no retiene cupos');
+      } finally {
+        await limpiar([primera.bookingId]);
+      }
+      expect(await cupoDe(planDateId), cupo);
+    },
+  );
 
-  test('reservaPendiente encuentra la reserva sin pagar de esa fecha y solo de esa', skip: sinLlave, () async {
-    final fechas = await admin
-        .from('plan_dates')
-        .select('id, cupo_disponible, plans!inner(estado)')
-        .gt('fecha', hoyIso())
-        .eq('plans.estado', 'publicado')
-        .gte('cupo_disponible', 2)
-        .limit(2);
-    expect(fechas.length, 2, reason: 'el seed debe dejar dos fechas con cupos');
-    final a = fechas[0]['id'] as String;
-    final b = fechas[1]['id'] as String;
-    final cupoA = await cupoDe(a);
+  test(
+    'reservaPendiente encuentra la reserva sin pagar de esa fecha y solo de esa',
+    skip: sinLlave,
+    () async {
+      final fechas = await admin
+          .from('plan_dates')
+          .select('id, cupo_disponible, plans!inner(estado)')
+          .gt('fecha', hoyIso())
+          .eq('plans.estado', 'publicado')
+          .gte('cupo_disponible', 2)
+          .limit(2);
+      expect(fechas.length, 2, reason: 'el seed debe dejar dos fechas con cupos');
+      final a = fechas[0]['id'] as String;
+      final b = fechas[1]['id'] as String;
+      final cupoA = await cupoDe(a);
 
-    expect(await bookings.reservaPendiente(a), isNull, reason: 'antes de reservar no hay pendiente');
-    final creada = await bookings.crearReserva(planDateId: a, pax: 1);
-    try {
-      final pendiente = await bookings.reservaPendiente(a);
-      expect(pendiente?.id, creada.bookingId);
-      expect(pendiente?.estado, BookingStatus.pendientePago);
-      expect(pendiente?.pax, 1);
-      expect(pendiente!.venceAt.isAfter(DateTime.now()), isTrue);
-      expect(await bookings.reservaPendiente(b), isNull, reason: 'otra fecha no se ve afectada');
-    } finally {
-      await limpiar([creada.bookingId]);
-    }
-    expect(await bookings.reservaPendiente(a), isNull);
-    expect(await cupoDe(a), cupoA);
-  });
+      expect(
+        await bookings.reservaPendiente(a),
+        isNull,
+        reason: 'antes de reservar no hay pendiente',
+      );
+      final creada = await bookings.crearReserva(planDateId: a, pax: 1);
+      try {
+        final pendiente = await bookings.reservaPendiente(a);
+        expect(pendiente?.id, creada.bookingId);
+        expect(pendiente?.estado, BookingStatus.pendientePago);
+        expect(pendiente?.pax, 1);
+        expect(pendiente!.venceAt.isAfter(DateTime.now()), isTrue);
+        expect(await bookings.reservaPendiente(b), isNull, reason: 'otra fecha no se ve afectada');
+      } finally {
+        await limpiar([creada.bookingId]);
+      }
+      expect(await bookings.reservaPendiente(a), isNull);
+      expect(await cupoDe(a), cupoA);
+    },
+  );
 
   group('el cliente ya no puede confirmar pagos ni saltarse la política', () {
     final noExiste = throwsA(isA<PostgrestException>().having((e) => e.code, 'code', 'PGRST202'));
@@ -273,22 +304,22 @@ void main() {
         client.rpc('confirm_payment', params: {'p_booking_id': uuid, 'p_metodo': 'tarjeta'}),
         noExiste,
       );
-      await expectLater(
-        client.rpc('cancel_booking', params: {'p_booking_id': uuid}),
-        noExiste,
-      );
+      await expectLater(client.rpc('cancel_booking', params: {'p_booking_id': uuid}), noExiste);
     });
 
     test('las funciones de pagos y reembolsos son solo del servidor (permiso denegado)', () async {
       await expectLater(
-        client.rpc('aplicar_resultado_pago', params: {
-          'p_referencia': 'X-1',
-          'p_transaction_id': 'tx',
-          'p_status': 'APPROVED',
-          'p_amount_in_cents': 100,
-          'p_metodo': 'CARD',
-          'p_raw': <String, dynamic>{},
-        }),
+        client.rpc(
+          'aplicar_resultado_pago',
+          params: {
+            'p_referencia': 'X-1',
+            'p_transaction_id': 'tx',
+            'p_status': 'APPROVED',
+            'p_amount_in_cents': 100,
+            'p_metodo': 'CARD',
+            'p_raw': <String, dynamic>{},
+          },
+        ),
         sinPermiso,
       );
       await expectLater(
@@ -301,39 +332,47 @@ void main() {
       );
     });
 
-    test('escribir directo en payments/bookings no marca la reserva como pagada', skip: sinLlave, () async {
-      final fechas = await client
-          .from('plan_dates')
-          .select('id, cupo_disponible, plans(estado)')
-          .gt('fecha', hoyIso())
-          .limit(50);
-      final fecha = (fechas as List)
-          .map((e) => e as Map<String, dynamic>)
-          .firstWhere((f) => (f['cupo_disponible'] as int) >= 2 && f['plans'] != null);
-      final reserva = await bookings.crearReserva(planDateId: fecha['id'] as String, pax: 1);
-      try {
-        await expectLater(
-          client.from('payments').insert({
-            'booking_id': reserva.bookingId,
-            'metodo': 'tarjeta',
-            'estado': 'aprobado',
-            'monto': reserva.montoTotal,
-            'referencia': 'FALSO-${reserva.codigo}',
-          }),
-          throwsA(isA<PostgrestException>()),
-        );
-        // El UPDATE sobre bookings no tiene política para el viajero: no cambia nada.
-        final actualizadas = await client
-            .from('bookings')
-            .update({'estado': 'confirmada'})
-            .eq('id', reserva.bookingId)
-            .select();
-        expect(actualizadas, isEmpty);
-        final estado = await client.from('bookings').select('estado').eq('id', reserva.bookingId).single();
-        expect(estado['estado'], 'pendiente_pago');
-      } finally {
-        await limpiar([reserva.bookingId]);
-      }
-    });
+    test(
+      'escribir directo en payments/bookings no marca la reserva como pagada',
+      skip: sinLlave,
+      () async {
+        final fechas = await client
+            .from('plan_dates')
+            .select('id, cupo_disponible, plans(estado)')
+            .gt('fecha', hoyIso())
+            .limit(50);
+        final fecha = (fechas as List)
+            .map((e) => e as Map<String, dynamic>)
+            .firstWhere((f) => (f['cupo_disponible'] as int) >= 2 && f['plans'] != null);
+        final reserva = await bookings.crearReserva(planDateId: fecha['id'] as String, pax: 1);
+        try {
+          await expectLater(
+            client.from('payments').insert({
+              'booking_id': reserva.bookingId,
+              'metodo': 'tarjeta',
+              'estado': 'aprobado',
+              'monto': reserva.montoTotal,
+              'referencia': 'FALSO-${reserva.codigo}',
+            }),
+            throwsA(isA<PostgrestException>()),
+          );
+          // El UPDATE sobre bookings no tiene política para el viajero: no cambia nada.
+          final actualizadas = await client
+              .from('bookings')
+              .update({'estado': 'confirmada'})
+              .eq('id', reserva.bookingId)
+              .select();
+          expect(actualizadas, isEmpty);
+          final estado = await client
+              .from('bookings')
+              .select('estado')
+              .eq('id', reserva.bookingId)
+              .single();
+          expect(estado['estado'], 'pendiente_pago');
+        } finally {
+          await limpiar([reserva.bookingId]);
+        }
+      },
+    );
   });
 }

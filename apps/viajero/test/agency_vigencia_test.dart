@@ -5,13 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 /// y su RNT sigue vigente (misma regla que agencia_habilitada() en SQL).
 void main() {
   Map<String, dynamic> base({String estado = 'verificado', String? vigencia}) => {
-        'id': 'a1',
-        'nombre': 'Agencia de prueba',
-        'numero_rnt': '12345',
-        'matricula_camara_comercio': '0123456-7',
-        'estado_verificacion': estado,
-        'rnt_vigente_hasta': vigencia,
-      };
+    'id': 'a1',
+    'nombre': 'Agencia de prueba',
+    'numero_rnt': '12345',
+    'matricula_camara_comercio': '0123456-7',
+    'estado_verificacion': estado,
+    'rnt_vigente_hasta': vigencia,
+  };
 
   String iso(DateTime d) => fechaToIso(d);
   final hoy = DateTime.now();

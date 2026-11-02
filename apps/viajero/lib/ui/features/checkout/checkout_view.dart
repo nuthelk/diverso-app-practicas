@@ -40,12 +40,14 @@ class _CheckoutViewState extends State<CheckoutView> {
     super.dispose();
   }
 
-  Future<bool> _abrirPago(String bookingId) => iniciarPago(context, pasarela: _pasarela, bookingId: bookingId);
+  Future<bool> _abrirPago(String bookingId) =>
+      iniciarPago(context, pasarela: _pasarela, bookingId: bookingId);
 
   Future<void> _pagar() => _controller.pagar(widget.fecha, _abrirPago);
 
   /// Fallback si la redirección no llegó: el servidor consulta a Wompi por la reserva.
-  void _yaPague(String bookingId) => context.go('${DiversoConfig.pagoResultadoPath}?reserva=$bookingId');
+  void _yaPague(String bookingId) =>
+      context.go('${DiversoConfig.pagoResultadoPath}?reserva=$bookingId');
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +101,12 @@ class _CheckoutViewState extends State<CheckoutView> {
                                   ),
                           ),
                           child: plan.fotoPrincipal == null
-                              ? Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 24)))
+                              ? Center(
+                                  child: Text(
+                                    plan.categoria.emoji,
+                                    style: const TextStyle(fontSize: 24),
+                                  ),
+                                )
                               : null,
                         ),
                         const SizedBox(width: 14),
@@ -111,7 +118,11 @@ class _CheckoutViewState extends State<CheckoutView> {
                                 plan.titulo,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, height: 1.25),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  height: 1.25,
+                                ),
                               ),
                               const SizedBox(height: 5),
                               Text(
@@ -143,7 +154,12 @@ class _CheckoutViewState extends State<CheckoutView> {
                     ),
                     child: Row(
                       children: [
-                        const Expanded(child: Text('¿Cuántos viajan?', style: TextStyle(fontWeight: FontWeight.w600))),
+                        const Expanded(
+                          child: Text(
+                            '¿Cuántos viajan?',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
                         _BotonPax(
                           icono: Icons.remove_rounded,
                           habilitado: c.bookingId == null && c.pendiente == null && c.pax > 1,
@@ -159,7 +175,11 @@ class _CheckoutViewState extends State<CheckoutView> {
                         ),
                         _BotonPax(
                           icono: Icons.add_rounded,
-                          habilitado: c.bookingId == null && c.pendiente == null && c.pax < cupos && c.pax < 20,
+                          habilitado:
+                              c.bookingId == null &&
+                              c.pendiente == null &&
+                              c.pax < cupos &&
+                              c.pax < 20,
                           onTap: () => c.setPax(c.pax + 1),
                         ),
                       ],
@@ -193,8 +213,10 @@ class _CheckoutViewState extends State<CheckoutView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Total a pagar',
-                                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            const Text(
+                              'Total a pagar',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                            ),
                             Text(
                               formatCOP(c.total(plan)),
                               style: TextStyle(
@@ -258,7 +280,12 @@ class _CheckoutViewState extends State<CheckoutView> {
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  padding: EdgeInsets.fromLTRB(20, 12, 20, 14 + MediaQuery.viewInsetsOf(context).bottom),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    14 + MediaQuery.viewInsetsOf(context).bottom,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: .5))),
@@ -349,7 +376,10 @@ class _LineaPago extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(etiqueta, style: TextStyle(fontSize: 13.5, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            etiqueta,
+            style: TextStyle(fontSize: 13.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
           Text(valor, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
         ],
       ),

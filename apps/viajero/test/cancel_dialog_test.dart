@@ -8,30 +8,31 @@ VistaPreviaCancelacion _vista({
   required int porcentaje,
   required double monto,
   String motivo = 'motivo del servidor',
-}) =>
-    VistaPreviaCancelacion(
-      aplica: aplica,
-      porcentaje: porcentaje,
-      monto: monto,
-      horasAntes: 30,
-      motivo: motivo,
-    );
+}) => VistaPreviaCancelacion(
+  aplica: aplica,
+  porcentaje: porcentaje,
+  monto: monto,
+  horasAntes: 30,
+  motivo: motivo,
+);
 
 Future<bool?> _abrir(WidgetTester tester, VistaPreviaCancelacion vista) async {
   bool? resultado;
-  await tester.pumpWidget(MaterialApp(
-    home: Builder(
-      builder: (context) => Scaffold(
-        body: TextButton(
-          onPressed: () async => resultado = await showDialog<bool>(
-            context: context,
-            builder: (_) => CancelacionDialog(codigo: 'DIV-ABC123', vista: vista),
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: TextButton(
+            onPressed: () async => resultado = await showDialog<bool>(
+              context: context,
+              builder: (_) => CancelacionDialog(codigo: 'DIV-ABC123', vista: vista),
+            ),
+            child: const Text('abrir'),
           ),
-          child: const Text('abrir'),
         ),
       ),
     ),
-  ));
+  );
   await tester.tap(find.text('abrir'));
   await tester.pumpAndSettle();
   return resultado;
@@ -65,29 +66,34 @@ void main() {
       ),
     );
     expect(find.textContaining('no recibirás reembolso'), findsOneWidget);
-    expect(find.textContaining('Cancelación con menos de 24 h de anticipación: sin reembolso'), findsOneWidget);
+    expect(
+      find.textContaining('Cancelación con menos de 24 h de anticipación: sin reembolso'),
+      findsOneWidget,
+    );
     expect(find.textContaining('te devolvemos'), findsNothing);
   });
 
   testWidgets('«Sí, cancelar» confirma y «Mantener» no', (tester) async {
     bool? resultado;
     Future<void> abrir(String boton) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: TextButton(
-              onPressed: () async => resultado = await showDialog<bool>(
-                context: context,
-                builder: (_) => CancelacionDialog(
-                  codigo: 'DIV-1',
-                  vista: _vista(aplica: true, porcentaje: 100, monto: 1000),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () async => resultado = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => CancelacionDialog(
+                    codigo: 'DIV-1',
+                    vista: _vista(aplica: true, porcentaje: 100, monto: 1000),
+                  ),
                 ),
+                child: const Text('abrir'),
               ),
-              child: const Text('abrir'),
             ),
           ),
         ),
-      ));
+      );
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(boton));

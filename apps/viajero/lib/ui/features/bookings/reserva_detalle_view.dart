@@ -100,15 +100,15 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
 
   /// Marco de las pantallas sin reserva (cargando / error): barra con volver.
   Widget _marco(Widget cuerpo) => Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            tooltip: 'Volver',
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: _volver,
-          ),
-        ),
-        body: cuerpo,
-      );
+    appBar: AppBar(
+      leading: IconButton(
+        tooltip: 'Volver',
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: _volver,
+      ),
+    ),
+    body: cuerpo,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -126,23 +126,27 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
         onResenar: () => _resenar(b),
       );
     } else if (_error != null) {
-      cuerpo = _marco(EmptyState(
-        icono: Icons.cloud_off_rounded,
-        titulo: 'No pudimos cargar la reserva',
-        mensaje: _error!.mensajeUsuario,
-        accion: FilledButton.tonal(onPressed: _cargar, child: const Text('Reintentar')),
-      ));
+      cuerpo = _marco(
+        EmptyState(
+          icono: Icons.cloud_off_rounded,
+          titulo: 'No pudimos cargar la reserva',
+          mensaje: _error!.mensajeUsuario,
+          accion: FilledButton.tonal(onPressed: _cargar, child: const Text('Reintentar')),
+        ),
+      );
     } else {
-      cuerpo = _marco(ListView(
-        padding: const EdgeInsets.all(20),
-        children: const [
-          Skeleton(height: 190, radius: 20),
-          SizedBox(height: 16),
-          Skeleton(height: 28, width: 220),
-          SizedBox(height: 12),
-          Skeleton(height: 120, radius: 20),
-        ],
-      ));
+      cuerpo = _marco(
+        ListView(
+          padding: const EdgeInsets.all(20),
+          children: const [
+            Skeleton(height: 190, radius: 20),
+            SizedBox(height: 16),
+            Skeleton(height: 28, width: 220),
+            SizedBox(height: 12),
+            Skeleton(height: 120, radius: 20),
+          ],
+        ),
+      );
     }
     // Atrás (gesto o botón del sistema) también devuelve si hubo cambios; sin pantalla previa
     // (enlace directo) lleva a «Mis reservas».
@@ -206,7 +210,12 @@ class _Detalle extends StatelessWidget {
                 children: [
                   Text(
                     titulo,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, height: 1.15, letterSpacing: -.7),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                      letterSpacing: -.7,
+                    ),
                   ),
                   if (agencia != null) ...[
                     const SizedBox(height: 8),
@@ -217,7 +226,11 @@ class _Detalle extends StatelessWidget {
                         Expanded(
                           child: Text(
                             agencia,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
@@ -245,7 +258,11 @@ class _Detalle extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (salida != null) ...[
-                          FilaDato(icono: Icons.event_rounded, texto: salida, acento: cuentaRegresiva(booking)),
+                          FilaDato(
+                            icono: Icons.event_rounded,
+                            texto: salida,
+                            acento: cuentaRegresiva(booking),
+                          ),
                           const SizedBox(height: 12),
                         ],
                         if ((plan?.puntoEncuentro ?? '').isNotEmpty) ...[
@@ -299,7 +316,10 @@ class _Detalle extends StatelessWidget {
                       children: [
                         Icon(Icons.rate_review_rounded, size: 15, color: cs.primary),
                         const SizedBox(width: 6),
-                        Text('Ya dejaste tu reseña', style: TextStyle(fontSize: 13, color: cs.primary)),
+                        Text(
+                          'Ya dejaste tu reseña',
+                          style: TextStyle(fontSize: 13, color: cs.primary),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),

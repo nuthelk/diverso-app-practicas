@@ -45,60 +45,60 @@ class PlanDraft {
   final List<String> fotos;
 
   factory PlanDraft.vacio() => PlanDraft(
-        titulo: '',
-        destino: '',
-        categoria: ExperienceCategory.aventura,
-        precioCop: 0,
-        resumen: '',
-        descripcion: '',
-        duracionTexto: '1 día',
-        puntoEncuentro: '',
-        incluye: [],
-        incluyeTransporte: true,
-        incluyeComida: false,
-        incluyeHospedaje: false,
-        itinerario: [],
-        politicaCancelacion: '',
-        fotos: [],
-      );
+    titulo: '',
+    destino: '',
+    categoria: ExperienceCategory.aventura,
+    precioCop: 0,
+    resumen: '',
+    descripcion: '',
+    duracionTexto: '1 día',
+    puntoEncuentro: '',
+    incluye: [],
+    incluyeTransporte: true,
+    incluyeComida: false,
+    incluyeHospedaje: false,
+    itinerario: [],
+    politicaCancelacion: '',
+    fotos: [],
+  );
 
   factory PlanDraft.dePlan(Plan p) => PlanDraft(
-        id: p.id,
-        titulo: p.titulo,
-        destino: p.destino,
-        categoria: p.categoria,
-        precioCop: p.precioCop,
-        resumen: p.resumen,
-        descripcion: p.descripcion,
-        duracionTexto: p.duracionTexto,
-        puntoEncuentro: p.puntoEncuentro,
-        incluye: List.of(p.incluye),
-        incluyeTransporte: p.incluyeTransporte,
-        incluyeComida: p.incluyeComida,
-        incluyeHospedaje: p.incluyeHospedaje,
-        itinerario: List.of(p.itinerario),
-        politicaCancelacion: p.politicaCancelacion,
-        fotos: List.of(p.fotos),
-      );
+    id: p.id,
+    titulo: p.titulo,
+    destino: p.destino,
+    categoria: p.categoria,
+    precioCop: p.precioCop,
+    resumen: p.resumen,
+    descripcion: p.descripcion,
+    duracionTexto: p.duracionTexto,
+    puntoEncuentro: p.puntoEncuentro,
+    incluye: List.of(p.incluye),
+    incluyeTransporte: p.incluyeTransporte,
+    incluyeComida: p.incluyeComida,
+    incluyeHospedaje: p.incluyeHospedaje,
+    itinerario: List.of(p.itinerario),
+    politicaCancelacion: p.politicaCancelacion,
+    fotos: List.of(p.fotos),
+  );
 
   Map<String, dynamic> toMap() => {
-        'titulo': titulo,
-        'destino': destino,
-        'categoria': categoria.name,
-        'precio_cop': precioCop,
-        'resumen': resumen,
-        'descripcion': descripcion,
-        'duracion_texto': duracionTexto,
-        'duracion_horas': _duracionHoras(duracionTexto),
-        'punto_encuentro': puntoEncuentro,
-        'incluye': incluye,
-        'incluye_transporte': incluyeTransporte,
-        'incluye_comida': incluyeComida,
-        'incluye_hospedaje': incluyeHospedaje,
-        'itinerario': itinerario.map((i) => i.toMap()).toList(),
-        'politica_cancelacion': politicaCancelacion,
-        'fotos': fotos,
-      };
+    'titulo': titulo,
+    'destino': destino,
+    'categoria': categoria.name,
+    'precio_cop': precioCop,
+    'resumen': resumen,
+    'descripcion': descripcion,
+    'duracion_texto': duracionTexto,
+    'duracion_horas': _duracionHoras(duracionTexto),
+    'punto_encuentro': puntoEncuentro,
+    'incluye': incluye,
+    'incluye_transporte': incluyeTransporte,
+    'incluye_comida': incluyeComida,
+    'incluye_hospedaje': incluyeHospedaje,
+    'itinerario': itinerario.map((i) => i.toMap()).toList(),
+    'politica_cancelacion': politicaCancelacion,
+    'fotos': fotos,
+  };
 
   static double _duracionHoras(String texto) {
     final t = texto.toLowerCase();
@@ -144,19 +144,19 @@ class VentaRow {
   final String? referencia;
 
   factory VentaRow.fromMap(Map<String, dynamic> map) => VentaRow(
-        codigo: map['codigo'] as String,
-        planTitulo: map['plan_titulo'] as String? ?? '',
-        destino: map['destino'] as String? ?? '',
-        fecha: DateTime.parse(map['fecha'] as String),
-        pax: (map['pax'] as num?)?.toInt() ?? 0,
-        montoTotal: (map['monto_total'] as num?)?.toDouble() ?? 0,
-        comision: (map['comision'] as num?)?.toDouble() ?? 0,
-        saldoAgencia: (map['saldo_agencia'] as num?)?.toDouble() ?? 0,
-        bookingEstado: map['booking_estado'] as String? ?? '',
-        pagoEstado: map['pago_estado'] as String?,
-        provider: map['provider'] as String?,
-        referencia: map['referencia'] as String?,
-      );
+    codigo: map['codigo'] as String,
+    planTitulo: map['plan_titulo'] as String? ?? '',
+    destino: map['destino'] as String? ?? '',
+    fecha: DateTime.parse(map['fecha'] as String),
+    pax: (map['pax'] as num?)?.toInt() ?? 0,
+    montoTotal: (map['monto_total'] as num?)?.toDouble() ?? 0,
+    comision: (map['comision'] as num?)?.toDouble() ?? 0,
+    saldoAgencia: (map['saldo_agencia'] as num?)?.toDouble() ?? 0,
+    bookingEstado: map['booking_estado'] as String? ?? '',
+    pagoEstado: map['pago_estado'] as String?,
+    provider: map['provider'] as String?,
+    referencia: map['referencia'] as String?,
+  );
 }
 
 class AgencyService {
@@ -167,11 +167,7 @@ class AgencyService {
   /// Agencia cuyo dueño es el usuario actual (null si no ha registrado).
   Future<AgencyRef?> miAgencia() async {
     if (_uid == null) return null;
-    final res = await _client
-        .from('agencies')
-        .select()
-        .eq('owner_user_id', _uid!)
-        .maybeSingle();
+    final res = await _client.from('agencies').select().eq('owner_user_id', _uid!).maybeSingle();
     return res == null ? null : AgencyRef.fromMap(res.cast<String, dynamic>());
   }
 

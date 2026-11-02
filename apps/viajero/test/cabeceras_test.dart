@@ -29,18 +29,20 @@ const _agencia = AgenciaResumen(
 );
 
 Plan _plan(int i) => Plan(
-      id: 'plan-$i',
-      agencyId: 'ag-rutas',
-      titulo: 'Plan número $i',
-      destino: 'Guatapé',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 100000.0 + i,
-      estado: PlanStatus.publicado,
-      descripcion: 'Una descripción larga. ' * 40,
-      itinerario: [for (var h = 8; h < 18; h++) ItinerarioPaso(hora: '$h:00', actividad: 'Actividad de las $h')],
-      ratingPromedio: 4.0,
-      reviewsCount: 2,
-    );
+  id: 'plan-$i',
+  agencyId: 'ag-rutas',
+  titulo: 'Plan número $i',
+  destino: 'Guatapé',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 100000.0 + i,
+  estado: PlanStatus.publicado,
+  descripcion: 'Una descripción larga. ' * 40,
+  itinerario: [
+    for (var h = 8; h < 18; h++) ItinerarioPaso(hora: '$h:00', actividad: 'Actividad de las $h'),
+  ],
+  ratingPromedio: 4.0,
+  reviewsCount: 2,
+);
 
 class _Catalogo implements CatalogService {
   final planes = [for (var i = 1; i <= 8; i++) _plan(i)];
@@ -87,19 +89,19 @@ class _Auth implements AuthService {
 class _Reservas implements BookingService {
   @override
   Future<List<Booking>> misReservas() async => [
-        for (var i = 0; i < 9; i++)
-          Booking(
-            id: 'b$i',
-            codigo: 'FUT$i',
-            planDateId: 'pd',
-            viajeroId: 'v',
-            pax: 2,
-            montoTotal: 190000,
-            estado: BookingStatus.confirmada,
-            createdAt: DateTime.now(),
-            salidaAt: DateTime.now().add(Duration(days: 3 + i)),
-          ),
-      ];
+    for (var i = 0; i < 9; i++)
+      Booking(
+        id: 'b$i',
+        codigo: 'FUT$i',
+        planDateId: 'pd',
+        viajeroId: 'v',
+        pax: 2,
+        montoTotal: 190000,
+        estado: BookingStatus.confirmada,
+        createdAt: DateTime.now(),
+        salidaAt: DateTime.now().add(Duration(days: 3 + i)),
+      ),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -115,17 +117,19 @@ Future<void> _abrir(WidgetTester tester, Widget vista, {ThemeData? tema}) async 
   tester.view.physicalSize = const Size(600, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ThemeModeController()),
-      Provider<CatalogService>.value(value: _Catalogo()),
-      Provider<ReviewService>.value(value: _Resenas()),
-      Provider<AuthService>.value(value: _Auth()),
-      Provider<BookingService>.value(value: _Reservas()),
-      Provider<PaymentGateway>.value(value: _Pasarela()),
-    ],
-    child: MaterialApp(theme: tema ?? AppTheme.viajeroLight(), home: vista),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModeController()),
+        Provider<CatalogService>.value(value: _Catalogo()),
+        Provider<ReviewService>.value(value: _Resenas()),
+        Provider<AuthService>.value(value: _Auth()),
+        Provider<BookingService>.value(value: _Reservas()),
+        Provider<PaymentGateway>.value(value: _Pasarela()),
+      ],
+      child: MaterialApp(theme: tema ?? AppTheme.viajeroLight(), home: vista),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -158,16 +162,23 @@ void main() {
     ];
 
     for (final (nombre, vista, titulo, scroll) in paginas) {
-      testWidgets('$nombre: el título no está dentro del scroll y la lista empieza debajo', (tester) async {
+      testWidgets('$nombre: el título no está dentro del scroll y la lista empieza debajo', (
+        tester,
+      ) async {
         await _abrir(tester, vista);
 
-        expect(find.descendant(of: find.byType(Scrollable), matching: find.byType(AppBar)), findsNothing);
+        expect(
+          find.descendant(of: find.byType(Scrollable), matching: find.byType(AppBar)),
+          findsNothing,
+        );
         final cab = _cabecera(tester);
         expect(tester.getRect(find.text(titulo)).bottom, lessThanOrEqualTo(cab.bottom));
 
         // Lo que se desplaza arranca justo bajo el AppBar (y bajo las pestañas, si las hay).
         final zona = tester.getRect(scroll);
-        final limite = nombre == 'Reservas' ? tester.getRect(find.byType(TabBar)).bottom : cab.bottom;
+        final limite = nombre == 'Reservas'
+            ? tester.getRect(find.byType(TabBar)).bottom
+            : cab.bottom;
         expect(zona.top, greaterThanOrEqualTo(limite));
 
         await tester.drag(scroll, const Offset(0, -500));
@@ -193,7 +204,9 @@ void main() {
       await _abrir(tester, const AgenciasView(), tema: AppTheme.viajeroDark());
 
       final tema = AppTheme.viajeroDark();
-      final texto = tester.widget<Text>(find.descendant(of: find.byType(AppBar), matching: find.text('Agencias')));
+      final texto = tester.widget<Text>(
+        find.descendant(of: find.byType(AppBar), matching: find.text('Agencias')),
+      );
       expect(texto.style!.color, tema.colorScheme.onSurface);
       final fondo = tester.widget<Material>(
         find.descendant(of: find.byType(AppBar), matching: find.byType(Material)).first,
@@ -203,49 +216,69 @@ void main() {
   });
 
   group('cabecera colapsable', () {
-    testWidgets('detalle del plan: el contenido arranca bajo la cabecera y al colapsar queda sólida con el título',
-        (tester) async {
-      await _abrir(tester, const PlanDetailView(planId: 'plan-1'));
+    testWidgets(
+      'detalle del plan: el contenido arranca bajo la cabecera y al colapsar queda sólida con el título',
+      (tester) async {
+        await _abrir(tester, const PlanDetailView(planId: 'plan-1'));
 
-      final cab = _cabecera(tester);
-      expect(tester.getTopLeft(find.text('Plan número 1')).dy, greaterThanOrEqualTo(cab.bottom));
-      // Expandida, el título del plan no se repite en la cabecera.
-      expect(find.descendant(of: find.byType(AppBar), matching: find.text('Plan número 1')), findsNothing);
+        final cab = _cabecera(tester);
+        expect(tester.getTopLeft(find.text('Plan número 1')).dy, greaterThanOrEqualTo(cab.bottom));
+        // Expandida, el título del plan no se repite en la cabecera.
+        expect(
+          find.descendant(of: find.byType(AppBar), matching: find.text('Plan número 1')),
+          findsNothing,
+        );
 
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
-      await tester.pumpAndSettle();
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
+        await tester.pumpAndSettle();
 
-      final colapsada = _cabecera(tester);
-      expect(colapsada.height, lessThan(cab.height));
-      expect(colapsada.top, 0);
-      final scaffoldBg = AppTheme.viajeroLight().scaffoldBackgroundColor;
-      expect(tester.widget<AppBar>(find.byType(AppBar)).backgroundColor, scaffoldBg);
-      expect(find.descendant(of: find.byType(AppBar), matching: find.text('Plan número 1')), findsOneWidget);
-      expect(find.byTooltip('Volver'), findsOneWidget);
-    });
+        final colapsada = _cabecera(tester);
+        expect(colapsada.height, lessThan(cab.height));
+        expect(colapsada.top, 0);
+        final scaffoldBg = AppTheme.viajeroLight().scaffoldBackgroundColor;
+        expect(tester.widget<AppBar>(find.byType(AppBar)).backgroundColor, scaffoldBg);
+        expect(
+          find.descendant(of: find.byType(AppBar), matching: find.text('Plan número 1')),
+          findsOneWidget,
+        );
+        expect(find.byTooltip('Volver'), findsOneWidget);
+      },
+    );
 
-    testWidgets('página de la agencia: con la portada a la vista no hay nombre en la cabecera; al colapsar queda sólida con nombre y volver',
-        (tester) async {
-      await _abrir(tester, const AgenciaView(agencyId: 'ag-rutas'));
+    testWidgets(
+      'página de la agencia: con la portada a la vista no hay nombre en la cabecera; al colapsar queda sólida con nombre y volver',
+      (tester) async {
+        await _abrir(tester, const AgenciaView(agencyId: 'ag-rutas'));
 
-      final cab = _cabecera(tester);
-      expect(find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)), findsNothing);
-      expect(find.text(_agencia.nombre), findsOneWidget);
+        final cab = _cabecera(tester);
+        expect(
+          find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)),
+          findsNothing,
+        );
+        expect(find.text(_agencia.nombre), findsOneWidget);
 
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
-      await tester.pumpAndSettle();
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -2500));
+        await tester.pumpAndSettle();
 
-      final colapsada = _cabecera(tester);
-      expect(colapsada.height, lessThan(cab.height));
-      expect(colapsada.top, 0);
-      expect(tester.widget<AppBar>(find.byType(AppBar)).backgroundColor,
-          AppTheme.viajeroLight().scaffoldBackgroundColor);
-      expect(find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)), findsOneWidget);
-      expect(find.byTooltip('Volver'), findsOneWidget);
-      // El nombre de la cabecera cabe entre el botón de volver y el borde derecho.
-      final nombre = tester.getRect(find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)));
-      expect(nombre.left, greaterThanOrEqualTo(tester.getRect(find.byTooltip('Volver')).right));
-      expect(nombre.right, lessThanOrEqualTo(600));
-    });
+        final colapsada = _cabecera(tester);
+        expect(colapsada.height, lessThan(cab.height));
+        expect(colapsada.top, 0);
+        expect(
+          tester.widget<AppBar>(find.byType(AppBar)).backgroundColor,
+          AppTheme.viajeroLight().scaffoldBackgroundColor,
+        );
+        expect(
+          find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)),
+          findsOneWidget,
+        );
+        expect(find.byTooltip('Volver'), findsOneWidget);
+        // El nombre de la cabecera cabe entre el botón de volver y el borde derecho.
+        final nombre = tester.getRect(
+          find.descendant(of: find.byType(AppBar), matching: find.text(_agencia.nombre)),
+        );
+        expect(nombre.left, greaterThanOrEqualTo(tester.getRect(find.byTooltip('Volver')).right));
+        expect(nombre.right, lessThanOrEqualTo(600));
+      },
+    );
   });
 }

@@ -9,16 +9,16 @@ import 'package:viajero/ui/features/plan/plan_detail_view.dart';
 /// Un plan sin reseñas muestra «Nueva» (nunca «★ 0.0»), en la tarjeta del catálogo y en la ficha.
 
 Plan _plan({int reviews = 0, double rating = 0}) => Plan(
-      id: 'plan-1',
-      agencyId: 'ag',
-      titulo: 'Jericó 2 días',
-      destino: 'Jericó',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 449000,
-      estado: PlanStatus.publicado,
-      ratingPromedio: rating,
-      reviewsCount: reviews,
-    );
+  id: 'plan-1',
+  agencyId: 'ag',
+  titulo: 'Jericó 2 días',
+  destino: 'Jericó',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 449000,
+  estado: PlanStatus.publicado,
+  ratingPromedio: rating,
+  reviewsCount: reviews,
+);
 
 class _Catalogo implements CatalogService {
   _Catalogo(this.plan);
@@ -44,23 +44,30 @@ Future<void> _tarjeta(WidgetTester tester, Plan plan) async {
   tester.view.physicalSize = const Size(600, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MaterialApp(
-    theme: AppTheme.viajeroLight(),
-    home: Scaffold(body: PlanCard(plan: plan)),
-  ));
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.viajeroLight(),
+      home: Scaffold(body: PlanCard(plan: plan)),
+    ),
+  );
 }
 
 Future<void> _ficha(WidgetTester tester, Plan plan) async {
   tester.view.physicalSize = const Size(600, 1000);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      Provider<CatalogService>.value(value: _Catalogo(plan)),
-      Provider<ReviewService>.value(value: _Resenas()),
-    ],
-    child: MaterialApp(theme: AppTheme.viajeroLight(), home: const PlanDetailView(planId: 'plan-1')),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        Provider<CatalogService>.value(value: _Catalogo(plan)),
+        Provider<ReviewService>.value(value: _Resenas()),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.viajeroLight(),
+        home: const PlanDetailView(planId: 'plan-1'),
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -95,7 +102,9 @@ void main() {
       expect(find.textContaining('reseñas verificadas'), findsNothing);
     });
 
-    testWidgets('PRESERVE: con reseñas muestra el puntaje y «n reseñas verificadas»', (tester) async {
+    testWidgets('PRESERVE: con reseñas muestra el puntaje y «n reseñas verificadas»', (
+      tester,
+    ) async {
       await _ficha(tester, _plan(reviews: 2, rating: 4.0));
       expect(find.text('4.0'), findsOneWidget);
       expect(find.textContaining('2 reseñas verificadas'), findsOneWidget);

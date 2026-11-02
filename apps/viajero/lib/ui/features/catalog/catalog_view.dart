@@ -19,8 +19,7 @@ class CatalogView extends StatefulWidget {
   State<CatalogView> createState() => _CatalogViewState();
 }
 
-class _CatalogViewState extends State<CatalogView>
-    with AutomaticKeepAliveClientMixin {
+class _CatalogViewState extends State<CatalogView> with AutomaticKeepAliveClientMixin {
   late final CatalogController _controller;
   final _searchCtrl = TextEditingController();
 
@@ -173,16 +172,15 @@ class _CatalogViewState extends State<CatalogView>
                     ),
                   )
                 else if (esGrid)
-                // La decisión grid/lista se toma con el ancho de la VENTANA
-                // (estable), no con SliverLayoutBuilder: las constraints de
-                // un sliver cambian en cada cuadro de scroll y re-ejecutarían
-                // este subárbol a 120 Hz, matando la fluidez.
+                  // La decisión grid/lista se toma con el ancho de la VENTANA
+                  // (estable), no con SliverLayoutBuilder: las constraints de
+                  // un sliver cambian en cada cuadro de scroll y re-ejecutarían
+                  // este subárbol a 120 Hz, matando la fluidez.
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     sliver: SliverGrid.builder(
                       itemCount: c.planes.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 430,
                         mainAxisSpacing: 14,
                         crossAxisSpacing: 14,
@@ -247,32 +245,37 @@ class _CatalogViewState extends State<CatalogView>
   }
 
   Widget _gridSkeleton(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final esGrid = constraints.maxWidth > AppTheme.bpCompact;
-      final n = esGrid ? 4 : 3;
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        child: esGrid
-            ? GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 430,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: .82,
-                ),
-                itemCount: n,
-                itemBuilder: (_, _) => const _TarjetaSkeleton(),
-              )
-            : Column(
-                children: List.generate(n, (_) => const Padding(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final esGrid = constraints.maxWidth > AppTheme.bpCompact;
+        final n = esGrid ? 4 : 3;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: esGrid
+              ? GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 430,
+                    mainAxisSpacing: 14,
+                    crossAxisSpacing: 14,
+                    childAspectRatio: .82,
+                  ),
+                  itemCount: n,
+                  itemBuilder: (_, _) => const _TarjetaSkeleton(),
+                )
+              : Column(
+                  children: List.generate(
+                    n,
+                    (_) => const Padding(
                       padding: EdgeInsets.only(bottom: 14),
                       child: _TarjetaSkeleton(),
-                    )),
-              ),
-      );
-    });
+                    ),
+                  ),
+                ),
+        );
+      },
+    );
   }
 }
 
@@ -306,11 +309,7 @@ class _TarjetaSkeleton extends StatelessWidget {
 }
 
 class _ChipCategoria extends StatelessWidget {
-  const _ChipCategoria({
-    required this.categoria,
-    required this.seleccionada,
-    required this.onTap,
-  });
+  const _ChipCategoria({required this.categoria, required this.seleccionada, required this.onTap});
 
   final ExperienceCategory categoria;
   final bool seleccionada;
@@ -442,15 +441,15 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
     ];
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        24, 0, 24, 24 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
+      padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Filtros',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -.5)),
+          const Text(
+            'Filtros',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -.5),
+          ),
           const SizedBox(height: 22),
           const SectionLabel('Fecha del plan'),
           Row(
@@ -537,8 +536,8 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
                     esTodos
                         ? Icons.travel_explore_outlined
                         : sel
-                            ? Icons.check_circle_rounded
-                            : Icons.location_on_outlined,
+                        ? Icons.check_circle_rounded
+                        : Icons.location_on_outlined,
                     size: 19,
                     color: sel ? cs.primary : cs.onSurfaceVariant,
                   ),
@@ -582,7 +581,8 @@ class _HojaFiltrosState extends State<_HojaFiltros> {
                   onPressed: () async {
                     Navigator.pop(context);
                     await c.setDestino(
-                        _destinoTmp == '' || _destinoTmp == null ? null : _destinoTmp);
+                      _destinoTmp == '' || _destinoTmp == null ? null : _destinoTmp,
+                    );
                     await c.setPrecioMax(_precio);
                     await c.setFecha(_fecha);
                   },

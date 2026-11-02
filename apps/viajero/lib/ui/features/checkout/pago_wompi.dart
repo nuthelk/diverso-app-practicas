@@ -11,14 +11,18 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// - Web: `<origen de la app>/pago/resultado` (misma ventana; el origen debe estar en la lista
 ///   de permitidos del backend, p. ej. http://localhost:8080).
 /// - Android/iOS: `https://diverso.app/pago/resultado`, interceptada por el WebView.
-String urlRetornoPago() =>
-    kIsWeb ? '${Uri.base.origin}${DiversoConfig.pagoResultadoPath}' : DiversoConfig.pagoRetornoMovil;
+String urlRetornoPago() => kIsWeb
+    ? '${Uri.base.origin}${DiversoConfig.pagoResultadoPath}'
+    : DiversoConfig.pagoRetornoMovil;
 
 /// ¿Es [url] la redirección final de Wompi (`https://diverso.app/pago/resultado[?id=…]`)?
 bool esRedireccionDePago(String url) {
   final u = Uri.tryParse(url);
   final retorno = Uri.parse(DiversoConfig.pagoRetornoMovil);
-  return u != null && u.scheme == retorno.scheme && u.host == retorno.host && u.path == retorno.path;
+  return u != null &&
+      u.scheme == retorno.scheme &&
+      u.host == retorno.host &&
+      u.path == retorno.path;
 }
 
 /// `id` de la transacción que Wompi añade a la redirección, o null si no viene.
@@ -75,21 +79,24 @@ class _PagoWompiPageState extends State<PagoWompiPage> {
     super.initState();
     _web = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-        onProgress: (p) => setState(() => _progreso = p),
-        onNavigationRequest: (request) {
-          if (esRedireccionDePago(request.url)) {
-            if (!_terminado) {
-              _terminado = true;
-              Navigator.of(context).pop(idDeRedireccion(request.url));
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (p) => setState(() => _progreso = p),
+          onNavigationRequest: (request) {
+            if (esRedireccionDePago(request.url)) {
+              if (!_terminado) {
+                _terminado = true;
+                Navigator.of(context).pop(idDeRedireccion(request.url));
+              }
+              return NavigationDecision.prevent;
             }
-            return NavigationDecision.prevent;
-          }
-          final u = Uri.tryParse(request.url);
-          final web = u != null && (u.scheme == 'http' || u.scheme == 'https' || u.scheme == 'about');
-          return web ? NavigationDecision.navigate : NavigationDecision.prevent;
-        },
-      ))
+            final u = Uri.tryParse(request.url);
+            final web =
+                u != null && (u.scheme == 'http' || u.scheme == 'https' || u.scheme == 'about');
+            return web ? NavigationDecision.navigate : NavigationDecision.prevent;
+          },
+        ),
+      )
       ..loadRequest(Uri.parse(widget.checkoutUrl));
   }
 

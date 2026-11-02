@@ -53,16 +53,16 @@ class AgenciaResumen {
   }
 
   factory AgenciaResumen.fromMap(Map<String, dynamic> map) => AgenciaResumen(
-        id: map['id'] as String,
-        nombre: map['nombre'] as String,
-        ciudad: (map['ciudad'] as String?) ?? '',
-        descripcion: (map['descripcion'] as String?) ?? '',
-        logoUrl: map['logo_url'] as String?,
-        planesCount: (map['planes_count'] as num?)?.toInt() ?? 0,
-        rating: (map['rating'] as num?)?.toDouble(),
-        reviewsTotal: (map['reviews_total'] as num?)?.toInt() ?? 0,
-        portadaUrl: map['portada_url'] as String?,
-      );
+    id: map['id'] as String,
+    nombre: map['nombre'] as String,
+    ciudad: (map['ciudad'] as String?) ?? '',
+    descripcion: (map['descripcion'] as String?) ?? '',
+    logoUrl: map['logo_url'] as String?,
+    planesCount: (map['planes_count'] as num?)?.toInt() ?? 0,
+    rating: (map['rating'] as num?)?.toDouble(),
+    reviewsTotal: (map['reviews_total'] as num?)?.toInt() ?? 0,
+    portadaUrl: map['portada_url'] as String?,
+  );
 }
 
 /// Criterios de orden de la lista de agencias.
@@ -70,10 +70,10 @@ enum OrdenAgencias { puntaje, masPlanes, nombre }
 
 extension OrdenAgenciasX on OrdenAgencias {
   String get label => switch (this) {
-        OrdenAgencias.puntaje => 'Puntaje',
-        OrdenAgencias.masPlanes => 'Más planes',
-        OrdenAgencias.nombre => 'Nombre',
-      };
+    OrdenAgencias.puntaje => 'Puntaje',
+    OrdenAgencias.masPlanes => 'Más planes',
+    OrdenAgencias.nombre => 'Nombre',
+  };
 }
 
 /// Copia de [agencias] ordenada. Puntaje: mayor primero (empate: más reseñas) y las «Nueva» al

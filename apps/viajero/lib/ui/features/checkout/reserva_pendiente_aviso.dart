@@ -6,7 +6,8 @@ import '../../core/widgets.dart';
 /// «Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 330.000). Vence a las 14:35.»
 String textoReservaPendiente(Booking reserva) {
   final vence = reserva.venceAt.toLocal();
-  final hora = '${vence.hour.toString().padLeft(2, '0')}:${vence.minute.toString().padLeft(2, '0')}';
+  final hora =
+      '${vence.hour.toString().padLeft(2, '0')}:${vence.minute.toString().padLeft(2, '0')}';
   final personas = '${reserva.pax} ${reserva.pax == 1 ? 'persona' : 'personas'}';
   return 'Ya tienes una reserva pendiente de pago para esta fecha '
       '($personas, ${formatCOP(reserva.montoTotal)}). Vence a las $hora.';

@@ -90,7 +90,9 @@ class CatalogService {
   /// Agencias con planes publicados (función `agencias_publicas`: solo columnas públicas y agregados).
   Future<List<AgenciaResumen>> agencias() async {
     final res = await _client.rpc('agencias_publicas');
-    return (res as List).map((e) => AgenciaResumen.fromMap((e as Map).cast<String, dynamic>())).toList();
+    return (res as List)
+        .map((e) => AgenciaResumen.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
   }
 
   /// Una agencia y sus planes publicados (misma consulta y modelo que el catálogo). Null si no

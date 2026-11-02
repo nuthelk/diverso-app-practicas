@@ -35,7 +35,10 @@ void main() {
     });
 
     test('salida 1 minuto antes de ahora → ya salió', () {
-      expect(_reserva(salida: _ahora.subtract(const Duration(minutes: 1))).esFutura(_ahora), isFalse);
+      expect(
+        _reserva(salida: _ahora.subtract(const Duration(minutes: 1))).esFutura(_ahora),
+        isFalse,
+      );
     });
 
     test('salida exactamente ahora → ya salió', () {
@@ -47,8 +50,14 @@ void main() {
     });
 
     test('sin salida congelada usa la fecha del plan', () {
-      expect(_reserva(fechaPlan: DateTime(2026, 10, 26)).esFutura(DateTime(2026, 10, 25, 23)), isTrue);
-      expect(_reserva(fechaPlan: DateTime(2026, 10, 24)).esFutura(DateTime(2026, 10, 25, 23)), isFalse);
+      expect(
+        _reserva(fechaPlan: DateTime(2026, 10, 26)).esFutura(DateTime(2026, 10, 25, 23)),
+        isTrue,
+      );
+      expect(
+        _reserva(fechaPlan: DateTime(2026, 10, 24)).esFutura(DateTime(2026, 10, 25, 23)),
+        isFalse,
+      );
     });
 
     test('sin salida ni fecha de plan no es futura', () {
@@ -64,11 +73,17 @@ void main() {
     });
 
     test('completada que ya salió → sí', () {
-      expect(_reserva(salida: salio, estado: BookingStatus.completada).puedeResenar(_ahora), isTrue);
+      expect(
+        _reserva(salida: salio, estado: BookingStatus.completada).puedeResenar(_ahora),
+        isTrue,
+      );
     });
 
     test('sale en 1 minuto → no', () {
-      expect(_reserva(salida: _ahora.add(const Duration(minutes: 1))).puedeResenar(_ahora), isFalse);
+      expect(
+        _reserva(salida: _ahora.add(const Duration(minutes: 1))).puedeResenar(_ahora),
+        isFalse,
+      );
     });
 
     test('sale mañana → no (el servidor la rechazaría)', () {
@@ -80,8 +95,14 @@ void main() {
     });
 
     test('pendiente de pago o cancelada → no', () {
-      expect(_reserva(salida: salio, estado: BookingStatus.pendientePago).puedeResenar(_ahora), isFalse);
-      expect(_reserva(salida: salio, estado: BookingStatus.cancelada).puedeResenar(_ahora), isFalse);
+      expect(
+        _reserva(salida: salio, estado: BookingStatus.pendientePago).puedeResenar(_ahora),
+        isFalse,
+      );
+      expect(
+        _reserva(salida: salio, estado: BookingStatus.cancelada).puedeResenar(_ahora),
+        isFalse,
+      );
     });
 
     test('sin ninguna fecha conocida → no', () {
@@ -91,16 +112,16 @@ void main() {
 
   group('Booking.fromMap', () {
     Map<String, dynamic> mapa({String? salida}) => {
-          'id': 'b-1',
-          'codigo': 'DIV-TEST01',
-          'plan_date_id': 'pd-1',
-          'viajero_id': 'v-1',
-          'pax': 2,
-          'monto_total': 100000,
-          'estado': 'confirmada',
-          'created_at': '2026-09-01T10:00:00+00:00',
-          'salida_at': ?salida,
-        };
+      'id': 'b-1',
+      'codigo': 'DIV-TEST01',
+      'plan_date_id': 'pd-1',
+      'viajero_id': 'v-1',
+      'pax': 2,
+      'monto_total': 100000,
+      'estado': 'confirmada',
+      'created_at': '2026-09-01T10:00:00+00:00',
+      'salida_at': ?salida,
+    };
 
     test('lee la salida congelada con su zona horaria', () {
       final b = Booking.fromMap(mapa(salida: '2026-10-27T13:00:00+00:00'));

@@ -12,38 +12,50 @@ const _tamano = Size(400, 800);
 
 GoRouter _router() {
   GoRoute pagina(String ruta, String texto) => GoRoute(
-        path: ruta,
-        builder: (_, _) => Container(key: ValueKey('pagina $texto'), color: Colors.amber, child: Center(child: Text(texto))),
-      );
-  return GoRouter(routes: [
-    StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) => AppShell(shell: shell),
-      branches: [
-        StatefulShellBranch(routes: [pagina('/', 'Página explorar')]),
-        StatefulShellBranch(routes: [pagina('/agencias', 'Página agencias')]),
-        StatefulShellBranch(routes: [pagina('/reservas', 'Página reservas')]),
-        StatefulShellBranch(routes: [pagina('/perfil', 'Página perfil')]),
-      ],
+    path: ruta,
+    builder: (_, _) => Container(
+      key: ValueKey('pagina $texto'),
+      color: Colors.amber,
+      child: Center(child: Text(texto)),
     ),
-  ]);
+  );
+  return GoRouter(
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, shell) => AppShell(shell: shell),
+        branches: [
+          StatefulShellBranch(routes: [pagina('/', 'Página explorar')]),
+          StatefulShellBranch(routes: [pagina('/agencias', 'Página agencias')]),
+          StatefulShellBranch(routes: [pagina('/reservas', 'Página reservas')]),
+          StatefulShellBranch(routes: [pagina('/perfil', 'Página perfil')]),
+        ],
+      ),
+    ],
+  );
 }
 
 Future<void> _abrir(WidgetTester tester) async {
   tester.view.physicalSize = _tamano;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: _router()));
+  await tester.pumpWidget(
+    MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: _router()),
+  );
   await tester.pumpAndSettle();
 }
 
-NavigationBar _barra(WidgetTester tester) => tester.widget<NavigationBar>(find.byType(NavigationBar));
+NavigationBar _barra(WidgetTester tester) =>
+    tester.widget<NavigationBar>(find.byType(NavigationBar));
 
 void main() {
   testWidgets('tiene cuatro destinos: Explorar, Agencias, Reservas, Perfil', (tester) async {
     await _abrir(tester);
     expect(find.byType(NavigationDestination), findsNWidgets(4));
     for (final etiqueta in ['Explorar', 'Agencias', 'Reservas', 'Perfil']) {
-      expect(find.descendant(of: find.byType(NavigationBar), matching: find.text(etiqueta)), findsOneWidget);
+      expect(
+        find.descendant(of: find.byType(NavigationBar), matching: find.text(etiqueta)),
+        findsOneWidget,
+      );
     }
   });
 
@@ -52,12 +64,16 @@ void main() {
     expect(_barra(tester).selectedIndex, 0);
     expect(find.text('Página explorar'), findsOneWidget);
 
-    await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('Agencias')));
+    await tester.tap(
+      find.descendant(of: find.byType(NavigationBar), matching: find.text('Agencias')),
+    );
     await tester.pumpAndSettle();
     expect(_barra(tester).selectedIndex, 1);
     expect(find.text('Página agencias'), findsOneWidget);
 
-    await tester.tap(find.descendant(of: find.byType(NavigationBar), matching: find.text('Perfil')));
+    await tester.tap(
+      find.descendant(of: find.byType(NavigationBar), matching: find.text('Perfil')),
+    );
     await tester.pumpAndSettle();
     expect(_barra(tester).selectedIndex, 3);
     expect(find.text('Página perfil'), findsOneWidget);
@@ -78,7 +94,10 @@ void main() {
     expect(fondo, isNotNull);
     expect(fondo!.a, 1.0);
     expect(
-      find.descendant(of: find.byKey(const ValueKey('barra-inferior')), matching: find.byType(Divider)),
+      find.descendant(
+        of: find.byKey(const ValueKey('barra-inferior')),
+        matching: find.byType(Divider),
+      ),
       findsOneWidget,
     );
   });
@@ -89,10 +108,16 @@ void main() {
     // Activo (Explorar): ícono relleno, verde de marca.
     expect(tester.getSize(find.byIcon(Icons.explore_rounded)).width, greaterThanOrEqualTo(28));
     expect(IconTheme.of(tester.element(find.byIcon(Icons.explore_rounded))).color, cs.primary);
-    expect(NavigationBarTheme.of(tester.element(find.byType(NavigationBar))).indicatorColor, cs.primaryContainer);
+    expect(
+      NavigationBarTheme.of(tester.element(find.byType(NavigationBar))).indicatorColor,
+      cs.primaryContainer,
+    );
     // Inactivo: contorno, gris.
     expect(tester.getSize(find.byIcon(Icons.storefront_outlined)).width, greaterThanOrEqualTo(28));
-    expect(IconTheme.of(tester.element(find.byIcon(Icons.storefront_outlined))).color, cs.onSurfaceVariant);
+    expect(
+      IconTheme.of(tester.element(find.byIcon(Icons.storefront_outlined))).color,
+      cs.onSurfaceVariant,
+    );
   });
 
   testWidgets('el contenido termina donde empieza la barra: nunca queda debajo', (tester) async {

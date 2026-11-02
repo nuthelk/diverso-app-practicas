@@ -100,15 +100,14 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                                   fit: BoxFit.cover,
                                   gaplessPlayback: true,
                                   filterQuality: FilterQuality.low,
-                                  errorBuilder: (_, _, _) =>
-                                      Container(color: cs.primaryContainer),
+                                  errorBuilder: (_, _, _) => Container(color: cs.primaryContainer),
                                 ),
                               ),
                             ),
                     ),
                     SliverToBoxAdapter(
                       child: Padding(
-                          padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
+                        padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -135,8 +134,11 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.schedule_rounded,
-                                          size: 14, color: cs.onSecondaryContainer),
+                                      Icon(
+                                        Icons.schedule_rounded,
+                                        size: 14,
+                                        color: cs.onSecondaryContainer,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         plan.duracionTexto,
@@ -181,11 +183,20 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                                 runSpacing: 8,
                                 children: [
                                   if (plan.incluyeTransporte)
-                                    const _IncluyePill(icono: Icons.directions_bus_rounded, texto: 'Transporte'),
+                                    const _IncluyePill(
+                                      icono: Icons.directions_bus_rounded,
+                                      texto: 'Transporte',
+                                    ),
                                   if (plan.incluyeComida)
-                                    const _IncluyePill(icono: Icons.restaurant_rounded, texto: 'Comida'),
+                                    const _IncluyePill(
+                                      icono: Icons.restaurant_rounded,
+                                      texto: 'Comida',
+                                    ),
                                   if (plan.incluyeHospedaje)
-                                    const _IncluyePill(icono: Icons.hotel_rounded, texto: 'Hospedaje'),
+                                    const _IncluyePill(
+                                      icono: Icons.hotel_rounded,
+                                      texto: 'Hospedaje',
+                                    ),
                                   ...plan.incluye.map(
                                     (i) => _IncluyePill(
                                       icono: Icons.check_circle_rounded,
@@ -234,8 +245,10 @@ class _PlanDetailViewState extends State<PlanDetailView> {
                             ] else if (plan.reviewsCount > 0) ...[
                               const SizedBox(height: 24),
                               SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
-                              Text('Carga al volver a abrir…',
-                                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
+                              Text(
+                                'Carga al volver a abrir…',
+                                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                              ),
                             ],
                           ],
                         ),
@@ -288,8 +301,10 @@ class _TarjetaAgencia extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(agency.nombre,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                    Text(
+                      agency.nombre,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       'Agencia local · RNT ${agency.numeroRnt}',
@@ -435,8 +450,10 @@ class _BarraReservaState extends State<_BarraReserva> {
               Icon(Icons.event_busy_rounded, color: cs.onSurfaceVariant),
               const SizedBox(width: 10),
               const Expanded(
-                child: Text('Sin fechas disponibles por ahora',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Sin fechas disponibles por ahora',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
               // Flexible: en celulares angostos o con letra grande el botón parte su texto en vez de desbordar.
               Flexible(
@@ -502,8 +519,8 @@ class _BarraReservaState extends State<_BarraReserva> {
                               color: sel
                                   ? cs.onPrimary.withValues(alpha: .8)
                                   : pocos
-                                      ? Colors.orange.shade800
-                                      : cs.onSurfaceVariant,
+                                  ? Colors.orange.shade800
+                                  : cs.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -529,15 +546,15 @@ class _BarraReservaState extends State<_BarraReserva> {
                         color: cs.onSurface,
                       ),
                     ),
-                    Text('por persona · precio final',
-                        style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant)),
+                    Text(
+                      'por persona · precio final',
+                      style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant),
+                    ),
                   ],
                 ),
                 const Spacer(),
                 FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(150, 52),
-                  ),
+                  style: FilledButton.styleFrom(minimumSize: const Size(150, 52)),
                   onPressed: () => context.push('/checkout/${widget.plan.id}/${fecha.id}'),
                   icon: const Icon(Icons.lock_outline_rounded, size: 17),
                   label: const Text('Reservar'),

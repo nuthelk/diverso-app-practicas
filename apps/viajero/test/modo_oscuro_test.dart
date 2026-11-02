@@ -7,10 +7,12 @@ import 'package:viajero/ui/core/widgets.dart';
 void main() {
   testWidgets('modo oscuro: la unidad del precio usa el color secundario del tema', (tester) async {
     final tema = AppTheme.viajeroDark();
-    await tester.pumpWidget(MaterialApp(
-      theme: tema,
-      home: const Scaffold(body: PriceText(monto: 178000)),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: tema,
+        home: const Scaffold(body: PriceText(monto: 178000)),
+      ),
+    );
 
     final unidad = tester.widget<Text>(find.text('por persona · precio final'));
     expect(unidad.style?.color, tema.colorScheme.onSurfaceVariant);

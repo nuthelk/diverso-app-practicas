@@ -41,7 +41,8 @@ class DocumentoLegal {
 const DocumentoLegal politicaDatos = DocumentoLegal(
   id: 'privacidad',
   titulo: 'Política de tratamiento de datos personales',
-  resumen: 'Cómo Diverso recolecta, usa y protege tus datos conforme a la Ley 1581 de 2012 y sus decretos reglamentarios.',
+  resumen:
+      'Cómo Diverso recolecta, usa y protege tus datos conforme a la Ley 1581 de 2012 y sus decretos reglamentarios.',
   secciones: [
     SeccionLegal('1. Responsable', [
       'Diverso App, plataforma de intermediación turística en etapa de piloto académico, es responsable del tratamiento de los datos que recolecta. Canal de atención: [correo de atención de datos personales por definir].',

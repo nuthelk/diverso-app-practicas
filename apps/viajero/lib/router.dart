@@ -56,10 +56,8 @@ GoRouter buildViajeroRouter({
     routes: [
       GoRoute(
         path: '/login',
-        pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-          key: state.pageKey,
-          child: const LoginView(),
-        ),
+        pageBuilder: (context, state) =>
+            DiversoPageTransitions.fadeThrough(key: state.pageKey, child: const LoginView()),
       ),
       GoRoute(
         path: '/legal/:doc',
@@ -70,10 +68,8 @@ GoRouter buildViajeroRouter({
       ),
       GoRoute(
         path: '/consentimiento',
-        pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
-          key: state.pageKey,
-          child: const ConsentView(),
-        ),
+        pageBuilder: (context, state) =>
+            DiversoPageTransitions.fadeThrough(key: state.pageKey, child: const ConsentView()),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),
@@ -82,11 +78,10 @@ GoRouter buildViajeroRouter({
             routes: [
               GoRoute(
                 path: '/',
-                pageBuilder: (context, state) =>
-                    DiversoPageTransitions.fadeThrough(
-                      key: state.pageKey,
-                      child: const CatalogView(),
-                    ),
+                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+                  key: state.pageKey,
+                  child: const CatalogView(),
+                ),
               ),
             ],
           ),
@@ -94,11 +89,10 @@ GoRouter buildViajeroRouter({
             routes: [
               GoRoute(
                 path: '/agencias',
-                pageBuilder: (context, state) =>
-                    DiversoPageTransitions.fadeThrough(
-                      key: state.pageKey,
-                      child: const AgenciasView(),
-                    ),
+                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+                  key: state.pageKey,
+                  child: const AgenciasView(),
+                ),
               ),
             ],
           ),
@@ -106,11 +100,10 @@ GoRouter buildViajeroRouter({
             routes: [
               GoRoute(
                 path: '/reservas',
-                pageBuilder: (context, state) =>
-                    DiversoPageTransitions.fadeThrough(
-                      key: state.pageKey,
-                      child: const BookingsView(),
-                    ),
+                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+                  key: state.pageKey,
+                  child: const BookingsView(),
+                ),
               ),
             ],
           ),
@@ -118,11 +111,10 @@ GoRouter buildViajeroRouter({
             routes: [
               GoRoute(
                 path: '/perfil',
-                pageBuilder: (context, state) =>
-                    DiversoPageTransitions.fadeThrough(
-                      key: state.pageKey,
-                      child: const ProfileView(),
-                    ),
+                pageBuilder: (context, state) => DiversoPageTransitions.fadeThrough(
+                  key: state.pageKey,
+                  child: const ProfileView(),
+                ),
               ),
             ],
           ),

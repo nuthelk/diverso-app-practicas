@@ -98,17 +98,17 @@ class _TablaComparacion extends StatelessWidget {
 
         // Celda de la columna [i]; la del más barato lleva un fondo tenue de punta a punta.
         Widget celda(int i, Widget hijo, {bool arriba = false, bool abajo = false}) => Container(
-              width: anchoColumna,
-              padding: EdgeInsets.fromLTRB(8, arriba ? 8 : 12, 8, abajo ? 10 : 12),
-              decoration: BoxDecoration(
-                color: esBarato(i) ? cs.primary.withValues(alpha: .07) : null,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(arriba ? 16 : 0),
-                  bottom: Radius.circular(abajo ? 16 : 0),
-                ),
-              ),
-              child: hijo,
-            );
+          width: anchoColumna,
+          padding: EdgeInsets.fromLTRB(8, arriba ? 8 : 12, 8, abajo ? 10 : 12),
+          decoration: BoxDecoration(
+            color: esBarato(i) ? cs.primary.withValues(alpha: .07) : null,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(arriba ? 16 : 0),
+              bottom: Radius.circular(abajo ? 16 : 0),
+            ),
+          ),
+          child: hijo,
+        );
 
         final tabla = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +120,11 @@ class _TablaComparacion extends StatelessWidget {
                 children: [
                   const SizedBox(width: _anchoEtiqueta),
                   for (var i = 0; i < planes.length; i++)
-                    celda(i, _CabeceraPlan(plan: planes[i], mejorPrecio: esBarato(i)), arriba: true),
+                    celda(
+                      i,
+                      _CabeceraPlan(plan: planes[i], mejorPrecio: esBarato(i)),
+                      arriba: true,
+                    ),
                 ],
               ),
             ),
@@ -153,7 +157,8 @@ class _TablaComparacion extends StatelessWidget {
                           _ValorComparado(
                             valor: fila.valores[i],
                             esPrecio: fila.icono == 'precio' || fila.icono == 'total',
-                            destacado: (fila.icono == 'precio' || fila.icono == 'total') && esBarato(i),
+                            destacado:
+                                (fila.icono == 'precio' || fila.icono == 'total') && esBarato(i),
                           ),
                         ),
                     ],
@@ -254,7 +259,11 @@ class _CabeceraPlan extends StatelessWidget {
             ),
             child: Text(
               'Mejor precio',
-              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: cs.onPrimaryContainer),
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: cs.onPrimaryContainer,
+              ),
             ),
           ),
         ],
@@ -285,11 +294,7 @@ class _SelectorViajeros extends StatelessWidget {
         Expanded(
           child: Text(
             '¿Cuántos viajan?',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurface,
-            ),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface),
           ),
         ),
         IconButton.outlined(
@@ -355,8 +360,8 @@ class _ValorComparado extends StatelessWidget {
         color: incluido
             ? cs.primary
             : vacio
-                ? cs.outline
-                : cs.onSurface,
+            ? cs.outline
+            : cs.onSurface,
       ),
     );
   }

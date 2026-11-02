@@ -52,10 +52,8 @@ class _AppShellState extends State<AppShell> {
           const Divider(height: 1, thickness: 1),
           NavigationBar(
             selectedIndex: shell.currentIndex,
-            onDestinationSelected: (i) => shell.goBranch(
-              i,
-              initialLocation: i == shell.currentIndex,
-            ),
+            onDestinationSelected: (i) =>
+                shell.goBranch(i, initialLocation: i == shell.currentIndex),
             destinations: const [
               NavigationDestination(
                 icon: Icon(Icons.explore_outlined),

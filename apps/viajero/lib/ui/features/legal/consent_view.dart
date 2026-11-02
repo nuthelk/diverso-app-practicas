@@ -63,7 +63,11 @@ class _ConsentViewState extends State<ConsentView> {
                         color: cs.primaryContainer,
                         borderRadius: BorderRadius.circular(18),
                       ),
-                      child: Icon(Icons.privacy_tip_rounded, size: 28, color: cs.onPrimaryContainer),
+                      child: Icon(
+                        Icons.privacy_tip_rounded,
+                        size: 28,
+                        color: cs.onPrimaryContainer,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 18),

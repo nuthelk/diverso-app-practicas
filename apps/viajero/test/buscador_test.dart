@@ -29,10 +29,12 @@ Future<_Catalogo> _abrir(WidgetTester tester) async {
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final catalogo = _Catalogo();
-  await tester.pumpWidget(Provider<CatalogService>.value(
-    value: catalogo,
-    child: MaterialApp(theme: AppTheme.viajeroLight(), home: const CatalogView()),
-  ));
+  await tester.pumpWidget(
+    Provider<CatalogService>.value(
+      value: catalogo,
+      child: MaterialApp(theme: AppTheme.viajeroLight(), home: const CatalogView()),
+    ),
+  );
   await tester.pumpAndSettle();
   return catalogo;
 }

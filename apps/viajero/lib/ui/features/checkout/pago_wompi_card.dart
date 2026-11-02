@@ -48,7 +48,11 @@ class PagoWompiCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Pagar con Wompi',
-                      style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: cs.onPrimaryContainer),
+                      style: TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        color: cs.onPrimaryContainer,
+                      ),
                     ),
                   ),
                 ],
@@ -87,7 +91,11 @@ class PagoWompiCard extends StatelessWidget {
               leading: Icon(Icons.science_outlined, color: cs.onTertiaryContainer),
               title: Text(
                 'Modo de prueba — no se cobra dinero real',
-                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: cs.onTertiaryContainer),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onTertiaryContainer,
+                ),
               ),
               subtitle: Text(
                 'Toca para ver los datos de prueba',

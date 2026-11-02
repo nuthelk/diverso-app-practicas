@@ -55,11 +55,7 @@ class LegalView extends StatelessWidget {
                     child: Text(
                       'Borrador para el piloto académico: debe revisarlo un abogado y '
                       'completarse con los datos del responsable antes del lanzamiento comercial.',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        height: 1.5,
-                        color: cs.onTertiaryContainer,
-                      ),
+                      style: TextStyle(fontSize: 12.5, height: 1.5, color: cs.onTertiaryContainer),
                     ),
                   ),
                   for (final s in doc.secciones) ...[
@@ -73,10 +69,7 @@ class LegalView extends StatelessWidget {
                     ),
                     for (final p in s.parrafos) ...[
                       const SizedBox(height: 10),
-                      Text(
-                        p,
-                        style: TextStyle(fontSize: 14.5, height: 1.65, color: cs.onSurface),
-                      ),
+                      Text(p, style: TextStyle(fontSize: 14.5, height: 1.65, color: cs.onSurface)),
                     ],
                   ],
                 ],

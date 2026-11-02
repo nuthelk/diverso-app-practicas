@@ -17,11 +17,11 @@ class CheckoutIniciado {
   double get monto => amountInCents / 100;
 
   factory CheckoutIniciado.fromMap(Map<String, dynamic> map) => CheckoutIniciado(
-        checkoutUrl: map['checkout_url'] as String,
-        referencia: map['referencia'] as String,
-        amountInCents: (map['amount_in_cents'] as num).toInt(),
-        expiraAt: DateTime.parse(map['expira_at'] as String).toUtc(),
-      );
+    checkoutUrl: map['checkout_url'] as String,
+    referencia: map['referencia'] as String,
+    amountInCents: (map['amount_in_cents'] as num).toInt(),
+    expiraAt: DateTime.parse(map['expira_at'] as String).toUtc(),
+  );
 }
 
 /// `estado_pago` de `pagos-verificar`.
@@ -50,7 +50,9 @@ class PagoVerificado {
     final metodo = map['metodo'] as String?;
     return PagoVerificado(
       estado: enumFromString(EstadoPago.values, map['estado_pago'] as String?) ?? EstadoPago.error,
-      metodo: metodo == null ? null : (enumFromString(PaymentMethodOption.values, metodo) ?? PaymentMethodOption.otro),
+      metodo: metodo == null
+          ? null
+          : (enumFromString(PaymentMethodOption.values, metodo) ?? PaymentMethodOption.otro),
       referencia: map['referencia'] as String?,
       bookingId: booking['id'] as String,
       codigo: booking['codigo'] as String,

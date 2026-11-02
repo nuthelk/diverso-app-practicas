@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show FunctionException, FunctionsFetchException;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show FunctionException, FunctionsFetchException;
 
 /// Invocador falso: registra cada llamada y devuelve (o lanza) lo que se le indique,
 /// igual que `Supabase.instance.client.functions.invoke` (sin red).
@@ -26,14 +27,17 @@ DiversoException _falla(Object? e) => e as DiversoException;
 void main() {
   group('WompiPaymentGateway.iniciar', () {
     test('llama a pagos-iniciar y lee checkout_url, referencia, monto y vencimiento', () async {
-      final inv = _Invocador((_, _) => {
-            'checkout_url': 'https://checkout.wompi.co/p/?public-key=pub_test_x',
-            'referencia': 'DIV-ABC123-1',
-            'amount_in_cents': 30000000,
-            'expira_at': '2026-10-25T15:30:00+00:00',
-          });
-      final r = await WompiPaymentGateway(invocar: inv.call)
-          .iniciar(bookingId: 'b-1', redirectUrl: 'https://diverso.app/pago/resultado');
+      final inv = _Invocador(
+        (_, _) => {
+          'checkout_url': 'https://checkout.wompi.co/p/?public-key=pub_test_x',
+          'referencia': 'DIV-ABC123-1',
+          'amount_in_cents': 30000000,
+          'expira_at': '2026-10-25T15:30:00+00:00',
+        },
+      );
+      final r = await WompiPaymentGateway(
+        invocar: inv.call,
+      ).iniciar(bookingId: 'b-1', redirectUrl: 'https://diverso.app/pago/resultado');
 
       expect(inv.llamadas.single.$1, 'pagos-iniciar');
       expect(inv.llamadas.single.$2, {
@@ -51,9 +55,11 @@ void main() {
       final inv = _Invocador((_, _) => _http(409, {'error': 'RESERVA_VENCIDA', 'mensaje': 'x'}));
       await expectLater(
         WompiPaymentGateway(invocar: inv.call).iniciar(bookingId: 'b', redirectUrl: 'u'),
-        throwsA(isA<DiversoException>()
-            .having((e) => e.codigo, 'codigo', 'RESERVA_VENCIDA')
-            .having((e) => e.mensajeUsuario, 'mensaje', contains('venció'))),
+        throwsA(
+          isA<DiversoException>()
+              .having((e) => e.codigo, 'codigo', 'RESERVA_VENCIDA')
+              .having((e) => e.mensajeUsuario, 'mensaje', contains('venció')),
+        ),
       );
     });
 
@@ -101,11 +107,11 @@ void main() {
 
   group('WompiPaymentGateway.verificar', () {
     Map<String, dynamic> ok(String estado, {String? metodo = 'tarjeta'}) => {
-          'estado_pago': estado,
-          'metodo': metodo,
-          'referencia': 'DIV-ABC123-1',
-          'booking': {'id': 'b-1', 'codigo': 'DIV-ABC123', 'estado': 'confirmada'},
-        };
+      'estado_pago': estado,
+      'metodo': metodo,
+      'referencia': 'DIV-ABC123-1',
+      'booking': {'id': 'b-1', 'codigo': 'DIV-ABC123', 'estado': 'confirmada'},
+    };
 
     test('con transaction_id envía solo ese campo y parsea un pago aprobado', () async {
       final inv = _Invocador((_, _) => ok('aprobado'));
@@ -139,8 +145,9 @@ void main() {
         ('rechazado', EstadoPago.rechazado),
         ('error', EstadoPago.error),
       ]) {
-        final r = await WompiPaymentGateway(invocar: _Invocador((_, _) => ok(raw)).call)
-            .verificar(transactionId: 't');
+        final r = await WompiPaymentGateway(
+          invocar: _Invocador((_, _) => ok(raw)).call,
+        ).verificar(transactionId: 't');
         expect(r.estado, esperado);
         expect(r.mensajeUsuario, isNotEmpty);
       }
@@ -152,8 +159,9 @@ void main() {
         ('otro', PaymentMethodOption.otro),
         ('pse', PaymentMethodOption.pse),
       ]) {
-        final r = await WompiPaymentGateway(invocar: _Invocador((_, _) => ok('aprobado', metodo: raw)).call)
-            .verificar(transactionId: 't');
+        final r = await WompiPaymentGateway(
+          invocar: _Invocador((_, _) => ok('aprobado', metodo: raw)).call,
+        ).verificar(transactionId: 't');
         expect(r.metodo, esperado);
       }
       expect(PaymentMethodOption.bancolombia.label, 'Bancolombia');
@@ -171,30 +179,35 @@ void main() {
       }
     });
 
-    test('aprobación tardía (409 RESERVA_VENCIDA + aprobado_tarde): reembolso automático', () async {
-      for (final (reembolso, texto) in [
-        ('aprobado', 'aprobado'),
-        ('pendiente', 'pendiente'),
-        ('rechazado', 'rechazado'),
-      ]) {
-        final inv = _Invocador((_, _) => _http(409, {
+    test(
+      'aprobación tardía (409 RESERVA_VENCIDA + aprobado_tarde): reembolso automático',
+      () async {
+        for (final (reembolso, texto) in [
+          ('aprobado', 'aprobado'),
+          ('pendiente', 'pendiente'),
+          ('rechazado', 'rechazado'),
+        ]) {
+          final inv = _Invocador(
+            (_, _) => _http(409, {
               'error': 'RESERVA_VENCIDA',
               'estado_pago': 'aprobado_tarde',
               'reembolso': reembolso,
               'referencia': 'DIV-ABC123-1',
-            }));
-        try {
-          await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
-          fail('debía fallar');
-        } catch (e) {
-          final f = _falla(e);
-          expect(f.codigo, 'RESERVA_VENCIDA');
-          expect(f.aprobadoTarde, isTrue);
-          expect(f.mensajeUsuario, contains('ya había vencido'));
-          expect(f.mensajeUsuario, contains('reembolso de prueba $texto'));
+            }),
+          );
+          try {
+            await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
+            fail('debía fallar');
+          } catch (e) {
+            final f = _falla(e);
+            expect(f.codigo, 'RESERVA_VENCIDA');
+            expect(f.aprobadoTarde, isTrue);
+            expect(f.mensajeUsuario, contains('ya había vencido'));
+            expect(f.mensajeUsuario, contains('reembolso de prueba $texto'));
+          }
         }
-      }
-    });
+      },
+    );
 
     test('WOMPI_NO_DISPONIBLE y WOMPI_NO_AUTORIZADO (502)', () async {
       final noDisp = _Invocador((_, _) => _http(502, {'error': 'WOMPI_NO_DISPONIBLE'}));
@@ -214,21 +227,26 @@ void main() {
       }
     });
 
-    test('TRANSACCION_NO_EXISTE y REFERENCIA_DESCONOCIDA (404) invitan a verificar después', () async {
-      for (final codigo in ['TRANSACCION_NO_EXISTE', 'REFERENCIA_DESCONOCIDA']) {
-        final inv = _Invocador((_, _) => _http(404, {'error': codigo}));
-        try {
-          await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
-          fail('debía fallar');
-        } catch (e) {
-          expect(_falla(e).codigo, codigo);
-          expect(_falla(e).mensajeUsuario, contains('No encontramos ese pago'));
+    test(
+      'TRANSACCION_NO_EXISTE y REFERENCIA_DESCONOCIDA (404) invitan a verificar después',
+      () async {
+        for (final codigo in ['TRANSACCION_NO_EXISTE', 'REFERENCIA_DESCONOCIDA']) {
+          final inv = _Invocador((_, _) => _http(404, {'error': codigo}));
+          try {
+            await WompiPaymentGateway(invocar: inv.call).verificar(transactionId: 't');
+            fail('debía fallar');
+          } catch (e) {
+            expect(_falla(e).codigo, codigo);
+            expect(_falla(e).mensajeUsuario, contains('No encontramos ese pago'));
+          }
         }
-      }
-    });
+      },
+    );
 
     test('un 500 sin código no filtra detalles internos', () async {
-      final inv = _Invocador((_, _) => _http(500, {'error': 'ERROR_INTERNO', 'mensaje': 'Error interno.'}));
+      final inv = _Invocador(
+        (_, _) => _http(500, {'error': 'ERROR_INTERNO', 'mensaje': 'Error interno.'}),
+      );
       try {
         await WompiPaymentGateway(invocar: inv.call).verificar(bookingId: 'b');
         fail('debía fallar');
@@ -239,16 +257,22 @@ void main() {
   });
 
   group('BookingService.cancelar (reservas-cancelar)', () {
-    Map<String, dynamic> cancelada(Map<String, dynamic> r) => {'estado': 'cancelada', 'reembolso': r};
+    Map<String, dynamic> cancelada(Map<String, dynamic> r) => {
+      'estado': 'cancelada',
+      'reembolso': r,
+    };
 
     test('llama a reservas-cancelar y lee el reembolso aprobado', () async {
-      final inv = _Invocador((_, _) => cancelada({
-            'aplica': true,
-            'porcentaje': 50,
-            'monto': 150000,
-            'estado': 'aprobado',
-            'motivo': 'Cancelación con menos de 48 h y al menos 24 h de anticipación: reembolso del 50 %',
-          }));
+      final inv = _Invocador(
+        (_, _) => cancelada({
+          'aplica': true,
+          'porcentaje': 50,
+          'monto': 150000,
+          'estado': 'aprobado',
+          'motivo':
+              'Cancelación con menos de 48 h y al menos 24 h de anticipación: reembolso del 50 %',
+        }),
+      );
       final r = await BookingService(invocar: inv.call).cancelar('b-1');
       expect(inv.llamadas.single.$1, 'reservas-cancelar');
       expect(inv.llamadas.single.$2, {'booking_id': 'b-1'});
@@ -265,13 +289,15 @@ void main() {
         ('rechazado', EstadoReembolso.rechazado, 'Reembolso de prueba rechazado'),
         ('no_aplica', EstadoReembolso.noAplica, 'Sin reembolso'),
       ]) {
-        final inv = _Invocador((_, _) => cancelada({
-              'aplica': raw != 'no_aplica',
-              'porcentaje': raw == 'no_aplica' ? 0 : 100,
-              'monto': raw == 'no_aplica' ? 0 : 300000,
-              'estado': raw,
-              'motivo': 'm',
-            }));
+        final inv = _Invocador(
+          (_, _) => cancelada({
+            'aplica': raw != 'no_aplica',
+            'porcentaje': raw == 'no_aplica' ? 0 : 100,
+            'monto': raw == 'no_aplica' ? 0 : 300000,
+            'estado': raw,
+            'motivo': 'm',
+          }),
+        );
         final r = await BookingService(invocar: inv.call).cancelar('b-1');
         expect(r.estado, esperado);
         expect(r.estado.etiqueta, etiqueta);
@@ -324,7 +350,7 @@ void main() {
             'referencia': 'DIV-1-1',
             'provider': 'wompi',
             'simulated': false,
-          }
+          },
         ],
         'refunds': [
           {
@@ -357,29 +383,31 @@ void main() {
 
     test('cancelada con pago y sin reembolso → «Sin reembolso»; sin pago → nada', () {
       Map<String, dynamic> base(List<Map<String, dynamic>> pagos) => {
-            'id': 'b',
-            'codigo': 'DIV-1',
-            'plan_date_id': 'd',
-            'viajero_id': 'v',
-            'pax': 1,
-            'monto_total': 100000,
-            'estado': 'cancelada',
-            'created_at': '2026-10-25T10:00:00+00:00',
-            'payments': pagos,
-            'refunds': <Map<String, dynamic>>[],
-          };
-      final conPago = Booking.fromMap(base([
-        {
-          'id': 'p',
-          'booking_id': 'b',
-          'metodo': 'nequi',
-          'estado': 'aprobado',
-          'monto': 100000,
-          'referencia': 'R',
-          'provider': 'wompi',
-          'simulated': false,
-        }
-      ]));
+        'id': 'b',
+        'codigo': 'DIV-1',
+        'plan_date_id': 'd',
+        'viajero_id': 'v',
+        'pax': 1,
+        'monto_total': 100000,
+        'estado': 'cancelada',
+        'created_at': '2026-10-25T10:00:00+00:00',
+        'payments': pagos,
+        'refunds': <Map<String, dynamic>>[],
+      };
+      final conPago = Booking.fromMap(
+        base([
+          {
+            'id': 'p',
+            'booking_id': 'b',
+            'metodo': 'nequi',
+            'estado': 'aprobado',
+            'monto': 100000,
+            'referencia': 'R',
+            'provider': 'wompi',
+            'simulated': false,
+          },
+        ]),
+      );
       expect(conPago.etiquetaReembolso, 'Sin reembolso');
       expect(Booking.fromMap(base(const [])).etiquetaReembolso, isNull);
     });

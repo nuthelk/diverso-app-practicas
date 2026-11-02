@@ -20,29 +20,28 @@ Plan _plan({
   String titulo = 'Street food tour',
   String puntoEncuentro = 'Estación San Javier',
   String agencia = 'EcoAndes Viajes',
-}) =>
-    Plan(
-      id: 'plan-1',
-      agencyId: 'ag',
-      titulo: titulo,
-      destino: 'Medellín',
-      categoria: ExperienceCategory.gastronomia,
-      precioCop: 95000,
-      estado: PlanStatus.publicado,
-      puntoEncuentro: puntoEncuentro,
-      politicaCancelacion: 'Reembolso total hasta 48 horas antes.',
-      itinerario: [
-        ItinerarioPaso(hora: '06:00', actividad: 'Salida desde el metro'),
-        ItinerarioPaso(hora: '09:30', actividad: 'Desayuno típico'),
-      ],
-      agency: Agency(
-        id: 'ag',
-        nombre: agencia,
-        numeroRnt: '12345',
-        matriculaCamaraComercio: '999',
-        estadoVerificacion: VerificationStatus.verificado,
-      ),
-    );
+}) => Plan(
+  id: 'plan-1',
+  agencyId: 'ag',
+  titulo: titulo,
+  destino: 'Medellín',
+  categoria: ExperienceCategory.gastronomia,
+  precioCop: 95000,
+  estado: PlanStatus.publicado,
+  puntoEncuentro: puntoEncuentro,
+  politicaCancelacion: 'Reembolso total hasta 48 horas antes.',
+  itinerario: [
+    ItinerarioPaso(hora: '06:00', actividad: 'Salida desde el metro'),
+    ItinerarioPaso(hora: '09:30', actividad: 'Desayuno típico'),
+  ],
+  agency: Agency(
+    id: 'ag',
+    nombre: agencia,
+    numeroRnt: '12345',
+    matriculaCamaraComercio: '999',
+    estadoVerificacion: VerificationStatus.verificado,
+  ),
+);
 
 Booking _reserva({
   String id = 'res-1',
@@ -52,33 +51,32 @@ Booking _reserva({
   BookingStatus estado = BookingStatus.confirmada,
   Plan? plan,
   bool conPago = true,
-}) =>
-    Booking(
-      id: id,
-      codigo: codigo,
-      planDateId: 'pd',
-      viajeroId: 'v',
-      pax: pax,
-      montoTotal: 190000,
-      estado: estado,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      salidaAt: salida ?? _enDias(3),
-      plan: plan ?? _plan(),
-      payments: conPago
-          ? [
-              Payment(
-                id: 'p',
-                bookingId: id,
-                metodo: PaymentMethodOption.tarjeta,
-                estado: PaymentStatus.aprobado,
-                monto: 190000,
-                referencia: 'DIV-REF-1',
-                provider: 'wompi',
-                simulated: false,
-              ),
-            ]
-          : const [],
-    );
+}) => Booking(
+  id: id,
+  codigo: codigo,
+  planDateId: 'pd',
+  viajeroId: 'v',
+  pax: pax,
+  montoTotal: 190000,
+  estado: estado,
+  createdAt: DateTime.now().subtract(const Duration(days: 2)),
+  salidaAt: salida ?? _enDias(3),
+  plan: plan ?? _plan(),
+  payments: conPago
+      ? [
+          Payment(
+            id: 'p',
+            bookingId: id,
+            metodo: PaymentMethodOption.tarjeta,
+            estado: PaymentStatus.aprobado,
+            monto: 190000,
+            referencia: 'DIV-REF-1',
+            provider: 'wompi',
+            simulated: false,
+          ),
+        ]
+      : const [],
+);
 
 class _Reservas implements BookingService {
   _Reservas(this.lista);
@@ -100,7 +98,13 @@ class _Reservas implements BookingService {
 
   @override
   Future<VistaPreviaCancelacion> vistaPreviaCancelacion(String bookingId) async =>
-      VistaPreviaCancelacion(aplica: true, porcentaje: 100, monto: 190000, horasAntes: 72, motivo: '');
+      VistaPreviaCancelacion(
+        aplica: true,
+        porcentaje: 100,
+        monto: 190000,
+        horasAntes: 72,
+        motivo: '',
+      );
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -134,16 +138,18 @@ Future<GoRouter> _abrir(
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final router = buildViajeroRouter(haySesion: () => true, initialLocation: url);
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ThemeModeController()),
-      Provider<BookingService>.value(value: reservas),
-      Provider<CatalogService>.value(value: _Catalogo()),
-      Provider<ReviewService>.value(value: _Resenas()),
-      Provider<PaymentGateway>.value(value: _Pasarela()),
-    ],
-    child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeModeController()),
+        Provider<BookingService>.value(value: reservas),
+        Provider<CatalogService>.value(value: _Catalogo()),
+        Provider<ReviewService>.value(value: _Resenas()),
+        Provider<PaymentGateway>.value(value: _Pasarela()),
+      ],
+      child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
+    ),
+  );
   await tester.pumpAndSettle();
   return router;
 }
@@ -155,7 +161,9 @@ void main() {
   setUpAll(() => initializeDateFormatting('es'));
 
   group('tarjeta de «Mis reservas»', () {
-    testWidgets('tocarla abre el detalle con código, punto de encuentro, itinerario y «Ver plan»', (tester) async {
+    testWidgets('tocarla abre el detalle con código, punto de encuentro, itinerario y «Ver plan»', (
+      tester,
+    ) async {
       final router = await _abrir(tester, '/reservas', _Reservas([_reserva()]));
 
       await tester.tap(find.text('Street food tour'));
@@ -182,23 +190,28 @@ void main() {
       final semantica = tester.ensureSemantics();
       await _abrir(tester, '/reservas', _Reservas([_reserva()]));
 
-      expect(find.bySemanticsLabel(RegExp('Ver detalle de la reserva DIV-CC70944A')), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(RegExp('Ver detalle de la reserva DIV-CC70944A')),
+        findsOneWidget,
+      );
       semantica.dispose();
     });
 
-    testWidgets('jerarquía: código en la cabecera, hora, punto de encuentro, personas y precio; sin referencia de pago',
-        (tester) async {
-      await _abrir(tester, '/reservas', _Reservas([_reserva(salida: _enDias(3, hora: 6))]));
+    testWidgets(
+      'jerarquía: código en la cabecera, hora, punto de encuentro, personas y precio; sin referencia de pago',
+      (tester) async {
+        await _abrir(tester, '/reservas', _Reservas([_reserva(salida: _enDias(3, hora: 6))]));
 
-      expect(find.text('DIV-CC70944A'), findsOneWidget);
-      expect(find.textContaining('06:00'), findsOneWidget);
-      expect(find.text('Estación San Javier'), findsOneWidget);
-      expect(find.text('2 personas'), findsOneWidget);
-      expect(find.text('\$ 190.000'), findsOneWidget);
-      // La línea suelta «código · pax · precio» y la referencia del pago ya no están en la tarjeta.
-      expect(find.textContaining('pax'), findsNothing);
-      expect(find.textContaining('ref.'), findsNothing);
-    });
+        expect(find.text('DIV-CC70944A'), findsOneWidget);
+        expect(find.textContaining('06:00'), findsOneWidget);
+        expect(find.text('Estación San Javier'), findsOneWidget);
+        expect(find.text('2 personas'), findsOneWidget);
+        expect(find.text('\$ 190.000'), findsOneWidget);
+        // La línea suelta «código · pax · precio» y la referencia del pago ya no están en la tarjeta.
+        expect(find.textContaining('pax'), findsNothing);
+        expect(find.textContaining('ref.'), findsNothing);
+      },
+    );
 
     testWidgets('una sola persona va en singular', (tester) async {
       await _abrir(tester, '/reservas', _Reservas([_reserva(pax: 1)]));
@@ -212,7 +225,11 @@ void main() {
       await _abrir(tester, '/reservas', _Reservas([_reserva(salida: _enDias(1))]));
       expect(find.textContaining('Mañana'), findsOneWidget);
 
-      await _abrir(tester, '/reservas', _Reservas([_reserva(salida: DateTime.now().add(const Duration(minutes: 5)))]));
+      await _abrir(
+        tester,
+        '/reservas',
+        _Reservas([_reserva(salida: DateTime.now().add(const Duration(minutes: 5)))]),
+      );
       expect(find.textContaining('Hoy'), findsOneWidget);
     });
 
@@ -226,11 +243,14 @@ void main() {
       expect(find.text('Cancelar'), findsNothing);
     });
 
-    testWidgets('a 320 px y con letra grande no se desborda (títulos, agencia y lugar largos)', (tester) async {
+    testWidgets('a 320 px y con letra grande no se desborda (títulos, agencia y lugar largos)', (
+      tester,
+    ) async {
       tester.platformDispatcher.textScaleFactorTestValue = 1.6;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       final largo = _plan(
-        titulo: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
+        titulo:
+            'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
         puntoEncuentro: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
         agencia: 'Agencia de viajes con un nombre larguísimo S.A.S.',
       );
@@ -239,7 +259,13 @@ void main() {
         '/reservas',
         _Reservas([
           _reserva(id: 'a', plan: largo),
-          _reserva(id: 'b', codigo: 'DIV-PEND', plan: largo, estado: BookingStatus.pendientePago, conPago: false),
+          _reserva(
+            id: 'b',
+            codigo: 'DIV-PEND',
+            plan: largo,
+            estado: BookingStatus.pendientePago,
+            conPago: false,
+          ),
         ]),
         tamano: const Size(320, 900),
       );
@@ -252,24 +278,26 @@ void main() {
   });
 
   group('detalle de la reserva', () {
-    testWidgets('muestra estado, fecha y hora, lugar, personas y total, pago, agencia, itinerario y política',
-        (tester) async {
-      await _abrir(tester, '/reservas/res-1', _Reservas([_reserva(salida: _enDias(3, hora: 6))]));
+    testWidgets(
+      'muestra estado, fecha y hora, lugar, personas y total, pago, agencia, itinerario y política',
+      (tester) async {
+        await _abrir(tester, '/reservas/res-1', _Reservas([_reserva(salida: _enDias(3, hora: 6))]));
 
-      expect(find.text('Street food tour'), findsWidgets);
-      expect(find.text('Confirmada'), findsOneWidget);
-      expect(find.text('DIV-CC70944A'), findsOneWidget);
-      expect(find.textContaining('· 06:00'), findsOneWidget);
-      expect(find.text('Estación San Javier'), findsOneWidget);
-      expect(find.textContaining('2 personas'), findsOneWidget);
-      expect(find.textContaining('\$ 190.000'), findsOneWidget);
-      expect(find.text('Pagado con Tarjeta · ref. DIV-REF-1 (prueba)'), findsOneWidget);
-      expect(find.text('EcoAndes Viajes'), findsOneWidget);
-      expect(find.text('Desayuno típico'), findsOneWidget);
-      expect(find.text('Reembolso total hasta 48 horas antes.'), findsOneWidget);
-      expect(find.text('Ver plan'), findsOneWidget);
-      expect(find.text('Cancelar'), findsOneWidget);
-    });
+        expect(find.text('Street food tour'), findsWidgets);
+        expect(find.text('Confirmada'), findsOneWidget);
+        expect(find.text('DIV-CC70944A'), findsOneWidget);
+        expect(find.textContaining('· 06:00'), findsOneWidget);
+        expect(find.text('Estación San Javier'), findsOneWidget);
+        expect(find.textContaining('2 personas'), findsOneWidget);
+        expect(find.textContaining('\$ 190.000'), findsOneWidget);
+        expect(find.text('Pagado con Tarjeta · ref. DIV-REF-1 (prueba)'), findsOneWidget);
+        expect(find.text('EcoAndes Viajes'), findsOneWidget);
+        expect(find.text('Desayuno típico'), findsOneWidget);
+        expect(find.text('Reembolso total hasta 48 horas antes.'), findsOneWidget);
+        expect(find.text('Ver plan'), findsOneWidget);
+        expect(find.text('Cancelar'), findsOneWidget);
+      },
+    );
 
     testWidgets('carga en frío por id (sin extra) con BookingService.reserva', (tester) async {
       final reservas = _Reservas([_reserva()]);
@@ -348,7 +376,8 @@ void main() {
         _Reservas([
           _reserva(
             plan: _plan(
-              titulo: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
+              titulo:
+                  'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
               puntoEncuentro: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
               agencia: 'Agencia de viajes con un nombre larguísimo S.A.S.',
             ),

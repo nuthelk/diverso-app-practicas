@@ -6,7 +6,12 @@ import 'package:flutter/material.dart';
 
 /// Estrellas compactas + valor numérico opcional.
 class RatingStars extends StatelessWidget {
-  const RatingStars({super.key, required this.calificacion, this.size = 15, this.mostrarNumero = false});
+  const RatingStars({
+    super.key,
+    required this.calificacion,
+    this.size = 15,
+    this.mostrarNumero = false,
+  });
 
   final double calificacion;
   final double size;
@@ -118,12 +123,12 @@ class TituloPagina extends StatelessWidget {
   final String texto;
 
   static TextStyle estilo(ColorScheme cs) => TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -1,
-        height: 1.1,
-        color: cs.onSurface,
-      );
+    fontSize: 28,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -1,
+    height: 1.1,
+    color: cs.onSurface,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -194,8 +199,9 @@ class _FondoSolido extends StatelessWidget {
     final ajustes = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
     if (ajustes == null) return const SizedBox.shrink();
     final rango = ajustes.maxExtent - ajustes.minExtent;
-    final colapso =
-        rango <= 0 ? 1.0 : (1 - (ajustes.currentExtent - ajustes.minExtent) / rango).clamp(0.0, 1.0);
+    final colapso = rango <= 0
+        ? 1.0
+        : (1 - (ajustes.currentExtent - ajustes.minExtent) / rango).clamp(0.0, 1.0);
     final solido = ((colapso - .6) / .4).clamp(0.0, 1.0);
     if (solido == 0) return const SizedBox.shrink();
     final tema = Theme.of(context);
@@ -294,8 +300,10 @@ class PriceText extends StatelessWidget {
             color: cs.onSurface,
           ),
         ),
-        Text('por persona · precio final',
-            style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant)),
+        Text(
+          'por persona · precio final',
+          style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant),
+        ),
       ],
     );
   }
@@ -332,15 +340,14 @@ class EmptyState extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHigh,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: cs.surfaceContainerHigh, shape: BoxShape.circle),
               child: Icon(icono, size: 30, color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
-            Text(titulo,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -.3)),
+            Text(
+              titulo,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -.3),
+            ),
             const SizedBox(height: 5),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 300),
@@ -387,8 +394,10 @@ class Skeleton extends StatefulWidget {
 }
 
 class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat(reverse: true);
 
   @override
   void dispose() {
@@ -400,7 +409,10 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     final base = Theme.of(context).colorScheme.surfaceContainerHigh;
     return FadeTransition(
-      opacity: Tween(begin: .45, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut)),
+      opacity: Tween(
+        begin: .45,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut)),
       child: Container(
         width: widget.width,
         height: widget.height,
@@ -434,8 +446,10 @@ class TarjetaCancelacion extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Política de cancelación',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                const Text(
+                  'Política de cancelación',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                ),
                 const SizedBox(height: 3),
                 Text(
                   texto,
@@ -496,10 +510,7 @@ class PasoItinerario extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                paso.actividad,
-                style: const TextStyle(height: 1.45, fontSize: 14),
-              ),
+              child: Text(paso.actividad, style: const TextStyle(height: 1.45, fontSize: 14)),
             ),
           ),
         ],

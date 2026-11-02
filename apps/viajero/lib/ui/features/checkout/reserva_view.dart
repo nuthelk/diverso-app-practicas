@@ -41,15 +41,17 @@ class _ReservaViewState extends State<ReservaView> {
         final error = snap.error;
         if (error != null) {
           final f = error is DiversoException ? error : DiversoException.fromPostgrest(error);
-          return _estado(EmptyState(
-            icono: Icons.cloud_off_rounded,
-            titulo: 'No pudimos cargar la reserva',
-            mensaje: f.mensajeUsuario,
-            accion: FilledButton.tonal(
-              onPressed: () => context.go('/reservas'),
-              child: const Text('Ver mis reservas'),
+          return _estado(
+            EmptyState(
+              icono: Icons.cloud_off_rounded,
+              titulo: 'No pudimos cargar la reserva',
+              mensaje: f.mensajeUsuario,
+              accion: FilledButton.tonal(
+                onPressed: () => context.go('/reservas'),
+                child: const Text('Ver mis reservas'),
+              ),
             ),
-          ));
+          );
         }
         final reserva = snap.data!;
         switch (reserva.estado) {
@@ -62,16 +64,19 @@ class _ReservaViewState extends State<ReservaView> {
             });
             return _estado(const Center(child: CircularProgressIndicator()));
           case BookingStatus.cancelada:
-            return _estado(EmptyState(
-              icono: Icons.event_busy_rounded,
-              titulo: 'Reserva cancelada',
-              mensaje: 'La reserva ${reserva.codigo} está cancelada.'
-                  '${reserva.etiquetaReembolso == null ? '' : ' ${reserva.etiquetaReembolso}.'}',
-              accion: FilledButton.tonal(
-                onPressed: () => context.go('/reservas'),
-                child: const Text('Ver mis reservas'),
+            return _estado(
+              EmptyState(
+                icono: Icons.event_busy_rounded,
+                titulo: 'Reserva cancelada',
+                mensaje:
+                    'La reserva ${reserva.codigo} está cancelada.'
+                    '${reserva.etiquetaReembolso == null ? '' : ' ${reserva.etiquetaReembolso}.'}',
+                accion: FilledButton.tonal(
+                  onPressed: () => context.go('/reservas'),
+                  child: const Text('Ver mis reservas'),
+                ),
               ),
-            ));
+            );
         }
       },
     );

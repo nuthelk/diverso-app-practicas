@@ -55,14 +55,14 @@ class Refund {
   final DateTime createdAt;
 
   factory Refund.fromMap(Map<String, dynamic> map) => Refund(
-        id: map['id'] as String,
-        bookingId: map['booking_id'] as String,
-        monto: (map['monto'] as num?)?.toDouble() ?? 0,
-        porcentaje: (map['porcentaje'] as num?)?.toInt() ?? 0,
-        estado: EstadoReembolsoX.desdeServidor(map['estado'] as String?),
-        motivo: (map['motivo'] as String?) ?? '',
-        createdAt: DateTime.parse(map['created_at'] as String),
-      );
+    id: map['id'] as String,
+    bookingId: map['booking_id'] as String,
+    monto: (map['monto'] as num?)?.toDouble() ?? 0,
+    porcentaje: (map['porcentaje'] as num?)?.toInt() ?? 0,
+    estado: EstadoReembolsoX.desdeServidor(map['estado'] as String?),
+    motivo: (map['motivo'] as String?) ?? '',
+    createdAt: DateTime.parse(map['created_at'] as String),
+  );
 
   /// «Reembolso de prueba aprobado · 50 % · $ 150.000».
   String get etiqueta => '${estado.etiqueta} · $porcentaje % · ${formatCOP(monto)}';
@@ -85,12 +85,12 @@ class VistaPreviaCancelacion {
   final String motivo;
 
   factory VistaPreviaCancelacion.fromMap(Map<String, dynamic> map) => VistaPreviaCancelacion(
-        aplica: map['aplica'] as bool? ?? false,
-        porcentaje: (map['porcentaje'] as num?)?.toInt() ?? 0,
-        monto: (map['monto'] as num?)?.toDouble() ?? 0,
-        horasAntes: (map['horas_antes'] as num?)?.toDouble() ?? 0,
-        motivo: (map['motivo'] as String?) ?? '',
-      );
+    aplica: map['aplica'] as bool? ?? false,
+    porcentaje: (map['porcentaje'] as num?)?.toInt() ?? 0,
+    monto: (map['monto'] as num?)?.toDouble() ?? 0,
+    horasAntes: (map['horas_antes'] as num?)?.toDouble() ?? 0,
+    motivo: (map['motivo'] as String?) ?? '',
+  );
 }
 
 /// Respuesta de `reservas-cancelar` (`reembolso`).

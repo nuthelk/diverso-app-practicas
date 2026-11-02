@@ -29,10 +29,7 @@ void main() {
       ),
     );
     await _cargarLogo(tester);
-    await expectLater(
-      find.byType(RepaintBoundary),
-      matchesGoldenFile('goldens/logo_marca.png'),
-    );
+    await expectLater(find.byType(RepaintBoundary), matchesGoldenFile('goldens/logo_marca.png'));
   });
 
   testWidgets('logo: versión ícono (fondo de marca + ave blanca)', (tester) async {
@@ -52,10 +49,7 @@ void main() {
                   color: Color(0xFF0E6E4F),
                   borderRadius: BorderRadius.all(Radius.circular(76)),
                 ),
-                child: Padding(
-                  padding: EdgeInsets.all(70),
-                  child: DiversoLogo(),
-                ),
+                child: Padding(padding: EdgeInsets.all(70), child: DiversoLogo()),
               ),
             ),
           ),
@@ -63,9 +57,6 @@ void main() {
       ),
     );
     await _cargarLogo(tester);
-    await expectLater(
-      find.byType(RepaintBoundary),
-      matchesGoldenFile('goldens/logo_icono.png'),
-    );
+    await expectLater(find.byType(RepaintBoundary), matchesGoldenFile('goldens/logo_icono.png'));
   });
 }

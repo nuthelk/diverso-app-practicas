@@ -33,8 +33,8 @@ class BandejaComparar extends StatelessWidget {
     final pista = !puede
         ? 'Elige al menos $minimo planes'
         : n >= maximo
-            ? 'Máximo $maximo planes'
-            : null;
+        ? 'Máximo $maximo planes'
+        : null;
 
     return Material(
       color: cs.surfaceContainerLowest,
@@ -63,7 +63,11 @@ class BandejaComparar extends StatelessWidget {
                       children: [
                         Text(
                           '$n de $maximo planes',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: -.2),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -.2,
+                          ),
                         ),
                         if (pista != null)
                           Text(pista, style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant)),
@@ -83,7 +87,10 @@ class BandejaComparar extends StatelessWidget {
                           if (i > 0) const SizedBox(width: 8),
                           Expanded(
                             child: i < n
-                                ? _Miniatura(plan: seleccion[i], onQuitar: () => onQuitar(seleccion[i]))
+                                ? _Miniatura(
+                                    plan: seleccion[i],
+                                    onQuitar: () => onQuitar(seleccion[i]),
+                                  )
                                 : const _Hueco(),
                           ),
                         ],
@@ -91,10 +98,7 @@ class BandejaComparar extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton(
-                    onPressed: puede ? onComparar : null,
-                    child: Text('Comparar ($n)'),
-                  ),
+                  FilledButton(onPressed: puede ? onComparar : null, child: Text('Comparar ($n)')),
                 ],
               ),
             ],

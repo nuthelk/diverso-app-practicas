@@ -26,11 +26,7 @@ class AuthService {
     await _client.auth.signUp(
       email: email,
       password: password,
-      data: {
-        'nombre': nombre,
-        'rol': 'viajero',
-        'consentimiento_version': kVersionLegal,
-      },
+      data: {'nombre': nombre, 'rol': 'viajero', 'consentimiento_version': kVersionLegal},
     );
   }
 
@@ -44,11 +40,10 @@ class AuthService {
 
   /// Registra la aceptación de un documento en su versión vigente.
   Future<void> registrarConsentimiento(String tipo) async {
-    await _client.rpc('registrar_consentimiento', params: {
-      'p_tipo': tipo,
-      'p_version': kVersionLegal,
-      'p_origen': 'app',
-    });
+    await _client.rpc(
+      'registrar_consentimiento',
+      params: {'p_tipo': tipo, 'p_version': kVersionLegal, 'p_origen': 'app'},
+    );
   }
 
   Future<void> signOut() => _client.auth.signOut();

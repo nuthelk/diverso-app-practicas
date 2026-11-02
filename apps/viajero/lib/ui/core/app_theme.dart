@@ -27,8 +27,9 @@ abstract final class AppTheme {
 
   static ThemeData _build(Color seed, Brightness brightness) {
     final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
-    final fondoPagina =
-        brightness == Brightness.light ? const Color(0xFFFAFAF8) : const Color(0xFF101312);
+    final fondoPagina = brightness == Brightness.light
+        ? const Color(0xFFFAFAF8)
+        : const Color(0xFF101312);
 
     return ThemeData(
       useMaterial3: true,
@@ -59,21 +60,27 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 52),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rPill))),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+          ),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: -.2),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 48),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rPill))),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+          ),
           side: BorderSide(color: scheme.outlineVariant),
           textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rPill))),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+          ),
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
@@ -168,7 +175,9 @@ abstract final class AppTheme {
       dialogTheme: const DialogThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rSheet))),
       ),
-      listTileTheme: const ListTileThemeData(shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rField)))),
+      listTileTheme: const ListTileThemeData(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rField))),
+      ),
       dividerTheme: DividerThemeData(color: scheme.outlineVariant.withValues(alpha: .5), space: 1),
     );
   }

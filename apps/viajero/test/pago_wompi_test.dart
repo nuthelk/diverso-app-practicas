@@ -28,7 +28,11 @@ void main() {
 
     test('la URL de retorno que se pide a pagos-iniciar en móvil es la interceptada', () {
       expect(DiversoConfig.pagoRetornoMovil, 'https://diverso.app/pago/resultado');
-      expect(urlRetornoPago(), DiversoConfig.pagoRetornoMovil, reason: 'en pruebas (no web) se usa la de móvil');
+      expect(
+        urlRetornoPago(),
+        DiversoConfig.pagoRetornoMovil,
+        reason: 'en pruebas (no web) se usa la de móvil',
+      );
     });
   });
 }

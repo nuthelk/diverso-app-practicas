@@ -19,7 +19,11 @@ class DiversoException implements Exception {
   factory DiversoException.fromFunction(FunctionException e) {
     final d = e.details;
     if (d is Map && d['error'] is String) {
-      return DiversoException(d['error'] as String, d['mensaje'] as String?, d.cast<String, dynamic>());
+      return DiversoException(
+        d['error'] as String,
+        d['mensaje'] as String?,
+        d.cast<String, dynamic>(),
+      );
     }
     if (e.status == 0) return DiversoException('SIN_CONEXION', e.details?.toString());
     if (e.status >= 500) return DiversoException('ERROR_SERVIDOR', e.details?.toString());
@@ -150,15 +154,12 @@ class BookingService {
 
   /// Crea la reserva decrementando cupos de forma atómica en el servidor.
   /// Devuelve el id de la reserva en estado pendiente_pago.
-  Future<CreatedBooking> crearReserva({
-    required String planDateId,
-    required int pax,
-  }) async {
+  Future<CreatedBooking> crearReserva({required String planDateId, required int pax}) async {
     try {
-      final res = await _client.rpc('create_booking', params: {
-        'p_plan_date_id': planDateId,
-        'p_pax': pax,
-      });
+      final res = await _client.rpc(
+        'create_booking',
+        params: {'p_plan_date_id': planDateId, 'p_pax': pax},
+      );
       final map = (res as Map).cast<String, dynamic>();
       return CreatedBooking(
         bookingId: map['booking_id'] as String,
@@ -182,15 +183,11 @@ class BookingService {
         .eq('viajero_id', uid)
         .order('created_at', ascending: false);
 
-    final bookings =
-        res.map((e) => Booking.fromMap((e as Map).cast<String, dynamic>())).toList();
+    final bookings = res.map((e) => Booking.fromMap((e as Map).cast<String, dynamic>())).toList();
 
     // Marca cuáles ya tienen reseña (habilita el botón en las que no).
     if (bookings.isNotEmpty) {
-      final resenas = await _client
-          .from('reviews')
-          .select('booking_id')
-          .eq('viajero_id', uid);
+      final resenas = await _client.from('reviews').select('booking_id').eq('viajero_id', uid);
       final conResena = resenas.map((e) => e['booking_id'] as String).toSet();
       return bookings
           .map((b) => b.tieneResena || conResena.contains(b.id) ? b.conResena() : b)
@@ -203,11 +200,19 @@ class BookingService {
   /// `/reservas/:bookingId`), marcada si ya tiene reseña.
   Future<Booking> reserva(String bookingId) async {
     try {
-      final res = await _client.from('bookings').select(_seleccionReserva).eq('id', bookingId).maybeSingle();
+      final res = await _client
+          .from('bookings')
+          .select(_seleccionReserva)
+          .eq('id', bookingId)
+          .maybeSingle();
       if (res == null) throw DiversoException('RESERVA_NO_EXISTE');
       final booking = Booking.fromMap(res);
       // Igual que en misReservas: sin esto, el detalle cargado en frío ofrecería «Reseñar» de nuevo.
-      final resena = await _client.from('reviews').select('id').eq('booking_id', bookingId).maybeSingle();
+      final resena = await _client
+          .from('reviews')
+          .select('id')
+          .eq('booking_id', bookingId)
+          .maybeSingle();
       return resena == null ? booking : booking.conResena();
     } on DiversoException {
       rethrow;
@@ -241,7 +246,10 @@ class BookingService {
   /// Reembolso que daría la política del plan si se cancelara AHORA (solo lectura).
   Future<VistaPreviaCancelacion> vistaPreviaCancelacion(String bookingId) async {
     try {
-      final res = await _client.rpc('vista_previa_cancelacion', params: {'p_booking_id': bookingId});
+      final res = await _client.rpc(
+        'vista_previa_cancelacion',
+        params: {'p_booking_id': bookingId},
+      );
       return VistaPreviaCancelacion.fromMap((res as Map).cast<String, dynamic>());
     } catch (e) {
       throw DiversoException.fromPostgrest(e);

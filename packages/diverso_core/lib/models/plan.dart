@@ -9,9 +9,9 @@ class ItinerarioPaso {
   final String actividad;
 
   factory ItinerarioPaso.fromMap(Map<String, dynamic> map) => ItinerarioPaso(
-        hora: (map['hora'] as String?) ?? '',
-        actividad: (map['actividad'] as String?) ?? '',
-      );
+    hora: (map['hora'] as String?) ?? '',
+    actividad: (map['actividad'] as String?) ?? '',
+  );
 
   Map<String, dynamic> toMap() => {'hora': hora, 'actividad': actividad};
 }
@@ -41,21 +41,22 @@ class PlanDate {
   bool get tieneCupos => cupoDisponible > 0;
 
   factory PlanDate.fromMap(Map<String, dynamic> map) => PlanDate(
-        id: map['id'] as String,
-        planId: map['plan_id'] as String,
-        fecha: DateTime.parse(map['fecha'] as String),
-        cupoTotal: (map['cupo_total'] as num).toInt(),
-        cupoDisponible: (map['cupo_disponible'] as num).toInt(),
-      );
+    id: map['id'] as String,
+    planId: map['plan_id'] as String,
+    fecha: DateTime.parse(map['fecha'] as String),
+    cupoTotal: (map['cupo_total'] as num).toInt(),
+    cupoDisponible: (map['cupo_disponible'] as num).toInt(),
+  );
 
   Map<String, dynamic> toInsertMap() => {
-        'plan_id': planId,
-        'fecha': '${fecha.year.toString().padLeft(4, '0')}-'
-            '${fecha.month.toString().padLeft(2, '0')}-'
-            '${fecha.day.toString().padLeft(2, '0')}',
-        'cupo_total': cupoTotal,
-        'cupo_disponible': cupoDisponible,
-      };
+    'plan_id': planId,
+    'fecha':
+        '${fecha.year.toString().padLeft(4, '0')}-'
+        '${fecha.month.toString().padLeft(2, '0')}-'
+        '${fecha.day.toString().padLeft(2, '0')}',
+    'cupo_total': cupoTotal,
+    'cupo_disponible': cupoDisponible,
+  };
 }
 
 class Plan {
@@ -120,22 +121,28 @@ class Plan {
 
   /// Instante (UTC) en que parte [fecha]: el día de la fecha + [horaSalida] en hora de Bogotá.
   /// Misma cuenta que el servidor (`(fecha + hora_salida) at time zone 'America/Bogota'`).
-  DateTime salidaDe(PlanDate fecha) =>
-      DateTime.utc(fecha.fecha.year, fecha.fecha.month, fecha.fecha.day).add(horaSalida + offsetBogota);
+  DateTime salidaDe(PlanDate fecha) => DateTime.utc(
+    fecha.fecha.year,
+    fecha.fecha.month,
+    fecha.fecha.day,
+  ).add(horaSalida + offsetBogota);
 
   /// La salida de [fecha] ya ocurrió (o es justo ahora): ya no se puede reservar ni pagar.
-  bool yaSalio(PlanDate fecha, [DateTime? ahora]) => !salidaDe(fecha).isAfter((ahora ?? DateTime.now()).toUtc());
+  bool yaSalio(PlanDate fecha, [DateTime? ahora]) =>
+      !salidaDe(fecha).isAfter((ahora ?? DateTime.now()).toUtc());
 
   /// Próximas fechas con cupos cuya salida aún no ocurre, de la más cercana a la más lejana.
   List<PlanDate> get fechasDisponibles => fechasDisponiblesA(DateTime.now());
 
   /// Como [fechasDisponibles] con el reloj en [ahora].
   List<PlanDate> fechasDisponiblesA(DateTime ahora) =>
-      dates.where((d) => d.tieneCupos && !yaSalio(d, ahora)).toList()..sort((a, b) => a.fecha.compareTo(b.fecha));
+      dates.where((d) => d.tieneCupos && !yaSalio(d, ahora)).toList()
+        ..sort((a, b) => a.fecha.compareTo(b.fecha));
 
   /// Hay una salida reservable el día [dia] (filtro de fecha del catálogo).
-  bool tieneSalidaEl(DateTime dia, [DateTime? ahora]) => fechasDisponiblesA(ahora ?? DateTime.now())
-      .any((d) => d.fecha.year == dia.year && d.fecha.month == dia.month && d.fecha.day == dia.day);
+  bool tieneSalidaEl(DateTime dia, [DateTime? ahora]) => fechasDisponiblesA(
+    ahora ?? DateTime.now(),
+  ).any((d) => d.fecha.year == dia.year && d.fecha.month == dia.month && d.fecha.day == dia.day);
 
   factory Plan.fromMap(Map<String, dynamic> map) {
     final agencyMap = map['agencies'];
@@ -147,7 +154,7 @@ class Plan {
       destino: map['destino'] as String,
       categoria:
           enumFromString(ExperienceCategory.values, map['categoria'] as String?) ??
-              ExperienceCategory.aventura,
+          ExperienceCategory.aventura,
       resumen: (map['resumen'] as String?) ?? '',
       descripcion: (map['descripcion'] as String?) ?? '',
       duracionTexto: (map['duracion_texto'] as String?) ?? '1 día',
@@ -159,7 +166,8 @@ class Plan {
       incluyeTransporte: (map['incluye_transporte'] as bool?) ?? false,
       incluyeComida: (map['incluye_comida'] as bool?) ?? false,
       incluyeHospedaje: (map['incluye_hospedaje'] as bool?) ?? false,
-      itinerario: (map['itinerario'] as List?)
+      itinerario:
+          (map['itinerario'] as List?)
               ?.map((e) => ItinerarioPaso.fromMap((e as Map).cast<String, dynamic>()))
               .toList() ??
           const [],

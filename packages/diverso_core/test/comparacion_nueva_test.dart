@@ -2,16 +2,16 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Plan _plan({int reviews = 0, double rating = 0}) => Plan(
-      id: 'p',
-      agencyId: 'a',
-      titulo: 'Plan',
-      destino: 'Jericó',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 100000,
-      estado: PlanStatus.publicado,
-      ratingPromedio: rating,
-      reviewsCount: reviews,
-    );
+  id: 'p',
+  agencyId: 'a',
+  titulo: 'Plan',
+  destino: 'Jericó',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 100000,
+  estado: PlanStatus.publicado,
+  ratingPromedio: rating,
+  reviewsCount: reviews,
+);
 
 void main() {
   test('Plan.esNuevo: sin reseñas aunque el promedio venga en 0', () {

@@ -21,26 +21,26 @@ final _fecha = PlanDate(
 );
 
 Plan _plan() => Plan(
-      id: 'plan-1',
-      agencyId: 'ag-1',
-      titulo: 'Guatapé en un día',
-      destino: 'Guatapé',
-      categoria: ExperienceCategory.aventura,
-      precioCop: 150000,
-      estado: PlanStatus.publicado,
-      dates: [_fecha],
-    );
+  id: 'plan-1',
+  agencyId: 'ag-1',
+  titulo: 'Guatapé en un día',
+  destino: 'Guatapé',
+  categoria: ExperienceCategory.aventura,
+  precioCop: 150000,
+  estado: PlanStatus.publicado,
+  dates: [_fecha],
+);
 
 Booking _pendiente({int pax = 2, Duration hace = const Duration(minutes: 5)}) => Booking(
-      id: 'pend-1',
-      codigo: 'DIV-PEND01',
-      planDateId: 'fecha-1',
-      viajeroId: 'v-1',
-      pax: pax,
-      montoTotal: 150000.0 * pax,
-      estado: BookingStatus.pendientePago,
-      createdAt: DateTime.now().subtract(hace),
-    );
+  id: 'pend-1',
+  codigo: 'DIV-PEND01',
+  planDateId: 'fecha-1',
+  viajeroId: 'v-1',
+  pax: pax,
+  montoTotal: 150000.0 * pax,
+  estado: BookingStatus.pendientePago,
+  createdAt: DateTime.now().subtract(hace),
+);
 
 class _Reservas implements BookingService {
   _Reservas({this.pendiente});
@@ -71,7 +71,12 @@ class _Reservas implements BookingService {
       throw fallaAlCrear!;
     }
     creadas.add('$planDateId:$pax');
-    return CreatedBooking(bookingId: 'nueva-${creadas.length}', codigo: 'DIV-NEW', montoTotal: 1, planTitulo: '');
+    return CreatedBooking(
+      bookingId: 'nueva-${creadas.length}',
+      codigo: 'DIV-NEW',
+      montoTotal: 1,
+      planTitulo: '',
+    );
   }
 
   @override
@@ -112,10 +117,12 @@ class _Pasarela implements PaymentGateway {
   }
 
   @override
-  Future<PagoVerificado> verificar({String? transactionId, String? bookingId}) => throw UnimplementedError();
+  Future<PagoVerificado> verificar({String? transactionId, String? bookingId}) =>
+      throw UnimplementedError();
 }
 
-String _hora(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+String _hora(DateTime d) =>
+    '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
 void main() {
   setUpAll(() => initializeDateFormatting('es'));
@@ -125,9 +132,9 @@ void main() {
     late CheckoutController c;
     final abiertos = <String>[];
     Future<bool> Function(String) abrir(bool terminado) => (id) async {
-          abiertos.add(id);
-          return terminado;
-        };
+      abiertos.add(id);
+      return terminado;
+    };
 
     setUp(() {
       reservas = _Reservas(pendiente: _pendiente());
@@ -159,43 +166,56 @@ void main() {
       await c.pagar(_fecha, abrir(true));
       expect(reservas.creadas, isEmpty);
       expect(abiertos, isEmpty);
-      expect(c.pendiente?.id, 'pend-1', reason: 'se muestra el aviso aunque la carga inicial no haya terminado');
+      expect(
+        c.pendiente?.id,
+        'pend-1',
+        reason: 'se muestra el aviso aunque la carga inicial no haya terminado',
+      );
       expect(c.procesando, isFalse);
     });
 
-    test('RESERVA_PENDIENTE_EXISTENTE del servidor (otra pestaña) muestra el aviso de la pendiente, no un error', () async {
-      reservas
-        ..pendiente = null
-        ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
-        ..pendienteTrasFalla = _pendiente();
-      await c.pagar(_fecha, abrir(true));
-      expect(c.pendiente?.id, 'pend-1');
-      expect(c.error, isNull);
-      expect(c.bookingId, isNull);
-      expect(abiertos, isEmpty);
-      expect(c.procesando, isFalse);
-    });
+    test(
+      'RESERVA_PENDIENTE_EXISTENTE del servidor (otra pestaña) muestra el aviso de la pendiente, no un error',
+      () async {
+        reservas
+          ..pendiente = null
+          ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
+          ..pendienteTrasFalla = _pendiente();
+        await c.pagar(_fecha, abrir(true));
+        expect(c.pendiente?.id, 'pend-1');
+        expect(c.error, isNull);
+        expect(c.bookingId, isNull);
+        expect(abiertos, isEmpty);
+        expect(c.procesando, isFalse);
+      },
+    );
 
-    test('RESERVA_PENDIENTE_EXISTENTE sin poder recuperar la pendiente: mensaje claro, sin abrir el pago', () async {
-      reservas
-        ..pendiente = null
-        ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
-        ..pendienteTrasFalla = null;
-      await c.pagar(_fecha, abrir(true));
-      expect(c.pendiente, isNull);
-      expect(c.error, contains('reserva pendiente'));
-      expect(abiertos, isEmpty);
-    });
+    test(
+      'RESERVA_PENDIENTE_EXISTENTE sin poder recuperar la pendiente: mensaje claro, sin abrir el pago',
+      () async {
+        reservas
+          ..pendiente = null
+          ..fallaAlCrear = DiversoException('RESERVA_PENDIENTE_EXISTENTE')
+          ..pendienteTrasFalla = null;
+        await c.pagar(_fecha, abrir(true));
+        expect(c.pendiente, isNull);
+        expect(c.error, contains('reserva pendiente'));
+        expect(abiertos, isEmpty);
+      },
+    );
 
-    test('PRESERVE: cualquier otro error al crear la reserva se sigue mostrando como error', () async {
-      reservas
-        ..pendiente = null
-        ..fallaAlCrear = DiversoException('SIN_CUPO');
-      await c.pagar(_fecha, abrir(true));
-      expect(c.pendiente, isNull);
-      expect(c.error, DiversoException('SIN_CUPO').mensajeUsuario);
-      expect(abiertos, isEmpty);
-    });
+    test(
+      'PRESERVE: cualquier otro error al crear la reserva se sigue mostrando como error',
+      () async {
+        reservas
+          ..pendiente = null
+          ..fallaAlCrear = DiversoException('SIN_CUPO');
+        await c.pagar(_fecha, abrir(true));
+        expect(c.pendiente, isNull);
+        expect(c.error, DiversoException('SIN_CUPO').mensajeUsuario);
+        expect(abiertos, isEmpty);
+      },
+    );
 
     test('pagar dos veces reutiliza la misma reserva (solo se crea una)', () async {
       reservas.pendiente = null;
@@ -226,27 +246,33 @@ void main() {
       expect(c.pax, 2, reason: 'con la reserva ya creada no se cambian las personas');
     });
 
-    test('completarPendiente: si el pago se cierra sin terminar, avisa y se puede reintentar', () async {
-      await c.cargarPendiente(_fecha);
-      await c.completarPendiente(abrir(false));
-      expect(c.error, contains('Cerraste el pago'));
-      await c.pagar(_fecha, abrir(false));
-      expect(abiertos, ['pend-1', 'pend-1']);
-      expect(reservas.creadas, isEmpty);
-    });
+    test(
+      'completarPendiente: si el pago se cierra sin terminar, avisa y se puede reintentar',
+      () async {
+        await c.cargarPendiente(_fecha);
+        await c.completarPendiente(abrir(false));
+        expect(c.error, contains('Cerraste el pago'));
+        await c.pagar(_fecha, abrir(false));
+        expect(abiertos, ['pend-1', 'pend-1']);
+        expect(reservas.creadas, isEmpty);
+      },
+    );
 
-    test('cancelarPendiente cancela por reservas-cancelar y deja seguir como una compra nueva', () async {
-      await c.cargarPendiente(_fecha);
-      await c.cancelarPendiente();
-      expect(reservas.canceladas, ['pend-1']);
-      expect(c.pendiente, isNull);
-      expect(c.error, isNull);
+    test(
+      'cancelarPendiente cancela por reservas-cancelar y deja seguir como una compra nueva',
+      () async {
+        await c.cargarPendiente(_fecha);
+        await c.cancelarPendiente();
+        expect(reservas.canceladas, ['pend-1']);
+        expect(c.pendiente, isNull);
+        expect(c.error, isNull);
 
-      c.setPax(3);
-      await c.pagar(_fecha, abrir(true));
-      expect(reservas.creadas, ['fecha-1:3']);
-      expect(abiertos, ['nueva-1']);
-    });
+        c.setPax(3);
+        await c.pagar(_fecha, abrir(true));
+        expect(reservas.creadas, ['fecha-1:3']);
+        expect(abiertos, ['nueva-1']);
+      },
+    );
 
     test('cancelarPendiente que falla deja el mensaje y mantiene el aviso', () async {
       reservas.fallaCancelar = DiversoException('ESTADO_INVALIDO');
@@ -280,32 +306,48 @@ void main() {
       tester.view.physicalSize = const Size(900, 2600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      final router = buildViajeroRouter(haySesion: () => true, initialLocation: '/checkout/plan-1/fecha-1');
-      await tester.pumpWidget(MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeModeController()),
-          Provider<CatalogService>.value(value: _Catalogo()),
-          Provider<BookingService>.value(value: reservas),
-          Provider<PaymentGateway>.value(value: pasarela),
-        ],
-        child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
-      ));
+      final router = buildViajeroRouter(
+        haySesion: () => true,
+        initialLocation: '/checkout/plan-1/fecha-1',
+      );
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeModeController()),
+            Provider<CatalogService>.value(value: _Catalogo()),
+            Provider<BookingService>.value(value: reservas),
+            Provider<PaymentGateway>.value(value: pasarela),
+          ],
+          child: MaterialApp.router(theme: AppTheme.viajeroLight(), routerConfig: router),
+        ),
+      );
       await tester.pumpAndSettle();
     }
 
     // El botón inferior es el único FilledButton que contiene el candado.
-    FilledButton botonPagar(WidgetTester tester) => tester.widget<FilledButton>(find.ancestor(
-          of: find.byIcon(Icons.lock_rounded),
-          matching: find.byWidgetPredicate((w) => w is FilledButton),
-        ));
+    FilledButton botonPagar(WidgetTester tester) => tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.byIcon(Icons.lock_rounded),
+        matching: find.byWidgetPredicate((w) => w is FilledButton),
+      ),
+    );
 
-    testWidgets('con una pendiente muestra el aviso, las dos acciones y bloquea «Pagar»', (tester) async {
+    testWidgets('con una pendiente muestra el aviso, las dos acciones y bloquea «Pagar»', (
+      tester,
+    ) async {
       final reservas = _Reservas(pendiente: _pendiente());
       await abrirCheckout(tester, reservas, _Pasarela());
 
-      expect(find.textContaining('Ya tienes una reserva pendiente de pago para esta fecha (2 personas, \$ 300.000)'),
-          findsOneWidget);
-      expect(find.textContaining('Vence a las ${_hora(_pendiente().venceAt.toLocal())}.'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'Ya tienes una reserva pendiente de pago para esta fecha (2 personas, \$ 300.000)',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Vence a las ${_hora(_pendiente().venceAt.toLocal())}.'),
+        findsOneWidget,
+      );
       expect(find.text('Completar pago'), findsOneWidget);
       expect(find.text('Cancelar y empezar de nuevo'), findsOneWidget);
       expect(botonPagar(tester).onPressed, isNull);
@@ -322,10 +364,16 @@ void main() {
 
       expect(pasarela.iniciadas, ['pend-1']);
       expect(reservas.creadas, isEmpty);
-      expect(find.textContaining('venció'), findsOneWidget, reason: 'el error de pagos-iniciar se muestra');
+      expect(
+        find.textContaining('venció'),
+        findsOneWidget,
+        reason: 'el error de pagos-iniciar se muestra',
+      );
     });
 
-    testWidgets('«Cancelar y empezar de nuevo» cancela, quita el aviso y habilita «Pagar»', (tester) async {
+    testWidgets('«Cancelar y empezar de nuevo» cancela, quita el aviso y habilita «Pagar»', (
+      tester,
+    ) async {
       final reservas = _Reservas(pendiente: _pendiente());
       await abrirCheckout(tester, reservas, _Pasarela());
 

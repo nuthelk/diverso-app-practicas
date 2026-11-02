@@ -16,9 +16,11 @@ String? cuentaRegresiva(Booking b, [DateTime? ahora]) {
   final ahoraLocal = ahora ?? DateTime.now();
   if (b.estado == BookingStatus.cancelada || !b.esFutura(ahoraLocal)) return null;
   final salida = b.salida!.toLocal();
-  final dias = DateTime.utc(salida.year, salida.month, salida.day)
-      .difference(DateTime.utc(ahoraLocal.year, ahoraLocal.month, ahoraLocal.day))
-      .inDays;
+  final dias = DateTime.utc(
+    salida.year,
+    salida.month,
+    salida.day,
+  ).difference(DateTime.utc(ahoraLocal.year, ahoraLocal.month, ahoraLocal.day)).inDays;
   return switch (dias) {
     0 => 'Hoy',
     1 => 'Mañana',

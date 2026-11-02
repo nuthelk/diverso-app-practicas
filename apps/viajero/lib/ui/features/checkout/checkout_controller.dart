@@ -99,7 +99,8 @@ class CheckoutController extends ChangeNotifier {
   Future<void> _abrir(Future<bool> Function(String bookingId) abrirPago) async {
     final terminado = await abrirPago(bookingId!);
     if (!terminado) {
-      error = 'Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar»; '
+      error =
+          'Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar»; '
           'si no, vuelve a intentarlo (tus cupos siguen retenidos unos minutos).';
     }
   }

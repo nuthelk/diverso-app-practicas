@@ -13,16 +13,16 @@ PlanDate _fecha(DateTime dia, {int cupos = 5, String id = 'pd'}) =>
     PlanDate(id: id, planId: 'p', fecha: dia, cupoTotal: 10, cupoDisponible: cupos);
 
 Plan _plan(Duration horaSalida, List<PlanDate> fechas) => Plan(
-      id: 'p',
-      agencyId: 'a',
-      titulo: 'Plan',
-      destino: 'Jericó',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 100000,
-      estado: PlanStatus.publicado,
-      horaSalida: horaSalida,
-      dates: fechas,
-    );
+  id: 'p',
+  agencyId: 'a',
+  titulo: 'Plan',
+  destino: 'Jericó',
+  categoria: ExperienceCategory.cultura,
+  precioCop: 100000,
+  estado: PlanStatus.publicado,
+  horaSalida: horaSalida,
+  dates: fechas,
+);
 
 void main() {
   group('fechasDisponiblesA: salidas que ya partieron', () {
@@ -73,47 +73,56 @@ void main() {
       expect(plan.yaSalio(_fecha(DateTime(2026, 11, 3)), _ahora), isFalse);
     });
 
-    test('fechasDisponibles (reloj real) oculta una salida de hace 1 minuto y muestra una de dentro de 1', () {
-      final bogota = DateTime.now().toUtc().subtract(const Duration(hours: 5));
-      DateTime dia(DateTime t) => DateTime(t.year, t.month, t.day);
-      Duration hora(DateTime t) => Duration(hours: t.hour, minutes: t.minute);
-      final hace = bogota.subtract(const Duration(minutes: 1));
-      final dentro = bogota.add(const Duration(minutes: 5));
-      expect(_plan(hora(hace), [_fecha(dia(hace))]).fechasDisponibles, isEmpty);
-      expect(_plan(hora(dentro), [_fecha(dia(dentro))]).fechasDisponibles, hasLength(1));
-    });
+    test(
+      'fechasDisponibles (reloj real) oculta una salida de hace 1 minuto y muestra una de dentro de 1',
+      () {
+        final bogota = DateTime.now().toUtc().subtract(const Duration(hours: 5));
+        DateTime dia(DateTime t) => DateTime(t.year, t.month, t.day);
+        Duration hora(DateTime t) => Duration(hours: t.hour, minutes: t.minute);
+        final hace = bogota.subtract(const Duration(minutes: 1));
+        final dentro = bogota.add(const Duration(minutes: 5));
+        expect(_plan(hora(hace), [_fecha(dia(hace))]).fechasDisponibles, isEmpty);
+        expect(_plan(hora(dentro), [_fecha(dia(dentro))]).fechasDisponibles, hasLength(1));
+      },
+    );
   });
 
   group('Plan.fromMap con filas como las devuelve PostgREST', () {
     Plan planMapa(String hora, List<String> fechas) => Plan.fromMap({
-          'id': 'p',
-          'agency_id': 'a',
-          'titulo': 'T',
-          'destino': 'D',
-          'precio_cop': 1000,
-          'hora_salida': hora,
-          'plan_dates': [
-            for (final f in fechas)
-              {'id': f, 'plan_id': 'p', 'fecha': f, 'cupo_total': 5, 'cupo_disponible': 5},
-          ],
-        });
+      'id': 'p',
+      'agency_id': 'a',
+      'titulo': 'T',
+      'destino': 'D',
+      'precio_cop': 1000,
+      'hora_salida': hora,
+      'plan_dates': [
+        for (final f in fechas)
+          {'id': f, 'plan_id': 'p', 'fecha': f, 'cupo_total': 5, 'cupo_disponible': 5},
+      ],
+    });
 
     test('22:00 del 2026-11-02 en Bogotá es 03:00 UTC del 2026-11-03', () {
       final plan = planMapa('22:00:00', ['2026-11-02']);
       expect(plan.salidaDe(plan.dates.single), DateTime.utc(2026, 11, 3, 3));
     });
 
-    test('el «ahora» puede venir en UTC o en hora local: mismo resultado en el límite (15:30 Bogotá)', () {
-      final plan = planMapa('15:30:00', ['2026-11-02']);
-      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 29).toLocal()), hasLength(1));
-      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 30).toLocal()), isEmpty);
-    });
+    test(
+      'el «ahora» puede venir en UTC o en hora local: mismo resultado en el límite (15:30 Bogotá)',
+      () {
+        final plan = planMapa('15:30:00', ['2026-11-02']);
+        expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 29).toLocal()), hasLength(1));
+        expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 30).toLocal()), isEmpty);
+      },
+    );
 
-    test('salida a las 00:00 de Bogotá (05:00 UTC): visible a las 23:59 del día anterior, oculta a las 00:00', () {
-      final plan = planMapa('00:00:00', ['2026-11-03']);
-      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 4, 59)), hasLength(1));
-      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 5)), isEmpty);
-    });
+    test(
+      'salida a las 00:00 de Bogotá (05:00 UTC): visible a las 23:59 del día anterior, oculta a las 00:00',
+      () {
+        final plan = planMapa('00:00:00', ['2026-11-03']);
+        expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 4, 59)), hasLength(1));
+        expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 5)), isEmpty);
+      },
+    );
   });
 
   group('tieneSalidaEl (filtro de fecha del catálogo)', () {
@@ -128,13 +137,13 @@ void main() {
 
   group('Plan.fromMap: hora_salida', () {
     Map<String, dynamic> mapa([Object? hora = _sinHora]) => {
-          'id': 'p',
-          'agency_id': 'a',
-          'titulo': 'Plan',
-          'destino': 'Jericó',
-          'precio_cop': 100000,
-          if (!identical(hora, _sinHora)) 'hora_salida': hora,
-        };
+      'id': 'p',
+      'agency_id': 'a',
+      'titulo': 'Plan',
+      'destino': 'Jericó',
+      'precio_cop': 100000,
+      if (!identical(hora, _sinHora)) 'hora_salida': hora,
+    };
 
     test('lee el time de Postgres (HH:MM:SS)', () {
       expect(Plan.fromMap(mapa('06:00:00')).horaSalida, const Duration(hours: 6));
@@ -150,7 +159,9 @@ void main() {
 
   group('FECHA_YA_SALIO', () {
     test('el RPC create_booking la reporta y la app la explica', () {
-      final e = DiversoException.fromPostgrest(const PostgrestException(message: 'FECHA_YA_SALIO', code: 'P0001'));
+      final e = DiversoException.fromPostgrest(
+        const PostgrestException(message: 'FECHA_YA_SALIO', code: 'P0001'),
+      );
       expect(e.codigo, 'FECHA_YA_SALIO');
       expect(e.mensajeUsuario, 'Esta salida ya partió. Elige otra fecha.');
     });

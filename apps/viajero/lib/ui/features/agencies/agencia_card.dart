@@ -129,7 +129,9 @@ class PortadaAgencia extends StatelessWidget {
     final color = colorDeAgencia(agencia.id);
     final sinFoto = ColoredBox(
       color: color.withValues(alpha: .16),
-      child: Center(child: Icon(Icons.storefront_rounded, size: 40, color: color.withValues(alpha: .55))),
+      child: Center(
+        child: Icon(Icons.storefront_rounded, size: 40, color: color.withValues(alpha: .55)),
+      ),
     );
     final url = agencia.portadaUrl;
     if (url == null || url.isEmpty) return sinFoto;

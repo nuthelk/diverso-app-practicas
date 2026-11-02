@@ -4,10 +4,8 @@ import 'booking_service.dart' show DiversoException;
 
 /// Llama a una Edge Function con el cuerpo JSON y devuelve el JSON de la respuesta 2xx.
 /// Una respuesta de error lanza [FunctionException] (como `functions.invoke`).
-typedef FunctionInvoker = Future<Map<String, dynamic>> Function(
-  String funcion,
-  Map<String, dynamic> cuerpo,
-);
+typedef FunctionInvoker =
+    Future<Map<String, dynamic>> Function(String funcion, Map<String, dynamic> cuerpo);
 
 /// Invocador real: `Supabase.instance.client.functions.invoke` envía la sesión del usuario
 /// (JWT) en `Authorization`; la app nunca ve llaves de Wompi.

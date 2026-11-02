@@ -1,12 +1,7 @@
 import 'enums.dart';
 
 class Profile {
-  Profile({
-    required this.id,
-    required this.rol,
-    required this.nombre,
-    this.telefono,
-  });
+  Profile({required this.id, required this.rol, required this.nombre, this.telefono});
 
   final String id;
   final UserRole rol;
@@ -14,11 +9,11 @@ class Profile {
   final String? telefono;
 
   factory Profile.fromMap(Map<String, dynamic> map) => Profile(
-        id: map['id'] as String,
-        rol: enumFromString(UserRole.values, map['rol'] as String?) ?? UserRole.viajero,
-        nombre: (map['nombre'] as String?) ?? '',
-        telefono: map['telefono'] as String?,
-      );
+    id: map['id'] as String,
+    rol: enumFromString(UserRole.values, map['rol'] as String?) ?? UserRole.viajero,
+    nombre: (map['nombre'] as String?) ?? '',
+    telefono: map['telefono'] as String?,
+  );
 }
 
 class Agency {
@@ -66,23 +61,23 @@ class Agency {
   }
 
   factory Agency.fromMap(Map<String, dynamic> map) => Agency(
-        id: map['id'] as String,
-        ownerUserId: map['owner_user_id'] as String?,
-        nombre: map['nombre'] as String,
-        descripcion: (map['descripcion'] as String?) ?? '',
-        numeroRnt: map['numero_rnt'] as String,
-        matriculaCamaraComercio: (map['matricula_camara_comercio'] as String?) ?? '',
-        ciudad: (map['ciudad'] as String?) ?? 'Medellín',
-        telefono: map['telefono'] as String?,
-        email: map['email'] as String?,
-        whatsapp: map['whatsapp'] as String?,
-        logoUrl: map['logo_url'] as String?,
-        estadoVerificacion:
-            enumFromString(VerificationStatus.values, map['estado_verificacion'] as String?) ??
-                VerificationStatus.pendiente,
-        comisionPct: (map['comision_pct'] as num?)?.toDouble() ?? 12,
-        rntVigenteHasta: map['rnt_vigente_hasta'] == null
-            ? null
-            : DateTime.tryParse(map['rnt_vigente_hasta'].toString()),
-      );
+    id: map['id'] as String,
+    ownerUserId: map['owner_user_id'] as String?,
+    nombre: map['nombre'] as String,
+    descripcion: (map['descripcion'] as String?) ?? '',
+    numeroRnt: map['numero_rnt'] as String,
+    matriculaCamaraComercio: (map['matricula_camara_comercio'] as String?) ?? '',
+    ciudad: (map['ciudad'] as String?) ?? 'Medellín',
+    telefono: map['telefono'] as String?,
+    email: map['email'] as String?,
+    whatsapp: map['whatsapp'] as String?,
+    logoUrl: map['logo_url'] as String?,
+    estadoVerificacion:
+        enumFromString(VerificationStatus.values, map['estado_verificacion'] as String?) ??
+        VerificationStatus.pendiente,
+    comisionPct: (map['comision_pct'] as num?)?.toDouble() ?? 12,
+    rntVigenteHasta: map['rnt_vigente_hasta'] == null
+        ? null
+        : DateTime.tryParse(map['rnt_vigente_hasta'].toString()),
+  );
 }

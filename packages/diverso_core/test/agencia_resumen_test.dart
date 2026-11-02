@@ -4,12 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Resumen público de agencia (`agencias_publicas()`): parseo, etiqueta de puntaje («Nueva» sin
 /// reseñas, nunca 0), iniciales del logo de respaldo y orden de la lista de «Agencias».
 
-AgenciaResumen _ag(
-  String nombre, {
-  double? rating,
-  int reviews = 0,
-  int planes = 1,
-}) =>
+AgenciaResumen _ag(String nombre, {double? rating, int reviews = 0, int planes = 1}) =>
     AgenciaResumen(
       id: nombre,
       nombre: nombre,
@@ -114,14 +109,21 @@ void main() {
       _ag('Eco Nueva', planes: 9),
     ];
 
-    List<String> nombres(OrdenAgencias o) => ordenarAgencias(lista, o).map((a) => a.nombre).toList();
+    List<String> nombres(OrdenAgencias o) =>
+        ordenarAgencias(lista, o).map((a) => a.nombre).toList();
 
     test('puntaje: mayor primero, empate por más reseñas, las «Nueva» al final por nombre', () {
       expect(nombres(OrdenAgencias.puntaje), ['Álamo', 'Alfa', 'Bravo', 'Eco Nueva', 'Zeta Nueva']);
     });
 
     test('más planes: más planes primero, empate por nombre', () {
-      expect(nombres(OrdenAgencias.masPlanes), ['Eco Nueva', 'Zeta Nueva', 'Álamo', 'Alfa', 'Bravo']);
+      expect(nombres(OrdenAgencias.masPlanes), [
+        'Eco Nueva',
+        'Zeta Nueva',
+        'Álamo',
+        'Alfa',
+        'Bravo',
+      ]);
     });
 
     test('nombre: alfabético sin distinguir tildes ni mayúsculas', () {
@@ -135,7 +137,11 @@ void main() {
     });
 
     test('etiquetas de los criterios', () {
-      expect(OrdenAgencias.values.map((o) => o.label).toList(), ['Puntaje', 'Más planes', 'Nombre']);
+      expect(OrdenAgencias.values.map((o) => o.label).toList(), [
+        'Puntaje',
+        'Más planes',
+        'Nombre',
+      ]);
     });
   });
 }

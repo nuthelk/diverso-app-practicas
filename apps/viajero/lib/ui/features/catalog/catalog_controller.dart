@@ -39,14 +39,16 @@ class CatalogController extends ChangeNotifier {
     errorDetalle = null;
     notifyListeners();
     try {
-      final resultados = await _catalogo.search(FiltrosCatalogo(
-        texto: texto,
-        categoria: categoria,
-        destino: destino,
-        precioMax: precioMax,
-        fecha: fecha,
-        orden: orden,
-      ));
+      final resultados = await _catalogo.search(
+        FiltrosCatalogo(
+          texto: texto,
+          categoria: categoria,
+          destino: destino,
+          precioMax: precioMax,
+          fecha: fecha,
+          orden: orden,
+        ),
+      );
       final listaDestinos = await _catalogo.destinos();
       // La selección puede referenciar planes que ya no aparecen.
       _seleccion.removeWhere((id) => !resultados.any((p) => p.id == id));

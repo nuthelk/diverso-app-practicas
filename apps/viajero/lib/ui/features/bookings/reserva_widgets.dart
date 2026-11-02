@@ -20,14 +20,14 @@ class FotoReserva extends StatelessWidget {
     final foto = plan?.fotoPrincipal;
 
     Widget respaldo({Key? key}) => ColoredBox(
-          key: key,
-          color: cs.primaryContainer,
-          child: Center(
-            child: plan == null
-                ? Icon(Icons.luggage_rounded, size: 40, color: cs.onPrimaryContainer)
-                : Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40)),
-          ),
-        );
+      key: key,
+      color: cs.primaryContainer,
+      child: Center(
+        child: plan == null
+            ? Icon(Icons.luggage_rounded, size: 40, color: cs.onPrimaryContainer)
+            : Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40)),
+      ),
+    );
 
     final fondo = foto == null
         ? respaldo(key: const ValueKey('sin-foto-reserva'))
@@ -62,9 +62,8 @@ class EstadoReservaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final realizada = booking.estado == BookingStatus.confirmada &&
-        booking.salida != null &&
-        !booking.esFutura();
+    final realizada =
+        booking.estado == BookingStatus.confirmada && booking.salida != null && !booking.esFutura();
     final (color, texto) = switch (booking.estado) {
       BookingStatus.confirmada when realizada => (const Color(0xFF4A5C6E), 'Realizada'),
       BookingStatus.confirmada => (const Color(0xFF1B7A4B), 'Confirmada'),
@@ -77,7 +76,13 @@ class EstadoReservaPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(AppRadios.pill),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .25), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .25),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
         texto,

@@ -27,17 +27,18 @@ class Payment {
   String get textoReferencia => 'Pagado con ${metodo.label} · ref. $referencia (prueba)';
 
   factory Payment.fromMap(Map<String, dynamic> map) => Payment(
-        id: map['id'] as String,
-        bookingId: map['booking_id'] as String,
-        metodo: enumFromString(PaymentMethodOption.values, map['metodo'] as String?) ??
-            PaymentMethodOption.otro,
-        estado: enumFromString(PaymentStatus.values, map['estado'] as String?) ??
-            PaymentStatus.pendiente,
-        monto: (map['monto'] as num?)?.toDouble() ?? 0,
-        referencia: (map['referencia'] as String?) ?? '',
-        provider: (map['provider'] as String?) ?? 'simulado',
-        simulated: (map['simulated'] as bool?) ?? true,
-      );
+    id: map['id'] as String,
+    bookingId: map['booking_id'] as String,
+    metodo:
+        enumFromString(PaymentMethodOption.values, map['metodo'] as String?) ??
+        PaymentMethodOption.otro,
+    estado:
+        enumFromString(PaymentStatus.values, map['estado'] as String?) ?? PaymentStatus.pendiente,
+    monto: (map['monto'] as num?)?.toDouble() ?? 0,
+    referencia: (map['referencia'] as String?) ?? '',
+    provider: (map['provider'] as String?) ?? 'simulado',
+    simulated: (map['simulated'] as bool?) ?? true,
+  );
 }
 
 class Booking {
@@ -98,21 +99,21 @@ class Booking {
   }
 
   Booking conResena() => Booking(
-        id: id,
-        codigo: codigo,
-        planDateId: planDateId,
-        viajeroId: viajeroId,
-        pax: pax,
-        montoTotal: montoTotal,
-        estado: estado,
-        createdAt: createdAt,
-        salidaAt: salidaAt,
-        planDate: planDate,
-        plan: plan,
-        payments: payments,
-        refunds: refunds,
-        tieneResena: true,
-      );
+    id: id,
+    codigo: codigo,
+    planDateId: planDateId,
+    viajeroId: viajeroId,
+    pax: pax,
+    montoTotal: montoTotal,
+    estado: estado,
+    createdAt: createdAt,
+    salidaAt: salidaAt,
+    planDate: planDate,
+    plan: plan,
+    payments: payments,
+    refunds: refunds,
+    tieneResena: true,
+  );
 
   /// Momento de la salida: la congelada de la reserva o, si falta, el inicio de la fecha del plan.
   DateTime? get salida => salidaAt ?? planDate?.fecha;
@@ -132,8 +133,7 @@ class Booking {
     final pd = map['plan_date'];
     final pays = map['payments'];
     final refs = map['refunds'];
-    final PlanDate? planDate =
-        pd is Map ? PlanDate.fromMap(pd.cast<String, dynamic>()) : null;
+    final PlanDate? planDate = pd is Map ? PlanDate.fromMap(pd.cast<String, dynamic>()) : null;
     final planMap = pd is Map ? pd['plan'] : null;
     return Booking(
       id: map['id'] as String,
@@ -142,7 +142,8 @@ class Booking {
       viajeroId: map['viajero_id'] as String,
       pax: (map['pax'] as num).toInt(),
       montoTotal: (map['monto_total'] as num?)?.toDouble() ?? 0,
-      estado: enumFromString(BookingStatus.values, map['estado'] as String?) ??
+      estado:
+          enumFromString(BookingStatus.values, map['estado'] as String?) ??
           BookingStatus.pendientePago,
       createdAt: DateTime.parse(map['created_at'] as String),
       salidaAt: map['salida_at'] == null ? null : DateTime.parse(map['salida_at'] as String),

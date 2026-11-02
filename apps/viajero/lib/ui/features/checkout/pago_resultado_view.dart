@@ -67,7 +67,8 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
     try {
       final terminado = await iniciarPago(context, pasarela: _pasarela, bookingId: bookingId);
       if (!terminado && mounted) {
-        _errorReintento = 'Cerraste el pago antes de terminar. Si ya pagaste, toca «Verificar de nuevo».';
+        _errorReintento =
+            'Cerraste el pago antes de terminar. Si ya pagaste, toca «Verificar de nuevo».';
       }
     } on DiversoException catch (e) {
       _errorReintento = e.mensajeUsuario;
@@ -125,14 +126,17 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
   }
 
   Widget _resultado(PagoVerificado r) {
-    final puedeReintentar = r.estado != EstadoPago.pendiente && r.bookingEstado == BookingStatus.pendientePago;
+    final puedeReintentar =
+        r.estado != EstadoPago.pendiente && r.bookingEstado == BookingStatus.pendientePago;
     final mensaje = r.estado == EstadoPago.pendiente
         ? 'Todavía no recibimos la confirmación de Wompi. Te avisaremos en Mis reservas cuando llegue.'
         : r.bookingEstado == BookingStatus.pendientePago
-            ? r.mensajeUsuario
-            : '${r.mensajeUsuario} Tu reserva ya no está vigente; vuelve a reservar.';
+        ? r.mensajeUsuario
+        : '${r.mensajeUsuario} Tu reserva ya no está vigente; vuelve a reservar.';
     return EmptyState(
-      icono: r.estado == EstadoPago.pendiente ? Icons.hourglass_top_rounded : Icons.credit_card_off_rounded,
+      icono: r.estado == EstadoPago.pendiente
+          ? Icons.hourglass_top_rounded
+          : Icons.credit_card_off_rounded,
       titulo: r.estado == EstadoPago.pendiente ? 'Pago pendiente' : 'El pago no se completó',
       mensaje: mensaje,
       detalle: _errorReintento,
@@ -158,9 +162,9 @@ class _PagoResultadoViewState extends State<PagoResultadoView> {
   }
 
   Widget _acciones(List<Widget> botones) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final b in botones) Padding(padding: const EdgeInsets.only(bottom: 8), child: b),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final b in botones) Padding(padding: const EdgeInsets.only(bottom: 8), child: b),
+    ],
+  );
 }

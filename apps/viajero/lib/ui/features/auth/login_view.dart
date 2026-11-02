@@ -59,9 +59,11 @@ class _LoginViewState extends State<LoginView> {
         await _auth.signIn(email: _emailCtrl.text.trim(), password: _passCtrl.text);
       }
     } catch (e) {
-      setState(() => _error = _esRegistro
-          ? 'No pudimos crear la cuenta. ¿Ese correo ya está registrado?'
-          : 'Correo o contraseña incorrectos, o no hay conexión.');
+      setState(
+        () => _error = _esRegistro
+            ? 'No pudimos crear la cuenta. ¿Ese correo ya está registrado?'
+            : 'Correo o contraseña incorrectos, o no hay conexión.',
+      );
     } finally {
       if (mounted) setState(() => _cargando = false);
     }
@@ -164,7 +166,11 @@ class _LoginViewState extends State<LoginView> {
               ),
               Text(
                 _esRegistro ? 'Crea tu cuenta' : 'Bienvenido de vuelta',
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -.8),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.8,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
@@ -182,8 +188,7 @@ class _LoginViewState extends State<LoginView> {
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                   textCapitalization: TextCapitalization.words,
-                  validator: (v) =>
-                      (v == null || v.trim().length < 2) ? 'Escribe tu nombre' : null,
+                  validator: (v) => (v == null || v.trim().length < 2) ? 'Escribe tu nombre' : null,
                 ),
                 const SizedBox(height: 12),
               ],
@@ -220,8 +225,11 @@ class _LoginViewState extends State<LoginView> {
               ],
               if (_error != null) ...[
                 const SizedBox(height: 14),
-                Text(_error!, textAlign: TextAlign.center,
-                    style: TextStyle(color: cs.error, fontSize: 13.5)),
+                Text(
+                  _error!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: cs.error, fontSize: 13.5),
+                ),
               ],
               const SizedBox(height: 22),
               FilledButton(
