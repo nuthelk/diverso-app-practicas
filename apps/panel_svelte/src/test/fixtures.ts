@@ -1,5 +1,7 @@
-import type { Agency, Plan, PlanDate, VentaRow } from '../lib/types';
-import type { CuentaResumen, Liquidacion, LiquidacionItem } from '../lib/liquidaciones';
+import type { Agency } from '@/features/agencias/agencia';
+import type { Plan, PlanDate } from '@/features/planes/plan';
+import type { VentaRow } from '@/features/ventas/ventas';
+import type { CuentaResumen, Liquidacion, LiquidacionItem } from '@/features/liquidaciones/liquidaciones';
 
 /** Texto visible normalizado (espacios, saltos de línea y NBSP → un espacio). */
 export function texto(el: Element | null): string {

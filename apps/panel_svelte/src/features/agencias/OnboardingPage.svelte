@@ -1,0 +1,171 @@
+<script lang="ts">
+  import Logo from '@/shared/ui/Logo.svelte';
+  import Consentimiento from '@/features/legal/components/Consentimiento.svelte';
+  import { registrarAgencia } from './agencias.api';
+import { registrarConsentimiento } from '@/features/legal/legal.api';
+import { mensajeError } from '@/shared/api/errores';
+  import { go } from '@/shared/lib/router.svelte';
+  import { avisar } from '@/shared/lib/toast.svelte';
+
+  let nombre = $state('');
+  let numeroRnt = $state('');
+  let matricula = $state('');
+  let ciudad = $state('Medellín');
+  let telefono = $state('');
+  let email = $state('');
+  let whatsapp = $state('');
+  let descripcion = $state('');
+  let aceptaDatos = $state(false);
+  let aceptaTerminos = $state(false);
+  let guardando = $state(false);
+  let error = $state('');
+  let intentado = $state(false);
+
+  // Mismas reglas que las restricciones CHECK de la base de datos.
+  const rntValido = $derived(/^[0-9]{4,8}$/.test(numeroRnt.trim()));
+  const matriculaValida = $derived(/^[0-9][0-9 -]{3,19}$/.test(matricula.trim()));
+
+  const pasos = [
+    { n: 1, titulo: 'Registra tus datos', texto: 'RNT, matrícula y contacto.' },
+    { n: 2, titulo: 'Verificamos', texto: 'Contrastamos el RNT y la matrícula.' },
+    { n: 3, titulo: 'Publica y vende', texto: 'Tus planes aparecen en la app.' },
+  ];
+
+  async function guardar(e: SubmitEvent) {
+    e.preventDefault();
+    intentado = true;
+    if (!rntValido || !matriculaValida) {
+      error = 'Revisa el RNT y la matrícula: deben ser numéricos.';
+      return;
+    }
+    guardando = true;
+    error = '';
+    try {
+      // Primero la autorización: es requisito previo al tratamiento.
+      await registrarConsentimiento('tratamiento_datos');
+      await registrarConsentimiento('terminos_agencia');
+      await registrarAgencia({
+        nombre: nombre.trim(),
+        numero_rnt: numeroRnt.trim(),
+        matricula_camara_comercio: matricula.trim(),
+        ciudad: ciudad.trim(),
+        telefono: telefono.trim(),
+        email: email.trim(),
+        whatsapp: whatsapp.trim(),
+        descripcion: descripcion.trim(),
+      });
+      avisar('Agencia registrada. Te avisaremos cuando quede verificada.');
+      go('/dashboard');
+    } catch (e) {
+      error = mensajeError(e);
+    } finally {
+      guardando = false;
+    }
+  }
+</script>
+
+<div class="aparecer mx-auto max-w-[760px] px-5 py-10 sm:px-6">
+  <div class="flex items-center gap-3">
+    <div class="flex size-11 items-center justify-center rounded-2xl bg-brand-600 text-white">
+      <Logo size={22} />
+    </div>
+    <h1 class="text-[26px] font-extrabold tracking-tight">Registra tu agencia</h1>
+  </div>
+  <p class="mt-2 max-w-[560px] text-[13.5px] leading-relaxed text-slate-500 dark:text-slate-400">
+    Solo publicamos agencias formales. Con tu Registro Nacional de Turismo (RNT) y la matrícula
+    mercantil verificamos tu registro antes de que tus planes aparezcan en el catálogo.
+  </p>
+
+  <ol class="mt-6 grid gap-2.5 sm:grid-cols-3">
+    {#each pasos as p}
+      <li class="tarjeta flex items-start gap-3 p-3.5">
+        <span
+          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-600/12
+            text-[12.5px] font-extrabold text-brand-700 dark:text-brand-200">{p.n}</span
+        >
+        <span>
+          <span class="block text-[13px] font-bold">{p.titulo}</span>
+          <span class="block text-[12px] text-slate-500 dark:text-slate-400">{p.texto}</span>
+        </span>
+      </li>
+    {/each}
+  </ol>
+
+  <form class="tarjeta mt-5 grid gap-4 p-6 sm:grid-cols-2 sm:p-7" onsubmit={guardar}>
+    <label class="sm:col-span-2">
+      <span class="etiqueta-campo">Nombre de la agencia *</span>
+      <input required bind:value={nombre} class="campo" autocomplete="organization" />
+    </label>
+    <label>
+      <span class="etiqueta-campo">Número de RNT *</span>
+      <input
+        required
+        bind:value={numeroRnt}
+        class="campo"
+        inputmode="numeric"
+        placeholder="Ej. 85421"
+        pattern={'[0-9]{4,8}'}
+        oninvalid={() => (intentado = true)}
+        aria-invalid={intentado && !rntValido}
+        aria-describedby="ayuda-rnt"
+      />
+      <span id="ayuda-rnt" class="mt-1 block text-[11.5px] text-slate-400"
+        >Entre 4 y 8 dígitos, tal como aparece en tu certificado.</span
+      >
+    </label>
+    <label>
+      <span class="etiqueta-campo">Matrícula mercantil *</span>
+      <input
+        required
+        bind:value={matricula}
+        class="campo"
+        inputmode="numeric"
+        placeholder="Ej. 02345678-9"
+        aria-invalid={intentado && !matriculaValida}
+      />
+    </label>
+    <label>
+      <span class="etiqueta-campo">Ciudad *</span>
+      <input required bind:value={ciudad} class="campo" autocomplete="address-level2" />
+    </label>
+    <label>
+      <span class="etiqueta-campo">Teléfono *</span>
+      <input required bind:value={telefono} class="campo" type="tel" autocomplete="tel" />
+    </label>
+    <label>
+      <span class="etiqueta-campo">Correo de contacto *</span>
+      <input type="email" required bind:value={email} class="campo" autocomplete="email" />
+    </label>
+    <label>
+      <span class="etiqueta-campo">WhatsApp</span>
+      <input bind:value={whatsapp} placeholder="+57…" class="campo" type="tel" />
+    </label>
+    <label class="sm:col-span-2">
+      <span class="etiqueta-campo">Descripción</span>
+      <textarea
+        rows="3"
+        bind:value={descripcion}
+        class="campo resize-none"
+        placeholder="Qué tipo de experiencias ofreces y desde cuándo operas."
+      ></textarea>
+    </label>
+
+    <div class="border-t border-slate-200/70 pt-4 sm:col-span-2 dark:border-ink-600">
+      <Consentimiento bind:datos={aceptaDatos} bind:terminos={aceptaTerminos} />
+    </div>
+
+    {#if error}
+      <p class="text-[13px] font-medium text-red-600 sm:col-span-2" role="alert">{error}</p>
+    {/if}
+
+    <div class="flex justify-end sm:col-span-2">
+      <button
+        type="submit"
+        class="btn btn-primario"
+        disabled={guardando || !aceptaDatos || !aceptaTerminos || !nombre.trim()}
+      >
+        {guardando ? 'Enviando…' : 'Enviar a verificación'}
+      </button>
+    </div>
+  </form>
+</div>
