@@ -5,7 +5,7 @@ import { mensajeError } from '@/shared/api/errores';
   import type { Plan } from '../plan';
   import { avisar } from '@/shared/lib/toast.svelte';
 
-  let { plan, oncCerrar }: { plan: Plan; oncCerrar: () => void } = $props();
+  let { plan, oncerrar }: { plan: Plan; oncerrar: () => void } = $props();
 
   let fecha = $state('');
   let cupo = $state<number | ''>(12);
@@ -23,7 +23,7 @@ import { mensajeError } from '@/shared/api/errores';
       await agregarFecha(plan.id, fecha, Number(cupo));
       avisar('Fecha agregada.');
       fecha = '';
-      oncCerrar();
+      oncerrar();
     } catch (e) {
       error = mensajeError(e);
     } finally {
@@ -35,7 +35,7 @@ import { mensajeError } from '@/shared/api/errores';
     try {
       await eliminarFecha(id);
       avisar('Fecha eliminada y cupos liberados.');
-      oncCerrar();
+      oncerrar();
     } catch (e) {
       avisar(mensajeError(e));
     }
@@ -46,8 +46,8 @@ import { mensajeError } from '@/shared/api/errores';
 <div
   class="fixed inset-0 z-40 grid place-items-center bg-black/45 p-4 backdrop-blur-[2px]"
   role="presentation"
-  onclick={(e) => e.target === e.currentTarget && oncCerrar()}
-  onkeydown={(e) => e.key === 'Escape' && oncCerrar()}
+  onclick={(e) => e.target === e.currentTarget && oncerrar()}
+  onkeydown={(e) => e.key === 'Escape' && oncerrar()}
 >
   <div
     class="aparecer w-full max-w-[480px] rounded-3xl border border-slate-200/80 bg-white p-6 shadow-2xl
@@ -113,7 +113,7 @@ import { mensajeError } from '@/shared/api/errores';
       <button
         class="rounded-full bg-slate-100 px-5 py-2 text-[13.5px] font-bold text-slate-700 transition
           hover:bg-slate-200 dark:bg-ink-700 dark:text-slate-200 dark:hover:bg-ink-600"
-        onclick={oncCerrar}
+        onclick={oncerrar}
       >
         Cerrar
       </button>

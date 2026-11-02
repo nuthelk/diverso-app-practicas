@@ -156,7 +156,7 @@ import { mensajeError } from '@/shared/api/errores';
 {#if fechasDe}
   <FechasModal
     plan={fechasDe}
-    oncCerrar={() => {
+    oncerrar={() => {
       fechasDe = null;
       cargar();
     }}
