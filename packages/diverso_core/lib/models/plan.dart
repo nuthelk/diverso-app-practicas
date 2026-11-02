@@ -15,6 +15,16 @@ class ItinerarioPaso {
   Map<String, dynamic> toMap() => {'hora': hora, 'actividad': actividad};
 }
 
+/// Bogotá es UTC-5 todo el año (Colombia no tiene horario de verano).
+const _offsetBogota = Duration(hours: 5);
+
+/// `plans.hora_salida` es un `time` ('06:00:00'); si falta vale lo que el default de la columna.
+Duration _horaDesdePostgres(String? hora) {
+  final partes = hora?.split(':');
+  if (partes == null || partes.length < 2) return const Duration(hours: 6);
+  return Duration(hours: int.parse(partes[0]), minutes: int.parse(partes[1]));
+}
+
 class PlanDate {
   PlanDate({
     required this.id,
@@ -64,6 +74,7 @@ class Plan {
     this.duracionTexto = '1 día',
     this.duracionHoras = 12,
     this.puntoEncuentro = '',
+    this.horaSalida = const Duration(hours: 6),
     this.incluye = const [],
     this.incluyeTransporte = false,
     this.incluyeComida = false,
@@ -87,6 +98,9 @@ class Plan {
   final String duracionTexto;
   final double duracionHoras;
   final String puntoEncuentro;
+
+  /// Hora de salida (hora de Bogotá) de todas las fechas del plan: `plans.hora_salida`.
+  final Duration horaSalida;
   final double precioCop;
   final List<String> incluye;
   final bool incluyeTransporte;
@@ -106,13 +120,24 @@ class Plan {
   /// Sin reseñas todavía: se muestra «Nueva» en vez de un 0.0 engañoso.
   bool get esNuevo => reviewsCount == 0;
 
-  /// Próximas fechas con cupos, de la más cercana a la más lejana.
-  List<PlanDate> get fechasDisponibles {
-    final hoy = DateTime.now();
-    final hoySinHora = DateTime(hoy.year, hoy.month, hoy.day);
-    return dates.where((d) => d.tieneCupos && !d.fecha.isBefore(hoySinHora)).toList()
-      ..sort((a, b) => a.fecha.compareTo(b.fecha));
-  }
+  /// Instante (UTC) en que parte [fecha]: el día de la fecha + [horaSalida] en hora de Bogotá.
+  /// Misma cuenta que el servidor (`(fecha + hora_salida) at time zone 'America/Bogota'`).
+  DateTime salidaDe(PlanDate fecha) =>
+      DateTime.utc(fecha.fecha.year, fecha.fecha.month, fecha.fecha.day).add(horaSalida + _offsetBogota);
+
+  /// La salida de [fecha] ya ocurrió (o es justo ahora): ya no se puede reservar ni pagar.
+  bool yaSalio(PlanDate fecha, [DateTime? ahora]) => !salidaDe(fecha).isAfter((ahora ?? DateTime.now()).toUtc());
+
+  /// Próximas fechas con cupos cuya salida aún no ocurre, de la más cercana a la más lejana.
+  List<PlanDate> get fechasDisponibles => fechasDisponiblesA(DateTime.now());
+
+  /// Como [fechasDisponibles] con el reloj en [ahora].
+  List<PlanDate> fechasDisponiblesA(DateTime ahora) =>
+      dates.where((d) => d.tieneCupos && !yaSalio(d, ahora)).toList()..sort((a, b) => a.fecha.compareTo(b.fecha));
+
+  /// Hay una salida reservable el día [dia] (filtro de fecha del catálogo).
+  bool tieneSalidaEl(DateTime dia, [DateTime? ahora]) => fechasDisponiblesA(ahora ?? DateTime.now())
+      .any((d) => d.fecha.year == dia.year && d.fecha.month == dia.month && d.fecha.day == dia.day);
 
   factory Plan.fromMap(Map<String, dynamic> map) {
     final agencyMap = map['agencies'];
@@ -130,6 +155,7 @@ class Plan {
       duracionTexto: (map['duracion_texto'] as String?) ?? '1 día',
       duracionHoras: (map['duracion_horas'] as num?)?.toDouble() ?? 12,
       puntoEncuentro: (map['punto_encuentro'] as String?) ?? '',
+      horaSalida: _horaDesdePostgres(map['hora_salida'] as String?),
       precioCop: (map['precio_cop'] as num).toDouble(),
       incluye: (map['incluye'] as List?)?.map((e) => e as String).toList() ?? const [],
       incluyeTransporte: (map['incluye_transporte'] as bool?) ?? false,

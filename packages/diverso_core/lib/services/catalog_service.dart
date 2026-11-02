@@ -80,7 +80,10 @@ class CatalogService {
       case OrdenCatalogo.recientes:
         res = await ordenado.order('created_at', ascending: false).limit(60);
     }
-    return res.map((e) => Plan.fromMap((e as Map).cast<String, dynamic>())).toList();
+    final planes = res.map((e) => Plan.fromMap((e as Map).cast<String, dynamic>()));
+    // Con una fecha elegida, solo planes que ese día aún tengan una salida por partir.
+    final dia = filtros.fecha;
+    return (dia == null ? planes : planes.where((p) => p.tieneSalidaEl(dia))).toList();
   }
 
   /// Agencias con planes publicados (función `agencias_publicas`: solo columnas públicas y agregados).

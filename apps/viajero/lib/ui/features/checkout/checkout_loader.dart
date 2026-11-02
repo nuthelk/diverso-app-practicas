@@ -51,7 +51,7 @@ class _CheckoutLoaderState extends State<CheckoutLoader> {
           ));
         }
         final plan = snap.data!;
-        final fechas = plan.dates.where((d) => d.id == widget.fechaId);
+        final fechas = plan.dates.where((d) => d.id == widget.fechaId && !plan.yaSalio(d));
         if (fechas.isEmpty) {
           return _estado(EmptyState(
             icono: Icons.event_busy_rounded,

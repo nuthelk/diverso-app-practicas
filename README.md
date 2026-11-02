@@ -104,6 +104,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0007_notas_sin_politica.sql` | Las notas no pueden contener reglas de reembolso que contradigan los números (`NOTAS_CON_POLITICA`); `horas_antes` se trunca para mostrarlo |
 | `0008_cancelar_antes_de_salir.sql` | `cancelar_reserva` y `vista_previa_cancelacion` rechazan con `RESERVA_YA_SALIO` una reserva viva cuyo viaje ya salió (`salida_at`); reintentar una cancelación ya hecha sigue siendo idempotente |
 | `0011_busqueda_sin_tildes.sql` | Buscador sin tildes ni mayúsculas: extensión `unaccent`, `f_unaccent` (IMMUTABLE) y la columna generada `plans.busqueda`, sobre la que el catálogo filtra con un solo `ilike` (la app normaliza el texto con `normalizarBusqueda`) |
+| `0012_reservar_antes_de_salir.sql` | `create_booking` rechaza con `FECHA_YA_SALIO` una fecha cuya salida (fecha + `plans.hora_salida`, hora de Bogotá) ya ocurrió; `crear_intento_pago` rechaza con `RESERVA_YA_SALIO` pagar una reserva cuya `salida_at` ya pasó; «hoy» es la fecha de Bogotá, no la UTC |
 
 ### RPC y tareas programadas
 
@@ -111,13 +112,16 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
   de pago (no vencida) por viajero y fecha** (si ya existe responde
   `RESERVA_PENDIENTE_EXISTENTE` con el id existente); congela la política de cancelación del
   plan en la reserva (`politica_*`, `salida_at`), de modo que editar el plan después no cambia
-  lo que se le prometió al viajero.
+  lo que se le prometió al viajero. **No reserva un viaje que ya salió**: si fecha +
+  `hora_salida` del plan (Bogotá) es ≤ `now()` responde `FECHA_YA_SALIO` (`FECHA_PASADA` queda
+  para fechas anteriores a hoy); la app tampoco ofrece esas fechas.
 - `vista_previa_cancelacion(booking)`: lo que reembolsaría la política *ahora* (aplica,
   porcentaje, monto, horas antes, motivo); la usa el diálogo de cancelar. Si el viaje ya salió
   responde `RESERVA_YA_SALIO` (igual que `cancelar_reserva`).
 - `expire_stale_bookings`: libera cupos de reservas sin pagar tras 30 minutos y vence sus
   intentos de pago; la ejecuta el cron (la app ya no la llama).
-- Solo `service_role` (las llama el servidor, no la app): `crear_intento_pago`,
+- Solo `service_role` (las llama el servidor, no la app): `crear_intento_pago` (si el viaje de la
+  reserva ya salió responde `RESERVA_YA_SALIO`, HTTP 409 en `pagos-iniciar`),
   `aplicar_resultado_pago`, `cancelar_reserva`, `registrar_resultado_reembolso`.
 - Solo admin o `service_role`: `generar_liquidaciones`, `generar_anticipos`,
   `ejecutar_liquidacion`.
@@ -332,11 +336,12 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0008 (cancelar solo antes de la salida) | ver «Pruebas SQL» | 14 |
 | SQL 0009 (agencias públicas) | ver «Pruebas SQL» | 24 |
 | SQL 0011 (búsqueda sin tildes) | ver «Pruebas SQL» | 11 |
+| SQL 0012 (no reservar ni pagar tras la salida) | ver «Pruebas SQL» | 24 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 69 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 159 (4 omitidas) |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 82 |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 163 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`
@@ -351,7 +356,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).

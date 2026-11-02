@@ -16,10 +16,10 @@ void main() {
       expect(e.mensajeUsuario, contains('esta fecha'));
     });
 
-    test('RESERVA_YA_SALIO (cancelar tras la salida) se reconoce y se explica', () {
+    test('RESERVA_YA_SALIO (pagar o cancelar tras la salida) se reconoce y se explica', () {
       final e = DiversoException.fromPostgrest(PostgrestException(message: 'RESERVA_YA_SALIO', code: 'P0001'));
       expect(e.codigo, 'RESERVA_YA_SALIO');
-      expect(e.mensajeUsuario, 'Este viaje ya salió, así que la reserva no se puede cancelar.');
+      expect(e.mensajeUsuario, 'Este viaje ya salió, así que la reserva ya no se puede pagar ni cancelar.');
       // También cuando llega desde la Edge Function con {error, mensaje}.
       expect(DiversoException('RESERVA_YA_SALIO').mensajeUsuario, contains('ya salió'));
     });

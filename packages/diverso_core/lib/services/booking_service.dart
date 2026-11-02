@@ -55,6 +55,7 @@ class DiversoException implements Exception {
         'AGENCIA_NO_VERIFICADA',
         'AGENCIA_NO_HABILITADA',
         'FECHA_PASADA',
+        'FECHA_YA_SALIO',
         'RESERVA_YA_SALIO',
         'RNT_VENCIDO',
       ];
@@ -82,12 +83,14 @@ class DiversoException implements Exception {
             '(verificación o RNT pendiente). Elige otro plan.';
       case 'FECHA_PASADA':
         return 'Esa fecha ya pasó. Elige una salida próxima.';
+      case 'FECHA_YA_SALIO':
+        return 'Esta salida ya partió. Elige otra fecha.';
       case 'PLAN_NO_PUBLICADO':
         return 'Este plan ya no está disponible.';
       case 'RESERVA_PENDIENTE_EXISTENTE':
         return 'Ya tienes una reserva pendiente de pago para esta fecha. Complétala o cancélala para empezar de nuevo.';
       case 'RESERVA_YA_SALIO':
-        return 'Este viaje ya salió, así que la reserva no se puede cancelar.';
+        return 'Este viaje ya salió, así que la reserva ya no se puede pagar ni cancelar.';
       case 'RESERVA_NO_EXISTE':
         return 'No encontramos esa reserva.';
       case 'NO_AUTENTICADO':

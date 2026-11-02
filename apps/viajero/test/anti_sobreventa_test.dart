@@ -48,17 +48,36 @@ void main() {
       : null;
   late SupabaseClient admin;
 
-  /// Deja la base como estaba: devuelve los cupos de las reservas de prueba (cancelar_reserva,
-  /// solo service_role) y las borra; el borrado arrastra pagos, intentos y reembolsos.
+  /// Hoy en Bogotá (UTC-5), el reloj con el que el servidor decide qué salidas ya partieron.
+  /// Las pruebas reservan solo fechas POSTERIORES a hoy: una fecha de hoy puede haber salido ya
+  /// (create_booking la rechaza con FECHA_YA_SALIO y cancelar_reserva con RESERVA_YA_SALIO).
+  String hoyBogota() => fechaToIso(DateTime.now().toUtc().subtract(const Duration(hours: 5)));
+
+  /// Deja la base como estaba: cancela primero (cancelar_reserva, solo service_role) para devolver
+  /// los cupos y luego borra las reservas de prueba; el borrado arrastra pagos, intentos y reembolsos.
+  /// Borrar sin cancelar NO devuelve el cupo, así que una reserva que no se pueda cancelar no se borra
+  /// y la limpieza FALLA con su código: nunca deja residuos en silencio.
   Future<void> limpiar(List<String> ids) async {
     if (ids.isEmpty) return;
-    final filas = await admin.from('bookings').select('id, estado, viajero_id').inFilter('id', ids);
+    final filas = await admin.from('bookings').select('id, codigo, estado, viajero_id').inFilter('id', ids);
+    final sinCancelar = <String>[];
+    final aBorrar = <String>[];
     for (final f in filas) {
       if (f['estado'] != 'cancelada') {
-        await admin.rpc('cancelar_reserva', params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']});
+        try {
+          await admin.rpc('cancelar_reserva', params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']});
+        } catch (e) {
+          sinCancelar.add('${f['codigo']} (${f['estado']}): $e');
+          continue;
+        }
       }
+      aBorrar.add(f['id'] as String);
     }
-    await admin.from('bookings').delete().inFilter('id', ids);
+    if (aBorrar.isNotEmpty) await admin.from('bookings').delete().inFilter('id', aBorrar);
+    if (sinCancelar.isNotEmpty) {
+      throw StateError('RESIDUO: la limpieza no pudo cancelar estas reservas de prueba, quedan en la base y '
+          'sus cupos retenidos: ${sinCancelar.join('; ')}');
+    }
   }
 
   Future<int> cupoDe(String planDateId) async {
@@ -93,13 +112,11 @@ void main() {
   });
 
   test('la carrera por el último cupo nunca se sobrevende', skip: sinLlave, () async {
-    // 1. Buscar una fecha futura con cupo conocido.
-    final hoy = DateTime.now();
-    final iso = '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
+    // 1. Buscar una fecha futura (posterior a hoy) con cupo conocido.
     final fechas = await client
         .from('plan_dates')
         .select('id, cupo_disponible, plan_id, plans(estado)')
-        .gte('fecha', iso)
+        .gt('fecha', hoyBogota())
         .limit(50);
     // Cupo entre 3 y 21: deja exactamente 1 cupo tras reservar cupo-1 pax
     // sin exceder el máximo de 20 personas por reserva.
@@ -195,7 +212,7 @@ void main() {
     final fechas = await admin
         .from('plan_dates')
         .select('id, cupo_disponible, plans!inner(estado)')
-        .gte('fecha', DateTime.now().toIso8601String().substring(0, 10))
+        .gt('fecha', hoyBogota())
         .eq('plans.estado', 'publicado')
         .gte('cupo_disponible', 3)
         .limit(1);
@@ -221,7 +238,7 @@ void main() {
     final fechas = await admin
         .from('plan_dates')
         .select('id, cupo_disponible, plans!inner(estado)')
-        .gte('fecha', DateTime.now().toIso8601String().substring(0, 10))
+        .gt('fecha', hoyBogota())
         .eq('plans.estado', 'publicado')
         .gte('cupo_disponible', 2)
         .limit(2);
@@ -285,12 +302,10 @@ void main() {
     });
 
     test('escribir directo en payments/bookings no marca la reserva como pagada', skip: sinLlave, () async {
-      final hoy = DateTime.now();
-      final iso = '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
       final fechas = await client
           .from('plan_dates')
           .select('id, cupo_disponible, plans(estado)')
-          .gte('fecha', iso)
+          .gt('fecha', hoyBogota())
           .limit(50);
       final fecha = (fechas as List)
           .map((e) => e as Map<String, dynamic>)
