@@ -1,6 +1,7 @@
 /** El plan (tablas `plans` y `plan_dates`), su borrador de formulario y el paso a fila. */
 
 import type { Agency } from '@/features/agencias/agencia';
+import { horaCorta } from './politica';
 
 export type PlanStatus = 'borrador' | 'publicado';
 
@@ -111,6 +112,45 @@ export function draftVacio(): PlanDraft {
     horaSalida: '06:00',
     fotos: [],
   };
+}
+
+/** La fila de un plan guardado como borrador del formulario (copia las listas para poder editarlas). */
+export function draftDesdePlan(p: Plan): PlanDraft {
+  return {
+    id: p.id,
+    titulo: p.titulo,
+    destino: p.destino,
+    categoria: p.categoria as CategoriaValor,
+    precioCop: p.precio_cop,
+    resumen: p.resumen,
+    descripcion: p.descripcion,
+    duracionTexto: p.duracion_texto,
+    puntoEncuentro: p.punto_encuentro,
+    incluye: [...p.incluye],
+    incluyeTransporte: p.incluye_transporte,
+    incluyeComida: p.incluye_comida,
+    incluyeHospedaje: p.incluye_hospedaje,
+    itinerario: p.itinerario.map((i) => ({ ...i })),
+    politicaCancelacion: p.politica_cancelacion,
+    politicaNotas: p.politica_notas ?? '',
+    horasCancelacionGratuita: p.horas_cancelacion_gratuita,
+    horasReembolsoParcial: p.horas_reembolso_parcial,
+    porcentajeReembolsoParcial: p.porcentaje_reembolso_parcial,
+    horaSalida: horaCorta(p.hora_salida),
+    fotos: [...p.fotos],
+  };
+}
+
+/** La lista con el ítem nuevo, o null si está vacío o ya estaba. */
+export function agregarIncluye(incluye: string[], texto: string): string[] | null {
+  const v = texto.trim();
+  return v && !incluye.includes(v) ? [...incluye, v] : null;
+}
+
+/** La lista con la URL nueva, o null si no es http(s) o ya estaba. */
+export function agregarFoto(fotos: string[], url: string): string[] | null {
+  const v = url.trim();
+  return v.startsWith('http') && !fotos.includes(v) ? [...fotos, v] : null;
 }
 
 function duracionHoras(texto: string): number {

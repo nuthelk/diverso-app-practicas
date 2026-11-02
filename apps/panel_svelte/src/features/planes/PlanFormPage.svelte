@@ -1,18 +1,18 @@
 <script lang="ts">
-  import Logo from '@/shared/ui/Logo.svelte';
-  import Select from '@/shared/ui/Select.svelte';
   import { miAgencia } from '@/features/agencias/agencias.api';
-import { misPlanes, crearPlan, actualizarPlan } from './planes.api';
-import { mensajeError } from '@/shared/api/errores';
+  import { mensajeError } from '@/shared/api/errores';
   import { go } from '@/shared/lib/router.svelte';
-  import { horaCorta, textoPoliticaCompleto, validarPolitica } from './politica';
   import { avisar } from '@/shared/lib/toast.svelte';
-  import {
-  CATEGORIAS,
-  draftVacio,
-  type PlanDraft,
-  type CategoriaValor,
-} from './plan';
+  import { misPlanes, crearPlan, actualizarPlan } from './planes.api';
+  import { draftDesdePlan, draftVacio, type PlanDraft } from './plan';
+  import { parsearDuracion, type Unidad } from './duracion';
+  import { textoPoliticaCompleto, validarPolitica } from './politica';
+  import EncabezadoPlan from './components/plan-form/EncabezadoPlan.svelte';
+  import SeccionEsencial from './components/plan-form/SeccionEsencial.svelte';
+  import SeccionDescripcion from './components/plan-form/SeccionDescripcion.svelte';
+  import SeccionIncluye from './components/plan-form/SeccionIncluye.svelte';
+  import SeccionItinerario from './components/plan-form/SeccionItinerario.svelte';
+  import SeccionEncuentro from './components/plan-form/SeccionEncuentro.svelte';
 
   let { planId }: { planId?: string } = $props();
 
@@ -22,47 +22,9 @@ import { mensajeError } from '@/shared/api/errores';
   let error = $state('');
   let intentado = $state(false);
 
-  let nuevoIncluye = $state('');
-  let nuevaFoto = $state('');
-
-  // Duración estructurada: cantidad + unidad → compone duracionTexto.
-  const UNIDADES = ['dias', 'horas', 'minutos'] as const;
-  type Unidad = (typeof UNIDADES)[number];
-  const ETIQUETA_UNIDAD: Record<Unidad, string> = {
-    dias: 'día',
-    horas: 'hora',
-    minutos: 'minuto',
-  };
+  // Duración estructurada: cantidad + unidad → compone duracionTexto (lo hace SeccionEsencial).
   let duracionCantidad = $state<number | null>(1);
   let duracionUnidad = $state<Unidad>('dias');
-  const unidadesOpciones = $derived(
-    UNIDADES.map((u) => ({
-      valor: u,
-      etiqueta:
-        duracionCantidad === 1 ? ETIQUETA_UNIDAD[u] : ETIQUETA_UNIDAD[u] + 's',
-    })),
-  );
-
-  function componerDuracion() {
-    const n = duracionCantidad ?? 0;
-    if (n <= 0) {
-      d.duracionTexto = '';
-      return;
-    }
-    d.duracionTexto = `${n} ${ETIQUETA_UNIDAD[duracionUnidad]}${n === 1 ? '' : 's'}`;
-  }
-
-  function parsearDuracion(texto: string) {
-    const m = /(\d+(?:[.,]\d+)?)\s*(d[ií]a|hora|minuto|horas|d[ií]as|minutos)/i.exec(texto);
-    if (!m) {
-      duracionCantidad = null;
-      duracionUnidad = 'dias';
-      return;
-    }
-    duracionCantidad = parseFloat(m[1].replace(',', '.'));
-    const u = m[2].toLowerCase();
-    duracionUnidad = u.startsWith('d') ? 'dias' : u.startsWith('h') ? 'horas' : 'minutos';
-  }
 
   $effect(() => {
     if (!planId) return;
@@ -72,30 +34,8 @@ import { mensajeError } from '@/shared/api/errores';
         const planes = agencia ? await misPlanes(agencia.id) : [];
         const p = planes.find((x) => x.id === planId);
         if (p) {
-          d = {
-            id: p.id,
-            titulo: p.titulo,
-            destino: p.destino,
-            categoria: p.categoria as CategoriaValor,
-            precioCop: p.precio_cop,
-            resumen: p.resumen,
-            descripcion: p.descripcion,
-            duracionTexto: p.duracion_texto,
-            puntoEncuentro: p.punto_encuentro,
-            incluye: [...p.incluye],
-            incluyeTransporte: p.incluye_transporte,
-            incluyeComida: p.incluye_comida,
-            incluyeHospedaje: p.incluye_hospedaje,
-            itinerario: p.itinerario.map((i) => ({ ...i })),
-            politicaCancelacion: p.politica_cancelacion,
-            politicaNotas: p.politica_notas ?? '',
-            horasCancelacionGratuita: p.horas_cancelacion_gratuita,
-            horasReembolsoParcial: p.horas_reembolso_parcial,
-            porcentajeReembolsoParcial: p.porcentaje_reembolso_parcial,
-            horaSalida: horaCorta(p.hora_salida),
-            fotos: [...p.fotos],
-          };
-          parsearDuracion(p.duracion_texto);
+          d = draftDesdePlan(p);
+          ({ cantidad: duracionCantidad, unidad: duracionUnidad } = parsearDuracion(p.duracion_texto));
         }
       } catch (e) {
         error = mensajeError(e);
@@ -142,22 +82,6 @@ import { mensajeError } from '@/shared/api/errores';
       guardando = false;
     }
   }
-
-  function agregarIncluye() {
-    const v = nuevoIncluye.trim();
-    if (v && !d.incluye.includes(v)) {
-      d.incluye = [...d.incluye, v];
-      nuevoIncluye = '';
-    }
-  }
-
-  function agregarFoto() {
-    const v = nuevaFoto.trim();
-    if (v.startsWith('http') && !d.fotos.includes(v)) {
-      d.fotos = [...d.fotos, v];
-      nuevaFoto = '';
-    }
-  }
 </script>
 
 {#if cargando}
@@ -166,355 +90,14 @@ import { mensajeError } from '@/shared/api/errores';
   </div>
 {:else}
   <div class="mx-auto max-w-[820px] px-6 pb-20">
-    <!-- Toolbar -->
-    <div class="flex items-center gap-3 py-5">
-      <a
-        href="#/planes"
-        class="grid size-9 place-items-center rounded-full text-slate-500 transition
-          hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700"
-        title="Volver"
-      >
-        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7 7l-7-7 7-7"/></svg>
-      </a>
-      <h1 class="text-[19px] font-extrabold tracking-tight">
-        {planId ? 'Editar plan' : 'Nuevo plan'}
-      </h1>
-      <div class="flex-1"></div>
-      <button
-        form="form-plan"
-        type="submit"
-        disabled={guardando}
-        class="rounded-full bg-brand-600 px-6 py-2 text-[13.5px] font-bold text-white transition
-          hover:bg-brand-500 disabled:opacity-60"
-      >
-        {guardando ? 'Guardando…' : 'Guardar'}
-      </button>
-    </div>
+    <EncabezadoPlan {planId} {guardando} />
 
-    <form id="form-plan" class="space-y-4" onsubmit={guardar}>
-      <!-- Lo esencial -->
-      <section
-        class="rounded-2xl border border-slate-200/80 bg-white p-6
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">LO ESENCIAL</h2>
-        <div class="space-y-3">
-          <label class="block">
-            <span class="etiqueta">Título del plan *</span>
-            <input required bind:value={d.titulo} class="campo" />
-          </label>
-          <div class="grid gap-3 min-[640px]:grid-cols-4">
-            <label>
-              <span class="etiqueta">Destino *</span>
-              <input required bind:value={d.destino} class="campo" />
-            </label>
-            <label>
-              <span class="etiqueta">Categoría</span>
-              <Select
-                opciones={CATEGORIAS.map((c) => ({
-                  valor: c.valor,
-                  etiqueta: `${c.emoji} ${c.label}`,
-                }))}
-                valor={d.categoria}
-                onchange={(v) => (d.categoria = v as CategoriaValor)}
-              />
-            </label>
-            <label>
-              <span class="etiqueta">Precio final COP *</span>
-              <input
-                type="number"
-                min="1"
-                required
-                bind:value={d.precioCop}
-                class="campo"
-                placeholder="150000"
-              />
-            </label>
-            <div>
-              <span class="etiqueta">Duración *</span>
-              <div class="flex gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  bind:value={duracionCantidad}
-                  oninput={componerDuracion}
-                  class="campo w-[74px] shrink-0 text-center"
-                />
-                <Select
-                  clase="flex-1"
-                  opciones={unidadesOpciones}
-                  valor={duracionUnidad}
-                  onchange={(v) => {
-                    duracionUnidad = v as Unidad;
-                    componerDuracion();
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Resumen y descripción -->
-      <section
-        class="rounded-2xl border border-slate-200/80 bg-white p-6
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
-          RESUMEN Y DESCRIPCIÓN
-        </h2>
-        <div class="space-y-3">
-          <label class="block">
-            <span class="etiqueta">Resumen corto</span>
-            <input bind:value={d.resumen} class="campo" placeholder="Una frase que venda el plan" />
-          </label>
-          <label class="block">
-            <span class="etiqueta">Descripción completa</span>
-            <textarea rows="4" bind:value={d.descripcion} class="campo resize-none"></textarea>
-          </label>
-        </div>
-      </section>
-
-      <!-- Qué incluye -->
-      <section
-        class="rounded-2xl border border-slate-200/80 bg-white p-6
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
-          QUÉ INCLUYE · PRECIO FINAL SIN SORPRESAS
-        </h2>
-        <div class="flex flex-wrap gap-5">
-          <label class="flex items-center gap-2 text-[13.5px] font-medium">
-            <input type="checkbox" bind:checked={d.incluyeTransporte} class="switch" /> Transporte
-          </label>
-          <label class="flex items-center gap-2 text-[13.5px] font-medium">
-            <input type="checkbox" bind:checked={d.incluyeComida} class="switch" /> Comida
-          </label>
-          <label class="flex items-center gap-2 text-[13.5px] font-medium">
-            <input type="checkbox" bind:checked={d.incluyeHospedaje} class="switch" /> Hospedaje
-          </label>
-        </div>
-        {#if d.incluye.length > 0}
-          <div class="mt-3 flex flex-wrap gap-2">
-            {#each d.incluye as item, i (item)}
-              <span
-                class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[12.5px]
-                  font-medium dark:bg-ink-700"
-              >
-                {item}
-                <button
-                  type="button"
-                  class="text-slate-400 hover:text-red-600"
-                  onclick={() => (d.incluye = d.incluye.filter((_, j) => j !== i))}
-                >
-                  ✕</button
-                >
-              </span>
-            {/each}
-          </div>
-        {/if}
-        <div class="mt-3 flex gap-2">
-          <input
-            bind:value={nuevoIncluye}
-            class="campo"
-            placeholder="Otro ítem (ej. Guía certificado)"
-            onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), agregarIncluye())}
-          />
-          <button
-            type="button"
-            class="grid size-[42px] shrink-0 place-items-center rounded-xl border border-slate-200
-              text-slate-500 transition hover:bg-slate-100 dark:border-ink-600 dark:hover:bg-ink-700"
-            onclick={agregarIncluye}
-          >
-            +
-          </button>
-        </div>
-      </section>
-
-      <!-- Itinerario -->
-      <section
-        class="rounded-2xl border border-slate-200/80 bg-white p-6
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">ITINERARIO</h2>
-        <div class="space-y-2">
-          {#each d.itinerario as paso, i}
-            <div class="flex items-center gap-2">
-              <input
-                value={paso.hora}
-                oninput={(e) => (d.itinerario[i] = { hora: e.currentTarget.value, actividad: paso.actividad })}
-                class="campo w-[92px] shrink-0 text-center"
-                placeholder="07:00"
-              />
-              <input
-                value={paso.actividad}
-                oninput={(e) => (d.itinerario[i] = { hora: paso.hora, actividad: e.currentTarget.value })}
-                class="campo"
-                placeholder="Actividad"
-              />
-              <button
-                type="button"
-                class="grid size-[38px] shrink-0 place-items-center rounded-xl text-slate-400
-                  transition hover:text-red-600"
-                onclick={() => (d.itinerario = d.itinerario.filter((_, j) => j !== i))}
-              >
-                🗑
-              </button>
-            </div>
-          {/each}
-        </div>
-        <button
-          type="button"
-          class="mt-3 rounded-full px-3 py-1.5 text-[13px] font-semibold text-brand-600 transition
-            hover:bg-brand-600/10 dark:text-brand-300"
-          onclick={() => (d.itinerario = [...d.itinerario, { hora: '', actividad: '' }])}
-        >
-          + Agregar paso
-        </button>
-      </section>
-
-      <!-- Encuentro, cancelación y fotos -->
-      <section
-        class="rounded-2xl border border-slate-200/80 bg-white p-6
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">
-          ENCUENTRO, CANCELACIÓN Y FOTOS
-        </h2>
-        <div class="space-y-3">
-          <div class="grid gap-3 min-[640px]:grid-cols-[1fr_180px]">
-            <label class="block">
-              <span class="etiqueta">Punto de encuentro</span>
-              <input bind:value={d.puntoEncuentro} class="campo" />
-            </label>
-            <label class="block">
-              <span class="etiqueta">Hora de salida (hora de Colombia) *</span>
-              <input
-                type="time"
-                required
-                bind:value={d.horaSalida}
-                class="campo"
-                aria-invalid={intentado && !!erroresPolitica.horaSalida}
-              />
-            </label>
-          </div>
-          <div
-            class="space-y-3 rounded-xl border border-slate-200/80 bg-paper p-4 dark:border-ink-600 dark:bg-ink-900"
-            role="group"
-            aria-label="Política de cancelación"
-          >
-            <h3 class="text-[13px] font-bold">Política de cancelación y reembolsos</h3>
-            <p class="text-[12px] leading-relaxed text-slate-500 dark:text-slate-400">
-              Las horas se cuentan hacia atrás desde la fecha del plan y su hora de salida. Con estos
-              números se calcula el reembolso al cancelar y se escribe el texto que ve el viajero.
-            </p>
-            <div class="grid gap-3 min-[640px]:grid-cols-3">
-              <label class="block">
-                <span class="etiqueta">Cancelación gratuita hasta (horas antes) *</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  required
-                  bind:value={d.horasCancelacionGratuita}
-                  class="campo"
-                  aria-invalid={intentado && !!erroresPolitica.horasGratis}
-                />
-                {#if intentado && erroresPolitica.horasGratis}
-                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.horasGratis}</span>
-                {/if}
-              </label>
-              <label class="block">
-                <span class="etiqueta">Reembolso parcial hasta (horas antes)</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  bind:value={d.horasReembolsoParcial}
-                  class="campo"
-                  placeholder="Opcional"
-                  aria-invalid={intentado && !!erroresPolitica.horasParcial}
-                />
-                {#if intentado && erroresPolitica.horasParcial}
-                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.horasParcial}</span>
-                {/if}
-              </label>
-              <label class="block">
-                <span class="etiqueta">Porcentaje de reembolso parcial (1–99)</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="99"
-                  step="1"
-                  bind:value={d.porcentajeReembolsoParcial}
-                  class="campo"
-                  placeholder="Opcional"
-                  aria-invalid={intentado && !!erroresPolitica.porcentajeParcial}
-                />
-                {#if intentado && erroresPolitica.porcentajeParcial}
-                  <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.porcentajeParcial}</span>
-                {/if}
-              </label>
-            </div>
-            <label class="block">
-              <span class="etiqueta">Notas de la política (opcional)</span>
-              <textarea
-                rows="2"
-                bind:value={d.politicaNotas}
-                class="campo resize-none"
-                placeholder="Ej.: Avisar restricciones alimentarias."
-                aria-invalid={intentado && !!erroresPolitica.notas}
-              ></textarea>
-              <span class="mt-1 block text-[12px] text-slate-500 dark:text-slate-400">
-                Frases que no cambian el reembolso: se muestran al viajero después de la política.
-              </span>
-              {#if intentado && erroresPolitica.notas}
-                <span class="mt-1 block text-[12px] text-red-600" role="alert">{erroresPolitica.notas}</span>
-              {/if}
-            </label>
-            <p class="text-[13px] leading-relaxed" data-testid="politica-texto">
-              <span class="font-semibold">Lo que verá el viajero:</span>
-              {textoVistaPrevia}
-            </p>
-          </div>
-          {#if d.fotos.length > 0}
-            <div class="flex flex-wrap gap-2">
-              {#each d.fotos as f, i (f)}
-                <span
-                  class="inline-flex max-w-[320px] items-center gap-1.5 rounded-full bg-slate-100 px-3
-                    py-1 text-[11.5px] dark:bg-ink-700"
-                >
-                  <span class="truncate">{f}</span>
-                  <button
-                    type="button"
-                    class="text-slate-400 hover:text-red-600"
-                    onclick={() => (d.fotos = d.fotos.filter((_, j) => j !== i))}
-                  >
-                    ✕</button
-                  >
-                </span>
-              {/each}
-            </div>
-          {/if}
-          <div class="flex gap-2">
-            <input
-              bind:value={nuevaFoto}
-              class="campo"
-              placeholder="URL de foto (https://…)"
-              onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), agregarFoto())}
-            />
-            <button
-              type="button"
-              class="grid size-[42px] shrink-0 place-items-center rounded-xl border border-slate-200
-                text-slate-500 transition hover:bg-slate-100 dark:border-ink-600 dark:hover:bg-ink-700"
-              onclick={agregarFoto}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </section>
+    <form id="form-plan" class="plan-form space-y-4" onsubmit={guardar}>
+      <SeccionEsencial bind:d bind:duracionCantidad bind:duracionUnidad />
+      <SeccionDescripcion bind:d />
+      <SeccionIncluye bind:d />
+      <SeccionItinerario bind:d />
+      <SeccionEncuentro bind:d errores={erroresPolitica} {intentado} {textoVistaPrevia} />
 
       {#if error}
         <p class="text-[13px] font-medium text-red-600">{error}</p>
@@ -527,17 +110,17 @@ import { mensajeError } from '@/shared/api/errores';
 {/if}
 
 <style>
-  .etiqueta {
+  .plan-form :global(.etiqueta) {
     display: block;
     margin-bottom: 6px;
     font-size: 12px;
     font-weight: 600;
     color: rgb(71 85 105);
   }
-  :global(.dark) .etiqueta {
+  :global(.dark) .plan-form :global(.etiqueta) {
     color: rgb(148 163 184);
   }
-  .campo {
+  .plan-form :global(.campo) {
     width: 100%;
     border-radius: 12px;
     border: 1px solid rgb(0 0 0 / 0.1);
@@ -547,15 +130,15 @@ import { mensajeError } from '@/shared/api/errores';
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
-  :global(.dark) .campo {
+  :global(.dark) .plan-form :global(.campo) {
     border-color: rgb(255 255 255 / 0.09);
     background: rgb(255 255 255 / 0.04);
   }
-  .campo:focus {
+  .plan-form :global(.campo:focus) {
     border-color: var(--color-brand-400);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-400) 25%, transparent);
   }
-  .switch {
+  .plan-form :global(.switch) {
     appearance: none;
     width: 38px;
     height: 22px;
@@ -565,7 +148,7 @@ import { mensajeError } from '@/shared/api/errores';
     cursor: pointer;
     transition: background 0.2s;
   }
-  .switch::after {
+  .plan-form :global(.switch)::after {
     content: '';
     position: absolute;
     top: 3px;
@@ -577,10 +160,10 @@ import { mensajeError } from '@/shared/api/errores';
     transition: left 0.2s;
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
   }
-  .switch:checked {
+  .plan-form :global(.switch):checked {
     background: var(--color-brand-600);
   }
-  .switch:checked::after {
+  .plan-form :global(.switch):checked::after {
     left: 19px;
   }
 </style>

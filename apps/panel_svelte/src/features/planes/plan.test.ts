@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  agregarFoto,
+  agregarIncluye,
   CATEGORIAS,
+  draftDesdePlan,
   draftToRow,
   draftVacio,
   fechasFuturas,
@@ -99,4 +102,81 @@ describe('CATEGORIAS', () => {
       expect(c.emoji).not.toBe('');
     }
   });
+});
+
+describe('draftDesdePlan', () => {
+  it('traduce la fila del plan al borrador del formulario', () => {
+    const p = {
+      ...plan('Guatapé', []),
+      id: 'p-1',
+      categoria: 'cultura',
+      precio_cop: 165000,
+      duracion_texto: '2 días',
+      punto_encuentro: 'Parque',
+      incluye: ['Guía'],
+      itinerario: [{ hora: '07:00', actividad: 'Salida' }],
+      politica_notas: null as unknown as string,
+      horas_reembolso_parcial: 24,
+      porcentaje_reembolso_parcial: 50,
+      hora_salida: '07:30:00',
+      fotos: ['https://x.co/a.jpg'],
+    };
+    expect(draftDesdePlan(p)).toEqual({
+      id: 'p-1',
+      titulo: 'Guatapé',
+      destino: 'Antioquia',
+      categoria: 'cultura',
+      precioCop: 165000,
+      resumen: '',
+      descripcion: '',
+      duracionTexto: '2 días',
+      puntoEncuentro: 'Parque',
+      incluye: ['Guía'],
+      incluyeTransporte: true,
+      incluyeComida: false,
+      incluyeHospedaje: false,
+      itinerario: [{ hora: '07:00', actividad: 'Salida' }],
+      politicaCancelacion: '',
+      politicaNotas: '',
+      horasCancelacionGratuita: 48,
+      horasReembolsoParcial: 24,
+      porcentajeReembolsoParcial: 50,
+      horaSalida: '07:30',
+      fotos: ['https://x.co/a.jpg'],
+    });
+  });
+
+  it('copia las listas: editar el borrador no toca el plan', () => {
+    const p = { ...plan('Guatapé', []), incluye: ['Guía'], itinerario: [{ hora: '07:00', actividad: 'Salida' }], fotos: ['https://x.co/a.jpg'] };
+    const d = draftDesdePlan(p);
+    d.incluye.push('Almuerzo');
+    d.itinerario[0].actividad = 'Otra';
+    d.fotos.push('https://x.co/b.jpg');
+    expect(p.incluye).toEqual(['Guía']);
+    expect(p.itinerario[0].actividad).toBe('Salida');
+    expect(p.fotos).toEqual(['https://x.co/a.jpg']);
+  });
+});
+
+describe('agregarIncluye', () => {
+  it('agrega el ítem sin espacios sobrantes', () => {
+    expect(agregarIncluye(['Guía'], '  Almuerzo ')).toEqual(['Guía', 'Almuerzo']);
+  });
+
+  it.each(['', '   ', 'Guía'])('rechaza «%s» (vacío o repetido): devuelve null', (texto) => {
+    expect(agregarIncluye(['Guía'], texto)).toBeNull();
+  });
+});
+
+describe('agregarFoto', () => {
+  it('agrega la URL sin espacios sobrantes', () => {
+    expect(agregarFoto([], ' https://x.co/a.jpg ')).toEqual(['https://x.co/a.jpg']);
+  });
+
+  it.each(['', 'ftp://x.co/a.jpg', 'x.co/a.jpg', 'https://x.co/a.jpg'])(
+    'rechaza «%s» (no es http o está repetida): devuelve null',
+    (url) => {
+      expect(agregarFoto(['https://x.co/a.jpg'], url)).toBeNull();
+    },
+  );
 });
