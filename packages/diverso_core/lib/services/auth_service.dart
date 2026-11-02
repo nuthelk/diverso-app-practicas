@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../legal.dart';
+import '../legal/documento_legal.dart';
 import '../models/profile.dart';
 
 class AuthService {

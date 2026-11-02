@@ -2,14 +2,14 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
 import '../checkout/pago_wompi.dart';
-import 'bookings_controller.dart';
-import 'cancel_dialog.dart';
+import 'view_models/bookings_view_model.dart';
+import 'widgets/cancel_dialog.dart';
 
 /// Acciones sobre una reserva compartidas por «Mis reservas» y el detalle de la reserva.
 
 /// Pide confirmación mostrando el reembolso que daría la política y, si el viajero confirma,
 /// cancela. Devuelve true si el viajero confirmó (el resultado del servidor queda en `c.mensaje`).
-Future<bool> cancelarConConfirmacion(BuildContext context, BookingsController c, Booking b) async {
+Future<bool> cancelarConConfirmacion(BuildContext context, BookingsViewModel c, Booking b) async {
   final vista = await c.vistaPrevia(b);
   if (vista == null || !context.mounted) return false;
   final confirmo = await showDialog<bool>(
@@ -24,7 +24,7 @@ Future<bool> cancelarConConfirmacion(BuildContext context, BookingsController c,
 /// Retoma el pago de una reserva que sigue pendiente (mientras dure la retención de 30 min).
 Future<void> completarPago(
   BuildContext context,
-  BookingsController c,
+  BookingsViewModel c,
   PaymentGateway pasarela,
   Booking b,
 ) async {

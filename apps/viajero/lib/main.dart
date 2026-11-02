@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
-import 'theme_mode_controller.dart';
+import 'ui/core/theme/theme_mode_view_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeModeController()),
+        ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
         Provider<BookingService>(create: (_) => BookingService()),
         Provider<CatalogService>(create: (_) => CatalogService()),
         Provider<ReviewService>(create: (_) => ReviewService()),

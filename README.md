@@ -147,7 +147,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
   piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/legal.ts` y
-  `packages/diverso_core/lib/legal.dart` (**borradores** para revisión jurídica).
+  `packages/diverso_core/lib/legal/documento_legal.dart` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias
   pendientes o rechazadas.
@@ -383,17 +383,19 @@ eval "$(supabase status -o env | sed 's/^/export SUPABASE_/')"   # bash: exporta
 cd apps/viajero && flutter test
 ```
 
-- `test/anti_sobreventa_test.dart` — integración contra el Supabase local: carrera por el
+- `test/integration/anti_sobreventa_test.dart` — integración contra el Supabase local: carrera por el
   último cupo (exactamente un ganador), una sola reserva pendiente por fecha, y que
   `confirm_payment`/`cancel_booking` ya no existen y las funciones de pago son solo del
   servidor. Las pruebas que escriben en la base limpian lo que crean con la llave
   `service_role`, que se lee **solo** de `SUPABASE_SERVICE_ROLE_KEY` (nunca va en el repo);
   sin esa variable se omiten, con el motivo a la vista.
-- `test/pago_wompi_test.dart`, `rutas_pago_test.dart`, `checkout_pendiente_test.dart`,
-  `cancel_dialog_test.dart` — pasarela, rutas que sobreviven a la recarga, aviso de reserva
-  pendiente y diálogo de cancelación.
-- `test/comparison_test.dart`, `widget_test.dart`, `agency_vigencia_test.dart` — comparador
-  por viajeros, widgets base y sello de verificación/documentos legales.
+- `test/ui/features/checkout/pago_wompi_test.dart`, `test/router/rutas_pago_test.dart`,
+  `test/ui/features/checkout/checkout_pendiente_test.dart`,
+  `test/ui/features/bookings/widgets/cancel_dialog_test.dart` — pasarela, rutas que sobreviven
+  a la recarga, aviso de reserva pendiente y diálogo de cancelación.
+- `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
+  `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
+  y sello de verificación/documentos legales.
 
 > La prueba de integración usa un binding propio que habilita HTTP real; requiere el stack
 > local corriendo.

@@ -16,7 +16,7 @@ describe('versión de los documentos legales', () => {
   });
 
   it('coincide con la app móvil (legal.dart) y con la función SQL version_documentos_legales()', () => {
-    const dart = leer('packages/diverso_core/lib/legal.dart');
+    const dart = leer('packages/diverso_core/lib/legal/documento_legal.dart');
     expect(dart).toContain(`const String kVersionLegal = '${VERSION_LEGAL}';`);
 
     // La última migración que redefine la función manda.
@@ -55,7 +55,7 @@ describe('textos de pagos en los términos', () => {
   });
 
   it('el texto de pagos es el mismo que el de la app móvil (legal.dart)', () => {
-    const dart = leer('packages/diverso_core/lib/legal.dart');
+    const dart = leer('packages/diverso_core/lib/legal/documento_legal.dart');
     const parrafos = [
       ...DOCUMENTOS['terminos-viajeros'].secciones.filter((s) => s.titulo.startsWith('5.')).flatMap((s) => [s.titulo, ...s.parrafos]),
       ...DOCUMENTOS['terminos-agencias'].secciones.filter((s) => s.titulo.startsWith('3.')).flatMap((s) => [s.titulo, ...s.parrafos]),
