@@ -318,6 +318,9 @@ chocar con otros proyectos Supabase de la máquina.
 
 ### Cuentas demo (contraseña: `demo1234`)
 
+En la app del viajero el botón «Usar cuenta demo» (rellena `viajero@demo.com`) solo aparece en
+builds de **debug** (`flutter run`); en una build de release no existe.
+
 | Cuenta | Rol | Para ver |
 |---|---|---|
 | `viajero@demo.com` | Viajero | Catálogo, reservar, mis reservas (2 próximas + historial con reseñas) |
@@ -420,6 +423,13 @@ cd apps/viajero && flutter test
   `test/ui/features/plan/views/detalle_fechas_test.dart`, `detalle_resena_test.dart` — los view models
   del catálogo y de la ficha con repositorios falsos (carga, error, vacío, una sola consulta al
   aplicar filtros, guardia de `dispose`), la barra de reserva y la inicial de las reseñas.
+- `test/ui/features/bookings/view_models/*_test.dart` (`bookings`, `reserva_detalle`, `review`),
+  `test/ui/features/profile/view_models/profile_view_model_test.dart`,
+  `test/ui/features/auth/view_models/login_view_model_test.dart`,
+  `test/ui/features/auth/views/login_view_test.dart`, `bookings/views/cancelar_reserva_test.dart`,
+  `bookings/views/review_view_test.dart`, `profile/views/profile_view_test.dart` — los view models
+  de reservas, reseña, perfil y acceso con repositorios falsos (carga, error, vacío, aviso que la
+  vista consume, guardia de `dispose`) y que «Usar cuenta demo» no existe con el flag apagado.
 - `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
   `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
   y sello de verificación/documentos legales.

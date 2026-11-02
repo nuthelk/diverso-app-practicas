@@ -1,16 +1,16 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
+import '../view_models/review_view_model.dart';
 
-/// Reseña verificada: solo se llega desde una reserva propia ya viajada
-/// (RLS lo garantiza en el servidor).
+/// Reseña verificada: solo se llega desde una reserva propia ya viajada (RLS lo garantiza en el
+/// servidor). Recibe el [ReviewViewModel] con la reserva ya cargada (lo crea `ReviewLoader`).
 class ReviewView extends StatefulWidget {
-  const ReviewView({super.key, required this.booking});
+  const ReviewView({super.key, required this.viewModel});
 
-  final Booking booking;
+  final ReviewViewModel viewModel;
 
   @override
   State<ReviewView> createState() => _ReviewViewState();
@@ -18,15 +18,8 @@ class ReviewView extends StatefulWidget {
 
 class _ReviewViewState extends State<ReviewView> {
   final _comentarioCtrl = TextEditingController();
-  late final ReviewRepository _servicio;
-  int _calificacion = 5;
-  bool _enviando = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _servicio = context.read<ReviewRepository>();
-  }
+  ReviewViewModel get _viewModel => widget.viewModel;
 
   @override
   void dispose() {
@@ -35,30 +28,30 @@ class _ReviewViewState extends State<ReviewView> {
   }
 
   Future<void> _enviar() async {
-    setState(() => _enviando = true);
     final msg = ScaffoldMessenger.of(context);
-    try {
-      await _servicio.crear(
-        bookingId: widget.booking.id,
-        calificacion: _calificacion,
-        comentario: _comentarioCtrl.text,
-      );
+    final publicada = await _viewModel.enviar(_comentarioCtrl.text);
+    if (publicada) {
       msg.showSnackBar(
         const SnackBar(content: Text('¡Gracias! Tu reseña ayudará a otros viajeros.')),
       );
       // Abierta directo (recarga en web) no hay pantalla anterior a la que volver.
       if (mounted) context.canPop() ? context.pop(true) : context.go(AppRoutes.reservas);
-    } on DiversoException catch (e) {
-      msg.showSnackBar(SnackBar(content: Text(e.mensajeUsuario)));
-      if (mounted) setState(() => _enviando = false);
+    } else if (_viewModel.errorEnvio case final motivo?) {
+      msg.showSnackBar(SnackBar(content: Text(motivo)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(listenable: _viewModel, builder: (context, _) => _formulario(context));
+  }
+
+  Widget _formulario(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final plan = widget.booking.plan;
-    final fecha = widget.booking.planDate?.fecha;
+    final vm = _viewModel;
+    final plan = vm.reserva?.plan;
+    final fecha = vm.reserva?.planDate?.fecha;
+    final bloqueado = vm.enviando || vm.publicada;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Tu reseña')),
@@ -100,12 +93,12 @@ class _ReviewViewState extends State<ReviewView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(5, (i) {
-                    final marcada = i < _calificacion;
+                    final marcada = i < vm.calificacion;
                     return IconButton(
                       iconSize: 42,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       tooltip: '${i + 1} de 5 estrellas',
-                      onPressed: _enviando ? null : () => setState(() => _calificacion = i + 1),
+                      onPressed: bloqueado ? null : () => vm.calificar(i + 1),
                       icon: Icon(
                         marcada ? Icons.star_rounded : Icons.star_outline_rounded,
                         color: marcada ? const Color(0xFFE8A33D) : cs.outline,
@@ -117,14 +110,14 @@ class _ReviewViewState extends State<ReviewView> {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 150),
                     child: Text(
-                      switch (_calificacion) {
+                      switch (vm.calificacion) {
                         1 => 'Muy mala',
                         2 => 'Mala',
                         3 => 'Regular',
                         4 => 'Buena',
                         _ => '¡Excelente!',
                       },
-                      key: ValueKey(_calificacion),
+                      key: ValueKey(vm.calificacion),
                       style: TextStyle(
                         color: cs.primary,
                         fontWeight: FontWeight.w700,
@@ -138,7 +131,7 @@ class _ReviewViewState extends State<ReviewView> {
                   controller: _comentarioCtrl,
                   maxLines: 5,
                   maxLength: 500,
-                  enabled: !_enviando,
+                  enabled: !bloqueado,
                   decoration: const InputDecoration(
                     labelText: 'Cuenta cómo te fue (opcional)',
                     alignLabelWithHint: true,
@@ -146,8 +139,8 @@ class _ReviewViewState extends State<ReviewView> {
                 ),
                 const SizedBox(height: 18),
                 FilledButton.icon(
-                  onPressed: _enviando ? null : _enviar,
-                  icon: _enviando
+                  onPressed: bloqueado ? null : _enviar,
+                  icon: bloqueado
                       ? const SizedBox(
                           height: 17,
                           width: 17,

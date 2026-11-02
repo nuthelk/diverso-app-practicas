@@ -29,3 +29,12 @@ String? cuentaRegresiva(Booking b, [DateTime? ahora]) {
 }
 
 String textoPersonas(int pax) => pax == 1 ? '1 persona' : '$pax personas';
+
+/// Aviso tras cancelar: «Reserva cancelada y cupos liberados. Reembolso de prueba aprobado:
+/// $ 190.000 (100 %).» (sin monto si no hay reembolso).
+String mensajeCancelacion(ResultadoCancelacion r) {
+  final reembolso = r.estado == EstadoReembolso.noAplica
+      ? r.estado.etiqueta
+      : '${r.estado.etiqueta}: ${formatCOP(r.monto)} (${r.porcentaje} %)';
+  return 'Reserva cancelada y cupos liberados. $reembolso.';
+}

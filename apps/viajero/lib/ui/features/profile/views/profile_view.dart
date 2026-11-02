@@ -5,11 +5,14 @@ import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
-import '../../../core/theme/theme_mode_view_model.dart';
 import '../../../core/widgets/page/titulo_pagina.dart';
 import '../../../core/widgets/section_label.dart';
+import '../view_models/profile_view_model.dart';
+import '../widgets/selector_apariencia.dart';
+import '../widgets/tarjeta_info.dart';
 
-/// Perfil del viajero: identidad, apariencia (claro/oscuro) y confianza.
+/// Perfil del viajero: identidad, apariencia (claro/oscuro) y confianza. El estado vive en
+/// [ProfileViewModel] (MVVM).
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
@@ -18,108 +21,45 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  late final AuthRepository _auth;
-  Profile? _perfil;
+  late final ProfileViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _auth = context.read<AuthRepository>();
-    _cargar();
+    _viewModel = ProfileViewModel(auth: context.read<AuthRepository>())..cargar();
   }
 
-  Future<void> _cargar() async {
-    try {
-      final p = await _auth.currentProfile();
-      if (mounted) setState(() => _perfil = p);
-    } catch (_) {}
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cerrarSesion() async {
+    final msg = ScaffoldMessenger.of(context);
+    if (!await _viewModel.cerrarSesion()) {
+      msg.showSnackBar(
+        const SnackBar(content: Text('No pudimos cerrar la sesión. Intenta de nuevo.')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final email = _auth.currentUserEmail ?? '';
-    final nombre = _perfil?.nombre ?? 'Viajero';
-    final inicial = nombre.isEmpty ? 'V' : nombre.substring(0, 1).toUpperCase();
 
     return Scaffold(
       appBar: AppBar(title: const TituloPagina('Perfil')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 38,
-                  backgroundColor: cs.primaryContainer,
-                  child: Text(
-                    inicial,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: cs.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  nombre,
-                  style: const TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -.5,
-                  ),
-                ),
-                Text(email, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
-              ],
-            ),
-          ),
+          ListenableBuilder(listenable: _viewModel, builder: (context, _) => _identidad(cs)),
           const SizedBox(height: 28),
           const SectionLabel('Apariencia'),
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(AppRadios.card),
-            ),
-            child: Consumer<ThemeModeViewModel>(
-              builder: (context, modo, _) => SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(
-                    value: 0,
-                    icon: Icon(Icons.brightness_auto_rounded, size: 18),
-                    label: Text('Sistema'),
-                  ),
-                  ButtonSegment(
-                    value: 1,
-                    icon: Icon(Icons.light_mode_rounded, size: 18),
-                    label: Text('Claro'),
-                  ),
-                  ButtonSegment(
-                    value: 2,
-                    icon: Icon(Icons.dark_mode_rounded, size: 18),
-                    label: Text('Oscuro'),
-                  ),
-                ],
-                selected: {
-                  switch (modo.mode) {
-                    ThemeMode.system => 0,
-                    ThemeMode.light => 1,
-                    _ => 2,
-                  },
-                },
-                onSelectionChanged: (sel) => modo.setMode(switch (sel.first) {
-                  0 => ThemeMode.system,
-                  1 => ThemeMode.light,
-                  _ => ThemeMode.dark,
-                }),
-              ),
-            ),
-          ),
+          const SelectorApariencia(),
           const SizedBox(height: 24),
           const SectionLabel('Confianza'),
-          const _TarjetaInfo(
+          const TarjetaInfo(
             icono: Icons.verified_user_rounded,
             titulo: 'Compra protegida',
             cuerpo:
@@ -128,7 +68,7 @@ class _ProfileViewState extends State<ProfileView> {
                 'se le vence el RNT, sus planes se ocultan hasta revalidarla.',
           ),
           const SizedBox(height: 12),
-          const _TarjetaInfo(
+          const TarjetaInfo(
             icono: Icons.privacy_tip_rounded,
             titulo: 'Tus datos',
             cuerpo:
@@ -166,9 +106,7 @@ class _ProfileViewState extends State<ProfileView> {
           const SizedBox(height: 28),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(foregroundColor: cs.error),
-            onPressed: () async {
-              await _auth.signOut();
-            },
+            onPressed: _cerrarSesion,
             icon: const Icon(Icons.logout_rounded, size: 18),
             label: const Text('Cerrar sesión'),
           ),
@@ -176,46 +114,40 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
-}
 
-class _TarjetaInfo extends StatelessWidget {
-  const _TarjetaInfo({required this.icono, required this.titulo, required this.cuerpo});
-
-  final IconData icono;
-  final String titulo;
-  final String cuerpo;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadios.card),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  /// Avatar, nombre y correo; si el perfil no cargó, un aviso con «Reintentar».
+  Widget _identidad(ColorScheme cs) {
+    final vm = _viewModel;
+    return Center(
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(color: cs.primaryContainer, shape: BoxShape.circle),
-            child: Icon(icono, size: 17, color: cs.onPrimaryContainer),
-          ),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(
-                  cuerpo,
-                  style: TextStyle(fontSize: 13, height: 1.5, color: cs.onSurfaceVariant),
-                ),
-              ],
+          CircleAvatar(
+            radius: 38,
+            backgroundColor: cs.primaryContainer,
+            child: Text(
+              vm.inicial,
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: cs.onPrimaryContainer,
+              ),
             ),
           ),
+          const SizedBox(height: 12),
+          Text(
+            vm.nombre,
+            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.5),
+          ),
+          Text(vm.email, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+          if (vm.error != null)
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(vm.error!, style: TextStyle(fontSize: 13, color: cs.error)),
+                TextButton(onPressed: vm.cargar, child: const Text('Reintentar')),
+              ],
+            ),
         ],
       ),
     );

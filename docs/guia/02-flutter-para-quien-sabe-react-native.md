@@ -149,11 +149,11 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
 
 | React | Flutter | Dónde verlo en el repo |
 |---|---|---|
-| `useState` | campos del `State` + `setState(() { … })` | `viajero/ui/features/auth/views/login_view.dart` |
+| `useState` | campos del `State` + `setState(() { … })` | `viajero/ui/features/legal/views/consent_view.dart` |
 | `useEffect(fn, [])` (montar) | `initState()` | `catalog_view.dart` crea su view model ahí |
 | cleanup del efecto | `dispose()` | el `_ctrl.dispose()` de arriba |
 | props dentro del componente | `widget.planId` | `viajero/ui/features/checkout/views/checkout_loader.dart` |
-| guardia "sigue montado" | `if (mounted) …` | `viajero/ui/features/auth/views/login_view.dart`, tras un `await` |
+| guardia "sigue montado" | `if (!mounted) return;` | `viajero/ui/features/legal/views/consent_view.dart`, tras un `await` |
 | `useRef` de un input | `TextEditingController` | `_searchCtrl` en `catalog_view.dart` |
 
 Diferencias con los hooks:
@@ -166,17 +166,19 @@ Diferencias con los hooks:
   al `State` el reloj que necesita la animación; lo verás siempre que haya un
   `AnimationController`.
 
-`setState` real, de `viajero/ui/features/auth/views/login_view.dart` (`_enviar`):
+`setState` real, de `viajero/ui/features/legal/views/consent_view.dart` (`_aceptar`):
 
 ```dart
 setState(() {
-  _cargando = true;
+  _guardando = true;
   _error = null;
 });
-// … await de la llamada a Supabase …
-} finally {
-  if (mounted) setState(() => _cargando = false);
-}
+final guardado = await consentimiento.aceptar();
+if (!mounted) return;
+setState(() {
+  _guardando = false;
+  if (!guardado) _error = 'No pudimos guardar tu autorización. Intenta de nuevo.';
+});
 ```
 
 **Cuándo usar cada uno en este repo.** Estado de UI local (un check marcado, un slider, un
@@ -265,7 +267,7 @@ Ejemplos del repo:
   `AnimatedSwitcher` y alterna entre `SizedBox.shrink(key: ValueKey('sin-bandeja'))` y
   `BandejaComparar(key: const ValueKey('bandeja'), …)`. La key permite que el
   `AnimatedSwitcher` detecte que cambió el hijo y anime.
-- `viajero/ui/features/bookings/views/review_view.dart`: `key: ValueKey(_calificacion)` en el
+- `viajero/ui/features/bookings/views/review_view.dart`: `key: ValueKey(vm.calificacion)` en el
   texto "Muy mala… ¡Excelente!" para que cada calificación nueva dispare la transición.
 - `super.key` en el constructor de cada widget es lo que permite que quien lo use le pase una
   key. Algunas keys también sirven para **encontrar widgets en las pruebas** (`find.byKey`, por

@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:viajero/ui/features/bookings/view_models/bookings_view_model.dart';
+
+import '../../../../support/reservas_falsas.dart';
 
 /// Caso real de L22: el 25-oct-2026 «Próximas» mostraba viajes del 3, 6, 12 y 18 de octubre
 /// (ya salieron) y sin orden. Reloj fijo; sin red ni Supabase.
@@ -104,5 +108,176 @@ void main() {
     expect(c.historial, isEmpty);
     expect(c.cargando, isFalse);
     expect(c.error, isNull);
+  });
+
+  group('estados de la carga', () {
+    late ReservasFalsas repo;
+    late BookingsViewModel vm;
+
+    setUp(() {
+      repo = ReservasFalsas([reservaDePrueba()]);
+      vm = BookingsViewModel(reservas: repo, reloj: () => _ahora);
+      addTearDown(vm.dispose);
+    });
+
+    test('antes de cargar: cargando, sin reservas ni error ni mensaje', () {
+      expect(vm.cargando, isTrue);
+      expect(vm.reservas, isEmpty);
+      expect(vm.error, isNull);
+      expect(vm.mensaje, isNull);
+    });
+
+    test('éxito: cargando → listo con las reservas, una consulta', () async {
+      final estados = <bool>[];
+      vm.addListener(() => estados.add(vm.cargando));
+
+      await vm.cargar();
+
+      expect(estados, [true, false]);
+      expect(vm.reservas.map((b) => b.id), ['res-1']);
+      expect(vm.error, isNull);
+      expect(repo.consultasLista, 1);
+    });
+
+    test(
+      'error: avisa «No pudimos cargar tus reservas.», sin reservas, y reintentar lo limpia',
+      () async {
+        repo.fallo = Exception('sin red');
+        await vm.cargar();
+
+        expect(vm.error, 'No pudimos cargar tus reservas.');
+        expect(vm.cargando, isFalse);
+        expect(vm.reservas, isEmpty);
+
+        repo.fallo = null;
+        await vm.cargar();
+
+        expect(vm.error, isNull);
+        expect(vm.reservas, hasLength(1));
+      },
+    );
+
+    test('vacío: sin reservas no hay error y ambas listas quedan vacías', () async {
+      repo.lista = [];
+      await vm.cargar();
+
+      expect(vm.reservas, isEmpty);
+      expect(vm.error, isNull);
+      expect(vm.activas, isEmpty);
+      expect(vm.historial, isEmpty);
+    });
+
+    test('el estado no se puede modificar desde fuera', () async {
+      await vm.cargar();
+      expect(() => vm.reservas.add(reservaDePrueba(id: 'x')), throwsUnsupportedError);
+    });
+
+    test('dispose: una carga que termina después no avisa a nadie ni lanza', () async {
+      repo.compuerta = Completer<void>();
+      final propio = BookingsViewModel(reservas: repo, reloj: () => _ahora);
+      final carga = propio.cargar();
+      propio.dispose();
+      repo.compuerta!.complete();
+
+      await expectLater(carga, completes);
+    });
+  });
+
+  group('mensaje y cancelación', () {
+    late ReservasFalsas repo;
+    late BookingsViewModel vm;
+    final reserva = reservaDePrueba(salida: _dia(27));
+
+    setUp(() async {
+      repo = ReservasFalsas([reserva]);
+      vm = BookingsViewModel(reservas: repo, reloj: () => _ahora);
+      addTearDown(vm.dispose);
+      await vm.cargar();
+    });
+
+    test('avisar deja el texto en `mensaje` y avisa; limpiarMensaje lo consume', () {
+      var avisos = 0;
+      vm.addListener(() => avisos++);
+
+      vm.avisar('Cerraste el pago');
+      expect(vm.mensaje, 'Cerraste el pago');
+      expect(avisos, 1);
+
+      vm.limpiarMensaje();
+      expect(vm.mensaje, isNull);
+      expect(avisos, 1, reason: 'consumir el aviso no repinta');
+    });
+
+    test('vistaPrevia devuelve el reembolso y no deja mensaje', () async {
+      final vista = await vm.vistaPrevia(reserva);
+      expect(vista, isNotNull);
+      expect(vista!.porcentaje, 100);
+      expect(vm.mensaje, isNull);
+    });
+
+    test('vistaPrevia que falla devuelve null y explica el motivo en `mensaje`', () async {
+      repo.falloAlCancelar = DiversoException('RESERVA_YA_SALIO');
+
+      expect(await vm.vistaPrevia(reserva), isNull);
+      expect(
+        vm.mensaje,
+        'Este viaje ya salió, así que la reserva ya no se puede pagar ni cancelar.',
+      );
+    });
+
+    test('cancelar: avisa con el reembolso y recarga la lista', () async {
+      expect(await vm.cancelar(reserva), isTrue);
+
+      expect(repo.canceladas, ['res-1']);
+      expect(
+        vm.mensaje,
+        'Reserva cancelada y cupos liberados. Reembolso de prueba aprobado: \$ 190.000 (100 %).',
+      );
+      expect(repo.consultasLista, 2, reason: 'una al abrir y otra tras cancelar');
+    });
+
+    test('cancelar sin reembolso solo dice «Sin reembolso»', () async {
+      repo.resultado = ResultadoCancelacion(
+        aplica: false,
+        porcentaje: 0,
+        monto: 0,
+        estado: EstadoReembolso.noAplica,
+        motivo: '',
+      );
+
+      await vm.cancelar(reserva);
+
+      expect(vm.mensaje, 'Reserva cancelada y cupos liberados. Sin reembolso.');
+    });
+
+    test('cancelar que el servidor rechaza: explica el motivo y no recarga', () async {
+      repo.falloAlCancelar = DiversoException('ESTADO_INVALIDO');
+
+      expect(await vm.cancelar(reserva), isFalse);
+
+      expect(vm.mensaje, 'La reserva ya no admite esta operación.');
+      expect(repo.canceladas, isEmpty);
+      expect(repo.consultasLista, 1);
+    });
+
+    test('un error inesperado al cancelar también se explica, no se pierde', () async {
+      repo.falloAlCancelar = Exception('boom');
+
+      expect(await vm.cancelar(reserva), isFalse);
+      expect(vm.mensaje, isNotNull);
+    });
+
+    test('puedeCancelar / puedeResenar siguen las reglas de Próximas e Historial', () {
+      final proxima = reservaDePrueba(salida: _dia(27));
+      final pasada = reservaDePrueba(salida: _dia(10));
+      final cancelada = reservaDePrueba(salida: _dia(27), estado: BookingStatus.cancelada);
+
+      expect(vm.puedeCancelar(proxima), isTrue);
+      expect(vm.puedeResenar(proxima), isFalse);
+      expect(vm.puedeCancelar(pasada), isFalse);
+      expect(vm.puedeResenar(pasada), isTrue);
+      expect(vm.puedeCancelar(cancelada), isFalse);
+      expect(vm.puedeResenar(reservaDePrueba(salida: _dia(10), tieneResena: true)), isFalse);
+    });
   });
 }

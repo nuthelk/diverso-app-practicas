@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
+import '../view_models/review_view_model.dart';
 import 'review_view.dart';
 
 /// `/resena/:bookingId`: carga la reserva por id desde el backend, así la pantalla se reconstruye
@@ -22,19 +23,23 @@ class ReviewLoader extends StatefulWidget {
 }
 
 class _ReviewLoaderState extends State<ReviewLoader> {
-  late Future<Booking> _reserva;
+  late final ReviewViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _cargar();
+    _viewModel = ReviewViewModel(
+      reservas: context.read<BookingRepository>(),
+      resenas: context.read<ReviewRepository>(),
+      bookingId: widget.bookingId,
+      adelantada: widget.booking,
+    )..cargar();
   }
 
-  void _cargar() {
-    final adelantada = widget.booking;
-    _reserva = adelantada != null && adelantada.id == widget.bookingId
-        ? Future.value(adelantada)
-        : context.read<BookingRepository>().reserva(widget.bookingId);
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
   }
 
   Widget _estado(Widget hijo) => Scaffold(
@@ -44,27 +49,21 @@ class _ReviewLoaderState extends State<ReviewLoader> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Booking>(
-      future: _reserva,
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return _estado(const Center(child: CircularProgressIndicator()));
-        }
-        final error = snap.error;
-        if (error != null) {
-          final f = error is DiversoException ? error : DiversoException.fromPostgrest(error);
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        final vm = _viewModel;
+        if (vm.cargando) return _estado(const Center(child: CircularProgressIndicator()));
+        if (vm.error != null) {
           return _estado(
             EmptyState(
               icono: Icons.cloud_off_rounded,
               titulo: 'No pudimos cargar la reserva',
-              mensaje: f.mensajeUsuario,
+              mensaje: vm.error!,
               accion: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  FilledButton.tonal(
-                    onPressed: () => setState(_cargar),
-                    child: const Text('Reintentar'),
-                  ),
+                  FilledButton.tonal(onPressed: vm.cargar, child: const Text('Reintentar')),
                   TextButton(
                     onPressed: () => context.go(AppRoutes.reservas),
                     child: const Text('Ver mis reservas'),
@@ -74,8 +73,7 @@ class _ReviewLoaderState extends State<ReviewLoader> {
             ),
           );
         }
-        final reserva = snap.data!;
-        if (!reserva.puedeResenar()) {
+        if (!vm.puedeResenar) {
           return _estado(
             EmptyState(
               icono: Icons.rate_review_outlined,
@@ -88,7 +86,7 @@ class _ReviewLoaderState extends State<ReviewLoader> {
             ),
           );
         }
-        return ReviewView(booking: reserva);
+        return ReviewView(viewModel: vm);
       },
     );
   }

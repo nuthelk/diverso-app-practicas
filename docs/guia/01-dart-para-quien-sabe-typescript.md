@@ -592,8 +592,8 @@ reconstrucción (capítulo 2, sección 4).
 - Una función que devuelve `Future` y que no esperas **debe** marcarse: o `await`, o
   `unawaited(...)`. Lo exige la regla `unawaited_futures`.
 - Después de un `await` dentro de un widget, comprueba `mounted` antes de llamar a `setState`
-  (el widget pudo desaparecer): `if (mounted) setState(() => _cargando = false);` en
-  `viajero/ui/features/auth/views/login_view.dart`.
+  (el widget pudo desaparecer): `if (!mounted) return;` antes del segundo `setState` en
+  `viajero/ui/features/legal/views/consent_view.dart` (`_aceptar`).
 
 ## 10. `Stream`
 

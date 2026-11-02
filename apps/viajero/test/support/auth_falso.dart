@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:diverso_core/diverso_core.dart';
 
-/// [AuthRepository] sin Supabase para pruebas del router y del consentimiento.
+/// [AuthRepository] sin Supabase para pruebas del router, el consentimiento, el acceso y el perfil.
 class AuthFalso implements AuthRepository {
   AuthFalso({String? usuario = 'viajero-1', List<Object> consultas = const [<String>[]]})
     : _usuario = usuario,
@@ -22,6 +22,25 @@ class AuthFalso implements AuthRepository {
 
   /// Si es `true`, `registrarConsentimiento` falla.
   bool falloAlRegistrar = false;
+
+  /// Correo y perfil del usuario actual (`currentProfile` lanza [falloAlCargarPerfil] si existe).
+  String? email = 'ana@correo.test';
+  Profile? perfil;
+  Object? falloAlCargarPerfil;
+  int cargasDePerfil = 0;
+
+  /// Si no es null, `currentProfile` espera a que se complete (respuestas tardías).
+  Completer<void>? compuertaPerfil;
+
+  /// Si no es null, `signIn`, `signUpViajero` y `signOut` lo lanzan.
+  Object? falloAlEntrar;
+  Object? falloAlSalir;
+
+  /// Si no es null, `signIn` y `signUpViajero` esperan a que se complete.
+  Completer<void>? compuerta;
+
+  final entradas = <({String email, String password})>[];
+  final registros = <({String nombre, String email, String password, bool aceptaDocumentos})>[];
 
   final _cambios = StreamController<String?>.broadcast();
 
@@ -52,7 +71,45 @@ class AuthFalso implements AuthRepository {
   }
 
   @override
-  Future<void> signOut() async => cambiarSesion(null);
+  String? get currentUserEmail => email;
+
+  @override
+  Future<Profile> currentProfile() async {
+    cargasDePerfil++;
+    await compuertaPerfil?.future;
+    if (falloAlCargarPerfil != null) throw falloAlCargarPerfil!;
+    return perfil ?? Profile(id: 'u', rol: UserRole.viajero, nombre: 'Ana');
+  }
+
+  @override
+  Future<void> signIn({required String email, required String password}) async {
+    await compuerta?.future;
+    if (falloAlEntrar != null) throw falloAlEntrar!;
+    entradas.add((email: email, password: password));
+  }
+
+  @override
+  Future<void> signUpViajero({
+    required String nombre,
+    required String email,
+    required String password,
+    required bool aceptaDocumentos,
+  }) async {
+    await compuerta?.future;
+    if (falloAlEntrar != null) throw falloAlEntrar!;
+    registros.add((
+      nombre: nombre,
+      email: email,
+      password: password,
+      aceptaDocumentos: aceptaDocumentos,
+    ));
+  }
+
+  @override
+  Future<void> signOut() async {
+    if (falloAlSalir != null) throw falloAlSalir!;
+    cambiarSesion(null);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

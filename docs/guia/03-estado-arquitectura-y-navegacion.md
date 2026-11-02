@@ -120,10 +120,11 @@ Reglas de dependencia (quién puede importar a quién):
 Por qué las reglas viven en modelos y view models y no en el widget: se **prueban sin dibujar
 nada**. `Plan.esNuevo` o `BookingsViewModel.activas` se verifican con un `test(...)` normal.
 
-> **Hoy.** El catálogo y la ficha del plan (`PlanDetailViewModel`) ya pasan siempre por su view
-> model. Otras vistas leen repositorios con `context.read<...Repository>()` y los llaman ellas
-> mismas (`checkout_loader.dart`, `reserva_view.dart`, `login_view.dart`); la fase F5b las deja
-> solo con su ViewModel.
+> **Hoy.** El catálogo, la ficha del plan, «Mis reservas», el detalle de la reserva, la reseña, el
+> perfil y el acceso ya pasan siempre por su view model: la vista solo lee el repositorio con
+> `context.read<...Repository>()` para dárselo por constructor. Otras vistas siguen llamándolos
+> ellas mismas (`checkout_loader.dart`, `reserva_view.dart`); la fase F5b-2 las deja solo con su
+> ViewModel.
 
 ## 3. `ChangeNotifier`: el view model
 
@@ -198,13 +199,21 @@ Los **valores derivados** son getters, como un selector o un `useMemo`.
 
 ```dart
 List<Booking> get activas =>
-    reservas.where(_vigente).toList()..sort((a, b) => a.salida!.compareTo(b.salida!));
+    _lista.where(esVigente).toList()..sort((a, b) => a.salida!.compareTo(b.salida!));
 ```
 
-La lista de reservas se guarda una vez y "próximas" se calcula a partir de ella. `BookingsViewModel`
-recibe un reloj (`DateTime Function()? reloj`) para que las pruebas fijen la hora.
+La lista de reservas se guarda una vez (privada, de solo lectura) y "próximas" se calcula a partir
+de ella. `BookingsViewModel` recibe un reloj (`DateTime Function()? reloj`) para que las pruebas
+fijen la hora; `esVigente` y la cancelación viven en la clase base `ReservaAccionesViewModel`
+(`bookings/view_models/reserva_acciones_view_model.dart`), que comparte con
+`ReservaDetalleViewModel` (el detalle de una reserva).
 
-`CatalogViewModel` y `PlanDetailViewModel` siguen esa forma: todo el estado es privado (`_planes`,
+Un aviso para el usuario (el snackbar tras cancelar) también es estado del view model: `mensaje`
+es un getter de solo lectura; la vista lo muestra y llama `limpiarMensaje()` para **consumirlo**,
+en vez de escribir el campo (`mostrarAviso` en `bookings/acciones_reserva.dart`).
+
+`CatalogViewModel`, `PlanDetailViewModel`, `BookingsViewModel`, `ReservaDetalleViewModel`,
+`ReviewViewModel`, `ProfileViewModel` y `LoginViewModel` siguen esa forma: todo el estado es privado (`_planes`,
 `_cargando`, `_error`…) y la vista solo ve getters de solo lectura; para cambiar algo llama a un
 **comando** (`toggleCategoria`, `aplicarFiltros`, `seleccionarFecha`…). Un comando que cambia
 varios filtros a la vez los fija todos y consulta **una sola vez**: `aplicarFiltros(destino:,
@@ -225,8 +234,9 @@ Un valor **derivado** no se guarda ni se corrige dentro de `build`: `PlanDetailV
 guarda el id de la fecha elegida y `fechaSeleccionada` la calcula a partir de `fechas` cada vez que
 se lee (si esa fecha ya no está disponible, vale la primera). Así `build` solo lee y nunca muta.
 
-> **Hoy.** `BookingsViewModel` y otros view models todavía exponen sus campos como **públicos**
-> (la vista podría escribirlos); las fases F5b y F5c los dejan como los anteriores.
+> **Hoy.** `CheckoutViewModel`, `PagoResultadoViewModel` y los de agencias todavía exponen sus
+> campos como **públicos** (la vista podría escribirlos); las fases F5b-2 y F5c los dejan como los
+> anteriores.
 
 ## 4. `ListenableBuilder`: suscribirse y repintar
 
@@ -283,7 +293,7 @@ El paquete `provider` reparte objetos por el árbol, como un Context.
 | provider de algo que cambia | `ChangeNotifierProvider(create: …)` | `main.dart` (tema) |
 | `useContext(Ctx)` sin suscribirse | `context.read<T>()` | `catalog_view.dart`, `profile_view.dart`… |
 | `useContext` que se suscribe | `context.watch<T>()` | no se usa en el repo |
-| `<Ctx.Consumer>` | `Consumer<T>(builder: …)` | `app.dart`, `profile_view.dart` |
+| `<Ctx.Consumer>` | `Consumer<T>(builder: …)` | `app.dart`, `profile/widgets/selector_apariencia.dart` |
 
 Dos puntos finos:
 
@@ -359,7 +369,7 @@ corto al más completo.
 
 ```
 [Perfil] toque en "Oscuro"
-   |  profile_view.dart: SegmentedButton.onSelectionChanged -> modo.setMode(ThemeMode.dark)
+   |  selector_apariencia.dart: SegmentedButton.onSelectionChanged -> modo.setMode(ThemeMode.dark)
    v
 ThemeModeViewModel.setMode      _mode = dark;  notifyListeners();
    |
