@@ -13,11 +13,11 @@ Rama `refactor/arquitectura-panel-svelte` en el worktree `.worktrees/panel-svelt
 
 ## Tasks
 
-- T1+T2 [ ] Alias `@`, `src/shared/` (ui, lib, api: supabase + errores) y `src/features/*` (páginas, componentes, lógica y `*.api.ts` por funcionalidad; tipos repartidos; código muerto fuera) — S2, S3 — inline — commit: pendiente
-- T3 [ ] `src/app/`: tabla de rutas declarativa, guard de sesión puro, Toast y Shell — S2, S3 — inline — commit: pendiente
-- T4 [ ] Partir PlanForm en subcomponentes — S3 — inline — commit: pendiente
-- T5 [ ] Partir Admin y AdminDispersiones en subcomponentes — S3 — inline — commit: pendiente
-- T6 [ ] Guía `docs/guia/svelte/` + README de la guía y del repo — S5 — inline — commit: pendiente
+- T1+T2 [x] Alias `@`, `src/shared/` (ui, lib, api: supabase + errores) y `src/features/*` (páginas, componentes, lógica y `*.api.ts` por funcionalidad; tipos repartidos; código muerto fuera) — S2, S3 — inline — commit: 415a5a7
+- T3 [x] `src/app/`: tabla de rutas declarativa, guard de sesión puro, Toast y Shell — S2, S3 — worker + parent — commit: 1ed6aac
+- T4 [x] Partir PlanForm en subcomponentes — S3 — worker — commit: 36baad3
+- T5 [x] Partir Admin y AdminDispersiones en subcomponentes — S3 — worker — commit: d474a0c
+- T6 [ ] Guía `docs/guia/svelte/` + README de la guía y del repo — S5 — worker — commit: pendiente
 - T7 [ ] Verificación final: 414+ tests, build, svelte-check sin errores nuevos — S3 — inline — commit: —
 
 ## Log
@@ -27,3 +27,5 @@ Rama `refactor/arquitectura-panel-svelte` en el worktree `.worktrees/panel-svelt
 - L3 (evidencia): línea base en el worktree: 414 tests verdes. Sin uso fuera de sus tests: `ocupacion.ts` (reemplazado por `resumen.ts` en el rediseño), `StatCard.svelte`, interfaz `Profile`.
 - L4 (contexto): `odd/tasks/rediseno-panel-agencias.md` (T3–T7 pendientes, pantalla por pantalla) nombra rutas viejas (`Dashboard.svelte`…); al terminar, esas tareas trabajan sobre las rutas nuevas. Ese archivo tiene cambios sin commitear de otra sesión en la carpeta principal: no se toca desde aquí.
 - L5 (decisión T1+T2): T1 y T2 van en un solo commit porque un paso intermedio no compila. `api.ts` se parte en `<funcionalidad>.api.ts` + `shared/api/errores.ts` (puro, los tests de páginas ya no lo mockean); `types.ts` en `agencias/agencia.ts`, `planes/plan.ts` y `VentaRow` en `ventas/ventas.ts`; el Supabase falso de los tests de datos pasa a `src/test/supabase-falso.ts`. Imports: relativos dentro de una funcionalidad, `@/…` entre carpetas. Tests: 409 = 414 − 5 de `ocupacion.test.ts` (código muerto borrado).
+- L6 (evidencia T1+T2): el build falló la primera vez aunque los tests pasaban (`auth.svelte.ts` seguía importando `./supabase`; los tests mockean `auth`): build y svelte-check son parte de cada verificación. El alias usa `'@': '/src'` para no sumar `@types/node`. svelte-check: 12 errores, igual que la base. Tramo de esta rama: commits desde 7c1c17a (la rama madre arrastra la cadena de viajero no fusionada a main).
+- L7 (parent T3–T5): backstop de contexto → T3, T4 y T5 a workers en paralelo con superficies disjuntas. Revisión del parent: el router nuevo resolvía /planes/nuevo y /planes/editar/x al mismo componente, así que Svelte ya no volvía a montar PlanForm (que lee planId una vez al montar); `RutaResuelta.patron` + `{#key ruta.patron}` en App reproduce el montaje de antes, con prueba. Verificado: 509 tests (31 archivos), build OK, svelte-check 12 errores = base.
