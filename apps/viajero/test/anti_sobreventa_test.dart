@@ -48,10 +48,10 @@ void main() {
       : null;
   late SupabaseClient admin;
 
-  /// Hoy en Bogotá (UTC-5), el reloj con el que el servidor decide qué salidas ya partieron.
-  /// Las pruebas reservan solo fechas POSTERIORES a hoy: una fecha de hoy puede haber salido ya
-  /// (create_booking la rechaza con FECHA_YA_SALIO y cancelar_reserva con RESERVA_YA_SALIO).
-  String hoyBogota() => fechaToIso(DateTime.now().toUtc().subtract(const Duration(hours: 5)));
+  /// Las pruebas reservan solo fechas POSTERIORES a hoy (en Bogotá, como decide el servidor): una fecha
+  /// de hoy puede haber salido ya (create_booking la rechaza con FECHA_YA_SALIO y cancelar_reserva
+  /// con RESERVA_YA_SALIO).
+  String hoyIso() => fechaToIso(hoyBogota());
 
   /// Deja la base como estaba: cancela primero (cancelar_reserva, solo service_role) para devolver
   /// los cupos y luego borra las reservas de prueba; el borrado arrastra pagos, intentos y reembolsos.
@@ -116,7 +116,7 @@ void main() {
     final fechas = await client
         .from('plan_dates')
         .select('id, cupo_disponible, plan_id, plans(estado)')
-        .gt('fecha', hoyBogota())
+        .gt('fecha', hoyIso())
         .limit(50);
     // Cupo entre 3 y 21: deja exactamente 1 cupo tras reservar cupo-1 pax
     // sin exceder el máximo de 20 personas por reserva.
@@ -212,7 +212,7 @@ void main() {
     final fechas = await admin
         .from('plan_dates')
         .select('id, cupo_disponible, plans!inner(estado)')
-        .gt('fecha', hoyBogota())
+        .gt('fecha', hoyIso())
         .eq('plans.estado', 'publicado')
         .gte('cupo_disponible', 3)
         .limit(1);
@@ -238,7 +238,7 @@ void main() {
     final fechas = await admin
         .from('plan_dates')
         .select('id, cupo_disponible, plans!inner(estado)')
-        .gt('fecha', hoyBogota())
+        .gt('fecha', hoyIso())
         .eq('plans.estado', 'publicado')
         .gte('cupo_disponible', 2)
         .limit(2);
@@ -305,7 +305,7 @@ void main() {
       final fechas = await client
           .from('plan_dates')
           .select('id, cupo_disponible, plans(estado)')
-          .gt('fecha', hoyBogota())
+          .gt('fecha', hoyIso())
           .limit(50);
       final fecha = (fechas as List)
           .map((e) => e as Map<String, dynamic>)

@@ -5,6 +5,7 @@ import '../models/enums.dart';
 import '../models/plan.dart';
 import '../utils/busqueda.dart';
 import '../utils/formatters.dart';
+import '../utils/hora_bogota.dart';
 
 /// Filtros del buscador del catálogo.
 class FiltrosCatalogo {
@@ -37,7 +38,7 @@ class CatalogService {
   /// Planes publicados con su agencia y próximas fechas, aplicando filtros.
   Future<List<Plan>> search(FiltrosCatalogo filtros) async {
     // Las reservas vencidas se liberan en el servidor (pg_cron cada 5 min).
-    final hoy = fechaToIso(DateTime.now());
+    final hoy = fechaToIso(hoyBogota());
     // Filtros primero (PostgrestFilterBuilder); orden y límite al final.
     var query = _client
         .from('plans')
@@ -107,7 +108,7 @@ class CatalogService {
   }
 
   Future<Plan> planDetalle(String planId) async {
-    final hoy = fechaToIso(DateTime.now());
+    final hoy = fechaToIso(hoyBogota());
     final res = await _client
         .from('plans')
         .select('*, agencies(*), plan_dates(*)')

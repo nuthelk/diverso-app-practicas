@@ -105,6 +105,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0008_cancelar_antes_de_salir.sql` | `cancelar_reserva` y `vista_previa_cancelacion` rechazan con `RESERVA_YA_SALIO` una reserva viva cuyo viaje ya salió (`salida_at`); reintentar una cancelación ya hecha sigue siendo idempotente |
 | `0011_busqueda_sin_tildes.sql` | Buscador sin tildes ni mayúsculas: extensión `unaccent`, `f_unaccent` (IMMUTABLE) y la columna generada `plans.busqueda`, sobre la que el catálogo filtra con un solo `ilike` (la app normaliza el texto con `normalizarBusqueda`) |
 | `0012_reservar_antes_de_salir.sql` | `create_booking` rechaza con `FECHA_YA_SALIO` una fecha cuya salida (fecha + `plans.hora_salida`, hora de Bogotá) ya ocurrió; `crear_intento_pago` rechaza con `RESERVA_YA_SALIO` pagar una reserva cuya `salida_at` ya pasó; «hoy» es la fecha de Bogotá, no la UTC |
+| `0013_checkout_vence_en_la_salida.sql` | `crear_intento_pago` firma la expiración del checkout de Wompi como el menor de `created_at + 30 min` y `salida_at`: una reserva hecha minutos antes de partir no se puede pagar después de la salida |
 
 ### RPC y tareas programadas
 
@@ -121,7 +122,8 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - `expire_stale_bookings`: libera cupos de reservas sin pagar tras 30 minutos y vence sus
   intentos de pago; la ejecuta el cron (la app ya no la llama).
 - Solo `service_role` (las llama el servidor, no la app): `crear_intento_pago` (si el viaje de la
-  reserva ya salió responde `RESERVA_YA_SALIO`, HTTP 409 en `pagos-iniciar`),
+  reserva ya salió responde `RESERVA_YA_SALIO`, HTTP 409 en `pagos-iniciar`; el checkout vence a
+  más tardar en la salida),
   `aplicar_resultado_pago`, `cancelar_reserva`, `registrar_resultado_reembolso`.
 - Solo admin o `service_role`: `generar_liquidaciones`, `generar_anticipos`,
   `ejecutar_liquidacion`.
@@ -337,10 +339,11 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0009 (agencias públicas) | ver «Pruebas SQL» | 24 |
 | SQL 0011 (búsqueda sin tildes) | ver «Pruebas SQL» | 11 |
 | SQL 0012 (no reservar ni pagar tras la salida) | ver «Pruebas SQL» | 24 |
-| Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 41 |
+| SQL 0013 (el checkout vence en la salida) | ver «Pruebas SQL» | 8 |
+| Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 82 |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 90 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 163 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
@@ -356,7 +359,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).

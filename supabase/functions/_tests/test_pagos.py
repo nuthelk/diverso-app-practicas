@@ -419,6 +419,25 @@ class TestPagos(unittest.TestCase):
         self.assertEqual((estado, cuerpo["error"]), (409, "RESERVA_VENCIDA"))
         self.assertEqual(self.intentos(r), [])
 
+    def test_iniciar_con_la_salida_ya_pasada_es_409(self):
+        r = self.reserva()
+        # La reserva sigue pendiente y dentro de sus 30 minutos, pero el viaje ya salió (salida_at congelada).
+        salio = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+        rest("PATCH", f"bookings?id=eq.{r['id']}", {"salida_at": salio})
+        estado, cuerpo = self.iniciar(r)
+        self.assertEqual((estado, cuerpo["error"]), (409, "RESERVA_YA_SALIO"))
+        self.assertTrue(cuerpo["mensaje"])
+        self.assertEqual(self.intentos(r), [])
+        self.assertEqual(self.booking(r)["estado"], "pendiente_pago")
+
+    def test_iniciar_vence_el_checkout_en_la_salida_si_esta_es_antes_de_los_30_minutos(self):
+        r = self.reserva()
+        salida = datetime.now(timezone.utc) + timedelta(minutes=10)
+        rest("PATCH", f"bookings?id=eq.{r['id']}", {"salida_at": salida.isoformat()})
+        i = self.intento(r)
+        expira = datetime.fromisoformat(i["expira_at"].replace("Z", "+00:00"))
+        self.assertLessEqual(expira, salida)
+
     def test_iniciar_valida_la_solicitud(self):
         r = self.reserva()
         estado, cuerpo = self.iniciar(r, redirect="https://evil.example.com/pago/resultado")

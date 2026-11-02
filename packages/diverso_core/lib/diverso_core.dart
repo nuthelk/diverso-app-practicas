@@ -21,5 +21,6 @@ export 'services/payment_gateway.dart';
 export 'services/review_service.dart';
 export 'utils/busqueda.dart';
 export 'utils/formatters.dart';
+export 'utils/hora_bogota.dart';
 export 'ui/diverso_logo.dart';
 export 'ui/page_transitions.dart';

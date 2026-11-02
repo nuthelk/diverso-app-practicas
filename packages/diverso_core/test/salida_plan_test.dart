@@ -84,6 +84,38 @@ void main() {
     });
   });
 
+  group('Plan.fromMap con filas como las devuelve PostgREST', () {
+    Plan planMapa(String hora, List<String> fechas) => Plan.fromMap({
+          'id': 'p',
+          'agency_id': 'a',
+          'titulo': 'T',
+          'destino': 'D',
+          'precio_cop': 1000,
+          'hora_salida': hora,
+          'plan_dates': [
+            for (final f in fechas)
+              {'id': f, 'plan_id': 'p', 'fecha': f, 'cupo_total': 5, 'cupo_disponible': 5},
+          ],
+        });
+
+    test('22:00 del 2026-11-02 en Bogotá es 03:00 UTC del 2026-11-03', () {
+      final plan = planMapa('22:00:00', ['2026-11-02']);
+      expect(plan.salidaDe(plan.dates.single), DateTime.utc(2026, 11, 3, 3));
+    });
+
+    test('el «ahora» puede venir en UTC o en hora local: mismo resultado en el límite (15:30 Bogotá)', () {
+      final plan = planMapa('15:30:00', ['2026-11-02']);
+      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 29).toLocal()), hasLength(1));
+      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 2, 20, 30).toLocal()), isEmpty);
+    });
+
+    test('salida a las 00:00 de Bogotá (05:00 UTC): visible a las 23:59 del día anterior, oculta a las 00:00', () {
+      final plan = planMapa('00:00:00', ['2026-11-03']);
+      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 4, 59)), hasLength(1));
+      expect(plan.fechasDisponiblesA(DateTime.utc(2026, 11, 3, 5)), isEmpty);
+    });
+  });
+
   group('tieneSalidaEl (filtro de fecha del catálogo)', () {
     test('solo cuenta si ese día aún hay una salida por partir', () {
       final salio = _plan(const Duration(hours: 6), [_fecha(_hoy)]);

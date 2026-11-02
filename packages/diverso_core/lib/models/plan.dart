@@ -1,3 +1,4 @@
+import '../utils/hora_bogota.dart';
 import 'enums.dart';
 import 'profile.dart';
 
@@ -14,9 +15,6 @@ class ItinerarioPaso {
 
   Map<String, dynamic> toMap() => {'hora': hora, 'actividad': actividad};
 }
-
-/// Bogotá es UTC-5 todo el año (Colombia no tiene horario de verano).
-const _offsetBogota = Duration(hours: 5);
 
 /// `plans.hora_salida` es un `time` ('06:00:00'); si falta vale lo que el default de la columna.
 Duration _horaDesdePostgres(String? hora) {
@@ -123,7 +121,7 @@ class Plan {
   /// Instante (UTC) en que parte [fecha]: el día de la fecha + [horaSalida] en hora de Bogotá.
   /// Misma cuenta que el servidor (`(fecha + hora_salida) at time zone 'America/Bogota'`).
   DateTime salidaDe(PlanDate fecha) =>
-      DateTime.utc(fecha.fecha.year, fecha.fecha.month, fecha.fecha.day).add(horaSalida + _offsetBogota);
+      DateTime.utc(fecha.fecha.year, fecha.fecha.month, fecha.fecha.day).add(horaSalida + offsetBogota);
 
   /// La salida de [fecha] ya ocurrió (o es justo ahora): ya no se puede reservar ni pagar.
   bool yaSalio(PlanDate fecha, [DateTime? ahora]) => !salidaDe(fecha).isAfter((ahora ?? DateTime.now()).toUtc());
