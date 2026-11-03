@@ -7,8 +7,37 @@ import {
   draftToRow,
   draftVacio,
   fechasFuturas,
+  salidaDe,
+  yaSalio,
 } from '$lib/features/planes/model/plan';
 import { fecha, HOY, plan } from '$tests/fixtures';
+
+describe('salidaDe / yaSalio (hora de Bogotá, UTC−5 fijo)', () => {
+  const p = (hora: string) => ({ ...plan('Guatapé', []), hora_salida: hora });
+  const f = fecha({ fecha: '2026-11-02' });
+  // 21:00 en Bogotá del 2-nov = 02:00 UTC del 3-nov: un navegador adelantado ya ve el 3-nov.
+  const ahora = new Date(Date.UTC(2026, 10, 3, 2, 0, 0));
+
+  it('la salida es fecha + hora_salida en Bogotá, expresada como instante UTC', () => {
+    expect(salidaDe(p('09:00:00'), f).toISOString()).toBe('2026-11-02T14:00:00.000Z');
+    expect(salidaDe(p('22:30:00'), f).toISOString()).toBe('2026-11-03T03:30:00.000Z');
+  });
+
+  it('una salida de las 09:00 ya salió a las 21:00; la de las 22:00 todavía no', () => {
+    expect(yaSalio(p('09:00:00'), f, ahora)).toBe(true);
+    expect(yaSalio(p('22:00:00'), f, ahora)).toBe(false);
+  });
+
+  it('justo a la hora exacta ya salió; un minuto antes no (misma regla que el servidor y el viajero)', () => {
+    const exacta = new Date(Date.UTC(2026, 10, 2, 14, 0, 0));
+    expect(yaSalio(p('09:00:00'), f, exacta)).toBe(true);
+    expect(yaSalio(p('09:00:00'), f, new Date(exacta.getTime() - 60_000))).toBe(false);
+  });
+
+  it('las fechas de mañana en adelante no han salido', () => {
+    expect(yaSalio(p('00:00:00'), fecha({ fecha: '2026-11-03' }), ahora)).toBe(false);
+  });
+});
 
 describe('fechasFuturas', () => {
   const p = plan('Guatapé', [

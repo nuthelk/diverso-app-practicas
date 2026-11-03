@@ -3,20 +3,28 @@
   import Logo from '$lib/shared/ui/Logo.svelte';
   import Avatar from '$lib/shared/ui/Avatar.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
+  import { TONOS_AVISO } from '$lib/shared/ui/tonos';
   import { auth, signOut } from '$lib/features/auth/model/auth.svelte';
   import { page } from '$app/state';
   import { rutaActual } from '$lib/shared/lib/ruta';
   import { miAgencia } from '../api/agencias.api';
   import { avisoVerificacion } from '../model/verificacion';
   import { estadoVigencia, type Agency } from '../model/agencia';
+  import { esActiva, nombreCorto, SECCIONES, seccionActual } from '../model/navegacion';
+  import AvatarAgencia from './AvatarAgencia.svelte';
 
   let { children }: { children: Snippet } = $props();
 
   let agencia = $state<Agency | null>(null);
   const path = $derived(rutaActual(page.url));
+  const seccion = $derived(seccionActual(path));
 
   let menuAbierto = $state(false);
+  let menuUsuario = $state(false);
   let oscuro = $state(document.documentElement.classList.contains('dark'));
+  let contenedorUsuario = $state<HTMLElement>();
+  let botonUsuario = $state<HTMLButtonElement>();
+  let principal = $state<HTMLElement>();
 
   $effect(() => {
     if (!auth.userId) return;
@@ -27,23 +35,12 @@
       .catch(() => {});
   });
 
-  // Cerrar el menú móvil al cambiar de sección.
+  // Cerrar los menús al cambiar de sección.
   $effect(() => {
     void path;
     menuAbierto = false;
+    menuUsuario = false;
   });
-
-  const secciones = [
-    { ruta: '/dashboard', icono: 'M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10 3h8v5h-8v-5z', etiqueta: 'Resumen' },
-    { ruta: '/planes', icono: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7', etiqueta: 'Planes' },
-    { ruta: '/ventas', icono: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', etiqueta: 'Ventas' },
-    { ruta: '/liquidaciones', icono: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', etiqueta: 'Liquidaciones' },
-    { ruta: '/cuenta-dispersiones', icono: 'M3 10h18M5 6l7-3 7 3M4 10v9m4-9v9m4-9v9m4-9v9m4-9v9M3 21h18', etiqueta: 'Cuenta para dispersiones', corta: 'Cuenta' },
-  ];
-
-  function activa(rutaSeccion: string): boolean {
-    return path === rutaSeccion || path.startsWith(rutaSeccion + '/');
-  }
 
   function alternarTema(): void {
     oscuro = document.documentElement.classList.toggle('dark');
@@ -54,79 +51,76 @@
     }
   }
 
+  function alPulsarTecla(e: KeyboardEvent): void {
+    if (e.key === 'Escape' && menuUsuario) {
+      menuUsuario = false;
+      botonUsuario?.focus();
+    }
+  }
+
+  function alHacerClic(e: MouseEvent): void {
+    if (menuUsuario && !contenedorUsuario?.contains(e.target as Node)) menuUsuario = false;
+  }
+
   /** Aviso principal sobre el estado de la agencia (uno a la vez, el más urgente). */
   const aviso = $derived(agencia ? avisoVerificacion(agencia) : null);
 
-  const TONOS = {
-    info: 'bg-brand-600/10 text-brand-800 dark:text-brand-200',
-    alerta: 'bg-orange-500/12 text-orange-800 dark:text-orange-300',
-    error: 'bg-red-500/10 text-red-700 dark:text-red-300',
-  } as const;
+  const ITEM =
+    'flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-left text-[13.5px] font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700';
+  const BOTON_ICONO =
+    'inline-flex size-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-ink-600 dark:bg-ink-800 dark:text-slate-400 dark:hover:bg-ink-700';
+  const MODO_PRUEBA = 'Modo de prueba: los pagos no mueven dinero real';
 </script>
 
-{#snippet navegacion()}
-  <nav class="flex flex-col gap-0.5" aria-label="Secciones">
-    {#each secciones as s}
-      <a
-        href={'#' + s.ruta}
-        aria-current={activa(s.ruta) ? 'page' : undefined}
-        class="flex items-center gap-3 rounded-[10px] px-3 py-2 text-[13.5px] transition-colors
-          {activa(s.ruta)
-          ? 'bg-brand-600/12 font-bold text-brand-700 dark:bg-brand-400/15 dark:text-brand-200'
-          : 'font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700'}"
-      >
-        <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d={s.icono} />
-        </svg>
-        {s.etiqueta}
-      </a>
-    {/each}
-  </nav>
+<svelte:window onkeydown={alPulsarTecla} onclick={alHacerClic} />
+
+{#snippet icono(trazo: string, clase = 'size-[18px]')}
+  <svg class="{clase} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d={trazo} />
+  </svg>
 {/snippet}
 
-{#snippet pieMenu()}
-  <div class="mb-1.5 border-t border-slate-200/80 dark:border-ink-600"></div>
-  <a
-    href="#/legal/terminos-agencias"
-    class="flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13.5px] font-medium
-      text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700"
-  >
-    <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+{#snippet temaIcono()}
+  {#if oscuro}
+    {@render icono('M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4l1.4-1.4')}
+  {:else}
+    {@render icono('M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z')}
+  {/if}
+{/snippet}
+
+{#snippet avatar(tam: number)}
+  {#if agencia?.logo_url}
+    <AvatarAgencia {agencia} {tam} decorativo />
+  {:else}
+    <Avatar iniciales={agencia?.nombre ?? ''} {tam} />
+  {/if}
+{/snippet}
+
+{#snippet itemsPie()}
+  <a href="#/legal/terminos-agencias" class={ITEM}>
+    {@render icono('M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z')}
     Términos y privacidad
   </a>
-  <button
-    class="flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13.5px] font-medium
-      text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700"
-    onclick={alternarTema}
-  >
-    {#if oscuro}
-      <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4l1.4-1.4"/></svg>
-      Modo claro
-    {:else}
-      <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
-      Modo oscuro
-    {/if}
+{/snippet}
+
+{#snippet itemsCuenta()}
+  <button type="button" class={ITEM} onclick={alternarTema}>
+    {@render temaIcono()}
+    {oscuro ? 'Modo claro' : 'Modo oscuro'}
   </button>
-  <button
-    class="flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-[13.5px] font-medium
-      text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700"
-    onclick={() => signOut()}
-  >
-    <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"/></svg>
+  <button type="button" class={ITEM} onclick={() => signOut()}>
+    {@render icono('M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9')}
     Cerrar sesión
   </button>
 {/snippet}
 
 {#snippet tarjetaAgencia()}
   {#if agencia}
-    <div
-      class="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-paper p-2.5
-        dark:border-ink-600 dark:bg-ink-800"
-    >
-      <Avatar iniciales={agencia.nombre} tam={28} />
+    <div class="flex items-center gap-2.5 rounded-xl border border-slate-200/80 bg-paper p-2.5 dark:border-ink-600 dark:bg-ink-950">
+      {@render avatar(32)}
       <div class="min-w-0">
-        <div class="truncate text-[12.5px] font-bold">{agencia.nombre}</div>
-        <div class="mt-0.5 flex flex-wrap items-center gap-1">
+        <div class="line-clamp-2 text-[12.5px] leading-tight font-bold">{agencia.nombre}</div>
+        <div class="mt-1 flex flex-wrap items-center gap-1">
           <StatusPill estado={agencia.estado_verificacion} />
           {#if agencia.estado_verificacion === 'verificado' && estadoVigencia(agencia) !== 'vigente'}
             <StatusPill estado={estadoVigencia(agencia)} />
@@ -137,31 +131,97 @@
   {/if}
 {/snippet}
 
+{#snippet enlacesSecciones()}
+  {#each SECCIONES as s}
+    <a
+      href={'#' + s.ruta}
+      aria-current={esActiva(path, s.ruta) ? 'page' : undefined}
+      class="flex items-center gap-3 rounded-[10px] px-3 py-2 text-[13.5px] transition-colors
+        {esActiva(path, s.ruta)
+        ? 'bg-brand-600/12 font-bold text-acento-ink dark:bg-brand-400/15'
+        : 'font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700'}"
+    >
+      {@render icono(s.icono)}
+      {s.etiqueta}
+    </a>
+  {/each}
+{/snippet}
+
+{#snippet estadoPrueba(clase: string)}
+  <span class="{clase} items-center gap-2 rounded-full bg-orange-500/12 px-3 py-[5px] text-[12px] font-semibold text-alert-ink" role="status">
+    <i class="pulso size-[7px] shrink-0 rounded-full bg-orange-500" aria-hidden="true"></i>
+    {MODO_PRUEBA}
+  </span>
+{/snippet}
+
+<button type="button" class="saltar" onclick={() => principal?.focus()}>Saltar al contenido</button>
+
 <div class="flex min-h-screen">
   <!-- Barra lateral (escritorio) -->
   <aside
     class="sticky top-0 flex h-screen w-[236px] shrink-0 flex-col border-r border-slate-200/80 bg-white
-      px-3 py-4 max-md:hidden dark:border-ink-600 dark:bg-ink-900"
+      px-3 pt-5 pb-4 max-md:hidden dark:border-ink-600 dark:bg-ink-900"
   >
     <div class="flex items-center gap-2.5 px-1.5">
       <div class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-        <Logo size={20} />
+        <Logo size={22} />
       </div>
       <div>
-        <div class="text-[15px] font-extrabold tracking-tight">Diverso</div>
-        <div class="text-[10.5px] text-slate-500 dark:text-slate-400">Panel de agencias</div>
+        <div class="text-[15px] leading-tight font-extrabold tracking-[-0.2px]">Diverso</div>
+        <div class="text-[10.5px] text-slate-600 dark:text-slate-400">Panel de agencias</div>
       </div>
     </div>
 
-    <div class="mt-4">{@render tarjetaAgencia()}</div>
+    <div class="mt-5">{@render tarjetaAgencia()}</div>
 
-    <div class="mt-5 mb-1.5 px-2 text-[10px] font-bold tracking-[0.1em] text-slate-400">GESTIÓN</div>
-    {@render navegacion()}
+    <div id="gestion" class="mt-[22px] mb-1.5 px-2.5 text-[10px] font-bold tracking-[0.1em] text-slate-600 dark:text-slate-400">GESTIÓN</div>
+    <nav class="flex flex-col gap-0.5" aria-labelledby="gestion">
+      {@render enlacesSecciones()}
+    </nav>
 
-    <div class="mt-auto">{@render pieMenu()}</div>
+    <div class="mt-auto border-t border-slate-200/80 pt-2 dark:border-ink-600">{@render itemsPie()}</div>
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col">
+    <!-- Barra superior (escritorio) -->
+    <header
+      class="sticky top-0 z-30 flex h-[60px] shrink-0 items-center gap-3 border-b border-slate-200/80 bg-paper/90 px-6
+        backdrop-blur max-md:hidden lg:px-10 dark:border-ink-600 dark:bg-ink-950/90"
+    >
+      <p class="text-[13px] text-slate-600 dark:text-slate-400" data-migas>
+        Panel{#if seccion}&nbsp;·&nbsp;<b class="font-bold text-slate-900 dark:text-slate-100">{seccion.etiqueta}</b>{/if}
+      </p>
+      <span class="flex-1"></span>
+      {@render estadoPrueba('hidden lg:inline-flex')}
+      <button type="button" class={BOTON_ICONO} aria-pressed={oscuro} aria-label="Modo oscuro" onclick={alternarTema}>
+        {@render temaIcono()}
+      </button>
+      <div class="relative" bind:this={contenedorUsuario}>
+        <button
+          type="button"
+          bind:this={botonUsuario}
+          class="flex items-center gap-2 rounded-full border border-slate-200/80 bg-white py-[3px] pr-2.5 pl-[3px] text-[13px] font-semibold
+            transition-colors hover:bg-slate-100 dark:border-ink-600 dark:bg-ink-800 dark:hover:bg-ink-700"
+          aria-expanded={menuUsuario}
+          aria-controls="menu-usuario"
+          aria-haspopup="true"
+          onclick={() => (menuUsuario = !menuUsuario)}
+        >
+          {@render avatar(28)}
+          <span class="max-w-[140px] truncate">{nombreCorto(agencia?.nombre ?? '')}</span>
+          {@render icono('M6 9l6 6 6-6', 'size-3.5')}
+        </button>
+        <div
+          id="menu-usuario"
+          hidden={!menuUsuario}
+          class="absolute top-[46px] right-0 z-40 w-[220px] rounded-[14px] border border-slate-200/80 bg-white p-1.5 dark:border-ink-600 dark:bg-ink-800"
+        >
+          {@render itemsPie()}
+          {@render itemsCuenta()}
+        </div>
+      </div>
+    </header>
+
     <!-- Barra superior (móvil) -->
     <header
       class="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 py-2.5
@@ -188,39 +248,45 @@
     {#if menuAbierto}
       <div class="aparecer border-b border-slate-200/80 bg-white px-3 py-3 md:hidden dark:border-ink-600 dark:bg-ink-900">
         <div class="mb-3">{@render tarjetaAgencia()}</div>
-        {@render navegacion()}
-        <div class="mt-2">{@render pieMenu()}</div>
+        <nav class="flex flex-col gap-0.5" aria-label="Secciones">{@render enlacesSecciones()}</nav>
+        <div class="mt-2 border-t border-slate-200/80 pt-2 dark:border-ink-600">
+          {@render itemsPie()}
+          {@render itemsCuenta()}
+        </div>
       </div>
     {/if}
 
+    <!-- El indicador de prueba va en la barra superior; en pantallas angostas, en su propia franja. -->
+    <div class="flex justify-center border-b border-slate-200/80 px-4 py-2 lg:hidden dark:border-ink-600">
+      {@render estadoPrueba('inline-flex')}
+    </div>
+
     <!-- El Resumen muestra estos avisos arriba, con su acción: ahí el banner los repetiría. -->
-    {#if aviso && !activa('/dashboard')}
-      <div class="px-5 py-2.5 text-[13px] leading-relaxed {TONOS[aviso.tono]}" role="status">
+    {#if aviso && !esActiva(path, '/dashboard')}
+      <div class="px-5 py-2.5 text-[13px] leading-relaxed lg:px-10 {TONOS_AVISO[aviso.tono]}" role="status">
         {aviso.texto}
       </div>
     {/if}
 
-    <main class="min-w-0 flex-1 pb-20 md:pb-0">
+    <main id="principal" tabindex="-1" bind:this={principal} class="min-w-0 flex-1 pb-20 outline-none md:pb-0">
       {@render children()}
     </main>
 
     <!-- Navegación inferior (móvil) -->
     <nav
-      style="grid-template-columns: repeat({secciones.length}, minmax(0, 1fr))"
+      style="grid-template-columns: repeat({SECCIONES.length}, minmax(0, 1fr))"
       class="fixed inset-x-0 bottom-0 z-30 grid border-t border-slate-200/80 bg-white/95
         pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden dark:border-ink-600 dark:bg-ink-900/95"
-      aria-label="Secciones"
+      aria-label="Navegación inferior"
     >
-      {#each secciones as s}
+      {#each SECCIONES as s}
         <a
           href={'#' + s.ruta}
-          aria-current={activa(s.ruta) ? 'page' : undefined}
+          aria-current={esActiva(path, s.ruta) ? 'page' : undefined}
           class="flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold
-            {activa(s.ruta) ? 'text-brand-600 dark:text-brand-300' : 'text-slate-500 dark:text-slate-400'}"
+            {esActiva(path, s.ruta) ? 'text-acento-ink' : 'text-slate-600 dark:text-slate-400'}"
         >
-          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d={s.icono} />
-          </svg>
+          {@render icono(s.icono, 'size-5')}
           {s.corta ?? s.etiqueta}
         </a>
       {/each}

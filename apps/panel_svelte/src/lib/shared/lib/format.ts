@@ -44,3 +44,10 @@ const textoFmt = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long
 export function fechaTexto(iso: string): string {
   return textoFmt.format(new Date(iso.slice(0, 10) + 'T12:00:00'));
 }
+
+const decimalFmt = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Un decimal con coma: «4,3». */
+export function decimal1(v: number): string {
+  return decimalFmt.format(v);
+}

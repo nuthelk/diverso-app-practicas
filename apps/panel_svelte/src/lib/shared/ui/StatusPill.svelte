@@ -1,32 +1,32 @@
 <script lang="ts">
   let { estado }: { estado: string } = $props();
 
-  const MAPA: Record<string, { texto: string; clase: string }> = {
-    verificado: { texto: 'Verificada', clase: 'bg-ok-500/12 text-ok-500' },
-    rechazado: { texto: 'Rechazada', clase: 'bg-red-500/12 text-red-600' },
-    pendiente: { texto: 'Pendiente', clase: 'bg-orange-500/12 text-orange-600' },
-    confirmada: { texto: 'Confirmada', clase: 'bg-ok-500/12 text-ok-500' },
-    pendiente_pago: { texto: 'Pendiente', clase: 'bg-orange-500/12 text-orange-600' },
-    cancelada: { texto: 'Cancelada', clase: 'bg-red-500/12 text-red-600' },
-    completada: { texto: 'Completada', clase: 'bg-slate-500/15 text-slate-500' },
-    publicado: { texto: 'Publicado', clase: 'bg-ok-500/12 text-ok-500' },
-    borrador: { texto: 'Borrador', clase: 'bg-slate-500/15 text-slate-500' },
-    aprobado: { texto: 'Aprobado', clase: 'bg-ok-500/12 text-ok-500' },
-    reembolsado: { texto: 'Reembolsado', clase: 'bg-slate-500/15 text-slate-500' },
-    pagada_prueba: { texto: 'Pagada (prueba)', clase: 'bg-ok-500/12 text-ok-500' },
-    anulada: { texto: 'Anulada', clase: 'bg-slate-500/15 text-slate-500' },
-    compensada: { texto: 'Compensada', clase: 'bg-slate-500/15 text-slate-500' },
-    sin_saldo: { texto: 'Sin saldo', clase: 'bg-slate-500/15 text-slate-500' },
-    vigente: { texto: 'RNT vigente', clase: 'bg-ok-500/12 text-ok-500' },
-    por_vencer: { texto: 'RNT por vencer', clase: 'bg-orange-500/12 text-orange-600' },
-    vencido: { texto: 'RNT vencido', clase: 'bg-red-500/12 text-red-600' },
-    sin_vigencia: { texto: 'Sin vigencia', clase: 'bg-red-500/12 text-red-600' },
+  type Tono = 'ok' | 'alerta' | 'error' | 'neutra';
+
+  const MAPA: Record<string, { texto: string; tono: Tono }> = {
+    verificado: { texto: 'Verificada', tono: 'ok' },
+    rechazado: { texto: 'Rechazada', tono: 'error' },
+    pendiente: { texto: 'Pendiente', tono: 'alerta' },
+    en_verificacion: { texto: 'En verificación', tono: 'alerta' },
+    confirmada: { texto: 'Confirmada', tono: 'ok' },
+    pendiente_pago: { texto: 'Pendiente', tono: 'alerta' },
+    cancelada: { texto: 'Cancelada', tono: 'error' },
+    completada: { texto: 'Completada', tono: 'neutra' },
+    publicado: { texto: 'Publicado', tono: 'ok' },
+    borrador: { texto: 'Borrador', tono: 'neutra' },
+    aprobado: { texto: 'Aprobado', tono: 'ok' },
+    reembolsado: { texto: 'Reembolsado', tono: 'neutra' },
+    pagada_prueba: { texto: 'Pagada (prueba)', tono: 'ok' },
+    anulada: { texto: 'Anulada', tono: 'neutra' },
+    compensada: { texto: 'Compensada', tono: 'neutra' },
+    sin_saldo: { texto: 'Sin saldo', tono: 'neutra' },
+    vigente: { texto: 'RNT vigente', tono: 'ok' },
+    por_vencer: { texto: 'RNT por vencer', tono: 'alerta' },
+    vencido: { texto: 'RNT vencido', tono: 'error' },
+    sin_vigencia: { texto: 'Sin vigencia', tono: 'error' },
   };
 
-  const info = $derived(MAPA[estado] ?? { texto: estado, clase: 'bg-slate-500/15 text-slate-500' });
+  const info = $derived(MAPA[estado] ?? { texto: estado, tono: 'neutra' as Tono });
 </script>
 
-<span
-  class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10.5px] leading-5 font-bold whitespace-nowrap {info.clase}"
->{info.texto}</span
->
+<span class="pildora pildora-{info.tono}">{info.texto}</span>

@@ -12,7 +12,7 @@
 </script>
 
 <div
-  class="flex shrink-0 items-center justify-center rounded-full bg-ok-500/15 font-bold text-ok-600 dark:text-ok-500"
+  class="flex shrink-0 items-center justify-center rounded-full bg-ok-500/15 font-bold text-ok-ink"
   style="width:{tam}px;height:{tam}px;font-size:{tam * 0.36}px"
 >{letras}</div
 >

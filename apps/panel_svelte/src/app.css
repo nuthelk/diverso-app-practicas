@@ -29,6 +29,42 @@
   --color-ink-600: #262b33;
 
   --color-paper: #fafaf8;
+
+  /* Estrellas de calificación (dorado de la marca viajero) */
+  --color-dorado: #e8a33d;
+
+  /* Ancho desde el que caben los 4 indicadores del Resumen en una fila (el contenido llega a 1096 px). */
+  --breakpoint-ancho: 86rem;
+}
+
+/*
+ * Tintas y pistas que cambian con el tema. Los valores son los del tema por defecto de Tailwind
+ * (orange-300/800, red-300/700, slate-200) o derivados con color-mix; así el texto pequeño llega a AA en ambos modos.
+ */
+:root {
+  --ok-ink: var(--color-ok-600);
+  --alert-ink: #9a3412;
+  --error-ink: #b91c1c;
+  --acento-ink: var(--color-brand-700);
+  --pista: #e2e8f0;
+  --barra: var(--color-brand-500);
+}
+.dark {
+  --ok-ink: color-mix(in srgb, var(--color-ok-500) 45%, #fff);
+  --alert-ink: #fdba74;
+  --error-ink: #fca5a5;
+  --acento-ink: var(--color-brand-200);
+  --pista: var(--color-ink-600);
+  --barra: var(--color-brand-300);
+}
+
+@theme inline {
+  --color-ok-ink: var(--ok-ink);
+  --color-alert-ink: var(--alert-ink);
+  --color-error-ink: var(--error-ink);
+  --color-acento-ink: var(--acento-ink);
+  --color-pista: var(--pista);
+  --color-barra: var(--barra);
 }
 
 html {
@@ -167,6 +203,55 @@ body {
   background: rgb(220 38 38 / 0.07);
 }
 
+/* Píldoras de estado: tinte del 12 % del color y tinta que llega a AA en claro y oscuro. */
+.pildora {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  line-height: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pildora-ok {
+  background: color-mix(in srgb, var(--color-ok-500) 12%, transparent);
+  color: var(--ok-ink);
+}
+.pildora-alerta {
+  background: color-mix(in srgb, #f97316 12%, transparent);
+  color: var(--alert-ink);
+}
+.pildora-error {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: var(--error-ink);
+}
+.pildora-neutra {
+  background: color-mix(in srgb, #64748b 15%, transparent);
+  color: var(--color-slate-600);
+}
+.dark .pildora-neutra {
+  color: var(--color-slate-400);
+}
+
+/* «Saltar al contenido»: solo aparece con el foco del teclado. */
+.saltar {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 60;
+  border-radius: 999px;
+  background: var(--color-brand-600);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+}
+.saltar:focus {
+  top: 12px;
+}
+
 .tarjeta {
   border-radius: 18px;
   border: 1px solid rgb(226 232 240 / 0.8);
@@ -183,5 +268,10 @@ body {
   .aparecer,
   .pulso {
     animation: none;
+  }
+  *,
+  ::before,
+  ::after {
+    transition: none !important;
   }
 }

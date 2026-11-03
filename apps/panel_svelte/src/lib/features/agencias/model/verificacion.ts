@@ -114,13 +114,3 @@ export function textoVigencia(a: Agency, hoy = new Date()): { texto: string; cla
       };
   }
 }
-
-/** Frase de estado bajo el saludo del Resumen. */
-export function etiquetaEstadoAgencia(a: Agency | null, hoy = new Date()): string {
-  if (!a) return '';
-  if (a.estado_verificacion === 'rechazado') return 'Verificación rechazada';
-  if (a.estado_verificacion === 'pendiente') return 'En verificación';
-  const est = estadoVigencia(a, hoy);
-  if (est === 'vencido' || est === 'sin_vigencia') return 'Verificada · RNT vencido';
-  return `Verificada ✓ · RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`;
-}

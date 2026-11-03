@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" class="dark">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
@@ -8,10 +8,9 @@
     <link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
     <title>Diverso — Panel de Agencias</title>
     <script>
-      // Tema antes del primer render para evitar destello.
+      // Tema antes del primer render para evitar destello: claro salvo que se haya elegido oscuro.
       try {
-        const t = localStorage.getItem('diverso-panel-theme');
-        if (t === 'light') document.documentElement.classList.remove('dark');
+        if (localStorage.getItem('diverso-panel-theme') === 'dark') document.documentElement.classList.add('dark');
       } catch (_) {}
     </script>
     %sveltekit.head%

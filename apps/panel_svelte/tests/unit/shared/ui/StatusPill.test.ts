@@ -9,34 +9,35 @@ function pill(estado: string): HTMLElement {
 
 describe('StatusPill', () => {
   it.each([
-    ['verificado', 'Verificada', 'text-ok-500'],
-    ['rechazado', 'Rechazada', 'text-red-600'],
-    ['pendiente', 'Pendiente', 'text-orange-600'],
-    ['confirmada', 'Confirmada', 'text-ok-500'],
-    ['pendiente_pago', 'Pendiente', 'text-orange-600'],
-    ['cancelada', 'Cancelada', 'text-red-600'],
-    ['completada', 'Completada', 'text-slate-500'],
-    ['publicado', 'Publicado', 'text-ok-500'],
-    ['borrador', 'Borrador', 'text-slate-500'],
-    ['aprobado', 'Aprobado', 'text-ok-500'],
-    ['reembolsado', 'Reembolsado', 'text-slate-500'],
-    ['pagada_prueba', 'Pagada (prueba)', 'text-ok-500'],
-    ['anulada', 'Anulada', 'text-slate-500'],
-    ['compensada', 'Compensada', 'text-slate-500'],
-    ['sin_saldo', 'Sin saldo', 'text-slate-500'],
-    ['vigente', 'RNT vigente', 'text-ok-500'],
-    ['por_vencer', 'RNT por vencer', 'text-orange-600'],
-    ['vencido', 'RNT vencido', 'text-red-600'],
-    ['sin_vigencia', 'Sin vigencia', 'text-red-600'],
+    ['verificado', 'Verificada', 'pildora-ok'],
+    ['rechazado', 'Rechazada', 'pildora-error'],
+    ['pendiente', 'Pendiente', 'pildora-alerta'],
+    ['en_verificacion', 'En verificación', 'pildora-alerta'],
+    ['confirmada', 'Confirmada', 'pildora-ok'],
+    ['pendiente_pago', 'Pendiente', 'pildora-alerta'],
+    ['cancelada', 'Cancelada', 'pildora-error'],
+    ['completada', 'Completada', 'pildora-neutra'],
+    ['publicado', 'Publicado', 'pildora-ok'],
+    ['borrador', 'Borrador', 'pildora-neutra'],
+    ['aprobado', 'Aprobado', 'pildora-ok'],
+    ['reembolsado', 'Reembolsado', 'pildora-neutra'],
+    ['pagada_prueba', 'Pagada (prueba)', 'pildora-ok'],
+    ['anulada', 'Anulada', 'pildora-neutra'],
+    ['compensada', 'Compensada', 'pildora-neutra'],
+    ['sin_saldo', 'Sin saldo', 'pildora-neutra'],
+    ['vigente', 'RNT vigente', 'pildora-ok'],
+    ['por_vencer', 'RNT por vencer', 'pildora-alerta'],
+    ['vencido', 'RNT vencido', 'pildora-error'],
+    ['sin_vigencia', 'Sin vigencia', 'pildora-error'],
   ])('«%s» se muestra como «%s» con su color', (estado, texto, color) => {
     const el = pill(estado);
     expect(el.textContent?.trim()).toBe(texto);
     expect(el.className).toContain(color);
   });
 
-  it('un estado desconocido se muestra tal cual en gris', () => {
+  it('un estado desconocido se muestra tal cual en tono neutro', () => {
     const el = pill('en_revision');
     expect(el.textContent?.trim()).toBe('en_revision');
-    expect(el.className).toContain('text-slate-500');
+    expect(el.className).toContain('pildora-neutra');
   });
 });

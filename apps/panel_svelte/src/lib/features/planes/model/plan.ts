@@ -190,6 +190,25 @@ export function draftToRow(d: PlanDraft) {
   };
 }
 
+/** Bogotá no tiene horario de verano: UTC−5 todo el año (el servidor usa 'America/Bogota'). */
+const OFFSET_BOGOTA_MS = 5 * 3_600_000;
+
+/**
+ * Instante (UTC) en que parte una fecha del plan: el día de la fecha + `hora_salida` en hora de Bogotá.
+ * Es la misma cuenta del servidor (`(fecha + hora_salida) at time zone 'America/Bogota'`) y de la app del
+ * viajero, y no depende de la zona horaria del navegador.
+ */
+export function salidaDe(plan: Pick<Plan, 'hora_salida'>, fecha: Pick<PlanDate, 'fecha'>): Date {
+  const [y, m, d] = fecha.fecha.split('-').map(Number);
+  const [hh, mm, ss] = horaCorta(plan.hora_salida).split(':').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, hh, mm, ss || 0) + OFFSET_BOGOTA_MS);
+}
+
+/** La salida ya ocurrió o es justo ahora: no es una salida próxima (como `yaSalio` del viajero). */
+export function yaSalio(plan: Pick<Plan, 'hora_salida'>, fecha: Pick<PlanDate, 'fecha'>, ahora = new Date()): boolean {
+  return salidaDe(plan, fecha).getTime() <= ahora.getTime();
+}
+
 /** Fechas futuras con cupos, ordenadas (mismas reglas que el panel Flutter). */
 export function fechasFuturas(plan: Plan, ahora = new Date()): PlanDate[] {
   const hoy = new Date(ahora);

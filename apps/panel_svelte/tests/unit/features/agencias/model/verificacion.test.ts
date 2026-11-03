@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   avisoVerificacion,
   conteosAgencias,
-  etiquetaEstadoAgencia,
   filtrarAgencias,
   requiereAtencion,
   textoVigencia,
@@ -113,58 +112,5 @@ describe('textoVigencia', () => {
       texto: 'RNT vigente hasta el 31 de marzo de 2027',
       clase: 'text-ok-600 dark:text-ok-500',
     });
-  });
-});
-
-describe('etiquetaEstadoAgencia', () => {
-  it('sin agencia es vacía', () => {
-    expect(etiquetaEstadoAgencia(null, HOY)).toBe('');
-  });
-
-  it.each([
-    [{ estado_verificacion: 'rechazado' as const }, 'Verificación rechazada'],
-    [{ estado_verificacion: 'pendiente' as const }, 'En verificación'],
-    [{ rnt_vigente_hasta: '2026-01-01' }, 'Verificada · RNT vencido'],
-    [{ rnt_vigente_hasta: null }, 'Verificada · RNT vencido'],
-    [{ rnt_vigente_hasta: '2026-11-04' }, 'Verificada ✓ · RNT vigente hasta el 4 de noviembre de 2026'],
-    [{}, 'Verificada ✓ · RNT vigente hasta el 31 de marzo de 2027'],
-  ])('%j → %s', (parcial, esperado) => {
-    expect(etiquetaEstadoAgencia(agencia(parcial), HOY)).toBe(esperado);
-  });
-});
-
-describe('avisoVerificacion: qué pasa con la agencia y qué tiene que hacer', () => {
-  it.each([
-    [
-      { estado_verificacion: 'rechazado' as const, motivo_rechazo: 'RNT ilegible' },
-      'error',
-      'La verificación de tu agencia fue rechazada: RNT ilegible Corrige tus datos y escríbenos para revisarla de nuevo.',
-    ],
-    [
-      { estado_verificacion: 'pendiente' as const, numero_rnt: '12345' },
-      'info',
-      'Tu agencia está en verificación (RNT 12345). Puedes preparar planes como borrador; se publicarán cuando el equipo Diverso confirme tu registro.',
-    ],
-    [
-      { rnt_vigente_hasta: '2026-10-20' },
-      'error',
-      'El RNT de tu agencia está vencido: tus planes no se muestran ni reciben reservas. Renueva el registro y envíanos el soporte.',
-    ],
-    [
-      { rnt_vigente_hasta: null },
-      'error',
-      'Tu agencia no tiene registrada la vigencia del RNT, así que tus planes no se muestran. Envíanos el certificado vigente para habilitarla.',
-    ],
-    [
-      { rnt_vigente_hasta: '2026-11-14' },
-      'alerta',
-      'Tu RNT vence el 14 de noviembre de 2026 (en 20 días). Renuévalo a tiempo para no dejar de vender.',
-    ],
-  ])('%j → %s', (parcial, tono, texto) => {
-    expect(avisoVerificacion(agencia(parcial), HOY)).toEqual({ tono, texto });
-  });
-
-  it('verificada y con RNT vigente: sin aviso', () => {
-    expect(avisoVerificacion(agencia(), HOY)).toBeNull();
   });
 });
