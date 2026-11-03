@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
+import '../view_models/checkout_plan_view_model.dart';
 import 'checkout_view.dart';
 
 /// `/checkout/:planId/:fechaId`: carga el plan y la fecha por id desde el backend, así la
@@ -20,15 +21,23 @@ class CheckoutLoader extends StatefulWidget {
 }
 
 class _CheckoutLoaderState extends State<CheckoutLoader> {
-  late Future<Plan> _plan;
+  late final CheckoutPlanViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _cargar();
+    _viewModel = CheckoutPlanViewModel(
+      catalogo: context.read<CatalogRepository>(),
+      planId: widget.planId,
+      fechaId: widget.fechaId,
+    )..cargar();
   }
 
-  void _cargar() => _plan = context.read<CatalogRepository>().planDetalle(widget.planId);
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   Widget _estado(Widget hijo) => Scaffold(
     appBar: AppBar(title: const Text('Confirmar y pagar')),
@@ -37,28 +46,24 @@ class _CheckoutLoaderState extends State<CheckoutLoader> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Plan>(
-      future: _plan,
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return _estado(const Center(child: CircularProgressIndicator()));
-        }
-        if (snap.hasError) {
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        final vm = _viewModel;
+        if (vm.cargando) return _estado(const Center(child: CircularProgressIndicator()));
+        final plan = vm.plan;
+        if (vm.error != null || plan == null) {
           return _estado(
             EmptyState(
               icono: Icons.cloud_off_rounded,
               titulo: 'No pudimos cargar el plan',
               mensaje: 'Revisa tu conexión e intenta de nuevo.',
-              accion: FilledButton.tonal(
-                onPressed: () => setState(_cargar),
-                child: const Text('Reintentar'),
-              ),
+              accion: FilledButton.tonal(onPressed: vm.cargar, child: const Text('Reintentar')),
             ),
           );
         }
-        final plan = snap.data!;
-        final fechas = plan.dates.where((d) => d.id == widget.fechaId && !plan.yaSalio(d));
-        if (fechas.isEmpty) {
+        final fecha = vm.fecha;
+        if (fecha == null) {
           return _estado(
             EmptyState(
               icono: Icons.event_busy_rounded,
@@ -71,7 +76,7 @@ class _CheckoutLoaderState extends State<CheckoutLoader> {
             ),
           );
         }
-        return CheckoutView(plan: plan, fecha: fechas.first);
+        return CheckoutView(plan: plan, fecha: fecha);
       },
     );
   }

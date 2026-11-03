@@ -221,7 +221,7 @@ router.
 **Ya lo entendí si…**
 - [ ] Explicas por qué `Skeleton` es un `StatefulWidget` y `PriceText` no.
 - [ ] Dices qué consigue `const` cuando Flutter reconstruye el árbol.
-- [ ] Explicas por qué el `Future` de `CheckoutLoader` se crea en `initState` y no en `build`.
+- [ ] Explicas por qué `CheckoutLoader` crea su view model y llama a `cargar()` en `initState` y no en `build`.
 
 ---
 

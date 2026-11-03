@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
+import '../view_models/reserva_view_model.dart';
 import 'booking_success_view.dart';
 
 /// `/reserva/:bookingId`: confirmación cargada del backend. Si la reserva sigue pendiente de
@@ -19,34 +20,39 @@ class ReservaView extends StatefulWidget {
 }
 
 class _ReservaViewState extends State<ReservaView> {
-  late Future<Booking> _reserva;
+  late final ReservaViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _cargar();
+    _viewModel = ReservaViewModel(
+      reservas: context.read<BookingRepository>(),
+      bookingId: widget.bookingId,
+    )..cargar();
   }
 
-  void _cargar() => _reserva = context.read<BookingRepository>().reserva(widget.bookingId);
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   Widget _estado(Widget hijo) => Scaffold(appBar: AppBar(), body: hijo);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Booking>(
-      future: _reserva,
-      builder: (context, snap) {
-        if (snap.connectionState != ConnectionState.done) {
-          return _estado(const Center(child: CircularProgressIndicator()));
-        }
-        final error = snap.error;
-        if (error != null) {
-          final f = error is DiversoException ? error : DiversoException.fromPostgrest(error);
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        final vm = _viewModel;
+        if (vm.cargando) return _estado(const Center(child: CircularProgressIndicator()));
+        final reserva = vm.reserva;
+        if (vm.error != null || reserva == null) {
           return _estado(
             EmptyState(
               icono: Icons.cloud_off_rounded,
               titulo: 'No pudimos cargar la reserva',
-              mensaje: f.mensajeUsuario,
+              mensaje: vm.error ?? '',
               accion: FilledButton.tonal(
                 onPressed: () => context.go(AppRoutes.reservas),
                 child: const Text('Ver mis reservas'),
@@ -54,7 +60,6 @@ class _ReservaViewState extends State<ReservaView> {
             ),
           );
         }
-        final reserva = snap.data!;
         switch (reserva.estado) {
           case BookingStatus.confirmada:
           case BookingStatus.completada:

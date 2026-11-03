@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -8,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../router/app_routes.dart';
+import 'pago_abierto.dart';
 
 /// URL a la que Wompi devuelve al viajero, según la plataforma:
 /// - Web: `<origen de la app>/pago/resultado` (misma ventana; el origen debe estar en la lista
@@ -32,32 +31,41 @@ String? idDeRedireccion(String url) {
   return id == null || id.isEmpty ? null : id;
 }
 
-/// Pide el checkout de la reserva a `pagos-iniciar` y lo abre.
-///
-/// - Web: navega en la MISMA ventana a Wompi; la página se descarga y el resultado llega a
-///   `/pago/resultado` (el Future no termina).
+/// Pide el checkout de la reserva a `pagos-iniciar` y lo abre; el [PagoAbierto] dice cómo terminó:
+/// - Web: navega en la MISMA ventana a Wompi ([PagoAbierto.redirigido]); la página se descarga y
+///   el resultado llega a `/pago/resultado`.
 /// - Android/iOS: WebView dentro de la app; al interceptar la redirección se va a
-///   `/pago/resultado?id=…`. Devuelve false si el viajero cerró el pago sin terminar.
+///   `/pago/resultado?id=…` ([PagoAbierto.completado]), o el viajero lo cierra sin terminar
+///   ([PagoAbierto.cerrado]).
 /// Lanza [DiversoException] si el servidor rechaza el inicio del pago.
-Future<bool> iniciarPago(
+Future<PagoAbierto> iniciarPago(
   BuildContext context, {
   required PaymentGateway pasarela,
   required String bookingId,
 }) async {
   final checkout = await pasarela.iniciar(bookingId: bookingId, redirectUrl: urlRetornoPago());
-  if (kIsWeb) {
-    final abierto = await launchUrl(Uri.parse(checkout.checkoutUrl), webOnlyWindowName: '_self');
-    if (!abierto) throw DiversoException('ERROR_NAVEGADOR', 'No se pudo abrir Wompi');
-    return Completer<bool>().future;
-  }
-  if (!context.mounted) return false;
+  if (kIsWeb) return abrirEnLaMismaVentana(checkout.checkoutUrl);
+  if (!context.mounted) return PagoAbierto.cerrado;
   final id = await Navigator.of(context).push<String>(
     MaterialPageRoute(builder: (_) => PagoWompiPage(checkoutUrl: checkout.checkoutUrl)),
   );
-  if (id == null || !context.mounted) return false;
+  if (id == null || !context.mounted) return PagoAbierto.cerrado;
   context.go(AppRoutes.pagoDeTransaccion(id));
-  return true;
+  return PagoAbierto.completado;
 }
+
+/// Web: lleva esta misma ventana a [checkoutUrl]. [lanzar] abre la URL y dice si el navegador la
+/// aceptó (se inyecta en las pruebas, que no tienen navegador).
+Future<PagoAbierto> abrirEnLaMismaVentana(
+  String checkoutUrl, {
+  Future<bool> Function(Uri url) lanzar = _lanzarEnLaMismaVentana,
+}) async {
+  final abierto = await lanzar(Uri.parse(checkoutUrl));
+  if (!abierto) throw DiversoException('ERROR_NAVEGADOR', 'No se pudo abrir Wompi');
+  return PagoAbierto.redirigido;
+}
+
+Future<bool> _lanzarEnLaMismaVentana(Uri url) => launchUrl(url, webOnlyWindowName: '_self');
 
 /// Checkout de Wompi en un WebView; cierra con el id de la transacción al interceptar la
 /// redirección final (esa URL nunca se carga).

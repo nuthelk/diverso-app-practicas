@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../checkout/pago_abierto.dart';
 import '../checkout/pago_wompi.dart';
 import 'view_models/reserva_acciones_view_model.dart';
 import 'widgets/cancel_dialog.dart';
@@ -43,8 +44,8 @@ Future<void> completarPago(
   Booking b,
 ) async {
   try {
-    final terminado = await iniciarPago(context, pasarela: pasarela, bookingId: b.id);
-    if (!terminado) {
+    final abierto = await iniciarPago(context, pasarela: pasarela, bookingId: b.id);
+    if (abierto == PagoAbierto.cerrado) {
       viewModel.avisar(
         'Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar».',
       );

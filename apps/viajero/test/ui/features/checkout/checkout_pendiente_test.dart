@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:viajero/ui/core/theme/app_theme.dart';
 import 'package:viajero/ui/core/theme/theme_mode_view_model.dart';
+import 'package:viajero/ui/features/checkout/pago_abierto.dart';
 import 'package:viajero/ui/features/checkout/view_models/checkout_view_model.dart';
 import 'package:viajero/ui/features/checkout/widgets/reserva_pendiente_aviso.dart';
 
@@ -132,9 +133,9 @@ void main() {
     late _Reservas reservas;
     late CheckoutViewModel c;
     final abiertos = <String>[];
-    Future<bool> Function(String) abrir(bool terminado) => (id) async {
+    Future<PagoAbierto> Function(String) abrir(bool terminado) => (id) async {
       abiertos.add(id);
-      return terminado;
+      return terminado ? PagoAbierto.completado : PagoAbierto.cerrado;
     };
 
     setUp(() {

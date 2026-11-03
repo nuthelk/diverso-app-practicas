@@ -33,9 +33,21 @@ class ReservasFalsas implements BookingRepository {
     motivo: '',
   );
 
+  /// Reserva pendiente de pago que `reservaPendiente` devuelve (null = no hay ninguna).
+  Booking? pendiente;
+
+  /// Si no es null, `reservaPendiente` lo lanza.
+  Object? falloAlBuscarPendiente;
+
+  /// Si no es null, `crearReserva` lo lanza; antes deja `pendienteTrasFalla` como la pendiente
+  /// (otra pestaña la creó entre la consulta y el alta).
+  Object? falloAlCrear;
+  Booking? pendienteTrasFalla;
+
   int consultasLista = 0;
   final consultas = <String>[];
   final canceladas = <String>[];
+  final creadas = <({String planDateId, int pax})>[];
 
   @override
   Future<List<Booking>> misReservas() async {
@@ -57,6 +69,27 @@ class ReservasFalsas implements BookingRepository {
   }
 
   @override
+  Future<Booking?> reservaPendiente(String planDateId) async {
+    if (falloAlBuscarPendiente != null) throw falloAlBuscarPendiente!;
+    return pendiente;
+  }
+
+  @override
+  Future<CreatedBooking> crearReserva({required String planDateId, required int pax}) async {
+    if (falloAlCrear != null) {
+      pendiente = pendienteTrasFalla;
+      throw falloAlCrear!;
+    }
+    creadas.add((planDateId: planDateId, pax: pax));
+    return CreatedBooking(
+      bookingId: 'nueva-${creadas.length}',
+      codigo: 'DIV-NEW',
+      montoTotal: 1,
+      planTitulo: '',
+    );
+  }
+
+  @override
   Future<VistaPreviaCancelacion> vistaPreviaCancelacion(String bookingId) async {
     if (falloAlCancelar != null) throw falloAlCancelar!;
     return vista;
@@ -66,6 +99,7 @@ class ReservasFalsas implements BookingRepository {
   Future<ResultadoCancelacion> cancelar(String bookingId) async {
     if (falloAlCancelar != null) throw falloAlCancelar!;
     canceladas.add(bookingId);
+    if (pendiente?.id == bookingId) pendiente = null;
     return resultado;
   }
 

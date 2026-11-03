@@ -120,11 +120,10 @@ Reglas de dependencia (quién puede importar a quién):
 Por qué las reglas viven en modelos y view models y no en el widget: se **prueban sin dibujar
 nada**. `Plan.esNuevo` o `BookingsViewModel.activas` se verifican con un `test(...)` normal.
 
-> **Hoy.** El catálogo, la ficha del plan, «Mis reservas», el detalle de la reserva, la reseña, el
-> perfil y el acceso ya pasan siempre por su view model: la vista solo lee el repositorio con
-> `context.read<...Repository>()` para dárselo por constructor. Otras vistas siguen llamándolos
-> ellas mismas (`checkout_loader.dart`, `reserva_view.dart`); la fase F5b-2 las deja solo con su
-> ViewModel.
+> **Hoy.** Ninguna vista llama a un repositorio: el catálogo, la ficha del plan, «Mis reservas», el
+> detalle de la reserva, la reseña, el perfil, el acceso, el checkout, el resultado del pago y la
+> confirmación (`checkout_loader.dart`, `reserva_view.dart`) pasan por su view model. La vista solo
+> lee el repositorio con `context.read<...Repository>()` para dárselo por constructor.
 
 ## 3. `ChangeNotifier`: el view model
 
@@ -213,8 +212,9 @@ es un getter de solo lectura; la vista lo muestra y llama `limpiarMensaje()` par
 en vez de escribir el campo (`mostrarAviso` en `bookings/acciones_reserva.dart`).
 
 `CatalogViewModel`, `PlanDetailViewModel`, `BookingsViewModel`, `ReservaDetalleViewModel`,
-`ReviewViewModel`, `ProfileViewModel` y `LoginViewModel` siguen esa forma: todo el estado es privado (`_planes`,
-`_cargando`, `_error`…) y la vista solo ve getters de solo lectura; para cambiar algo llama a un
+`ReviewViewModel`, `ProfileViewModel`, `LoginViewModel`, `CheckoutViewModel`,
+`CheckoutPlanViewModel`, `ReservaViewModel` y `PagoResultadoViewModel` siguen esa forma: todo el
+estado es privado (`_planes`, `_cargando`, `_error`…) y la vista solo ve getters de solo lectura; para cambiar algo llama a un
 **comando** (`toggleCategoria`, `aplicarFiltros`, `seleccionarFecha`…). Un comando que cambia
 varios filtros a la vez los fija todos y consulta **una sola vez**: `aplicarFiltros(destino:,
 precioMax:, fecha:)` es lo que usa «Aplicar filtros» (antes eran tres consultas seguidas).
@@ -234,9 +234,15 @@ Un valor **derivado** no se guarda ni se corrige dentro de `build`: `PlanDetailV
 guarda el id de la fecha elegida y `fechaSeleccionada` la calcula a partir de `fechas` cada vez que
 se lee (si esa fecha ya no está disponible, vale la primera). Así `build` solo lee y nunca muta.
 
-> **Hoy.** `CheckoutViewModel`, `PagoResultadoViewModel` y los de agencias todavía exponen sus
-> campos como **públicos** (la vista podría escribirlos); las fases F5b-2 y F5c los dejan como los
-> anteriores.
+Un comando que depende de algo que solo la vista puede hacer (abrir el WebView de Wompi necesita
+el `BuildContext`) recibe esa acción como argumento y pide un **resultado explícito**, no un
+`bool` ni un `Future` que quizá no termina: `CheckoutViewModel.pagar(fecha, abrirPago)` espera un
+`PagoAbierto` (`checkout/pago_abierto.dart`): `completado` (el WebView interceptó la redirección),
+`cerrado` (el viajero lo cerró sin pagar: el view model deja el aviso) o `redirigido` (en web la
+misma ventana ya navega a Wompi: termina «Procesando…» y nadie espera nada más).
+
+> **Hoy.** Los view models de agencias (`AgenciasViewModel`, `AgenciaViewModel`) todavía exponen sus
+> campos como **públicos** (la vista podría escribirlos); la fase F5c los deja como los anteriores.
 
 ## 4. `ListenableBuilder`: suscribirse y repintar
 
@@ -568,9 +574,9 @@ en `apps/viajero/test/router/rutas_pago_test.dart`.
 | `/perfil` | `ProfileView` | pestaña Perfil |
 | `/agencia/:id` | `AgenciaView` | |
 | `/plan/:id` | `PlanDetailView` | |
-| `/checkout/:planId/:fechaId` | `CheckoutLoader` | carga el plan y muestra `CheckoutView` |
+| `/checkout/:planId/:fechaId` | `CheckoutLoader` | carga el plan (`CheckoutPlanViewModel`) y muestra `CheckoutView` |
 | `/pago/resultado` | `PagoResultadoView` | `?id=` (transacción) o `?reserva=` |
-| `/reserva/:bookingId` | `ReservaView` | confirmación de una reserva |
+| `/reserva/:bookingId` | `ReservaView` | confirmación de una reserva (`ReservaViewModel`) |
 | `/reservas/:bookingId` | `ReservaDetalleView` | detalle desde "Mis reservas" |
 | `/resena/:bookingId` | `ReviewLoader` | carga la reserva y muestra `ReviewView`; `extra` opcional |
 | `/comparar?ids=a,b` | `ComparatorLoader` | carga los planes y muestra `ComparatorView`; `extra` opcional |

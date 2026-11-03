@@ -201,10 +201,10 @@ diferencias), pero impone reglas:
 
 1. **`build` debe ser puro y rápido.** Nada de consultas de red, ni crear controladores, ni
    efectos.
-2. **Los objetos con vida propia se crean en `initState`**, no en `build`. Si el `Future` de un
-   `FutureBuilder` se creara dentro de `build`, se repetiría la consulta en cada
-   reconstrucción. En `checkout_loader.dart` el `Future` se asigna en `_cargar()`, que se llama
-   desde `initState` (y desde el botón "Reintentar").
+2. **Los objetos con vida propia se crean en `initState`**, no en `build`. Si el view model (o el
+   `Future` de un `FutureBuilder`) se creara dentro de `build`, se repetiría la consulta en cada
+   reconstrucción. En `checkout_loader.dart` el `CheckoutPlanViewModel` se crea en `initState` y
+   ahí mismo se le pide `cargar()` (también lo llama el botón "Reintentar").
 3. **Calcula una vez lo que no cambia con el scroll.** Un comentario del repo lo dice:
    en `catalog_view.dart`, `build` decide `esGrid` con `MediaQuery.sizeOf(context).width` "una
    vez por rebuild real" y no dentro del scroll.
@@ -442,7 +442,7 @@ sola imagen para todos los fondos. Las fotos de los planes vienen de internet co
 | `RefreshControl` | `RefreshIndicator` | |
 | `Alert` / `Modal` | `showDialog` | |
 | `Animated` | `AnimatedSwitcher`, `FadeTransition`, `AnimationController` | |
-| React Query (carga simple) | `FutureBuilder` | |
+| React Query (carga simple) | un view model con `cargar()` + `ListenableBuilder` (o `FutureBuilder`) | `checkout_plan_view_model.dart`; el repo no usa `FutureBuilder` |
 | expo-router / React Navigation | `go_router` | capítulo 3 |
 | Fast Refresh | hot reload | capítulo 4 |
 

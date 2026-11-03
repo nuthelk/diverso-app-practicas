@@ -582,10 +582,13 @@ final (filas, planes) = await (
 Una tupla de `Future` con `.wait` es `Promise.all` que además conserva el tipo de cada resultado.
 
 **Un `Future` en la UI.** `FutureBuilder<Plan>` es el equivalente a un `useQuery` mínimo: recibe
-un `Future` y reconstruye según esté cargando, con error o con datos
-(`viajero/ui/features/checkout/views/checkout_loader.dart`). Detalle importante: el `Future`
-se crea en `initState`, **no** dentro de `build`, o se repetiría la consulta en cada
-reconstrucción (capítulo 2, sección 4).
+un `Future` y reconstruye según esté cargando, con error o con datos. Esta app ya no lo usa: cada
+pantalla que carga por id lo hace en un view model que guarda `cargando`, `error` y el dato
+(`CheckoutPlanViewModel.cargar()` en
+`viajero/ui/features/checkout/view_models/checkout_plan_view_model.dart`) y la vista lo escucha
+(capítulo 3). La regla es la misma si algún día lo usas: el `Future` (o el view model) se crea en
+`initState`, **no** dentro de `build`, o se repetiría la consulta en cada reconstrucción
+(capítulo 2, sección 4).
 
 **Reglas que verás en el código:**
 

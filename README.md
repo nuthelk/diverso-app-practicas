@@ -410,6 +410,12 @@ cd apps/viajero && flutter test
   `test/ui/features/checkout/checkout_pendiente_test.dart`,
   `test/ui/features/bookings/widgets/cancel_dialog_test.dart` — pasarela, rutas que sobreviven
   a la recarga, aviso de reserva pendiente y diálogo de cancelación.
+- `test/ui/features/checkout/pago_abierto_test.dart`,
+  `test/ui/features/checkout/view_models/*_test.dart` (`checkout`, `checkout_plan`, `reserva`,
+  `pago_resultado`), `checkout/views/pago_resultado_view_test.dart` — el resultado explícito de
+  abrir el pago (`PagoAbierto`: en web `redirigido` termina «Procesando…»), los view models del
+  checkout con repositorios y pasarela falsos (carga, error, reserva pendiente, verificar y
+  reintentar, guardia de `dispose`) y el reintento de pago desde la vista.
 - `test/router/sesion_redirect_test.dart`, `test/router/consentimiento_test.dart`,
   `test/router/consentimiento_guard_test.dart`, `test/router/rutas_con_ids_test.dart`,
   `test/app_test.dart` — el redirect de sesión y consentimiento (función pura, `?desde=` validado,
