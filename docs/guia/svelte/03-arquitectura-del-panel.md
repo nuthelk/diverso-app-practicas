@@ -1,26 +1,31 @@
 # 3. Arquitectura del panel
 
 Este capítulo responde tres preguntas: **dónde vive cada cosa** en `apps/panel_svelte`, **cómo viaja
-un dato** desde Supabase hasta la pantalla y **cómo se pasa de una pantalla a otra**. Termina con
-una lista de pasos para **agregar una pantalla nueva**. Es el capítulo que más te sirve para empezar
-a tocar código.
+un dato** desde Supabase hasta la pantalla y **cómo se pasa de una pantalla a otra** con SvelteKit.
+Termina con una lista de pasos para **agregar una pantalla nueva**. Es el capítulo que más te sirve
+para empezar a tocar código.
 
 > Volver al [plan de aprendizaje](README.md). Este capítulo cubre las sesiones 1 (secciones 1 y 2)
-> y 5 (secciones 3 a 9).
-> La estructura salió de la tarea «Arquitectura del panel Svelte» y se parece a propósito a la de
-> `apps/viajero`: quien conozca una encuentra la otra.
+> y 5 (secciones 3 a 11).
+> La estructura salió de la tarea «Arquitectura del panel Svelte»: primero por funcionalidad, y
+> después con el árbol de **SvelteKit**. Se parece a propósito a la de `apps/viajero`: quien conozca
+> una encuentra la otra.
+> Lo que se afirma de SvelteKit está comprobado contra la versión instalada (**2.70.3**, en
+> `apps/panel_svelte/node_modules/@sveltejs/kit`).
 
 ## Contenido
 
 1. [El mapa de carpetas](#1-el-mapa-de-carpetas)
 2. [Qué va dónde y por qué](#2-qué-va-dónde-y-por-qué)
-3. [Reglas de importación](#3-reglas-de-importación)
+3. [Reglas de importación y alias](#3-reglas-de-importación-y-alias)
 4. [Cómo viaja un dato: página → `*.api.ts` → Supabase](#4-cómo-viaja-un-dato-página--apits--supabase)
-5. [El router por hash y la tabla de rutas](#5-el-router-por-hash-y-la-tabla-de-rutas)
-6. [El guard de sesión](#6-el-guard-de-sesión)
-7. [Layouts: `sola` y `panel`](#7-layouts-sola-y-panel)
-8. [Convenciones de nombres](#8-convenciones-de-nombres)
-9. [Checklist: agregar una pantalla nueva](#9-checklist-agregar-una-pantalla-nueva)
+5. [SvelteKit estático y el router por hash](#5-sveltekit-estático-y-el-router-por-hash)
+6. [Rutas: carpetas en `src/routes`](#6-rutas-carpetas-en-srcroutes)
+7. [Navegar y saber en qué ruta estás](#7-navegar-y-saber-en-qué-ruta-estás)
+8. [Layouts y guard de sesión](#8-layouts-y-guard-de-sesión)
+9. [Lo que SvelteKit trae y el panel no usa](#9-lo-que-sveltekit-trae-y-el-panel-no-usa)
+10. [Convenciones de nombres](#10-convenciones-de-nombres)
+11. [Checklist: agregar una pantalla nueva](#11-checklist-agregar-una-pantalla-nueva)
 
 ---
 
@@ -28,37 +33,46 @@ a tocar código.
 
 ```
 apps/panel_svelte/
-|-- index.html            carga /src/main.ts y fija el tema (claro/oscuro) antes de pintar
-|-- vite.config.ts        Vite + Tailwind + alias @
-|-- vitest.config.ts      Vitest (jsdom) + el mismo alias
-|-- svelte.config.js      TypeScript dentro de los .svelte
-|-- tsconfig.json         TypeScript estricto + paths @/*
+|-- svelte.config.js      SvelteKit: adapter-static, router por hash, alias $tests
+|-- vite.config.ts        Vite + Tailwind + el plugin de SvelteKit
+|-- vitest.config.ts      Vitest (jsdom) + el mismo plugin
+|-- tsconfig.json         extiende el que SvelteKit genera en .svelte-kit/ (con los alias)
+|-- static/               archivos que se sirven tal cual: favicon, íconos, manifest, logo
+|-- tests/                ayudas de pruebas: fixtures.ts, supabase-falso.ts, pagina-falsa.svelte.ts
 `-- src/
-    |-- main.ts           monta <App />
+    |-- app.html          la plantilla HTML base: fija el tema (claro/oscuro) antes de pintar
+    |-- app.d.ts          tipos globales de SvelteKit (aquí solo la forma del error)
     |-- app.css           Tailwind: colores de marca, variante dark
-    |-- app/              el esqueleto de la aplicación
-    |   |-- App.svelte    decide qué pantalla y qué marco pintar
-    |   |-- rutas.ts      la tabla de rutas y resolverRuta (pura)
-    |   |-- sesion.ts     el guard de sesión (puro)
-    |   |-- Shell.svelte  el marco con menú lateral
-    |   `-- Toast.svelte  el aviso emergente global
-    |-- features/<funcionalidad>/
-    |   |-- admin/            verificación de agencias y dispersiones (rol admin)
-    |   |-- agencias/         onboarding, logo, verificación RNT
-    |   |-- auth/             login, starter, estado de sesión
-    |   |-- legal/            documentos y consentimiento (Ley 1581)
-    |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
-    |   |-- planes/           lista de planes, formulario, fechas y cupos
-    |   |-- resumen/          el dashboard
-    |   `-- ventas/           ventas y conciliación
-    |-- shared/
-    |   |-- api/              supabase.ts (el cliente) y errores.ts
-    |   |-- lib/              format.ts, router.svelte.ts, toast.svelte.ts
-    |   `-- ui/               Avatar, Empty, Logo, Select, Skeleton, StatusPill
-    `-- test/                 fixtures.ts y supabase-falso.ts (ayudas de pruebas)
+    |-- hooks.client.ts   qué mostrar cuando un error no se atrapó (handleError)
+    |-- params/
+    |   `-- doc.ts        matcher del parámetro [doc=doc]: solo documentos legales que existen
+    |-- routes/           el enrutamiento por carpetas: una carpeta = una URL
+    |   |-- +layout.svelte    raíz: guard de sesión y Toast
+    |   |-- +error.svelte     la página de error (404 incluido)
+    |   |-- +page.svelte      «/» → manda a /starter
+    |   |-- login/  starter/  consentimiento/   páginas sin menú lateral
+    |   |-- admin/  admin/dispersiones/     rol admin, sin menú lateral
+    |   |-- legal/[[doc=doc]]/              documentos legales (parámetro opcional)
+    |   `-- (panel)/          grupo de rutas: no cuenta en la URL, aporta el marco con menú
+    |       |-- +layout.svelte    el Shell
+    |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/
+    `-- lib/              el código reutilizable (alias $lib)
+        |-- features/<funcionalidad>/
+        |   |-- admin/            verificación de agencias y dispersiones (rol admin)
+        |   |-- agencias/         onboarding, logo, verificación RNT y el Shell
+        |   |-- auth/             login, starter, estado de sesión y guard
+        |   |-- legal/            documentos y consentimiento (Ley 1581)
+        |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
+        |   |-- planes/           lista de planes, formulario, fechas y cupos
+        |   |-- resumen/          el dashboard
+        |   `-- ventas/           ventas y conciliación
+        `-- shared/
+            |-- api/              supabase.ts (el cliente) y errores.ts
+            |-- lib/              format.ts, ruta.ts, toast.svelte.ts
+            `-- ui/               Avatar, Empty, Logo, Select, Skeleton, StatusPill, Toast
 ```
 
-Dentro de cada funcionalidad, por ejemplo `src/features/planes/`:
+Dentro de cada funcionalidad, por ejemplo `src/lib/features/planes/`:
 
 ```
 planes/
@@ -74,26 +88,42 @@ planes/
 `-- *.test.ts                 las pruebas, junto al archivo que prueban
 ```
 
+Y una ruta, por ejemplo `src/routes/(panel)/planes/`, es solo carpetas con archivos `+page.svelte`:
+
+```
+(panel)/planes/
+|-- +page.svelte              #/planes
+|-- nuevo/+page.svelte        #/planes/nuevo
+`-- editar/[[id]]/+page.svelte    #/planes/editar y #/planes/editar/<id>
+```
+
 ---
 
 ## 2. Qué va dónde y por qué
 
 **Organizado por funcionalidad, no por tipo de archivo.** Todo lo que cambia cuando tocas «planes»
-está en `features/planes/`. La alternativa (carpetas `pages/`, `components/`, `api/`, `types/` para
-toda la app) te obliga a abrir cuatro carpetas para un solo cambio.
+está en `lib/features/planes/`. La alternativa (carpetas `pages/`, `components/`, `api/`, `types/`
+para toda la app) te obliga a abrir cuatro carpetas para un solo cambio.
+
+**`routes/` es el mapa de URLs; `lib/` es el código.** SvelteKit decide qué pantalla mostrar mirando
+las carpetas de `src/routes`, y esos archivos son **delgados a propósito**: solo conectan una URL con
+la pantalla que vive en `lib/features/`. Cambiar una URL es mover una carpeta; cambiar una pantalla
+no toca las rutas.
 
 | Carpeta | Qué contiene | Qué NO va aquí |
 |---|---|---|
-| `app/` | Lo que conoce **toda** la aplicación: la tabla de rutas, el guard, los marcos | Pantallas ni lógica de negocio |
-| `features/<f>/` | Páginas, componentes, lógica y acceso a datos **de una funcionalidad** | Nada que otra capa necesite sin depender de la funcionalidad |
-| `shared/` | Lo genérico y reutilizable: cliente de Supabase, traducción de errores, formato, router, toast, componentes de UI | Cualquier cosa que nombre una funcionalidad |
-| `test/` | Ayudas para las pruebas (datos de ejemplo, Supabase falso) | Código de producción |
+| `routes/` | Un `+page.svelte` por URL, los `+layout.svelte` y `+error.svelte` | Lógica de negocio ni pantallas con contenido |
+| `lib/features/<f>/` | Páginas, componentes, lógica y acceso a datos **de una funcionalidad** | Nada que otra capa necesite sin depender de la funcionalidad |
+| `lib/shared/` | Lo genérico y reutilizable: cliente de Supabase, traducción de errores, formato, `rutaActual`, toast, componentes de UI | Cualquier cosa que nombre una funcionalidad o importe de `$app/*` |
+| `params/` | Validadores de parámetros de ruta (*matchers*) | Nada más |
+| `tests/` | Ayudas para las pruebas (datos de ejemplo, Supabase falso, `$app/state` falso) | Código de producción |
+| `static/` | Archivos que se copian tal cual a `dist/` | Nada que Vite deba procesar |
 
 ### Qué va dentro de una funcionalidad
 
 | Archivo | Rol | Equivale en `apps/viajero` a |
 |---|---|---|
-| `<F>Page.svelte` | Una **pantalla**: la ruta apunta a ella; carga datos y reparte a componentes | `views/*_view.dart` |
+| `<F>Page.svelte` | Una **pantalla**: su `+page.svelte` la dibuja; carga datos y reparte a componentes | `views/*_view.dart` |
 | `components/*.svelte` | Piezas de la pantalla que solo esta funcionalidad usa | `widgets/` de la funcionalidad |
 | `<f>.ts` (`plan.ts`, `ventas.ts`…) | Tipos y **lógica pura**: sin Svelte, sin red, sin DOM | `packages/diverso_core/lib/models/` |
 | `<f>.api.ts` | **Acceso a datos**: habla con Supabase y devuelve datos tipados | Los *services* y *repositories* |
@@ -103,44 +133,51 @@ Equivalencias del resto de piezas:
 
 | `apps/viajero` (Flutter) | `apps/panel_svelte` |
 |---|---|
-| `lib/router/app_router.dart` y `app_routes.dart` | `src/app/rutas.ts` |
-| `lib/router/sesion_redirect.dart` | `src/app/sesion.ts` |
-| `lib/ui/shell/app_shell.dart` | `src/app/Shell.svelte` |
-| `lib/ui/core/widgets/` | `src/shared/ui/` |
+| `lib/router/app_router.dart` y `app_routes.dart` | Las carpetas de `src/routes/` |
+| `lib/router/sesion_redirect.dart` | `src/lib/features/auth/sesion.ts` (usado en `src/routes/+layout.svelte`) |
+| `lib/ui/shell/app_shell.dart` | `src/lib/features/agencias/components/Shell.svelte` (usado en `src/routes/(panel)/+layout.svelte`) |
+| `lib/ui/core/widgets/` | `src/lib/shared/ui/` |
 | `ui/features/<f>/view_models/` | No hay clase aparte: el estado vive en el `<script>` de la página (`$state`, `$derived`) y las reglas en el `<f>.ts` puro |
 
+> **Por qué el `Shell` vive en `features/agencias/` y no en `shared/`.** El `Shell` muestra la
+> tarjeta de la agencia y su aviso de verificación: conoce la funcionalidad `agencias` y `auth`.
+> `shared/` no puede importar de las funcionalidades (sección 3), así que el marco que las usa
+> pertenece a una de ellas.
+
 > **Por qué la lógica pura va en `.ts` y no dentro del `.svelte`.** Una función de entrada y salida
-> (`filtrarVentas`, `validarPolitica`, `resolverRuta`, `redireccionSesion`) se prueba con `expect(...)`
+> (`filtrarVentas`, `validarPolitica`, `rutaActual`, `redireccionSesion`) se prueba con `expect(...)`
 > en milisegundos, sin montar nada. El componente queda para lo que solo él puede hacer: leer
 > estado, pintar y reaccionar a eventos.
 
 ---
 
-## 3. Reglas de importación
+## 3. Reglas de importación y alias
+
+SvelteKit trae **un alias propio**: `$lib` significa `src/lib`. El panel suma otro, `$tests`, que
+apunta a `tests/` (la configuración está en el [capítulo 4](04-pruebas-y-herramientas.md#2-vite-sveltekit-y-los-alias)).
 
 | De → a | ¿Permitido? | Cómo se escribe |
 |---|---|---|
-| Dentro de una funcionalidad | Sí | **Relativo**: `./planes.api`, `../../plan`, `./components/FechasModal.svelte` |
-| Entre carpetas distintas | Sí | **Con `@/`**: `@/shared/lib/toast.svelte`, `@/features/agencias/agencias.api` |
-| Funcionalidad → `shared/` | Sí | `@/shared/…` |
-| Funcionalidad → otra funcionalidad | Sí, **hacia sus modelos, su `.api.ts` y algunos componentes** | `@/features/agencias/agencia` |
-| `shared/` → funcionalidad o `app/` | **Nunca** | — |
-| Funcionalidad → `app/` | **Nunca** | — |
-| `app/` → funcionalidades y `shared/` | Sí | `@/features/…` |
+| Dentro de una funcionalidad | Sí | **Relativo**: `./planes.api`, `../agencia`, `./components/FechasModal.svelte` |
+| Entre carpetas distintas de `lib/` | Sí | **Con `$lib/`**: `$lib/shared/lib/toast.svelte`, `$lib/features/agencias/agencias.api` |
+| Funcionalidad → `shared/` | Sí | `$lib/shared/…` |
+| Funcionalidad → otra funcionalidad | Sí, **hacia sus modelos, su `.api.ts` y algunos componentes** | `$lib/features/agencias/agencia` |
+| `shared/` → funcionalidad, `routes/` o `$app/*` | **Nunca** | — |
+| Funcionalidad → `routes/` | **Nunca** | — |
+| `routes/` → `lib/` | Sí | `$lib/features/…` |
 
-`@/` significa `src/` (la configuración está en el [capítulo 4](04-pruebas-y-herramientas.md#2-vite-y-el-alias-de-rutas)).
 Por qué la regla: con rutas relativas largas (`../../../shared/…`) un archivo deja de poder moverse
-sin romper sus imports; con `@/` no depende de cuántas carpetas hay.
+sin romper sus imports; con `$lib` no depende de cuántas carpetas hay.
 
-Ejemplos reales. En `apps/panel_svelte/src/features/ventas/ventas.api.ts`, `ventas` usa a `agencias`
-y a `planes` a través de su `.api.ts`:
+Ejemplos reales. En `apps/panel_svelte/src/lib/features/ventas/ventas.api.ts`, `ventas` usa a
+`agencias` y a `planes` a través de su `.api.ts`:
 
 ```ts
-import { supabase } from '@/shared/api/supabase';
-import { miAgencia } from '@/features/agencias/agencias.api';
+import { supabase } from '$lib/shared/api/supabase';
+import { miAgencia } from '$lib/features/agencias/agencias.api';
 ```
 
-Y en `apps/panel_svelte/src/features/planes/planes.api.ts`, lo que vive en la misma carpeta se
+Y en `apps/panel_svelte/src/lib/features/planes/planes.api.ts`, lo que vive en la misma carpeta se
 importa relativo:
 
 ```ts
@@ -148,9 +185,10 @@ import { draftToRow, type Plan, type PlanDraft } from './plan';
 import { conPoliticaGenerada } from './politica';
 ```
 
-Comprobación de la regla clave: `grep -rn "@/features\|@/app" apps/panel_svelte/src/shared` no
-encuentra nada. `shared/` es una capa **hoja**: se puede usar desde cualquier sitio justo porque no
-depende de nadie.
+Comprobación de la regla clave: `grep -rn "features\|routes\|\$app" apps/panel_svelte/src/lib/shared`
+no encuentra nada (salvo en pruebas). `shared/` es una capa **hoja**: se puede usar desde cualquier
+sitio justo porque no depende de nadie, ni siquiera de SvelteKit. Por eso `rutaActual` recibe una
+`URL` en lugar de leer `page` ella misma (sección 7).
 
 Entre funcionalidades hay dependencias reales: `ventas`, `planes`, `resumen`, `admin` y
 `liquidaciones` usan a `agencias`; `resumen` usa a cuatro de ellas. El único par que se mira mutuamente
@@ -176,16 +214,19 @@ clic / carga de la página
  Supabase              ── Postgres + RLS; las reglas críticas viven en la base
         ▲
         │  la página captura el error
- mensajeError(e)       ── shared/api/errores.ts: traduce códigos SQL a texto para la agencia
+ mensajeError(e)       ── lib/shared/api/errores.ts: traduce códigos SQL a texto para la agencia
         │
         ▼
  error = '…'  o  avisar('…')   ── se muestra en la pantalla o en el Toast
 ```
 
+No hay `load` de SvelteKit en este camino: la página pide sus datos desde el navegador, igual que
+antes de usar SvelteKit (sección 9 explica por qué).
+
 ### La capa de datos: `*.api.ts`
 
 Cada función hace **una** consulta, tipa el resultado y **lanza** el error de Supabase en lugar de
-devolverlo. `apps/panel_svelte/src/features/planes/planes.api.ts`:
+devolverlo. `apps/panel_svelte/src/lib/features/planes/planes.api.ts`:
 
 ```ts
 export async function publicarPlan(planId: string, publicado: boolean): Promise<void> {
@@ -197,14 +238,14 @@ export async function publicarPlan(planId: string, publicado: boolean): Promise<
 }
 ```
 
-Todos importan el **mismo cliente** de `apps/panel_svelte/src/shared/api/supabase.ts`
+Todos importan el **mismo cliente** de `apps/panel_svelte/src/lib/shared/api/supabase.ts`
 (`createClient` con `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY`, y valores del Supabase local por
 defecto), lo que permite sustituirlo en las pruebas (capítulo 4).
 
 ### La página: estado de carga + captura de errores
 
 El patrón se repite en `PlanesPage`, `VentasPage`, `LiquidacionesPage`…
-(`apps/panel_svelte/src/features/planes/PlanesPage.svelte`):
+(`apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte`):
 
 ```svelte
   async function cargar() {
@@ -241,7 +282,7 @@ Para una acción del usuario, el error va al *toast* en lugar de al estado:
 ### La traducción de errores: `mensajeError`
 
 Supabase devuelve errores técnicos (`FECHA_CON_RESERVAS`, `agencies_rnt_formato`, `Failed to fetch`).
-`apps/panel_svelte/src/shared/api/errores.ts` los convierte en frases para la agencia:
+`apps/panel_svelte/src/lib/shared/api/errores.ts` los convierte en frases para la agencia:
 
 ```ts
 export function mensajeError(e: unknown): string {
@@ -254,7 +295,8 @@ export function mensajeError(e: unknown): string {
 ```
 
 Es una **función pura** (por eso las pruebas de las páginas no la mockean). Si el error no está en
-la tabla `ERRORES`, devuelve el mensaje original: nunca oculta un fallo desconocido.
+la tabla `ERRORES`, devuelve el mensaje original: nunca oculta un fallo desconocido. La usa también
+`hooks.client.ts` (sección 9) para los errores que nadie atrapó.
 
 ### Dónde va cada regla
 
@@ -268,74 +310,322 @@ la tabla `ERRORES`, devuelve el mensaje original: nunca oculta un fallo desconoc
 
 ---
 
-## 5. El router por hash y la tabla de rutas
+## 5. SvelteKit estático y el router por hash
 
-### El router: `router.svelte.ts`
+**SvelteKit** es el framework de aplicaciones que va encima de Svelte: aporta el enrutamiento por
+carpetas, los layouts, el manejo de errores y la compilación para producción. Puede correr con un
+servidor que dibuja las páginas (SSR) o producir **solo archivos**. El panel eligió lo segundo, con
+dos decisiones que viven en `apps/panel_svelte/svelte.config.js`:
 
-El panel no usa SvelteKit ni librería de rutas. Una URL como `https://…/#/planes/nuevo` guarda la
-ruta **después del `#`**; así un servidor de archivos estáticos no necesita reglas de reescritura.
-`apps/panel_svelte/src/shared/lib/router.svelte.ts` completo en lo esencial:
+```js
+import adapter from '@sveltejs/adapter-static';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
-```ts
-/** Mini router por hash (#/ruta) — el estático no sirve fallback de paths. */
-
-export const router = $state({ path: location.hash.slice(1) || '/' });
-
-addEventListener('hashchange', () => {
-  router.path = location.hash.slice(1) || '/';
-});
-
-export function go(path: string): void {
-  location.hash = '#' + path;
-}
+/** @type {import('@sveltejs/kit').Config} */
+export default {
+  preprocess: vitePreprocess(),
+  kit: {
+    // Sitio estático sin servidor: `dist/` con el shell (index.html) como página de respaldo.
+    adapter: adapter({ pages: 'dist', assets: 'dist', fallback: 'index.html' }),
+    // El hosting no devuelve index.html para otras rutas: las URLs son `#/planes`. Con el router por
+    // hash Kit ya no hace SSR ni prerender, y el build falla si una ruta declara `ssr` o `prerender`.
+    router: { type: 'hash' },
+    // `$lib` ya viene de Kit; los helpers de los tests viven fuera de `src/`.
+    alias: { $tests: 'tests' },
+  },
+};
 ```
 
-- `router.path` es estado reactivo (capítulo 2, sección 6): cualquier cosa que lo lea se actualiza.
-- **Navegar** es cambiar el hash: `go('/planes')` o un enlace normal `<a href="#/planes/nuevo">`
-  (`PlanesPage.svelte`). El botón «atrás» del navegador funciona sin código extra.
-- `segmentos(path)` parte una ruta en partes: `/planes/editar/xyz` → `['planes','editar','xyz']`.
+| Decisión | Qué hace | Por qué |
+|---|---|---|
+| `adapter-static` con `fallback: 'index.html'` | `npm run build` deja en `dist/` solo HTML, JS y CSS; `index.html` es la página que arranca la app | Cualquier hosting de archivos sirve el panel; el build sigue saliendo en `dist/` |
+| `router: { type: 'hash' }` | La ruta se guarda **después del `#`**: `https://…/#/planes/nuevo` | Un hosting estático solo devuelve `index.html` en `/`; con rutas «normales» (`/planes`) recargar la página daría 404. Con `#/…` el servidor siempre ve `/` |
 
-### La tabla de rutas: `rutas.ts`
+Lo que cambia por el router por hash, y que conviene saber antes de leer el código (las rutas de
+archivo de esta lista y de las secciones 7 y 9 son relativas a `node_modules/@sveltejs/kit/src`):
 
-Cada pantalla se declara en **una lista**, y una función pura decide cuál gana
-(`apps/panel_svelte/src/app/rutas.ts`):
+- **No hay SSR ni prerender.** Kit lo desactiva solo. Por eso **no hay** un `+layout.ts` con
+  `export const ssr = false`, que es lo habitual en una SPA con SvelteKit: aquí, declarar `ssr` o
+  `prerender` en un `+page.ts`/`+layout.ts` **rompe el build** (`Page options are ignored when
+  router.type === 'hash'`, en `core/postbuild/analyse.js`).
+- **No hay archivos de servidor.** `+page.server.ts`, `+layout.server.ts` y `+server.ts` se rechazan
+  al sincronizar (`Cannot use server-only files in an app with router.type === 'hash'`, en
+  `core/sync/create_manifest_data/index.js`).
+- **Las URLs son `#/…`.** Todo lo que navega (enlaces, `goto`) lleva el `#` (sección 7).
+- **Se arranca solo.** No hay un `main.ts` que haga `mount`: el `dist/index.html` generado llama a
+  `kit.start(app, element)` y Kit monta el componente raíz dentro del `%sveltekit.body%` de
+  `app.html`.
 
-```ts
-/** En orden: gana la primera que coincide (las más específicas van antes). */
-const RUTAS: Ruta[] = [
-  { patron: '/legal/:doc?', componente: Legal, layout: 'sola', props: (p) => ({ doc: p.doc ?? '' }) },
-  { patron: '/login', componente: Login, layout: 'sola' },
-  { patron: '/admin/dispersiones', componente: AdminDispersiones, layout: 'sola' },
-  { patron: '/admin', componente: Admin, layout: 'sola' },
-  { patron: '/planes/nuevo', componente: PlanForm, layout: 'panel', props: () => ({}) },
-  { patron: '/planes/editar/:planId?', componente: PlanForm, layout: 'panel' },
-  { patron: '/planes', componente: Planes, layout: 'panel' },
-  { patron: '/liquidaciones/:id', componente: LiquidacionDetalle, layout: 'panel' },
-];
+`apps/panel_svelte/src/app.html` es la plantilla de esa página. Lleva dos cosas del panel y dos
+marcadores de Kit:
+
+```html
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
+    <!-- … -->
+    <script>
+      // Tema antes del primer render para evitar destello.
+      try {
+        const t = localStorage.getItem('diverso-panel-theme');
+        if (t === 'light') document.documentElement.classList.remove('dark');
+      } catch (_) {}
+    </script>
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="off">
+    <div style="display: contents">%sveltekit.body%</div>
+  </body>
+</html>
 ```
 
-(Recorte: la lista real tiene 15 entradas.) Las reglas:
-
-| Elemento | Significado |
-|---|---|
-| `patron` | Segmentos literales (`planes`), `:param` obligatorio, `:param?` opcional |
-| **Coincidencia por prefijo** | Los segmentos de más se ignoran: `/planes/x` también es «Planes». Por eso las rutas más específicas van **antes** (`/planes/nuevo` antes de `/planes`) |
-| `componente` | La página (un import de la funcionalidad) |
-| `layout` | `'sola'` o `'panel'` (sección 7) |
-| `props` | Cómo pasar los parámetros como props. Sin `props`, los parámetros se pasan tal cual (`{ id: 'l-9' }`) |
-
-`resolverRuta(path)` devuelve `{ patron, componente, props, layout }`, o una ruta «no encontrada»
-(`componente: null`), y `App.svelte` la consume con
-`const ruta = $derived(resolverRuta(router.path));`. Como es pura, sus casos se prueban sin
-montar nada (`apps/panel_svelte/src/app/rutas.test.ts`). El motivo de que devuelva el `patron`
-(el `{#key}` de `App`) está en el [capítulo 2, sección 7.3](02-reactividad-con-runes.md#73-por-qué-app-usa-key-rutapatron).
+`%sveltekit.assets%` es la ruta base de los archivos de `static/`, `%sveltekit.head%` recibe los `<link>` y `<script>`
+que Kit genera, y `%sveltekit.body%` es donde se monta la app. `data-sveltekit-preload-data="off"`
+apaga la precarga de datos al pasar el ratón sobre un enlace: aquí no hay `load` que precargar.
 
 ---
 
-## 6. El guard de sesión
+## 6. Rutas: carpetas en `src/routes`
+
+En SvelteKit **la URL sale de las carpetas**: cada carpeta de `src/routes` es un segmento, y el
+archivo `+page.svelte` de una carpeta es la página de esa URL. Con el router por hash, la «URL» es lo
+que va después del `#`.
+
+| Archivo especial | Qué es | Dónde está en el panel |
+|---|---|---|
+| `+page.svelte` | La página de esa carpeta | Uno por pantalla: `routes/login/+page.svelte`… |
+| `+layout.svelte` | Un marco que envuelve a las páginas de su carpeta y de las de abajo | `routes/+layout.svelte` y `routes/(panel)/+layout.svelte` |
+| `+error.svelte` | Lo que se pinta si falla la navegación o no hay ruta (404) | `routes/+error.svelte` |
+
+### La tabla: URL → archivo → pantalla
+
+| URL | Archivo en `src/routes/` | Marco | Pantalla (`lib/features/…`) |
+|---|---|---|---|
+| `#/` | `+page.svelte` | — | Manda a `#/starter` |
+| `#/login` | `login/+page.svelte` | solo raíz | `auth/LoginPage` |
+| `#/starter` | `starter/+page.svelte` | solo raíz | `auth/StarterPage` |
+| `#/consentimiento` | `consentimiento/+page.svelte` | solo raíz | `legal/AceptarDocumentosPage` |
+| `#/legal` y `#/legal/<doc>` | `legal/[[doc=doc]]/+page.svelte` | solo raíz | `legal/LegalPage` (`#/legal` a secas muestra «Documento no encontrado») |
+| `#/admin` | `admin/+page.svelte` | solo raíz | `admin/AdminAgenciasPage` |
+| `#/admin/dispersiones` | `admin/dispersiones/+page.svelte` | solo raíz | `admin/AdminDispersionesPage` |
+| `#/dashboard` | `(panel)/dashboard/+page.svelte` | `Shell` | `resumen/ResumenPage` |
+| `#/planes` | `(panel)/planes/+page.svelte` | `Shell` | `planes/PlanesPage` |
+| `#/planes/nuevo` | `(panel)/planes/nuevo/+page.svelte` | `Shell` | `planes/PlanFormPage` |
+| `#/planes/editar/<id>` | `(panel)/planes/editar/[[id]]/+page.svelte` | `Shell` | `planes/PlanFormPage` |
+| `#/ventas` | `(panel)/ventas/+page.svelte` | `Shell` | `ventas/VentasPage` |
+| `#/onboarding` | `(panel)/onboarding/+page.svelte` | `Shell` | `agencias/OnboardingPage` |
+| `#/liquidaciones/<id>` | `(panel)/liquidaciones/[id]/+page.svelte` | `Shell` | `liquidaciones/LiquidacionDetallePage` |
+| cualquier otra | — | solo raíz | `routes/+error.svelte` |
+
+(Recorte: faltan `liquidaciones` y `cuenta-dispersiones`, las dos dentro de `(panel)` y con el mismo patrón.)
+
+### Una página es un adaptador de tres líneas
+
+El `+page.svelte` no tiene pantalla propia: importa la de `lib/` y se la pasa. Sin parámetros
+(`apps/panel_svelte/src/routes/login/+page.svelte`):
+
+```svelte
+<script lang="ts">
+  import Pagina from '$lib/features/auth/LoginPage.svelte';
+</script>
+
+<Pagina />
+```
+
+Con un parámetro, la página recibe `params` y lo reparte como prop
+(`apps/panel_svelte/src/routes/(panel)/liquidaciones/[id]/+page.svelte`):
+
+```svelte
+<script lang="ts">
+  import type { PageProps } from './$types';
+  import Pagina from '$lib/features/liquidaciones/LiquidacionDetallePage.svelte';
+
+  let { params }: PageProps = $props();
+</script>
+
+<Pagina id={params.id} />
+```
+
+`./$types` no existe en el repo: Kit lo **genera** en `.svelte-kit/types/` (carpeta sin versionar,
+creada por `npm run prepare`/`dev`/`check`) y tipa `params` según el nombre de la carpeta (`[id]` →
+`params.id: string`). La pantalla de `lib/` no sabe nada de rutas: recibe `id` como cualquier prop,
+y por eso se prueba sin SvelteKit.
+
+### Parámetros: `[id]`, `[[id]]` y `[[doc=doc]]`
+
+| Carpeta | Qué acepta | `params` |
+|---|---|---|
+| `[id]` | Un segmento **obligatorio**: `#/liquidaciones/l-9` | `{ id: 'l-9' }`. `#/liquidaciones/` es otra ruta (la lista) |
+| `[[id]]` | Un segmento **opcional**: `#/planes/editar` y `#/planes/editar/p-1` | `{ id: undefined }` o `{ id: 'p-1' }` |
+| `[[doc=doc]]` | Opcional **y validado** por el matcher `doc` | `{ doc: 'privacidad' }`; si el matcher dice que no, la ruta no coincide |
+
+El matcher es una función que recibe el texto del segmento y responde si vale
+(`apps/panel_svelte/src/params/doc.ts`):
+
+```ts
+import type { ParamMatcher } from '@sveltejs/kit';
+import { DOCUMENTOS } from '$lib/features/legal/legal';
+
+/** Solo los ids de documentos legales que existen: otro texto en `/legal/…` cae en la página de error. */
+export const match: ParamMatcher = (param) => Object.hasOwn(DOCUMENTOS, param);
+```
+
+El nombre del archivo (`doc.ts`) es el que va tras el `=` en la carpeta (`[[doc=doc]]`). Se usa
+`Object.hasOwn` y no `param in DOCUMENTOS` para que `constructor` o `__proto__` no pasen por el
+prototipo del objeto (lo fija `src/params/doc.test.ts`). La página de legal pasa `params.doc ?? ''`
+a `LegalPage` (`routes/legal/[[doc=doc]]/+page.svelte`).
+
+### Grupos de rutas: `(panel)`
+
+Una carpeta entre paréntesis **no cuenta en la URL**: `(panel)/planes` es `#/planes`. Sirve para
+agrupar rutas que comparten un `+layout.svelte` sin que el nombre aparezca. Las páginas dentro de
+`(panel)` se dibujan dentro del `Shell`; las de fuera (login, legal, admin…) no (sección 8).
+
+### Dos páginas, un mismo componente: cada ruta es su propia instancia
+
+`planes/nuevo/+page.svelte` y `planes/editar/[[id]]/+page.svelte` dibujan **la misma**
+`PlanFormPage`, pero son archivos de ruta distintos. SvelteKit pinta cada nivel con el componente de
+esa ruta (en `.svelte-kit/generated/root.svelte`, `<Pyramid_2 … />` es `constructors[2]`); cuando
+cambia el archivo de la ruta, el componente cambia y Svelte **destruye el anterior y monta uno
+nuevo**. Pasar de `#/planes/editar/p-1` a `#/planes/nuevo` reinicia el formulario. El
+[capítulo 2, sección 7.3](02-reactividad-con-runes.md#73-por-qué-cada-ruta-es-su-propia-instancia)
+cuenta por qué esto importa.
+
+### Lo que ya no existe: coincidencia por prefijo y orden
+
+El router anterior ignoraba los segmentos de más (`/planes/x` era «Planes») y obligaba a ordenar la
+tabla. SvelteKit exige **la ruta entera**, y elige la más específica sin depender del orden de las
+carpetas: `#/ventas/x` no coincide con nada y cae en `+error.svelte`. Otras diferencias aceptadas al
+migrar: la página de error se dibuja **sin** `Shell`, `#/` lleva a `#/starter`, y un documento legal
+desconocido (`#/legal/nada`) cae en la página de error (antes lo resolvía `LegalPage` con su
+«Documento no encontrado»; esa rama sigue ahí para `#/legal` a secas, que llega con `doc = ''`).
+
+`apps/panel_svelte/src/routes/+error.svelte` distingue el 404 de un error inesperado con `page.status`:
+
+```svelte
+<script lang="ts">
+  import { page } from '$app/state';
+</script>
+
+<div class="p-10 text-slate-500">
+  {#if page.status === 404}
+    No encontramos esta sección.
+  {:else}
+    {page.error?.message}
+  {/if}
+  <a class="font-semibold text-brand-600 hover:underline" href="#/dashboard">Volver al resumen</a>
+</div>
+```
+
+---
+
+## 7. Navegar y saber en qué ruta estás
+
+### Navegar: enlaces y `goto`
+
+Un enlace es un `<a href="#/planes/nuevo">` normal (`PlanesPage.svelte`): cambia el hash, Kit carga la
+ruta nueva sin recargar la página y el botón «atrás» del navegador funciona sin código extra. Desde código se
+usa `goto`, de `$app/navigation`. **Con el router por hash `goto` recibe `'#/ruta'`, con el `#`**
+(`apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte`):
+
+```svelte
+      goto('#/planes');
+```
+
+y con opciones, para no dejar una entrada en el historial
+(`apps/panel_svelte/src/routes/+page.svelte`):
+
+```svelte
+    if (auth.userId) goto('#/starter', { replaceState: true });
+```
+
+> **La trampa: `goto('/planes')` no funciona.** Sin el `#`, Kit ve una URL con otro `pathname` que el
+> del documento y la trata como **externa**: en producción hace una navegación nativa
+> (`location.href = …`), y en un hosting estático eso es un **404**; en desarrollo muestra una página
+> de error con «did you forget the hash?». Está en el código de Kit, en `node_modules/@sveltejs/kit/src/`:
+> `runtime/client/utils.js` (`is_external_url`: con router por hash, «externa» es todo lo que cambie
+> el `pathname`) y `runtime/client/client.js` (`native_navigation`).
+
+### Leer la ruta: `page.url.hash` y `rutaActual`
+
+`page`, de `$app/state`, es un objeto **reactivo** de SvelteKit con la URL actual (`page.url`), los
+parámetros (`page.params`), el estado HTTP (`page.status`) y el error (`page.error`). Leerlo en un
+`$derived` o en la plantilla se actualiza al navegar (capítulo 2, sección 6).
+
+Con el router por hash, el `pathname` es siempre el del documento (`/`): **la ruta vive en
+`page.url.hash`**. `apps/panel_svelte/src/lib/shared/lib/ruta.ts` la extrae:
+
+```ts
+/** Ruta de una URL del router por hash: `http://host/#/planes?x=1` → `/planes`. */
+export function rutaActual(url: URL): string {
+  return url.hash.replace(/^#/, '').replace(/[?#].*/, '') || '/';
+}
+```
+
+Quita el `#` y descarta lo que viene tras un `?` o un segundo `#`. Se usa así en `Shell.svelte`:
+
+```svelte
+  const path = $derived(rutaActual(page.url));
+```
+
+Es una función pura que recibe la `URL`: se prueba con `new URL('http://localhost/#/ventas?mes=10')`
+(`ruta.test.ts`) y vive en `shared/` porque no importa nada de SvelteKit.
+
+### Una sorpresa: editar el hash a mano recarga la página
+
+Si alguien cambia `#/planes` por `#/ventas` **escribiendo en la barra de direcciones**, Kit hace un
+`location.reload()` a propósito, «para alinearse con el comportamiento del router por pathname»
+(`runtime/client/client.js` de Kit, en el listener de `popstate`). Con el router de antes, el mismo cambio
+solo actualizaba la ruta sin recargar. Los enlaces y `goto` no recargan.
+
+---
+
+## 8. Layouts y guard de sesión
+
+Un `+layout.svelte` envuelve a todas las páginas que están en su carpeta y por debajo, y las recibe
+como `children` (el mismo snippet del [capítulo 1, sección 7](01-svelte-para-quien-sabe-react.md#7-contenido-hijo-children-y-snippets)).
+El panel tiene dos capas:
+
+```
+routes/+layout.svelte          guard de sesión + pantalla de carga + <Toast />
+  └─ routes/(panel)/+layout.svelte    <Shell>…</Shell>  (solo las páginas del grupo)
+       └─ +page.svelte
+```
+
+### El marco con menú: `(panel)/+layout.svelte`
+
+Es completo y minúsculo (`apps/panel_svelte/src/routes/(panel)/+layout.svelte`):
+
+```svelte
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+  import Shell from '$lib/features/agencias/components/Shell.svelte';
+
+  let { children }: { children: Snippet } = $props();
+</script>
+
+<Shell>{@render children()}</Shell>
+```
+
+El `Shell` recibe la página como `children` y la pone en su `<main>`:
+
+```svelte
+    <main class="min-w-0 flex-1 pb-20 md:pb-0">
+      {@render children()}
+    </main>
+```
+
+El layout de un grupo **se conserva entre páginas hermanas**: al pasar de Planes a Ventas el `Shell`
+sigue montado y solo cambia lo de dentro. Por eso el `Shell` observa la ruta (`void path;`, capítulo
+2, sección 5) para recargar el aviso de la agencia al navegar. `Shell` contiene además el menú
+(`secciones`), la tarjeta de la agencia, el cambio de tema y «Cerrar sesión».
+
+### El guard de sesión
 
 La decisión de «¿esta persona puede ver esta ruta?» es una función pura de dos parámetros
-(`apps/panel_svelte/src/app/sesion.ts`):
+(`apps/panel_svelte/src/lib/features/auth/sesion.ts`):
 
 ```ts
 /** Guard de sesión (equivale al redirect global de go_router): a dónde mandar, o null si no hace falta. */
@@ -353,22 +643,53 @@ export function redireccionSesion(path: string, userId: string | null | undefine
 | Con sesión en `/login` | `'/starter'` |
 | Cualquier otra | `null` (no hace falta redirigir) |
 
-Quien la aplica es `App.svelte`, con un `$effect` (capítulo 2, sección 5, uso 1) que **espera a
+Quien la aplica es el layout raíz, con un `$effect` (capítulo 2, sección 5, uso 1) que **espera a
 `auth.ready`**: mientras Supabase aún no ha dicho si hay sesión, la pantalla muestra un indicador de
-carga en lugar de decidir demasiado pronto.
+carga **en lugar de las páginas**. `apps/panel_svelte/src/routes/+layout.svelte`:
 
 ```svelte
+<script lang="ts">
+  import type { Snippet } from 'svelte';
+  import '../app.css';
+  import { goto } from '$app/navigation';
+  import { page } from '$app/state';
+  import { auth } from '$lib/features/auth/auth.svelte';
+  import { redireccionSesion } from '$lib/features/auth/sesion';
+  import { rutaActual } from '$lib/shared/lib/ruta';
+  import Toast from '$lib/shared/ui/Toast.svelte';
+
+  let { children }: { children: Snippet } = $props();
+
+  // Guards de sesión: la decisión vive en sesion.ts.
+  $effect(() => {
+    if (!auth.ready) return;
+    const destino = redireccionSesion(rutaActual(page.url), auth.userId);
+    if (destino) goto('#' + destino);
+  });
+</script>
+
 {#if !auth.ready}
   <div class="grid min-h-screen place-items-center" role="status" aria-label="Cargando">
+    <div class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+  </div>
+{:else}
+  {@render children()}
+{/if}
+
+<Toast />
 ```
+
+Fíjate en tres detalles: `import '../app.css'` es lo que carga Tailwind (antes lo hacía `main.ts`);
+la ruta se calcula con `rutaActual(page.url)` y el destino se navega con `'#' + destino`; y
+`<Toast />` queda **fuera** del `{#if}`, así que se ve siempre.
 
 Dos consecuencias a tener presentes:
 
 - Como un `$effect` corre **después** de actualizar el DOM, la página protegida ya se montó cuando el
   guard redirige. Una página no debe asumir que hay sesión en el primer instante (por ejemplo, `miAgencia()` devuelve
   `null` si no hay usuario).
-- El guard solo mira **si hay sesión**, no el rol. `StarterPage` envía al admin a `/admin` según
-  `perfilActual()`, pero nada en `app/` impide que otro rol escriba esa URL; lo que protege los datos
+- El guard solo mira **si hay sesión**, no el rol. `StarterPage` envía al admin a `#/admin` según
+  `perfilActual()`, pero nada en `routes/` impide que otro rol escriba esa URL; lo que protege los datos
   son las políticas RLS de la base (`supabase/migrations/0001_schema.sql`).
 
 Es el equivalente del `redirect` global de `go_router` en la app del viajero
@@ -376,82 +697,124 @@ Es el equivalente del `redirect` global de `go_router` en la app del viajero
 
 ---
 
-## 7. Layouts: `sola` y `panel`
+## 9. Lo que SvelteKit trae y el panel no usa
 
-Cada ruta dice si va **dentro** del marco con menú lateral (`'panel'`) o sola (`'sola'`: login,
-documentos legales, administración). `apps/panel_svelte/src/app/App.svelte` decide el marco con el
-`layout` de la ruta resuelta:
+El árbol típico de un proyecto SvelteKit incluye piezas de servidor. Aquí **faltan a propósito**:
 
-```svelte
-{:else if ruta.layout === 'panel'}
-  <Shell>{@render pagina()}</Shell>
-{:else}
-  {@render pagina()}
-{/if}
+| Pieza de SvelteKit | ¿Está? | Por qué |
+|---|---|---|
+| `src/hooks.server.ts` (middleware: auth, logs) | No | El build es estático: no hay proceso del servidor que lo ejecute |
+| `src/lib/server/` (código solo de servidor) | No | Kit **prohíbe** importarlo desde código del navegador (`Cannot import … into code that runs in the browser`, en `exports/vite/index.js`), y aquí todo corre en el navegador: nadie podría usarlo |
+| `+page.server.ts`, `+layout.server.ts`, `+server.ts` | No | Con el router por hash Kit los rechaza (sección 5) |
+| `+page.ts` / `+layout.ts` con `load` | No | Se permitirían, pero los datos se piden desde la página (sección 4); no hay SSR que justifique un `load` |
+| `export const ssr` / `prerender` | No | Con el router por hash rompen el build (sección 5) |
+| `src/hooks.client.ts` | **Sí** | Es de navegador: decide qué mostrar ante un error que nadie atrapó |
+| `src/app.d.ts` | **Sí**, mínimo | Sin servidor no hay `Locals` ni `PageData`: solo la forma del error |
+
+Los dos archivos del navegador son pequeños. `apps/panel_svelte/src/hooks.client.ts`:
+
+```ts
+import type { HandleClientError } from '@sveltejs/kit';
+import { mensajeError } from '$lib/shared/api/errores';
+
+/** Error no previsto al navegar o dibujar: se registra y la página de error muestra el texto legible. */
+export const handleError: HandleClientError = ({ error }) => {
+  console.error(error);
+  return { message: mensajeError(error) };
+};
 ```
 
-La página en sí es un *snippet* local (`{#snippet pagina()}`, capítulo 1, sección 7) que se pinta
-en una u otra rama. `Shell.svelte` recibe la página como `children` y la pone en su `<main>`:
+y `apps/panel_svelte/src/app.d.ts`:
 
-```svelte
-    <main class="min-w-0 flex-1 pb-20 md:pb-0">
-      {@render children()}
-    </main>
+```ts
+declare global {
+  namespace App {
+    interface Error {
+      message: string;
+    }
+  }
+}
+
+export {};
 ```
 
-`Shell` también contiene el menú (`secciones`), la tarjeta de la agencia, el aviso de verificación,
-el cambio de tema y «Cerrar sesión». `Toast.svelte` se pinta fuera de ambos, siempre.
+Lo que `handleError` devuelve es lo que `+error.svelte` lee en `page.error` (sección 6).
+
+**¿Dónde viven entonces los secretos y la seguridad?** El panel habla con Supabase directamente
+desde el navegador con la clave pública, y lo que protege los datos son las **políticas RLS** de la
+base. Lo que necesita secretos (los pagos con Wompi) vive en las **Edge Functions** de Supabase
+(`supabase/functions/`), no en el panel.
+
+**¿Cuándo tendría sentido `hooks.server.ts` o `$lib/server`?** Si el panel necesitara algo que no
+puede hacerse en el navegador: una clave secreta de un tercero, una sesión por cookies leída en el
+servidor, un contenido que deba llegar ya dibujado (SSR). Eso implica otro adaptador (`adapter-node`,
+Vercel…), cambiar a `router: { type: 'pathname' }` (URLs `/planes` sin `#`) y un hosting con
+servidor: es una decisión de despliegue, no un cambio de carpetas. Hoy nada del panel lo pide.
 
 ---
 
-## 8. Convenciones de nombres
+## 10. Convenciones de nombres
 
 | Qué | Convención | Ejemplos |
 |---|---|---|
-| Pantalla (la apunta una ruta) | `<Nombre>Page.svelte` | `PlanesPage.svelte`, `LoginPage.svelte` |
+| Página de ruta | `+page.svelte` dentro de la carpeta de la URL; delgada | `routes/login/+page.svelte` |
+| Carpeta de URL | Minúsculas, en español, con guiones | `cuenta-dispersiones/` |
+| Parámetro de ruta | `[id]` obligatorio, `[[id]]` opcional, `[[x=matcher]]` validado | `liquidaciones/[id]`, `legal/[[doc=doc]]` |
+| Grupo de rutas | Nombre entre paréntesis | `(panel)` |
+| Pantalla (la dibuja una página de ruta) | `<Nombre>Page.svelte` en `lib/features/<f>/` | `PlanesPage.svelte`, `LoginPage.svelte` |
 | Componente de una funcionalidad | `PascalCase.svelte` dentro de `components/` | `FechasModal.svelte` |
-| Componente genérico | `PascalCase.svelte` en `shared/ui/` | `Select.svelte`, `Empty.svelte` |
+| Componente genérico | `PascalCase.svelte` en `lib/shared/ui/` | `Select.svelte`, `Empty.svelte` |
 | Lógica pura de la funcionalidad | `<funcionalidad>.ts` (nombre en minúscula) | `ventas.ts`, `plan.ts` |
 | Acceso a datos | `<funcionalidad>.api.ts` | `planes.api.ts` |
-| Estado reactivo en un módulo | `<nombre>.svelte.ts` | `auth.svelte.ts`, `router.svelte.ts` |
-| Pruebas | `<archivo>.test.ts` **junto** al archivo | `rutas.test.ts`, `planes.api.test.ts` |
-| Props-callback | `on` + verbo, en minúscula | `onactualizado`, `onelegir` (la excepción: `oncCerrar`, capítulo 1) |
+| Estado reactivo en un módulo | `<nombre>.svelte.ts` | `auth.svelte.ts`, `toast.svelte.ts` |
+| Matcher de parámetro | `src/params/<nombre>.ts` exporta `match` | `params/doc.ts` |
+| Pruebas | `<archivo>.test.ts` **junto** al archivo (los helpers en `tests/`) | `sesion.test.ts`, `planes.api.test.ts` |
+| Props-callback | `on` + verbo, en minúscula | `onactualizado`, `onelegir`, `oncerrar` |
 | Prop de clases extra | `clase` | `<Skeleton clase="h-[150px]" />` |
-| Idioma | Dominio y nombres en **español**; palabras de Svelte, Vite y TypeScript en su idioma | `misPlanes`, `cargando`, `$state` |
+| Idioma | Dominio y nombres en **español**; palabras de Svelte, SvelteKit y TypeScript en su idioma | `misPlanes`, `cargando`, `$state`, `+page.svelte` |
 
 ---
 
-## 9. Checklist: agregar una pantalla nueva
+## 11. Checklist: agregar una pantalla nueva
 
-Ejemplo ficticio: una pantalla «Reportes» en `#/reportes`. **Nada de esto está en el repo**; es la
-receta. Las rutas de archivo son las que usarías.
+Ejemplo ficticio: una pantalla «Reportes» en `#/reportes`, dentro del menú. **Nada de esto está en el
+repo**; es la receta. Las rutas de archivo son las que usarías.
 
 1. **Elige la funcionalidad.** ¿Es de una existente (`ventas/`) o nueva? Si es nueva, crea
-   `src/features/reportes/`.
-2. **Escribe la lógica pura primero** en `src/features/reportes/reportes.ts` (tipos, filtros,
+   `src/lib/features/reportes/`.
+2. **Escribe la lógica pura primero** en `src/lib/features/reportes/reportes.ts` (tipos, filtros,
    totales) y su `reportes.test.ts`. Es lo más rápido de probar y lo que más cambia.
-3. **Escribe el acceso a datos** en `src/features/reportes/reportes.api.ts`: una función por
-   consulta, con `supabase` de `@/shared/api/supabase`, que haga `if (error) throw error;`.
+3. **Escribe el acceso a datos** en `src/lib/features/reportes/reportes.api.ts`: una función por
+   consulta, con `supabase` de `$lib/shared/api/supabase`, que haga `if (error) throw error;`.
    Si arma filas, pruébala con `supabase-falso` (capítulo 4, sección 6).
-4. **Escribe la página** `src/features/reportes/ReportesPage.svelte` con el patrón de la sección 4:
+4. **Escribe la pantalla** `src/lib/features/reportes/ReportesPage.svelte` con el patrón de la sección 4:
    `cargando`/`error`/datos, `$effect(() => { cargar(); })`, `mensajeError(e)` y los tres estados en
-   la plantilla. Importa relativo (`./reportes.api`) dentro de la funcionalidad y con `@/` lo demás.
-5. **Parte la página** si crece: lo repetido o con estado propio va a `components/` (como
+   la plantilla. Importa relativo (`./reportes.api`) dentro de la funcionalidad y con `$lib/` lo demás.
+5. **Parte la pantalla** si crece: lo repetido o con estado propio va a `components/` (como
    `plan-form/`). Un componente que edita un dato del padre lo declara `$bindable()`; uno que solo
    avisa recibe un callback `on…`.
-6. **Regístrala en `src/app/rutas.ts`**: importa la página y añade una fila a `RUTAS` **antes** de
-   cualquier ruta más general que la capture por prefijo:
+6. **Crea la ruta**: una carpeta con un `+page.svelte` delgado. Si va con el menú, dentro de `(panel)`:
 
-   ```ts
-   { patron: '/reportes', componente: Reportes, layout: 'panel' },
+   ```svelte
+   <!-- src/routes/(panel)/reportes/+page.svelte -->
+   <script lang="ts">
+     import Pagina from '$lib/features/reportes/ReportesPage.svelte';
+   </script>
+
+   <Pagina />
    ```
 
-   y un caso en `src/app/rutas.test.ts`. Si la misma página sirve a dos patrones, recuerda que
-   `App` reinicia la instancia por patrón (capítulo 2, sección 7.3).
+   Si necesita un parámetro, la carpeta lleva `[id]` (o `[[id]]` si es opcional) y la página recibe
+   `let { params }: PageProps = $props();` como en la sección 6. No hace falta registrarla en ningún
+   sitio: Kit la descubre por la carpeta. Si el parámetro debe validarse, crea un matcher en
+   `src/params/` y úsalo como `[[x=matcher]]`.
 7. **Decide si es pública.** Si debe verse sin sesión, añádela a la lista de `publica` en
-   `src/app/sesion.ts` y a `sesion.test.ts`.
-8. **Añádela al menú**, si va ahí: una entrada en `secciones` de `src/app/Shell.svelte`.
-9. **Verifica** (capítulo 4, sección 10): `npm test`, `npm run build` y `npx svelte-check`.
+   `src/lib/features/auth/sesion.ts` y a `sesion.test.ts`. Las rutas de `routes/` fuera de `(panel)`
+   (como `login/`) no llevan `Shell`: elige la carpeta según el marco que quieras.
+8. **Añádela al menú**, si va ahí: una entrada en `secciones` de
+   `src/lib/features/agencias/components/Shell.svelte`.
+9. **Navega con `#`**: enlaces `href="#/reportes"` y `goto('#/reportes')`. Sin el `#`, 404 (sección 7).
+10. **Verifica** (capítulo 4, sección 10): `npm test`, `npm run build` y `npm run check`.
 
 ---
 
