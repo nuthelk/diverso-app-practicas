@@ -24,8 +24,8 @@ Rama `refactor/arquitectura-panel-svelte` en el worktree `.worktrees/panel-svelt
 - T8 [x] Migrar a SvelteKit estático con router por hash (S6): deps, config, `routes/`, `lib/`, `static/`, `app.html`, params, hooks.client, tests — S3, S6 — worker — commit: 90ba75b (+ 67ad853 script de íconos, 94808a5 tests de regresión)
 - T9 [x] Guía y README al día con SvelteKit — S5, S6 — worker — commit: f1cc3cd, c5aa959
 - T10 [x] Verificación independiente (riesgo ítem 5: dependencias y build) — S3, S6 — gentle-ai-verify — commit: — (PASS en las 6 comprobaciones, sin bloqueos)
-- T11 [ ] Subcarpetas pages/ components/ api/ model/ en cada funcionalidad y tests a tests/unit/ espejo de src — S7 — worker — commit: pendiente
-- T12 [ ] Guía y README con las rutas nuevas — S5, S7 — worker — commit: pendiente
+- T11 [x] Subcarpetas pages/ components/ api/ model/ en cada funcionalidad y tests a tests/unit/ espejo de src — S7 — worker — commit: 836c24f
+- T12 [x] Guía y README con las rutas nuevas — S5, S7 — worker — commit: 7e13c5b
 
 ## Log
 
@@ -65,3 +65,4 @@ me gusta que lo hagamos asi»
 - L11 (pendiente fuera de alcance): al pasar de `/planes/editar/a` a `/planes/editar` sin id el borrador conserva el plan anterior (ya pasaba con el router viejo). `npm audit` no se corrió (sin red); `cookie<0.7` llega con Kit y solo lo usa el servidor de Kit, que este build no usa.
 - L12 (usuario): «veo que los archivos aun siguen desordenado, tambien los componentes .svelte mantienen el script el dom y el style en el mismo lugar» (miraba la carpeta principal, no el worktree). Explicado: el componente de un solo archivo es el diseño de Svelte (estilos scoped; vitePreprocess no soporta `<style src>`); solo 3 de 65 componentes tienen `<style>`; la lógica pura ya vive en `.ts` con tests.
 - L13 (usuario): «aun me parece que esta un poco desordenado [captura de lib/features/agencias], olvida lo que te dije antes era proque no estaba en el worktree indicado» → cuestionario de S7.
+- L14 (parent T11–T12): verificado 512 tests / 34 archivos, build OK, svelte-check 12 = base, 0 tests en src/, nada suelto en las features. La guía corrige además extractos que no coincidían (PlanFormPage.test, Shell.test).
