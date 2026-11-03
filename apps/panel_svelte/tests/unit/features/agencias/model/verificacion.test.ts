@@ -80,7 +80,7 @@ describe('textoVigencia', () => {
   it('vencida: días en singular y plural', () => {
     expect(textoVigencia(agencia({ rnt_vigente_hasta: '2026-10-24' }), HOY)).toEqual({
       texto: 'RNT vencido hace 1 día',
-      clase: 'text-red-600',
+      clase: 'text-error-ink',
     });
     expect(textoVigencia(agencia({ rnt_vigente_hasta: '2026-10-20' }), HOY).texto).toBe(
       'RNT vencido hace 5 días',
@@ -90,7 +90,7 @@ describe('textoVigencia', () => {
   it('por vencer: hoy, 1 día y varios', () => {
     expect(textoVigencia(agencia({ rnt_vigente_hasta: '2026-10-25' }), HOY)).toEqual({
       texto: 'RNT vence hoy',
-      clase: 'text-orange-600',
+      clase: 'text-alert-ink',
     });
     expect(textoVigencia(agencia({ rnt_vigente_hasta: '2026-10-26' }), HOY).texto).toBe(
       'RNT vence en 1 día',
@@ -103,14 +103,14 @@ describe('textoVigencia', () => {
   it('sin vigencia registrada', () => {
     expect(textoVigencia(agencia({ rnt_vigente_hasta: null }), HOY)).toEqual({
       texto: 'Sin vigencia registrada',
-      clase: 'text-slate-400',
+      clase: 'text-suave',
     });
   });
 
   it('vigente: fecha en texto', () => {
     expect(textoVigencia(agencia({ rnt_vigente_hasta: '2027-03-31' }), HOY)).toEqual({
       texto: 'RNT vigente hasta el 31 de marzo de 2027',
-      clase: 'text-ok-600 dark:text-ok-500',
+      clase: 'text-ok-ink',
     });
   });
 });

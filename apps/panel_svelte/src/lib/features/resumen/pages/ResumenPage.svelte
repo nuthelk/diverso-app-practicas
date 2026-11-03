@@ -1,5 +1,9 @@
 <script lang="ts">
   import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import LogoAgencia from '$lib/features/agencias/components/LogoAgencia.svelte';
@@ -85,77 +89,73 @@
 </script>
 
 {#if cargando}
-  <div class="px-4 pt-6 sm:px-6 lg:px-10 lg:pt-9">
-    <div class="mx-auto max-w-[1096px] space-y-4">
+  <Pagina>
+    <div class="space-y-4" role="status" aria-label="Cargando">
       <Skeleton clase="h-14 w-80 max-w-full rounded-lg" />
       <div class="grid gap-4 sm:grid-cols-2 ancho:grid-cols-4">
-        {#each [1, 2, 3, 4] as n (n)}<Skeleton clase="h-[124px] rounded-[18px]" />{/each}
+        {#each [1, 2, 3, 4] as n (n)}<Skeleton clase="h-[124px]" />{/each}
       </div>
-      <Skeleton clase="h-[320px] rounded-[18px]" />
+      <Skeleton clase="h-[320px]" />
     </div>
-  </div>
+  </Pagina>
 {:else if error}
-  <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
+  <Empty icono="sinConexion" titulo="Sin conexión" mensaje={error} />
 {:else if !agencia}
-  <Empty icono="🏢" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
+  <Empty icono="edificio" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
 {:else}
-  <div class="aparecer px-4 pt-6 pb-10 sm:px-6 lg:px-10 lg:pt-9">
-    <div class="mx-auto max-w-[1096px]">
-      <!-- Saludo y estado -->
-      <header class="flex flex-wrap items-end gap-x-4 gap-y-3">
-        <div class="min-w-0 flex-1 basis-[260px]">
-          <h1 class="text-[24px] leading-[1.2] font-extrabold tracking-[-0.2px] sm:text-[26px]">Buen día, {agencia.nombre}</h1>
-          <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-slate-600 dark:text-slate-400">
-            <span>{fechaDeHoy(hoy)}</span>
-            <span aria-hidden="true">·</span>
-            {#if cabecera}
-              <StatusPill estado={cabecera.estado} />
-              {#if cabecera.detalle}<span>{cabecera.detalle}</span>{/if}
-            {/if}
-            <button
-              type="button"
-              class="rounded text-[12.5px] font-semibold text-acento-ink underline underline-offset-2"
-              aria-expanded={logoAbierto}
-              aria-controls="panel-logo"
-              onclick={() => (logoAbierto = !logoAbierto)}
-            >
-              Cambiar logo
-            </button>
-          </p>
-        </div>
-        <a class="btn btn-primario shrink-0" href="#/planes/nuevo">
-          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+  <Pagina>
+    <PageHeader titulo="Buen día, {agencia.nombre}">
+      {#snippet contexto()}
+        <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>{fechaDeHoy(hoy)}</span>
+          <span aria-hidden="true">·</span>
+          {#if cabecera}
+            <StatusPill estado={cabecera.estado} />
+            {#if cabecera.detalle}<span>{cabecera.detalle}</span>{/if}
+          {/if}
+          <button
+            type="button"
+            class="enlace rounded text-[12.5px] underline underline-offset-2"
+            aria-expanded={logoAbierto}
+            aria-controls="panel-logo"
+            onclick={() => (logoAbierto = !logoAbierto)}
+          >
+            Cambiar logo
+          </button>
+        </span>
+      {/snippet}
+      {#snippet accion()}
+        <a class="btn btn-primario" href="#/planes/nuevo">
+          <Icono trazo={ICONOS.mas} clase="size-4" />
           Nuevo plan
         </a>
-      </header>
+      {/snippet}
+    </PageHeader>
 
-      {#if logoAbierto}
-        <div id="panel-logo" class="mt-4"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
-      {/if}
+    {#if logoAbierto}
+      <div id="panel-logo" class="mt-4"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
+    {/if}
 
-      {#if avisos.length > 0}
-        <AvisosResumen {avisos} />
-      {/if}
+    {#if avisos.length > 0}
+      <AvisosResumen {avisos} />
+    {/if}
 
-      <dl class="mt-5 grid gap-4 sm:grid-cols-2 ancho:grid-cols-4" aria-label="Indicadores del mes">
-        {#each kpis as kpi (kpi.clave)}
-          <TarjetaKpi {kpi} />
-        {/each}
-      </dl>
+    <dl class="mt-5 grid gap-4 sm:grid-cols-2 ancho:grid-cols-4" aria-label="Indicadores del mes">
+      {#each kpis as kpi (kpi.clave)}
+        <TarjetaKpi {kpi} />
+      {/each}
+    </dl>
 
-      <div class="mt-4 grid gap-4 lg:grid-cols-[1.55fr_1fr]">
-        <LineaSalidas {grupos} />
-        <TarjetaMes
-          {mes}
-          reparto={repartoMes(mes)}
-          comisionPct={agencia.comision_pct}
-          anterior={anterior.texto}
-          {pago}
-          pagoConsultado={liquidaciones !== null}
-        />
-      </div>
+    <div class="mt-4 grid gap-4 lg:grid-cols-[1.55fr_1fr]">
+      <LineaSalidas {grupos} />
+      <TarjetaMes
+        {mes}
+        reparto={repartoMes(mes)}
+        comisionPct={agencia.comision_pct}
+        anterior={anterior.texto}
+        {pago}
+        pagoConsultado={liquidaciones !== null}
+      />
     </div>
-  </div>
+  </Pagina>
 {/if}

@@ -132,7 +132,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 **Lee.**
 - Capítulo 1 completo.
 - `lib/shared/ui/Skeleton.svelte`, `lib/shared/ui/StatusPill.svelte` y `lib/shared/ui/Empty.svelte`.
-- `lib/features/planes/components/plan-form/Seccion.svelte` y `SeccionIncluye.svelte`.
+- `lib/features/planes/components/plan-form/Seccion.svelte`, `lib/shared/ui/Tarjeta.svelte` y `SeccionIncluye.svelte`.
 
 **Ejercicio.**
 1. Traduce `Skeleton.svelte` y `Seccion.svelte` a TSX en papel: sus props, el valor por defecto de
@@ -149,7 +149,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 **Ya lo entendí si…**
 - [ ] Explicas por qué `Seccion.svelte` no tiene un `return` y puede tener varios nodos raíz.
 - [ ] Dices la diferencia entre `{@render children()}` y un snippet con nombre como `accion` en `Empty`.
-- [ ] Explicas por qué `.plan-form :global(.etiqueta)` necesita `:global` (pista: quién pinta `.etiqueta`).
+- [ ] Explicas por qué, en el ejemplo del capítulo 1 (sección 2), `.plan-form :global(.etiqueta)` necesita `:global` (pista: quién pinta `.etiqueta`).
 - [ ] Sabes por qué `onclick` y no `onClick`, y por qué ya no existe `on:click`.
 
 ---

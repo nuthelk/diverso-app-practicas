@@ -1,4 +1,6 @@
 <script lang="ts">
+  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
+  import Spinner from '$lib/shared/ui/Spinner.svelte';
   import { auth, perfilActual } from '../model/auth.svelte';
   import { goto } from '$app/navigation';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
@@ -22,6 +24,9 @@ import { consentimientosPendientes } from '$lib/features/legal/api/legal.api';
   });
 </script>
 
-<div class="grid min-h-screen place-items-center">
-  <div class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+<div class="grid min-h-screen place-items-center" role="status" aria-label="Cargando">
+  <div class="flex flex-col items-center gap-5">
+    <MarcaTile tam={48} />
+    <Spinner />
+  </div>
 </div>

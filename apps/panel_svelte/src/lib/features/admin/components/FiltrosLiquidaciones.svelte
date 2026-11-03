@@ -17,10 +17,7 @@
   <h2 class="mr-2 text-[18px] font-extrabold tracking-tight">Liquidaciones</h2>
   {#each FILTROS as f}
     <button
-      class="rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition
-        {filtro === f.valor
-        ? 'border-brand-600 bg-brand-600 text-white'
-        : 'border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-ink-600 dark:text-slate-300 dark:hover:bg-ink-700'}"
+      class="chip"
       aria-pressed={filtro === f.valor}
       onclick={() => onelegir(f.valor)}
     >

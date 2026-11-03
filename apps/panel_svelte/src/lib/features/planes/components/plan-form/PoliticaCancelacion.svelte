@@ -17,18 +17,18 @@
 </script>
 
 <div
-  class="space-y-3 rounded-xl border border-slate-200/80 bg-paper p-4 dark:border-ink-600 dark:bg-ink-900"
+  class="space-y-3 rounded-xl border border-linea bg-paper p-4 dark:bg-ink-900"
   role="group"
   aria-label="Política de cancelación"
 >
   <h3 class="text-[13px] font-bold">Política de cancelación y reembolsos</h3>
-  <p class="text-[12px] leading-relaxed text-slate-500 dark:text-slate-400">
+  <p class="text-[12px] leading-relaxed text-suave">
     Las horas se cuentan hacia atrás desde la fecha del plan y su hora de salida. Con estos
     números se calcula el reembolso al cancelar y se escribe el texto que ve el viajero.
   </p>
   <div class="grid gap-3 min-[640px]:grid-cols-3">
     <label class="block">
-      <span class="etiqueta">Cancelación gratuita hasta (horas antes) *</span>
+      <span class="etiqueta-campo">Cancelación gratuita hasta (horas antes) *</span>
       <input
         type="number"
         min="1"
@@ -39,11 +39,11 @@
         aria-invalid={intentado && !!errores.horasGratis}
       />
       {#if intentado && errores.horasGratis}
-        <span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.horasGratis}</span>
+        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.horasGratis}</span>
       {/if}
     </label>
     <label class="block">
-      <span class="etiqueta">Reembolso parcial hasta (horas antes)</span>
+      <span class="etiqueta-campo">Reembolso parcial hasta (horas antes)</span>
       <input
         type="number"
         min="0"
@@ -54,11 +54,11 @@
         aria-invalid={intentado && !!errores.horasParcial}
       />
       {#if intentado && errores.horasParcial}
-        <span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.horasParcial}</span>
+        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.horasParcial}</span>
       {/if}
     </label>
     <label class="block">
-      <span class="etiqueta">Porcentaje de reembolso parcial (1–99)</span>
+      <span class="etiqueta-campo">Porcentaje de reembolso parcial (1–99)</span>
       <input
         type="number"
         min="1"
@@ -70,12 +70,12 @@
         aria-invalid={intentado && !!errores.porcentajeParcial}
       />
       {#if intentado && errores.porcentajeParcial}
-        <span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.porcentajeParcial}</span>
+        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.porcentajeParcial}</span>
       {/if}
     </label>
   </div>
   <label class="block">
-    <span class="etiqueta">Notas de la política (opcional)</span>
+    <span class="etiqueta-campo">Notas de la política (opcional)</span>
     <textarea
       rows="2"
       bind:value={d.politicaNotas}
@@ -83,11 +83,11 @@
       placeholder="Ej.: Avisar restricciones alimentarias."
       aria-invalid={intentado && !!errores.notas}
     ></textarea>
-    <span class="mt-1 block text-[12px] text-slate-500 dark:text-slate-400">
+    <span class="mt-1 block text-[12px] text-suave">
       Frases que no cambian el reembolso: se muestran al viajero después de la política.
     </span>
     {#if intentado && errores.notas}
-      <span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.notas}</span>
+      <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.notas}</span>
     {/if}
   </label>
   <p class="text-[13px] leading-relaxed" data-testid="politica-texto">

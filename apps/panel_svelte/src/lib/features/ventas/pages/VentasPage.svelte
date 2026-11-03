@@ -1,12 +1,24 @@
 <script lang="ts">
-  import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import EsqueletoPagina from '$lib/shared/ui/EsqueletoPagina.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
+  import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
+  import Metrica from '$lib/shared/ui/Metrica.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import { misVentas } from '../api/ventas.api';
-import { mensajeError } from '$lib/shared/api/errores';
+  import { mensajeError } from '$lib/shared/api/errores';
   import { cop, fechaCorta } from '$lib/shared/lib/format';
   import type { VentaRow } from '../model/ventas';
   import { ventasPagadas, totalesVentas, filtrarVentas, type FiltroVentas } from '../model/ventas';
+
+  const FILTROS: { valor: FiltroVentas; etiqueta: string }[] = [
+    { valor: 'todas', etiqueta: 'Todas' },
+    { valor: 'confirmadas', etiqueta: 'Pagadas' },
+    { valor: 'pendientes', etiqueta: 'Pendientes de pago' },
+  ];
 
   let cargando = $state(true);
   let error = $state('');
@@ -37,119 +49,81 @@ import { mensajeError } from '$lib/shared/api/errores';
 </script>
 
 {#if cargando}
-  <div class="space-y-3 p-7">
-    {#each Array(5) as _}<Skeleton clase="h-14 rounded-xl" />{/each}
-  </div>
+  <EsqueletoPagina filas={5} clase="h-14" />
 {:else if error}
-  <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
+  <Empty icono="sinConexion" titulo="Sin conexión" mensaje={error} />
 {:else}
-  <div class="aparecer mx-auto max-w-[1200px] px-4 py-6 sm:px-7">
-    <!-- Cabecera: título + filtro compacto -->
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 class="text-[24px] font-extrabold tracking-tight">Ventas y conciliación</h1>
-        <p class="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-          Cada venta muestra la comisión de Diverso y el saldo que corresponde a tu agencia.
-        </p>
-      </div>
-      <div
-        class="inline-flex overflow-hidden rounded-full border border-slate-200 text-[12.5px]
-          font-semibold dark:border-ink-600"
-      >
-        {#each ['todas', 'confirmadas', 'pendientes'] as f, i}
-          <button
-            class="px-3.5 py-1.5 transition
-              {filtro === f
-              ? 'bg-brand-600 text-white'
-              : i > 0
-                ? 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700'
-                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700'}"
-            onclick={() => (filtro = f as typeof filtro)}
-          >
-            {f === 'todas' ? 'Todas' : f === 'confirmadas' ? 'Pagadas' : 'Pendientes de pago'}
-          </button>
-        {/each}
-      </div>
-    </div>
+  <Pagina>
+    <PageHeader titulo="Ventas y conciliación">
+      {#snippet contexto()}
+        Cada venta muestra la comisión de Diverso y el saldo que corresponde a tu agencia.
+      {/snippet}
+      {#snippet accion()}
+        <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar ventas">
+          {#each FILTROS as f}
+            <button type="button" class="chip" aria-pressed={filtro === f.valor} onclick={() => (filtro = f.valor)}>
+              {f.etiqueta}
+            </button>
+          {/each}
+        </div>
+      {/snippet}
+    </PageHeader>
 
-    <!-- Resumen -->
-    <div class="mt-5 flex flex-wrap gap-3">
-      <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
-        <div class="text-[12px] text-slate-500 dark:text-slate-400">Ventas pagadas</div>
-        <div class="mt-0.5 text-[17px] font-extrabold text-brand-700 tabular-nums dark:text-brand-200">
-          {cop(totales.total)}
-        </div>
-      </div>
-      <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
-        <div class="text-[12px] text-slate-500 dark:text-slate-400">Comisión ({comisionPct}%)</div>
-        <div class="mt-0.5 text-[17px] font-extrabold text-orange-600 tabular-nums">
-          - {cop(totales.comision)}
-        </div>
-      </div>
-      <div class="rounded-2xl border border-slate-200/80 bg-white px-5 py-3 dark:border-ink-600 dark:bg-ink-800">
-        <div class="text-[12px] text-slate-500 dark:text-slate-400">Saldo a recibir</div>
-        <div class="mt-0.5 text-[17px] font-extrabold text-ok-600 tabular-nums">
-          {cop(totales.saldo)}
-        </div>
-      </div>
-    </div>
+    <dl class="mt-5 grid gap-3 sm:grid-cols-3">
+      <Metrica etiqueta="Ventas pagadas" valor={cop(totales.total)} tono="acento" />
+      <Metrica etiqueta="Comisión ({comisionPct}%)" valor="- {cop(totales.comision)}" tono="alerta" />
+      <Metrica etiqueta="Saldo a recibir" valor={cop(totales.saldo)} tono="ok" />
+    </dl>
 
-    <!-- Tabla -->
-    <div
-      class="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white
-        dark:border-ink-600 dark:bg-ink-800"
-    >
+    <Tarjeta sinRelleno clase="mt-5 overflow-hidden">
       {#if filtradas.length === 0}
         <Empty
-          icono="🧾"
+          icono="recibo"
           titulo="Sin ventas aquí"
           mensaje="Cuando los viajeros reserven tus planes, verás la conciliación en esta pantalla."
         />
       {:else}
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[880px] text-[13px]">
+          <table class="tabla min-w-[880px]">
             <thead>
-              <tr class="bg-slate-500/8 text-left text-[11px] tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                <th class="px-4 py-2.5 font-bold">CÓDIGO</th>
-                <th class="px-4 py-2.5 font-bold">PLAN</th>
-                <th class="px-4 py-2.5 font-bold">FECHA</th>
-                <th class="px-4 py-2.5 text-right font-bold">PAX</th>
-                <th class="px-4 py-2.5 text-right font-bold">MONTO</th>
-                <th class="px-4 py-2.5 text-right font-bold">COMISIÓN</th>
-                <th class="px-4 py-2.5 text-right font-bold">SALDO</th>
-                <th class="px-4 py-2.5 font-bold">ESTADO</th>
+              <tr>
+                <th>CÓDIGO</th>
+                <th>PLAN</th>
+                <th>FECHA</th>
+                <th class="num">PAX</th>
+                <th class="num">MONTO</th>
+                <th class="num">COMISIÓN</th>
+                <th class="num">SALDO</th>
+                <th>ESTADO</th>
               </tr>
             </thead>
             <tbody>
               {#each filtradas as v (v.booking_id)}
-                <tr class="border-t border-slate-200/70 transition hover:bg-slate-500/5 dark:border-ink-600">
-                  <td class="px-4 py-3 font-semibold">{v.codigo}</td>
-                  <td class="max-w-[260px] truncate px-4 py-3 text-slate-600 dark:text-slate-300">
-                    {v.plan_titulo}
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap">{fechaCorta(v.fecha)}</td>
-                  <td class="px-4 py-3 text-right tabular-nums">{v.pax}</td>
-                  <td class="px-4 py-3 text-right tabular-nums">{cop(v.monto_total)}</td>
-                  <td class="px-4 py-3 text-right text-orange-600 tabular-nums">
-                    - {cop(v.comision)}
-                  </td>
-                  <td class="px-4 py-3 text-right font-extrabold tabular-nums">
-                    {cop(v.saldo_agencia)}
-                  </td>
-                  <td class="px-4 py-3"><StatusPill estado={v.booking_estado} /></td>
+                <tr>
+                  <td class="font-semibold whitespace-nowrap">{v.codigo}</td>
+                  <td class="max-w-[260px] truncate text-suave">{v.plan_titulo}</td>
+                  <td class="whitespace-nowrap">{fechaCorta(v.fecha)}</td>
+                  <td class="num">{v.pax}</td>
+                  <td class="num">{cop(v.monto_total)}</td>
+                  <td class="num text-alert-ink">- {cop(v.comision)}</td>
+                  <td class="num font-extrabold">{cop(v.saldo_agencia)}</td>
+                  <td><StatusPill estado={v.booking_estado} /></td>
                 </tr>
               {/each}
             </tbody>
           </table>
         </div>
       {/if}
-    </div>
+    </Tarjeta>
 
-    <p class="mt-4 text-[12px] text-slate-400">
-      ⓘ Modo de prueba (Wompi sandbox): los cobros a los viajeros son transacciones de prueba y no se
-      mueve dinero real. Concilia estos saldos con tus
-      <a class="font-semibold text-brand-600 hover:underline dark:text-brand-300" href="#/liquidaciones">Liquidaciones</a>
-      semanales y anticipos, que también son dispersiones de prueba.
+    <p class="mt-4 flex items-start gap-2 text-[12px] leading-relaxed text-suave">
+      <Icono trazo={ICONOS.info} clase="mt-px size-4" />
+      <span>
+        Modo de prueba (Wompi sandbox): los cobros a los viajeros son transacciones de prueba y no se mueve dinero
+        real. Concilia estos saldos con tus
+        <a class="enlace" href="#/liquidaciones">Liquidaciones</a>
+        semanales y anticipos, que también son dispersiones de prueba.
+      </span>
     </p>
-  </div>
+  </Pagina>
 {/if}

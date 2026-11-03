@@ -1,12 +1,16 @@
 <script lang="ts">
-  import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import EsqueletoPagina from '$lib/shared/ui/EsqueletoPagina.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import { misVentas } from '$lib/features/ventas/api/ventas.api';
-import { publicarPlan } from '../api/planes.api';
-import { mensajeError } from '$lib/shared/api/errores';
-  import { cop, fechaCorta } from '$lib/shared/lib/format';
-  import { fechasFuturas, type Plan } from '../model/plan';
+  import { publicarPlan } from '../api/planes.api';
+  import { mensajeError } from '$lib/shared/api/errores';
+  import { cop, fechaCorta, plural } from '$lib/shared/lib/format';
+  import { fechasFuturas, resumenPlanes, type Plan } from '../model/plan';
   import { avisar } from '$lib/shared/lib/toast.svelte';
   import FechasModal from '../components/FechasModal.svelte';
 
@@ -45,112 +49,91 @@ import { mensajeError } from '$lib/shared/api/errores';
 </script>
 
 {#if cargando}
-  <div class="space-y-3 p-7">
-    {#each Array(3) as _}<Skeleton clase="h-[150px]" />{/each}
-  </div>
+  <EsqueletoPagina filas={3} clase="h-[150px]" />
 {:else if error}
-  <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
+  <Empty icono="sinConexion" titulo="Sin conexión" mensaje={error} />
 {:else if planes.length === 0}
   <Empty
-    icono="🗺️"
+    icono="mapa"
     titulo="Aún no tienes planes"
     mensaje="Crea tu primer plan turístico con la ficha estandarizada de Diverso."
   >
-    <a
-      href="#/planes/nuevo"
-      class="rounded-full bg-brand-600 px-5 py-2.5 text-[13.5px] font-bold text-white transition hover:bg-brand-500"
-    >
-      + Nuevo plan
+    <a href="#/planes/nuevo" class="btn btn-primario">
+      <Icono trazo={ICONOS.mas} clase="size-4" />
+      Nuevo plan
     </a>
   </Empty>
 {:else}
-  <div class="aparecer mx-auto max-w-[1100px] space-y-3 px-4 py-6 pb-24 sm:px-7">
-    <div class="flex items-center justify-between gap-4">
-      <h1 class="text-[24px] font-extrabold tracking-tight">Mis planes</h1>
-      <a
-        href="#/planes/nuevo"
-        class="rounded-full bg-brand-600 px-5 py-2.5 text-[13.5px] font-bold text-white transition
-          hover:bg-brand-500"
-      >
-        + Nuevo plan
-      </a>
-    </div>
-    {#each planes as p (p.id)}
-      {@const publicado = p.estado === 'publicado'}
-      {@const futuras = fechasFuturas(p)}
-      <div
-        class="rounded-2xl border border-slate-200/80 bg-white p-4 transition hover:shadow-sm
-          dark:border-ink-600 dark:bg-ink-800"
-      >
-        <div class="flex items-start gap-3.5">
-          {#if p.fotos[0]}
-            <img
-              src={p.fotos[0]}
-              alt=""
-              class="size-[54px] shrink-0 rounded-[14px] object-cover"
-              loading="lazy"
-            />
-          {:else}
-            <div
-              class="flex size-[54px] shrink-0 items-center justify-center rounded-[14px]
-                bg-brand-600/12 text-xl"
-            >
-              {#each CATEGORIA_EMOJIS as ce}
-                {#if ce.valor === p.categoria}{ce.emoji}{/if}
-              {/each}
+  <Pagina>
+    <PageHeader titulo="Mis planes">
+      {#snippet contexto()}{resumenPlanes(planes)}{/snippet}
+      {#snippet accion()}
+        <a href="#/planes/nuevo" class="btn btn-primario">
+          <Icono trazo={ICONOS.mas} clase="size-4" />
+          Nuevo plan
+        </a>
+      {/snippet}
+    </PageHeader>
+
+    <ul class="mt-5 space-y-4">
+      {#each planes as p (p.id)}
+        {@const publicado = p.estado === 'publicado'}
+        {@const futuras = fechasFuturas(p)}
+        <li class="tarjeta px-5 py-[18px] transition-shadow hover:shadow-sm hover:shadow-slate-900/5">
+          <div class="flex items-start gap-3.5">
+            {#if p.fotos[0]}
+              <img src={p.fotos[0]} alt="" class="size-14 shrink-0 rounded-[14px] object-cover" loading="lazy" />
+            {:else}
+              <div class="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-brand-600/10 text-xl dark:bg-brand-400/15" aria-hidden="true">
+                {#each CATEGORIA_EMOJIS as ce}
+                  {#if ce.valor === p.categoria}{ce.emoji}{/if}
+                {/each}
+              </div>
+            {/if}
+            <div class="min-w-0 flex-1">
+              <div class="line-clamp-2 text-[15px] leading-snug font-bold">{p.titulo}</div>
+              <div class="mt-1 text-[12.5px] leading-relaxed text-suave">
+                {p.destino} · {CATEGORIA_LABELS[p.categoria] ?? p.categoria} · {p.duracion_texto} ·
+                {cop(p.precio_cop)} · ★ {p.rating_promedio.toFixed(1)} ({p.reviews_count})
+              </div>
             </div>
-          {/if}
-          <div class="min-w-0 flex-1">
-            <div class="line-clamp-2 text-[15px] font-bold leading-snug">{p.titulo}</div>
-            <div class="mt-1 truncate text-[12.5px] text-slate-500 dark:text-slate-400">
-              {p.destino} · {CATEGORIA_LABELS[p.categoria] ?? p.categoria} · {p.duracion_texto} ·
-              {cop(p.precio_cop)} · ★ {p.rating_promedio.toFixed(1)} ({p.reviews_count})
-            </div>
+            <StatusPill estado={p.estado} />
           </div>
-          <StatusPill estado={p.estado} />
-        </div>
 
-        <p
-          class="mt-3 text-[12.5px] font-medium
-            {futuras.length === 0 ? 'text-orange-600' : 'text-brand-600 dark:text-brand-300'}"
-        >
-          {futuras.length === 0
-            ? 'Sin fechas futuras — agrega fechas para vender'
-            : `${futuras.length} fechas futuras · próximas: ${futuras
-                .slice(0, 3)
-                .map((d) => fechaCorta(d.fecha))
-                .join(', ')}`}
-        </p>
+          <p class="mt-3.5 flex items-start gap-2 text-[12.5px] font-medium {futuras.length === 0 ? 'text-alert-ink' : 'text-acento-ink'}">
+            <Icono trazo={ICONOS.calendario} clase="mt-px size-4" />
+            <span>
+              {futuras.length === 0
+                ? 'Sin fechas futuras — agrega fechas para vender'
+                : `${futuras.length} ${plural(futuras.length, 'fecha futura', 'fechas futuras')} · próximas: ${futuras
+                    .slice(0, 3)
+                    .map((d) => fechaCorta(d.fecha))
+                    .join(', ')}`}
+            </span>
+          </p>
 
-        <div class="mt-3.5 flex flex-wrap items-center gap-1 border-t border-slate-200/70 pt-3 dark:border-ink-600">
-          <a
-            href={'#/planes/editar/' + p.id}
-            class="rounded-full px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-600 transition
-              hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-700"
-          >
-            ✏️ Editar
-          </a>
-          <button
-            class="rounded-full px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-slate-600 transition
-              hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-700"
-            onclick={() => (fechasDe = p)}
-          >
-            📅 Fechas y cupos
-          </button>
-          <div class="flex-1"></div>
-          <button
-            class="rounded-full px-4 py-1.5 text-[13px] font-bold whitespace-nowrap transition
-              {publicado
-              ? 'bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-ink-700 dark:text-slate-400'
-              : 'bg-ok-500/15 text-ok-600 hover:bg-ok-500/25'}"
-            onclick={() => alternarPublicacion(p)}
-          >
-            {publicado ? 'Despublicar' : '🚀 Publicar'}
-          </button>
-        </div>
-      </div>
-    {/each}
-  </div>
+          <div class="mt-3.5 flex flex-wrap items-center gap-1 border-t border-linea pt-3">
+            <a href={'#/planes/editar/' + p.id} class="btn btn-texto whitespace-nowrap">
+              <Icono trazo={ICONOS.editar} clase="size-4" />
+              Editar
+            </a>
+            <button type="button" class="btn btn-texto whitespace-nowrap" onclick={() => (fechasDe = p)}>
+              <Icono trazo={ICONOS.calendario} clase="size-4" />
+              Fechas y cupos
+            </button>
+            <button
+              type="button"
+              class="btn ml-auto whitespace-nowrap {publicado ? 'btn-secundario' : 'btn-primario'}"
+              onclick={() => alternarPublicacion(p)}
+            >
+              {#if !publicado}<Icono trazo={ICONOS.publicar} clase="size-4" />{/if}
+              {publicado ? 'Despublicar' : 'Publicar'}
+            </button>
+          </div>
+        </li>
+      {/each}
+    </ul>
+  </Pagina>
 {/if}
 
 {#if fechasDe}

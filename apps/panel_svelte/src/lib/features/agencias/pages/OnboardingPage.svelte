@@ -1,9 +1,10 @@
 <script lang="ts">
-  import Logo from '$lib/shared/ui/Logo.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Consentimiento from '$lib/features/legal/components/Consentimiento.svelte';
   import { registrarAgencia } from '../api/agencias.api';
-import { registrarConsentimiento } from '$lib/features/legal/api/legal.api';
-import { mensajeError } from '$lib/shared/api/errores';
+  import { registrarConsentimiento } from '$lib/features/legal/api/legal.api';
+  import { mensajeError } from '$lib/shared/api/errores';
   import { goto } from '$app/navigation';
   import { avisar } from '$lib/shared/lib/toast.svelte';
 
@@ -64,28 +65,24 @@ import { mensajeError } from '$lib/shared/api/errores';
   }
 </script>
 
-<div class="aparecer mx-auto max-w-[760px] px-5 py-10 sm:px-6">
-  <div class="flex items-center gap-3">
-    <div class="flex size-11 items-center justify-center rounded-2xl bg-brand-600 text-white">
-      <Logo size={22} />
-    </div>
-    <h1 class="text-[26px] font-extrabold tracking-tight">Registra tu agencia</h1>
-  </div>
-  <p class="mt-2 max-w-[560px] text-[13.5px] leading-relaxed text-slate-500 dark:text-slate-400">
-    Solo publicamos agencias formales. Con tu Registro Nacional de Turismo (RNT) y la matrícula
-    mercantil verificamos tu registro antes de que tus planes aparezcan en el catálogo.
-  </p>
+<Pagina ancho={760}>
+  <PageHeader titulo="Registra tu agencia">
+    {#snippet contexto()}
+      Solo publicamos agencias formales. Con tu Registro Nacional de Turismo (RNT) y la matrícula
+      mercantil verificamos tu registro antes de que tus planes aparezcan en el catálogo.
+    {/snippet}
+  </PageHeader>
 
-  <ol class="mt-6 grid gap-2.5 sm:grid-cols-3">
+  <ol class="mt-6 grid gap-3 sm:grid-cols-3">
     {#each pasos as p}
-      <li class="tarjeta flex items-start gap-3 p-3.5">
+      <li class="tarjeta flex items-start gap-3 p-4">
         <span
-          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-600/12
-            text-[12.5px] font-extrabold text-brand-700 dark:text-brand-200">{p.n}</span
+          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-600/10
+            text-[12.5px] font-extrabold text-acento-ink dark:bg-brand-400/15">{p.n}</span
         >
         <span>
           <span class="block text-[13px] font-bold">{p.titulo}</span>
-          <span class="block text-[12px] text-slate-500 dark:text-slate-400">{p.texto}</span>
+          <span class="block text-[12px] text-suave">{p.texto}</span>
         </span>
       </li>
     {/each}
@@ -109,7 +106,7 @@ import { mensajeError } from '$lib/shared/api/errores';
         aria-invalid={intentado && !rntValido}
         aria-describedby="ayuda-rnt"
       />
-      <span id="ayuda-rnt" class="mt-1 block text-[11.5px] text-slate-400"
+      <span id="ayuda-rnt" class="mt-1 block text-[11.5px] text-suave"
         >Entre 4 y 8 dígitos, tal como aparece en tu certificado.</span
       >
     </label>
@@ -150,12 +147,12 @@ import { mensajeError } from '$lib/shared/api/errores';
       ></textarea>
     </label>
 
-    <div class="border-t border-slate-200/70 pt-4 sm:col-span-2 dark:border-ink-600">
+    <div class="border-t border-linea pt-4 sm:col-span-2">
       <Consentimiento bind:datos={aceptaDatos} bind:terminos={aceptaTerminos} />
     </div>
 
     {#if error}
-      <p class="text-[13px] font-medium text-red-600 sm:col-span-2" role="alert">{error}</p>
+      <p class="text-[13px] font-medium text-error-ink sm:col-span-2" role="alert">{error}</p>
     {/if}
 
     <div class="flex justify-end sm:col-span-2">
@@ -168,4 +165,4 @@ import { mensajeError } from '$lib/shared/api/errores';
       </button>
     </div>
   </form>
-</div>
+</Pagina>

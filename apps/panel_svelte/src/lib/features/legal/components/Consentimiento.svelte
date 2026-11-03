@@ -19,11 +19,11 @@
       bind:checked={datos}
       class="mt-0.5 size-4 shrink-0 accent-brand-600"
     />
-    <span class="text-slate-600 dark:text-slate-300">
+    <span class="text-suave">
       Autorizo de manera previa, expresa e informada el tratamiento de mis datos personales según
       la
       <a href="#/legal/privacidad" target="_blank" rel="noopener"
-        class="font-semibold text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
+        class="enlace underline-offset-2"
         >política de tratamiento de datos</a
       > (Ley 1581 de 2012).
     </span>
@@ -35,10 +35,10 @@
       bind:checked={terminos}
       class="mt-0.5 size-4 shrink-0 accent-brand-600"
     />
-    <span class="text-slate-600 dark:text-slate-300">
+    <span class="text-suave">
       Acepto los
       <a href={'#/legal/' + terminosDoc} target="_blank" rel="noopener"
-        class="font-semibold text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
+        class="enlace underline-offset-2"
         >términos y condiciones</a
       >.
     </span>

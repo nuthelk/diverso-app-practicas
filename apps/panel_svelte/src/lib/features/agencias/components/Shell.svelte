@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import Logo from '$lib/shared/ui/Logo.svelte';
+  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import Avatar from '$lib/shared/ui/Avatar.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import { TONOS_AVISO } from '$lib/shared/ui/tonos';
@@ -67,17 +69,13 @@
 
   const ITEM =
     'flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-left text-[13.5px] font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-ink-700';
-  const BOTON_ICONO =
-    'inline-flex size-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-ink-600 dark:bg-ink-800 dark:text-slate-400 dark:hover:bg-ink-700';
   const MODO_PRUEBA = 'Modo de prueba: los pagos no mueven dinero real';
 </script>
 
 <svelte:window onkeydown={alPulsarTecla} onclick={alHacerClic} />
 
 {#snippet icono(trazo: string, clase = 'size-[18px]')}
-  <svg class="{clase} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d={trazo} />
-  </svg>
+  <Icono {trazo} {clase} />
 {/snippet}
 
 {#snippet temaIcono()}
@@ -98,7 +96,7 @@
 
 {#snippet itemsPie()}
   <a href="#/legal/terminos-agencias" class={ITEM}>
-    {@render icono('M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z')}
+    {@render icono(ICONOS.documento)}
     Términos y privacidad
   </a>
 {/snippet}
@@ -163,9 +161,7 @@
       px-3 pt-5 pb-4 max-md:hidden dark:border-ink-600 dark:bg-ink-900"
   >
     <div class="flex items-center gap-2.5 px-1.5">
-      <div class="flex size-9 items-center justify-center rounded-xl bg-brand-600 text-white">
-        <Logo size={22} />
-      </div>
+      <MarcaTile tam={36} />
       <div>
         <div class="text-[15px] leading-tight font-extrabold tracking-[-0.2px]">Diverso</div>
         <div class="text-[10.5px] text-slate-600 dark:text-slate-400">Panel de agencias</div>
@@ -193,7 +189,7 @@
       </p>
       <span class="flex-1"></span>
       {@render estadoPrueba('hidden lg:inline-flex')}
-      <button type="button" class={BOTON_ICONO} aria-pressed={oscuro} aria-label="Modo oscuro" onclick={alternarTema}>
+      <button type="button" class="boton-icono" aria-pressed={oscuro} aria-label="Modo oscuro" onclick={alternarTema}>
         {@render temaIcono()}
       </button>
       <div class="relative" bind:this={contenedorUsuario}>
@@ -209,7 +205,7 @@
         >
           {@render avatar(28)}
           <span class="max-w-[140px] truncate">{nombreCorto(agencia?.nombre ?? '')}</span>
-          {@render icono('M6 9l6 6 6-6', 'size-3.5')}
+          {@render icono(ICONOS.chevron, 'size-3.5')}
         </button>
         <div
           id="menu-usuario"
@@ -227,9 +223,7 @@
       class="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200/80 bg-white/90 px-4 py-2.5
         backdrop-blur md:hidden dark:border-ink-600 dark:bg-ink-900/90"
     >
-      <div class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-        <Logo size={18} />
-      </div>
+      <MarcaTile tam={32} />
       <div class="min-w-0 flex-1 truncate text-[14px] font-extrabold tracking-tight">
         {agencia?.nombre ?? 'Diverso'}
       </div>

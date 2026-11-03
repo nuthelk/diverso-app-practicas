@@ -1,6 +1,7 @@
 /** El plan (tablas `plans` y `plan_dates`), su borrador de formulario y el paso a fila. */
 
 import type { Agency } from '$lib/features/agencias/model/agencia';
+import { plural } from '$lib/shared/lib/format';
 import { horaCorta } from './politica';
 
 export type PlanStatus = 'borrador' | 'publicado';
@@ -209,11 +210,20 @@ export function yaSalio(plan: Pick<Plan, 'hora_salida'>, fecha: Pick<PlanDate, '
   return salidaDe(plan, fecha).getTime() <= ahora.getTime();
 }
 
-/** Fechas futuras con cupos, ordenadas (mismas reglas que el panel Flutter). */
+/** El día de calendario (yyyy-mm-dd) que es [ahora] en Bogotá, sin importar la zona del navegador. */
+export function fechaBogota(ahora = new Date()): string {
+  return new Date(ahora.getTime() - OFFSET_BOGOTA_MS).toISOString().slice(0, 10);
+}
+
+/** Fechas con cupos que aún no parten (fecha + hora de salida en Bogotá), ordenadas. */
 export function fechasFuturas(plan: Plan, ahora = new Date()): PlanDate[] {
-  const hoy = new Date(ahora);
-  hoy.setHours(0, 0, 0, 0);
   return plan.plan_dates
-    .filter((d) => new Date(d.fecha + 'T00:00:00') >= hoy && d.cupo_disponible > 0)
+    .filter((d) => !yaSalio(plan, d, ahora) && d.cupo_disponible > 0)
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+/** «3 planes · 2 publicados»: la línea de contexto bajo el título de «Mis planes». */
+export function resumenPlanes(planes: Pick<Plan, 'estado'>[]): string {
+  const publicados = planes.filter((p) => p.estado === 'publicado').length;
+  return `${planes.length} ${plural(planes.length, 'plan', 'planes')} · ${publicados} ${plural(publicados, 'publicado', 'publicados')}`;
 }

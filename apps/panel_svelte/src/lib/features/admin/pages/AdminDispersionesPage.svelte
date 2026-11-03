@@ -1,5 +1,7 @@
 <script lang="ts">
   import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import AvisoPrueba from '$lib/features/liquidaciones/components/AvisoPrueba.svelte';
   import { cuentasResumen, liquidacionDetalle } from '$lib/features/liquidaciones/api/liquidaciones.api';
@@ -140,13 +142,16 @@
 <div class="min-h-screen">
   <AdminCabecera href="#/admin" texto="Verificación de agencias" />
 
-  <div class="mx-auto max-w-[1100px] px-5 py-7 sm:px-7">
-    <h1 class="text-[26px] font-extrabold tracking-tight">Dispersiones de prueba</h1>
-    <p class="mt-1 max-w-[720px] text-[13.5px] leading-relaxed text-slate-500 dark:text-slate-400">
-      Cada lunes a las 06:00 (Bogotá) se liquida la semana anterior y cada hora se calculan los
-      anticipos. Aquí puedes generarlos a mano, ejecutar la dispersión de prueba y bloquear el
-      anticipo de una agencia.
-    </p>
+  <Pagina>
+    <PageHeader titulo="Dispersiones de prueba">
+      {#snippet contexto()}
+        <span class="block max-w-[720px]">
+          Cada lunes a las 06:00 (Bogotá) se liquida la semana anterior y cada hora se calculan los
+          anticipos. Aquí puedes generarlos a mano, ejecutar la dispersión de prueba y bloquear el
+          anticipo de una agencia.
+        </span>
+      {/snippet}
+    </PageHeader>
     <div class="mt-4"><AvisoPrueba>Ejecutar solo marca la liquidación como pagada de prueba; no se transfiere nada.</AvisoPrueba></div>
 
     <GeneradorLiquidaciones
@@ -159,13 +164,13 @@
     <FiltrosLiquidaciones {filtro} onelegir={(valor) => (filtro = valor)} />
 
     {#if cargando}
-      <div class="mt-4 space-y-3">{#each Array(3) as _}<Skeleton clase="h-[110px]" />{/each}</div>
+      <div class="mt-4 space-y-3" role="status" aria-label="Cargando">{#each Array(3) as _}<Skeleton clase="h-[110px]" />{/each}</div>
     {:else if error}
-      <Empty icono="📡" titulo="No pudimos cargar las liquidaciones" mensaje={error} />
+      <Empty icono="sinConexion" titulo="No pudimos cargar las liquidaciones" mensaje={error} />
     {:else if visibles.length === 0}
-      <Empty icono="🧾" titulo="Nada por aquí" mensaje="No hay liquidaciones en esta categoría. Genera la semana o los anticipos." />
+      <Empty icono="recibo" titulo="Nada por aquí" mensaje="No hay liquidaciones en esta categoría. Genera la semana o los anticipos." />
     {:else}
-      <ul class="mt-4 space-y-3">
+      <ul class="mt-4 space-y-4">
         {#each visibles as l (l.id)}
           <TarjetaLiquidacion
             liquidacion={l}
@@ -189,5 +194,5 @@
       {cuentaDe}
       onalternar={alternarBloqueo}
     />
-  </div>
+  </Pagina>
 </div>

@@ -6,6 +6,7 @@ import {
   diaLargo,
   estadoCabecera,
   fechaConAnio,
+  fechaDeHoy,
   kpisResumen,
   proximoPago,
   proximasSalidasPorFecha,
@@ -17,7 +18,7 @@ import {
   sparkline,
 } from '$lib/features/resumen/model/resumen';
 import { cop } from '$lib/shared/lib/format';
-import { agencia, fecha, HOY, liquidacion, plan, venta } from '$tests/fixtures';
+import { agencia, enZona, fecha, HOY, HOY_BOGOTA, liquidacion, plan, venta } from '$tests/fixtures';
 
 describe('fechas en español', () => {
   it('diaLargo: día de la semana con mayúscula, día y mes (largo o corto)', () => {
@@ -31,15 +32,31 @@ describe('fechas en español', () => {
   });
 
   it('relativoDia: hoy, mañana o «en N días»', () => {
-    expect(relativoDia('2026-10-25', HOY)).toBe('hoy');
-    expect(relativoDia('2026-10-26', HOY)).toBe('mañana');
-    expect(relativoDia('2026-10-28', HOY)).toBe('en 3 días');
-    expect(relativoDia('2026-11-04', HOY)).toBe('en 10 días'); // cruza de mes
+    expect(relativoDia('2026-10-25', HOY_BOGOTA)).toBe('hoy');
+    expect(relativoDia('2026-10-26', HOY_BOGOTA)).toBe('mañana');
+    expect(relativoDia('2026-10-28', HOY_BOGOTA)).toBe('en 3 días');
+    expect(relativoDia('2026-11-04', HOY_BOGOTA)).toBe('en 10 días'); // cruza de mes
+  });
+
+  // 21:00 en Bogotá del lunes 2-nov = 02:00 UTC del martes 3: un navegador adelantado ya ve el 3-nov.
+  const NOCHE = new Date(Date.UTC(2026, 10, 3, 2, 0, 0));
+  const ZONAS = ['America/Bogota', 'Asia/Tokyo', 'Pacific/Kiritimati', 'America/Los_Angeles'];
+
+  it('relativoDia cuenta desde el día de Bogotá, no desde el del navegador', () => {
+    for (const zona of ZONAS) {
+      expect(enZona(zona, () => relativoDia('2026-11-02', NOCHE)), zona).toBe('hoy');
+      expect(enZona(zona, () => relativoDia('2026-11-03', NOCHE)), zona).toBe('mañana');
+      expect(enZona(zona, () => relativoDia('2026-11-05', NOCHE)), zona).toBe('en 3 días');
+    }
+  });
+
+  it('fechaDeHoy muestra el día de Bogotá, igual que la etiqueta relativa', () => {
+    for (const zona of ZONAS) expect(enZona(zona, () => fechaDeHoy(NOCHE)), zona).toBe('Lunes 2 de noviembre');
   });
 });
 
 /** Hoy antes de las 06:00 (hora de salida de los planes de prueba): las salidas de hoy aún no parten. */
-const MADRUGADA = new Date(2026, 9, 25, 4, 0);
+const MADRUGADA = new Date(Date.UTC(2026, 9, 25, 9, 0)); // 04:00 en Bogotá
 
 describe('proximasSalidasPorFecha', () => {
   const planes = [

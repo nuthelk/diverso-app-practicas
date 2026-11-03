@@ -7,10 +7,11 @@ import {
   draftToRow,
   draftVacio,
   fechasFuturas,
+  resumenPlanes,
   salidaDe,
   yaSalio,
 } from '$lib/features/planes/model/plan';
-import { fecha, HOY, plan } from '$tests/fixtures';
+import { enZona, fecha, HOY, plan } from '$tests/fixtures';
 
 describe('salidaDe / yaSalio (hora de Bogotá, UTC−5 fijo)', () => {
   const p = (hora: string) => ({ ...plan('Guatapé', []), hora_salida: hora });
@@ -43,13 +44,30 @@ describe('fechasFuturas', () => {
   const p = plan('Guatapé', [
     fecha({ fecha: '2026-11-10', cupo_disponible: 3 }),
     fecha({ fecha: '2026-10-24', cupo_disponible: 5 }), // ayer
-    fecha({ fecha: '2026-10-25', cupo_disponible: 4 }), // hoy cuenta
+    fecha({ fecha: '2026-10-25', cupo_disponible: 4 }), // hoy
     fecha({ fecha: '2026-10-30', cupo_disponible: 0 }), // sin cupos
     fecha({ fecha: '2026-10-28', cupo_disponible: 1 }),
   ]);
+  const fechas = (ahora: Date) => fechasFuturas(p, ahora).map((d) => d.fecha);
+  // La salida de los planes de prueba es a las 06:00 de Bogotá.
+  const MADRUGADA = new Date(Date.UTC(2026, 9, 25, 10, 0, 0)); // 05:00 en Bogotá del 25-oct
+  const MEDIODIA = new Date(Date.UTC(2026, 9, 25, 17, 0, 0)); // 12:00 en Bogotá del 25-oct
 
   it('filtra pasadas y sin cupo, y ordena por fecha', () => {
-    expect(fechasFuturas(p, HOY).map((d) => d.fecha)).toEqual(['2026-10-25', '2026-10-28', '2026-11-10']);
+    expect(fechas(MADRUGADA)).toEqual(['2026-10-25', '2026-10-28', '2026-11-10']);
+  });
+
+  it('la salida de hoy cuenta mientras no haya partido y deja de contar al partir (06:00 en Bogotá)', () => {
+    expect(fechas(new Date(MADRUGADA.getTime() + 59 * 60_000))).toContain('2026-10-25'); // 05:59
+    expect(fechas(new Date(Date.UTC(2026, 9, 25, 11, 0, 0)))).not.toContain('2026-10-25'); // 06:00 justo
+    expect(fechas(MEDIODIA)).toEqual(['2026-10-28', '2026-11-10']);
+  });
+
+  it('no depende de la zona horaria del navegador', () => {
+    for (const zona of ['America/Bogota', 'Asia/Tokyo', 'Pacific/Kiritimati', 'America/Los_Angeles']) {
+      expect(enZona(zona, () => fechas(MEDIODIA)), zona).toEqual(['2026-10-28', '2026-11-10']);
+      expect(enZona(zona, () => fechas(MADRUGADA)), zona).toEqual(['2026-10-25', '2026-10-28', '2026-11-10']);
+    }
   });
 });
 
@@ -208,4 +226,18 @@ describe('agregarFoto', () => {
       expect(agregarFoto(['https://x.co/a.jpg'], url)).toBeNull();
     },
   );
+});
+
+describe('resumenPlanes (línea de contexto de «Mis planes»)', () => {
+  const conEstado = (estado: 'publicado' | 'borrador') => ({ ...plan('X', []), estado });
+
+  it('cuenta los planes y cuántos están publicados', () => {
+    const planes = [conEstado('publicado'), conEstado('borrador'), conEstado('publicado')];
+    expect(resumenPlanes(planes)).toBe('3 planes · 2 publicados');
+  });
+
+  it('singular con uno, plural con cero', () => {
+    expect(resumenPlanes([conEstado('publicado')])).toBe('1 plan · 1 publicado');
+    expect(resumenPlanes([conEstado('borrador'), conEstado('borrador')])).toBe('2 planes · 0 publicados');
+  });
 });

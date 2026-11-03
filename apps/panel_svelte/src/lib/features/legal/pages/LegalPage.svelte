@@ -1,5 +1,8 @@
 <script lang="ts">
-  import Logo from '$lib/shared/ui/Logo.svelte';
+  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
+  import Aviso from '$lib/shared/ui/Aviso.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import { DOCUMENTOS, VERSION_LEGAL, type DocumentoLegal } from '../model/legal';
 
   let { doc }: { doc: string } = $props();
@@ -9,44 +12,34 @@
   );
 </script>
 
-<div class="min-h-screen bg-paper dark:bg-ink-950">
-  <header
-    class="sticky top-0 z-10 border-b border-slate-200/80 bg-white/90 backdrop-blur
-      dark:border-ink-600 dark:bg-ink-900/90"
-  >
-    <div class="mx-auto flex max-w-[760px] items-center gap-3 px-6 py-3">
-      <div class="flex size-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-        <Logo size={18} />
-      </div>
-      <span class="text-[14px] font-extrabold tracking-tight"><span class="max-sm:hidden">Diverso · </span>Documentos legales</span>
+<div class="min-h-screen">
+  <header class="sticky top-0 z-10 border-b border-linea bg-white/90 backdrop-blur dark:bg-ink-900/90">
+    <div class="mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4 sm:px-6">
+      <MarcaTile tam={32} />
+      <span class="text-[14px] font-extrabold tracking-tight"><span class="max-sm:hidden">Diverso&nbsp;·&nbsp;</span>Documentos legales</span>
       <div class="flex-1"></div>
       <button class="btn btn-secundario py-1.5 text-[12.5px] whitespace-nowrap" onclick={() => history.back()}>
-        ← Volver
+        <Icono trazo={ICONOS.atras} clase="size-3.5" />
+        Volver
       </button>
     </div>
   </header>
 
-  <article class="mx-auto max-w-[760px] px-6 py-10">
+  <article class="mx-auto max-w-[760px] px-5 py-10 sm:px-6">
     {#if !documento}
-      <p class="text-slate-500">Documento no encontrado.</p>
+      <p class="text-suave">Documento no encontrado.</p>
     {:else}
-      <p class="text-[11px] font-bold tracking-[0.12em] text-slate-400">
-        VERSIÓN {VERSION_LEGAL.toUpperCase()}
-      </p>
-      <h1 class="mt-2 text-[28px] leading-tight font-extrabold tracking-tight">
+      <p class="etiqueta-seccion">VERSIÓN {VERSION_LEGAL.toUpperCase()}</p>
+      <h1 class="mt-2 text-[28px] leading-tight font-extrabold tracking-tight sm:text-[30px]">
         {documento.titulo}
       </h1>
-      <p class="mt-2 text-[15px] leading-relaxed text-slate-500 dark:text-slate-400">
-        {documento.resumen}
-      </p>
+      <p class="mt-2 text-[15px] leading-relaxed text-suave">{documento.resumen}</p>
 
-      <div
-        class="mt-6 rounded-xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-[12.5px]
-          leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
-        role="note"
-      >
-        Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del
-        responsable antes del lanzamiento comercial.
+      <div class="mt-6">
+        <Aviso role="note">
+          Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del
+          responsable antes del lanzamiento comercial.
+        </Aviso>
       </div>
 
       {#each documento.secciones as s}

@@ -35,10 +35,10 @@ plantilla se actualiza por trozos (más en el [capítulo 2](02-reactividad-con-r
 
 ```svelte
 <script lang="ts">
-  let { clase = 'h-24 rounded-2xl' }: { clase?: string } = $props();
+  let { clase = 'h-24 rounded-[18px]' }: { clase?: string } = $props();
 </script>
 
-<div class="pulso rounded-2xl bg-slate-200/70 dark:bg-ink-700 {clase}"></div>
+<div class="pulso rounded-[18px] bg-slate-200/70 dark:bg-ink-700 {clase}"></div>
 ```
 
 | Parte | Qué es | Equivalente en React |
@@ -66,9 +66,10 @@ Cosas que ya puedes notar:
 > compilador ve la plantilla y el `<style>` juntos: marca con un hash los elementos del archivo y
 > reescribe cada selector. Además `vitePreprocess()` (en `svelte.config.js`) solo procesa lo que está
 > escrito dentro del `<style>`: no existe un `<style src="…">` que traiga el CSS de otro archivo. El
-> costo es menor de lo que parece: de los 65 archivos `.svelte` de `src/` solo 3 tienen `<style>`
-> (`FechasModal`, `PlanFormPage` y `Select`; compruébalo con `grep -rl '<style' src --include=*.svelte`),
-> y el resto se estila con clases de Tailwind en la plantilla (capítulo 4, sección 3). Lo que no es
+> costo es menor de lo que parece: de los 78 archivos `.svelte` de `src/` **ninguno** tiene hoy
+> `<style>` (compruébalo con `grep -rl '<style' src --include=*.svelte`, que no imprime nada): el
+> estilo compartido vive en `app.css` y el resto son clases de Tailwind en la plantilla (capítulo 4,
+> sección 3 y capítulo 1, sección 2). Lo que no es
 > presentación sale del componente: la lógica pura vive en `.ts` de `model/`, con sus pruebas
 > (capítulo 3, sección 2).
 
@@ -94,17 +95,18 @@ Equivale a declarar una constante **fuera** de la función del componente en Rea
 ## 2. Estilos con alcance y `:global`
 
 Todo lo que escribes en `<style>` vale **solo para los elementos de ese archivo**. El compilador
-añade una clase con hash a esos elementos y a cada selector. `apps/panel_svelte/src/lib/shared/ui/Select.svelte`:
+añade una clase con hash a esos elementos y a cada selector. Un ejemplo **ilustrativo (no está en el
+repo)**:
 
 ```svelte
+<button class="campo">Guardar</button>
+
 <style>
   .campo {
     border-radius: 12px;
-    border: 1px solid rgb(0 0 0 / 0.1);
-    /* … */
+    padding: 9px 14px;
   }
   :global(.dark) .campo {
-    border-color: rgb(255 255 255 / 0.09);
     background: rgb(255 255 255 / 0.04);
   }
   .campo:focus {
@@ -116,8 +118,9 @@ añade una clase con hash a esos elementos y a cada selector. `apps/panel_svelte
 Compilado con `svelte/compiler`, el CSS queda así (el sufijo `svelte-…` cambia con la ruta del archivo):
 
 ```css
-.campo.svelte-14qqlli { border-radius: 12px; … }
-.dark .campo.svelte-14qqlli { border-color: rgb(255 255 255 / 0.09); … }
+.campo.svelte-3hxbpg { border-radius: 12px; padding: 9px 14px; }
+.dark .campo.svelte-3hxbpg { background: rgb(255 255 255 / 0.04); }
+.campo.svelte-3hxbpg:focus { border-color: var(--color-brand-400); }
 ```
 
 `:global(.dark)` le dice al compilador «esta parte del selector **no** la toques»: la clase `dark`
@@ -126,9 +129,10 @@ componente. Sin `:global`, el selector nunca coincidiría.
 
 ### El caso inverso: estilar elementos de componentes hijos
 
-Los elementos que pintan los **hijos** no llevan el hash del padre. Por eso
-`apps/panel_svelte/src/lib/features/planes/pages/PlanFormPage.svelte` ancla el selector en su propio
-`<form class="plan-form">` y marca como global lo que está dentro:
+Los elementos que pintan los **hijos** no llevan el hash del padre. Por eso un padre ancla el
+selector en su propio elemento y marca como global lo que está dentro. Es lo que hacía
+`PlanFormPage.svelte` hasta el rediseño (el código viejo se ve con
+`git show 9e17713:apps/panel_svelte/src/lib/features/planes/pages/PlanFormPage.svelte`); la forma:
 
 ```svelte
 <style>
@@ -146,13 +150,26 @@ Los elementos que pintan los **hijos** no llevan el hash del padre. Por eso
 </style>
 ```
 
-Resultado: `.etiqueta` y `.campo` (las usan `SeccionEsencial`, `SeccionIncluye`… ) quedan estiladas **solo
-dentro de ese formulario** (`.plan-form.svelte-1iio6wl .etiqueta`). Es el patrón para «el padre
-define el aspecto de los campos de sus hijos» sin que el CSS se escape al resto de la app.
+Resultado: `.etiqueta` y `.campo` (las pintaban `SeccionEsencial`, `SeccionIncluye`… ) quedaban estiladas
+**solo dentro de ese formulario** (`.plan-form.svelte-… .etiqueta`). Es el patrón para «el padre define
+el aspecto de los campos de sus hijos» sin que el CSS se escape al resto de la app.
 
-> **Tailwind.** La mayoría del estilo del panel no está en `<style>` sino en clases de utilidad
-> dentro de `class="…"`. `<style>` se reserva para lo que Tailwind no expresa bien (el interruptor
-> `.switch`, el foco de `.campo`). Ver [capítulo 4](04-pruebas-y-herramientas.md#3-tailwind-4).
+### Por qué el panel hoy no tiene ningún `<style>`
+
+- **Cascada.** `app.css` declara las clases compartidas (`.campo`, `.btn`, `.tarjeta`, `.chip`,
+  `.switch`…) dentro de `@layer components`; las utilidades de Tailwind van en una capa posterior, y por
+  eso `class="campo w-[74px]"` funciona. El CSS de un `<style>` de componente queda **fuera de toda
+  capa**, y el CSS sin capa gana a todo el CSS con capa **sin importar la especificidad**: redeclarar
+  `.campo` en un componente haría que las utilidades puestas en cada uso dejaran de aplicarse.
+  `tests/unit/shared/ui/estilos-compartidos.test.ts` falla si algún componente redeclara en su
+  `<style>` una de esas clases.
+- **Un solo lugar.** Un cambio de aspecto (radio, borde, color de las etiquetas) se hace una vez en
+  `app.css`, y lo que se repite como estructura vive en `shared/ui` (`Tarjeta`, `PageHeader`, `Aviso`…;
+  capítulo 3, sección 2).
+
+> **Tailwind.** El estilo del panel son clases de utilidad dentro de `class="…"` más las pocas clases
+> de componente de `app.css`. `<style>` sigue disponible para lo que ninguna de las dos expresa; si lo
+> usas, no reutilices los nombres de clase de `app.css`. Ver [capítulo 4](04-pruebas-y-herramientas.md#3-tailwind-4).
 
 ---
 
@@ -175,7 +192,7 @@ típicos de una pantalla que carga datos:
 {#if cargando}
   <!-- … -->
 {:else if error}
-  <Empty icono="📡" titulo="Sin conexión" mensaje={error} />
+  <Empty icono="sinConexion" titulo="Sin conexión" mensaje={error} />
 {:else if planes.length === 0}
   <!-- … -->
 {:else}
@@ -184,7 +201,7 @@ típicos de una pantalla que carga datos:
 ```
 
 Dentro de una expresión sí puedes usar ternarios normales de JavaScript
-(`{publicado ? 'Despublicar' : '🚀 Publicar'}`, en la misma página).
+(`{publicado ? 'Despublicar' : 'Publicar'}`, en la misma página).
 
 ---
 
@@ -209,9 +226,7 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 {#each fechas as f (f.id)}
   <!-- … -->
 {:else}
-  <p class="py-6 text-center text-[13px] text-slate-500 dark:text-slate-400">
-    Sin fechas todavía — agrega la primera.
-  </p>
+  <li class="py-6 text-center text-[13px] text-suave">Sin fechas todavía — agrega la primera.</li>
 {/each}
 ```
 
@@ -282,24 +297,22 @@ llamada `children`, y se pinta con `{@render children()}`: exactamente el `child
 ```svelte
 <script lang="ts">
   import type { Snippet } from 'svelte';
+  import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
 
-  /** Tarjeta con título en versalitas que envuelve cada bloque del formulario de plan. */
+  /** Tarjeta con título que envuelve cada bloque del formulario de plan. */
   let { titulo, children }: { titulo: string; children: Snippet } = $props();
 </script>
 
-<section
-  class="rounded-2xl border border-slate-200/80 bg-white p-6
-    dark:border-ink-600 dark:bg-ink-800"
->
-  <h2 class="mb-4 text-[11.5px] font-bold tracking-[0.12em] text-slate-400">{titulo}</h2>
-  {@render children()}
-</section>
+<Tarjeta {titulo}>{@render children()}</Tarjeta>
 ```
+
+`Seccion` no pinta nada propio: pasa su `children` a `Tarjeta` (`shared/ui`), que decide el aspecto de
+todas las tarjetas del panel (capítulo 3, sección 2).
 
 Y así la usa `SeccionEsencial.svelte` (el contenido de la tarjeta es lo que va entre las etiquetas):
 
 ```svelte
-<Seccion titulo="LO ESENCIAL">
+<Seccion titulo="Lo esencial">
   <div class="space-y-3">
 ```
 
@@ -332,14 +345,14 @@ devuelve JSX. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svel
 la barra lateral de escritorio **y** en el menú desplegable móvil:
 
 ```svelte
-{#snippet navegacion()}
-  <nav class="flex flex-col gap-0.5" aria-label="Secciones">
-    {#each secciones as s}
+{#snippet enlacesSecciones()}
+  {#each SECCIONES as s}
 ```
 
 ```svelte
-    <div class="mt-5 mb-1.5 px-2 text-[10px] font-bold tracking-[0.1em] text-slate-400">GESTIÓN</div>
-    {@render navegacion()}
+    <nav class="flex flex-col gap-0.5" aria-labelledby="gestion">
+      {@render enlacesSecciones()}
+    </nav>
 ```
 
 Los `+layout.svelte` de SvelteKit son la otra mitad de `children`: reciben la página como
@@ -382,7 +395,7 @@ mano, como en React. `apps/panel_svelte/src/lib/features/planes/pages/PlanFormPa
 ```
 
 ```svelte
-    <form id="form-plan" class="plan-form space-y-4" onsubmit={guardar}>
+    <form id="form-plan" class="mt-5 space-y-4" onsubmit={guardar}>
 ```
 
 ### Callbacks entre componentes
@@ -447,16 +460,17 @@ salió de él.
 ## 10. `class` y `style`
 
 `class` es `class`, no `className`. Se compone con interpolación y ternarios de JavaScript, igual
-que una plantilla de texto. `apps/panel_svelte/src/lib/shared/ui/Select.svelte`:
+que una plantilla de texto. `apps/panel_svelte/src/lib/shared/ui/Select.svelte` (aquí la «clase»
+viaja como prop `clase` del componente `Icono`, que la pone en su `class`):
 
 ```svelte
-      class="size-4 shrink-0 text-slate-400 transition-transform {abierto ? 'rotate-180' : ''}"
+      clase="size-4 text-suave transition-transform {abierto ? 'rotate-180' : ''}"
 ```
 
 `style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:
 
 ```svelte
-      style="grid-template-columns: repeat({secciones.length}, minmax(0, 1fr))"
+      style="grid-template-columns: repeat({SECCIONES.length}, minmax(0, 1fr))"
 ```
 
 Svelte 5 además acepta objetos y arreglos en `class` (al estilo `clsx`; el tipo `ClassValue` está en

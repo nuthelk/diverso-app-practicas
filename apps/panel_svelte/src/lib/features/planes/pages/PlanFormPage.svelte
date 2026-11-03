@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import Spinner from '$lib/shared/ui/Spinner.svelte';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
   import { mensajeError } from '$lib/shared/api/errores';
   import { goto } from '$app/navigation';
@@ -85,14 +87,14 @@
 </script>
 
 {#if cargando}
-  <div class="grid min-h-[60vh] place-items-center">
-    <div class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+  <div class="grid min-h-[60vh] place-items-center" role="status" aria-label="Cargando">
+    <Spinner />
   </div>
 {:else}
-  <div class="mx-auto max-w-[820px] px-6 pb-20">
+  <Pagina ancho={820}>
     <EncabezadoPlan {planId} {guardando} />
 
-    <form id="form-plan" class="plan-form space-y-4" onsubmit={guardar}>
+    <form id="form-plan" class="mt-5 space-y-4" onsubmit={guardar}>
       <SeccionEsencial bind:d bind:duracionCantidad bind:duracionUnidad />
       <SeccionDescripcion bind:d />
       <SeccionIncluye bind:d />
@@ -100,70 +102,11 @@
       <SeccionEncuentro bind:d errores={erroresPolitica} {intentado} {textoVistaPrevia} />
 
       {#if error}
-        <p class="text-[13px] font-medium text-red-600">{error}</p>
+        <p class="text-[13px] font-medium text-error-ink" role="alert">{error}</p>
       {/if}
-      <p class="pb-4 text-[12px] text-slate-400">
+      <p class="pb-4 text-[12px] text-suave">
         * El precio es final: lo que ve el viajero es lo que paga, sin cargos ocultos (Anexo 4).
       </p>
     </form>
-  </div>
+  </Pagina>
 {/if}
-
-<style>
-  .plan-form :global(.etiqueta) {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgb(71 85 105);
-  }
-  :global(.dark) .plan-form :global(.etiqueta) {
-    color: rgb(148 163 184);
-  }
-  .plan-form :global(.campo) {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgb(0 0 0 / 0.1);
-    background: rgb(0 0 0 / 0.03);
-    padding: 9px 14px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  :global(.dark) .plan-form :global(.campo) {
-    border-color: rgb(255 255 255 / 0.09);
-    background: rgb(255 255 255 / 0.04);
-  }
-  .plan-form :global(.campo:focus) {
-    border-color: var(--color-brand-400);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-400) 25%, transparent);
-  }
-  .plan-form :global(.switch) {
-    appearance: none;
-    width: 38px;
-    height: 22px;
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.15);
-    position: relative;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .plan-form :global(.switch)::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 16px;
-    height: 16px;
-    border-radius: 999px;
-    background: white;
-    transition: left 0.2s;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
-  }
-  .plan-form :global(.switch):checked {
-    background: var(--color-brand-600);
-  }
-  .plan-form :global(.switch):checked::after {
-    left: 19px;
-  }
-</style>

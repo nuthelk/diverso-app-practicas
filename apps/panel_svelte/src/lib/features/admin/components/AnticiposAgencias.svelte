@@ -14,16 +14,16 @@
 </script>
 
 <h2 class="mt-10 text-[18px] font-extrabold tracking-tight">Anticipos por agencia</h2>
-<p class="mt-1 text-[12.5px] text-slate-500 dark:text-slate-400">
+<p class="mt-1 text-[12.5px] text-suave">
   Una agencia bloqueada deja de recibir anticipos nuevos; sus liquidaciones semanales siguen igual.
 </p>
 {#if agencias.length > 0}
-  <ul class="mt-3 divide-y divide-slate-200/70 overflow-hidden rounded-2xl border border-slate-200/80 bg-white dark:divide-ink-600 dark:border-ink-600 dark:bg-ink-800">
+  <ul class="tarjeta mt-3 divide-y divide-linea overflow-hidden">
     {#each agencias as a (a.id)}
       <li class="flex flex-wrap items-center gap-3 px-5 py-3">
         <div class="min-w-0 flex-1">
-          <div class="truncate text-[14px] font-bold">{a.nombre}</div>
-          <div class="text-[12px] text-slate-500 dark:text-slate-400">
+          <div class="truncate max-sm:break-words max-sm:whitespace-normal text-[14px] font-bold">{a.nombre}</div>
+          <div class="text-[12px] text-suave">
             Anticipos: {a.anticipo_bloqueado ? 'bloqueados' : 'habilitados'} · {textoCuenta(cuentaDe(a.id))}
           </div>
         </div>

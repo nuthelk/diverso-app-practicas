@@ -1,11 +1,13 @@
 <script lang="ts">
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import type { PlanDraft } from '../../model/plan';
   import Seccion from './Seccion.svelte';
 
   let { d = $bindable() }: { d: PlanDraft } = $props();
 </script>
 
-<Seccion titulo="ITINERARIO">
+<Seccion titulo="Itinerario">
   <div class="space-y-2">
     {#each d.itinerario as paso, i}
       <div class="flex items-center gap-2">
@@ -23,21 +25,21 @@
         />
         <button
           type="button"
-          class="grid size-[38px] shrink-0 place-items-center rounded-xl text-slate-400
-            transition hover:text-red-600"
+          class="grid size-[38px] shrink-0 place-items-center rounded-xl text-suave transition-colors hover:bg-error-ink/10 hover:text-error-ink"
+          aria-label="Quitar paso {i + 1}"
           onclick={() => (d.itinerario = d.itinerario.filter((_, j) => j !== i))}
         >
-          🗑
+          <Icono trazo={ICONOS.papelera} clase="size-4" />
         </button>
       </div>
     {/each}
   </div>
   <button
     type="button"
-    class="mt-3 rounded-full px-3 py-1.5 text-[13px] font-semibold text-brand-600 transition
-      hover:bg-brand-600/10 dark:text-brand-300"
+    class="btn btn-texto -ml-3 mt-3 text-acento-ink"
     onclick={() => (d.itinerario = [...d.itinerario, { hora: '', actividad: '' }])}
   >
-    + Agregar paso
+    <Icono trazo={ICONOS.mas} clase="size-4" />
+    Agregar paso
   </button>
 </Seccion>

@@ -5,14 +5,14 @@
   let { d = $bindable() }: { d: PlanDraft } = $props();
 </script>
 
-<Seccion titulo="RESUMEN Y DESCRIPCIÓN">
+<Seccion titulo="Resumen y descripción">
   <div class="space-y-3">
     <label class="block">
-      <span class="etiqueta">Resumen corto</span>
+      <span class="etiqueta-campo">Resumen corto</span>
       <input bind:value={d.resumen} class="campo" placeholder="Una frase que venda el plan" />
     </label>
     <label class="block">
-      <span class="etiqueta">Descripción completa</span>
+      <span class="etiqueta-campo">Descripción completa</span>
       <textarea rows="4" bind:value={d.descripcion} class="campo resize-none"></textarea>
     </label>
   </div>

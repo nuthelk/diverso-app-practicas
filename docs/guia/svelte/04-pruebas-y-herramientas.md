@@ -110,7 +110,8 @@ export const supabase = createClient(
 ## 3. Tailwind 4
 
 El estilo del panel son **clases de utilidad** en el atributo `class`
-(`class="rounded-2xl border bg-white p-6"`). Con Tailwind 4 no hay `tailwind.config.js`: se
+(`class="mt-3.5 flex flex-wrap items-center gap-1 border-t border-linea pt-3"`) más unas pocas
+**clases de componente** que viven en `app.css` (`.tarjeta`, `.btn`, `.campo`, `.chip`…). Con Tailwind 4 no hay `tailwind.config.js`: se
 configura en CSS, y el plugin `tailwindcss()` de Vite (arriba) hace el resto. El CSS se carga con
 `import '../app.css'` en `src/routes/+layout.svelte`.
 `apps/panel_svelte/src/app.css`:
@@ -132,19 +133,23 @@ configura en CSS, y el plugin `tailwindcss()` de Vite (arriba) hace el resto. El
 | `@theme { --color-brand-600: … }` | Crea los colores de marca: `bg-brand-600`, `text-brand-700`. También `ok-500` (verde de estados positivos), `ink-800` (fondos oscuros) y `paper` |
 | `@custom-variant dark (…)` | Define `dark:` como «un ancestro tiene la clase `dark`», no como «el sistema está en modo oscuro» |
 
-**Modo oscuro por clase.** `src/app.html` nace con `<html class="dark">` y un pequeño script quita la
-clase si en `localStorage` hay `diverso-panel-theme = light`; el botón de `Shell.svelte` la
-alterna. Por eso en los componentes se escribe `bg-white dark:bg-ink-800`.
+**Modo oscuro por clase.** `src/app.html` arranca en **claro**: un pequeño script, antes del primer
+render, añade la clase `dark` a `<html>` solo si en `localStorage` hay `diverso-panel-theme = dark`; el
+botón de `Shell.svelte` la alterna y guarda la elección. Por eso en los componentes se escribe
+`bg-white dark:bg-ink-800`. Los colores que cambian con el tema (`--suave`, `--linea`, `--acento-ink`…)
+se declaran una vez en `app.css` (en `:root` y en `.dark`) y se usan como utilidades: `text-suave`,
+`border-linea`, `text-acento-ink`.
 
 Dos reglas prácticas:
 
 - **Las clases tienen que aparecer completas en el código.** Tailwind busca los nombres de clase en
-  el texto de los archivos; `bg-${color}-600` no se encuentra. Por eso `Shell.svelte` y
-  `StatusPill.svelte` guardan **cadenas enteras** en un objeto (`TONOS`, `MAPA`) y eligen una.
+  el texto de los archivos; `bg-${color}-600` no se encuentra. Por eso `shared/ui/tonos.ts`
+  guarda **cadenas enteras** en un objeto (`TONOS_AVISO`) y `Aviso.svelte` elige una.
 - **Valores a medida** con corchetes: `text-[13.5px]`, `w-[236px]`, `max-w-[820px]`.
 
-`<style>` de Svelte (capítulo 1, sección 2) queda para lo que las utilidades no expresan bien
-(el interruptor `.switch`, el anillo de foco de `.campo`).
+El `<style>` de Svelte (capítulo 1, sección 2) no se usa en el panel: lo que las utilidades no expresan
+bien (el interruptor `.switch`, el anillo de foco de `.campo`, `.tarjeta`, `.tabla`) vive en `app.css`,
+dentro de `@layer components`.
 
 ---
 
@@ -215,10 +220,10 @@ function pill(estado: string): HTMLElement {
 ```
 
 ```ts
-  it('un estado desconocido se muestra tal cual en gris', () => {
+  it('un estado desconocido se muestra tal cual en tono neutro', () => {
     const el = pill('en_revision');
     expect(el.textContent?.trim()).toBe('en_revision');
-    expect(el.className).toContain('text-slate-500');
+    expect(el.className).toContain('pildora-neutra');
   });
 ```
 

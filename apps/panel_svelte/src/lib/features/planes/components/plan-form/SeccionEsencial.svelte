@@ -22,19 +22,19 @@
   }
 </script>
 
-<Seccion titulo="LO ESENCIAL">
+<Seccion titulo="Lo esencial">
   <div class="space-y-3">
     <label class="block">
-      <span class="etiqueta">Título del plan *</span>
+      <span class="etiqueta-campo">Título del plan *</span>
       <input required bind:value={d.titulo} class="campo" />
     </label>
     <div class="grid gap-3 min-[640px]:grid-cols-4">
       <label>
-        <span class="etiqueta">Destino *</span>
+        <span class="etiqueta-campo">Destino *</span>
         <input required bind:value={d.destino} class="campo" />
       </label>
       <label>
-        <span class="etiqueta">Categoría</span>
+        <span class="etiqueta-campo">Categoría</span>
         <Select
           opciones={CATEGORIAS.map((c) => ({
             valor: c.valor,
@@ -45,7 +45,7 @@
         />
       </label>
       <label>
-        <span class="etiqueta">Precio final COP *</span>
+        <span class="etiqueta-campo">Precio final COP *</span>
         <input
           type="number"
           min="1"
@@ -56,7 +56,7 @@
         />
       </label>
       <div>
-        <span class="etiqueta">Duración *</span>
+        <span class="etiqueta-campo">Duración *</span>
         <div class="flex gap-2">
           <input
             type="number"

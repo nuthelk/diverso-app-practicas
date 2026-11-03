@@ -28,7 +28,7 @@
 </script>
 
 <form
-  class="mt-4 rounded-xl border border-slate-200/80 bg-paper p-4 dark:border-ink-600 dark:bg-ink-900"
+  class="mt-4 rounded-xl border border-linea bg-paper p-4 dark:bg-ink-900"
   {onsubmit}
 >
   {#if tipo === 'rechazar'}
@@ -50,7 +50,7 @@
       <span class="etiqueta-campo">RNT vigente hasta *</span>
       <input type="date" required min={hoyISO} bind:value={fechaVigencia} class="campo" />
     </label>
-    <label class="mt-3 flex items-start gap-2.5 text-[12.5px] text-slate-600 dark:text-slate-300">
+    <label class="mt-3 flex items-start gap-2.5 text-[12.5px] text-suave">
       <input type="checkbox" bind:checked={confirmado} class="mt-0.5 size-4 accent-brand-600" />
       Confirmo que contrasté el RNT {agencia.numero_rnt} y la matrícula
       {agencia.matricula_camara_comercio} en las fuentes oficiales.
@@ -58,7 +58,7 @@
   {/if}
 
   {#if error}
-    <p class="mt-3 text-[12.5px] font-medium text-red-600" role="alert">{error}</p>
+    <p class="mt-3 text-[12.5px] font-medium text-error-ink" role="alert">{error}</p>
   {/if}
 
   <div class="mt-4 flex justify-end gap-2">

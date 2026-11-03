@@ -18,15 +18,15 @@
   } = $props();
 </script>
 
-<Seccion titulo="ENCUENTRO, CANCELACIÓN Y FOTOS">
+<Seccion titulo="Encuentro, cancelación y fotos">
   <div class="space-y-3">
-    <div class="grid gap-3 min-[640px]:grid-cols-[1fr_180px]">
+    <div class="grid items-end gap-3 min-[640px]:grid-cols-[1fr_180px]">
       <label class="block">
-        <span class="etiqueta">Punto de encuentro</span>
+        <span class="etiqueta-campo">Punto de encuentro</span>
         <input bind:value={d.puntoEncuentro} class="campo" />
       </label>
       <label class="block">
-        <span class="etiqueta">Hora de salida (hora de Colombia) *</span>
+        <span class="etiqueta-campo">Hora de salida (hora de Colombia) *</span>
         <input
           type="time"
           required

@@ -45,7 +45,7 @@ apps/panel_svelte/
 `-- src/
     |-- app.html          la plantilla HTML base: fija el tema (claro/oscuro) antes de pintar
     |-- app.d.ts          tipos globales de SvelteKit (aquí solo la forma del error)
-    |-- app.css           Tailwind: colores de marca, variante dark
+    |-- app.css           Tailwind: colores, tema claro/oscuro y las clases compartidas (.tarjeta, .btn, .campo…)
     |-- hooks.client.ts   qué mostrar cuando un error no se atrapó (handleError)
     |-- params/
     |   `-- doc.ts        matcher del parámetro [doc=doc]: solo documentos legales que existen
@@ -72,7 +72,9 @@ apps/panel_svelte/
         `-- shared/
             |-- api/              supabase.ts (el cliente) y errores.ts
             |-- lib/              format.ts, ruta.ts, toast.svelte.ts
-            `-- ui/               Avatar, Empty, Logo, Select, Skeleton, StatusPill, Toast
+            `-- ui/               Aviso, Avatar, Empty, EsqueletoPagina, Icono, Logo, MarcaTile, Metrica,
+                                  PageHeader, Pagina, Select, Skeleton, Spinner, StatusPill, Tarjeta, Toast
+                                  (y iconos.ts, tonos.ts)
 ```
 
 Dentro de cada funcionalidad, por ejemplo `src/lib/features/planes/`, **todo archivo vive en una de
@@ -198,6 +200,28 @@ tener la prueba junto al archivo:**
 - Para saber si un archivo tiene prueba, la buscas en el árbol espejo en vez de verla al lado.
 
 La mecánica de las pruebas (qué se mockea y cómo) está en el [capítulo 4](04-pruebas-y-herramientas.md#4-vitest-y-testing-library).
+
+### Las piezas visuales compartidas
+
+Todas las pantallas comparten el mismo lenguaje visual (tarjetas aireadas, píldoras, bordes finos,
+etiquetas tenues). Para que no se copie en cada página, cada patrón vive en **un solo sitio**: o en
+`src/app.css` (clases) o en `src/lib/shared/ui/` (componentes).
+
+| Pieza | Qué resuelve | Se usa en |
+|---|---|---|
+| `app.css` | Los colores y, en `@layer components`, las clases repetidas: `.tarjeta`, `.btn` (`btn-primario`, `btn-secundario`, `btn-peligro`, `btn-texto`), `.campo`, `.etiqueta-campo`, `.chip`, `.tabla`, `.pildora-*`, `.switch`, `.boton-icono`, `.enlace`, `.etiqueta-seccion` | todas las pantallas |
+| `Pagina` | Contenedor de una pantalla: mismo aire a los lados y arriba, ancho máximo | las páginas con menú y las de administración |
+| `PageHeader` | Cabecera: título (h1), una línea de contexto y la acción principal a la derecha | Resumen, Planes, Ventas, Liquidaciones, Cuenta, Admin, Onboarding, formulario de plan |
+| `Tarjeta` | Tarjeta con título (h2), descripción y acción opcionales | Ventas, Liquidaciones, detalle de liquidación, formulario de plan |
+| `Aviso` | Franja de aviso con ícono según el tono (`info`, `alerta`, `error`) | Resumen, documentos legales, aviso de modo de prueba |
+| `Metrica` | Una cifra con su etiqueta, con la tinta del lado de la plata en que está | Ventas, Liquidaciones, detalle de liquidación |
+| `Icono` + `iconos.ts` | Ícono de línea decorativo; los trazos viven en un solo archivo | casi todas |
+| `MarcaTile` | El colibrí sobre el azul de la marca | marco, login, starter, legal, error |
+| `Spinner`, `Skeleton`, `EsqueletoPagina`, `Empty` | Estados de carga y de vacío | las pantallas que piden datos |
+
+La regla: si un patrón aparece en dos pantallas, se mueve a una de estas piezas; si es un color o un
+borde que cambia con el tema, se usa el token de `app.css` (`text-suave`, `border-linea`,
+`text-acento-ink`…) en vez de repetir `dark:…` en cada página.
 
 ---
 
@@ -414,16 +438,15 @@ marcadores de Kit:
 
 ```html
 <!doctype html>
-<html lang="es" class="dark">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
     <!-- … -->
     <script>
-      // Tema antes del primer render para evitar destello.
+      // Tema antes del primer render para evitar destello: claro salvo que se haya elegido oscuro.
       try {
-        const t = localStorage.getItem('diverso-panel-theme');
-        if (t === 'light') document.documentElement.classList.remove('dark');
+        if (localStorage.getItem('diverso-panel-theme') === 'dark') document.documentElement.classList.add('dark');
       } catch (_) {}
     </script>
     %sveltekit.head%
@@ -561,15 +584,21 @@ desconocido (`#/legal/nada`) cae en la página de error (antes lo resolvía `Leg
 ```svelte
 <script lang="ts">
   import { page } from '$app/state';
+  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
 </script>
 
-<div class="p-10 text-slate-500">
-  {#if page.status === 404}
-    No encontramos esta sección.
-  {:else}
-    {page.error?.message}
-  {/if}
-  <a class="font-semibold text-brand-600 hover:underline" href="#/dashboard">Volver al resumen</a>
+<div class="grid min-h-screen place-items-center px-6 py-12">
+  <div class="aparecer flex max-w-sm flex-col items-center text-center">
+    <MarcaTile tam={48} />
+    <h1 class="mt-5 text-[20px] leading-snug font-extrabold tracking-tight">
+      {#if page.status === 404}
+        No encontramos esta sección.
+      {:else}
+        {page.error?.message}
+      {/if}
+    </h1>
+    <a class="btn btn-primario mt-6" href="#/dashboard">Volver al resumen</a>
+  </div>
 </div>
 ```
 
@@ -666,7 +695,7 @@ Es completo y minúsculo (`apps/panel_svelte/src/routes/(panel)/+layout.svelte`)
 El `Shell` recibe la página como `children` y la pone en su `<main>`:
 
 ```svelte
-    <main class="min-w-0 flex-1 pb-20 md:pb-0">
+    <main id="principal" tabindex="-1" bind:this={principal} class="min-w-0 flex-1 pb-20 outline-none md:pb-0">
       {@render children()}
     </main>
 ```
@@ -674,7 +703,7 @@ El `Shell` recibe la página como `children` y la pone en su `<main>`:
 El layout de un grupo **se conserva entre páginas hermanas**: al pasar de Planes a Ventas el `Shell`
 sigue montado y solo cambia lo de dentro. Por eso el `Shell` observa la ruta (`void path;`, capítulo
 2, sección 5) para recargar el aviso de la agencia al navegar. `Shell` contiene además el menú
-(`secciones`), la tarjeta de la agencia, el cambio de tema y «Cerrar sesión».
+(`SECCIONES`, de `model/navegacion.ts`), la tarjeta de la agencia, el cambio de tema y «Cerrar sesión».
 
 ### El guard de sesión
 
@@ -711,6 +740,7 @@ carga **en lugar de las páginas**. `apps/panel_svelte/src/routes/+layout.svelte
   import { redireccionSesion } from '$lib/features/auth/model/sesion';
   import { rutaActual } from '$lib/shared/lib/ruta';
   import Toast from '$lib/shared/ui/Toast.svelte';
+  import Spinner from '$lib/shared/ui/Spinner.svelte';
 
   let { children }: { children: Snippet } = $props();
 
@@ -724,7 +754,7 @@ carga **en lugar de las páginas**. `apps/panel_svelte/src/routes/+layout.svelte
 
 {#if !auth.ready}
   <div class="grid min-h-screen place-items-center" role="status" aria-label="Cargando">
-    <div class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent"></div>
+    <Spinner />
   </div>
 {:else}
   {@render children()}
@@ -771,9 +801,12 @@ Los dos archivos del navegador son pequeños. `apps/panel_svelte/src/hooks.clien
 import type { HandleClientError } from '@sveltejs/kit';
 import { mensajeError } from '$lib/shared/api/errores';
 
-/** Error no previsto al navegar o dibujar: se registra y la página de error muestra el texto legible. */
-export const handleError: HandleClientError = ({ error }) => {
-  console.error(error);
+/**
+ * Error no previsto al navegar o dibujar: se registra y la página de error muestra el texto legible.
+ * Una ruta que no existe (404) es esperada: la página de error la explica y no se registra.
+ */
+export const handleError: HandleClientError = ({ error, status }) => {
+  if (status !== 404) console.error(error);
   return { message: mensajeError(error) };
 };
 ```
@@ -817,7 +850,7 @@ servidor: es una decisión de despliegue, no un cambio de carpetas. Hoy nada del
 | Grupo de rutas | Nombre entre paréntesis | `(panel)` |
 | Pantalla (la dibuja una página de ruta) | `<Nombre>Page.svelte` en `lib/features/<f>/pages/` | `PlanesPage.svelte`, `LoginPage.svelte` |
 | Componente de una funcionalidad | `PascalCase.svelte` dentro de `lib/features/<f>/components/` | `FechasModal.svelte` |
-| Componente genérico | `PascalCase.svelte` en `lib/shared/ui/` | `Select.svelte`, `Empty.svelte` |
+| Componente genérico | `PascalCase.svelte` en `lib/shared/ui/` | `Select.svelte`, `Tarjeta.svelte` |
 | Lógica pura de la funcionalidad | `<funcionalidad>.ts` (nombre en minúscula) en `model/` | `model/ventas.ts`, `model/plan.ts` |
 | Acceso a datos | `<funcionalidad>.api.ts` en `api/` | `api/planes.api.ts` |
 | Estado reactivo en un módulo | `<nombre>.svelte.ts` en `model/` de la funcionalidad, o en `shared/lib/` si es genérico | `auth/model/auth.svelte.ts`, `shared/lib/toast.svelte.ts` |
@@ -847,7 +880,8 @@ repo**; es la receta. Las rutas de archivo son las que usarías.
    `tests/unit/features/reportes/api/reportes.api.test.ts` con `supabase-falso` (capítulo 4, sección 6).
 4. **Escribe la pantalla** `src/lib/features/reportes/pages/ReportesPage.svelte` con el patrón de la
    sección 4: `cargando`/`error`/datos, `$effect(() => { cargar(); })`, `mensajeError(e)` y los tres
-   estados en la plantilla. Importa relativo dentro de la funcionalidad (`../api/reportes.api`,
+   estados en la plantilla (`EsqueletoPagina` mientras carga, `Empty` si falla o no hay datos). Dibuja
+   el resultado con `Pagina` + `PageHeader` y las piezas compartidas de la sección 2. Importa relativo dentro de la funcionalidad (`../api/reportes.api`,
    `../model/reportes`) y con `$lib/` lo demás.
 5. **Parte la pantalla** si crece: lo repetido o con estado propio va a
    `src/lib/features/reportes/components/` (como `plan-form/`). Un componente que edita un dato del
@@ -870,8 +904,8 @@ repo**; es la receta. Las rutas de archivo son las que usarías.
 7. **Decide si es pública.** Si debe verse sin sesión, añádela a la lista de `publica` en
    `src/lib/features/auth/model/sesion.ts` y a `tests/unit/features/auth/model/sesion.test.ts`. Las rutas de `routes/` fuera de `(panel)`
    (como `login/`) no llevan `Shell`: elige la carpeta según el marco que quieras.
-8. **Añádela al menú**, si va ahí: una entrada en `secciones` de
-   `src/lib/features/agencias/components/Shell.svelte`.
+8. **Añádela al menú**, si va ahí: una entrada en `SECCIONES` de
+   `src/lib/features/agencias/model/navegacion.ts` (con el trazo de su ícono).
 9. **Navega con `#`**: enlaces `href="#/reportes"` y `goto('#/reportes')`. Sin el `#`, 404 (sección 7).
 10. **Prueba la pantalla** en `tests/unit/features/reportes/pages/ReportesPage.test.ts`, mockeando
     `$lib/features/reportes/api/reportes.api` (capítulo 4, sección 5). Añade también la ruta nueva a

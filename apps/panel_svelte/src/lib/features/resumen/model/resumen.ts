@@ -3,11 +3,11 @@
 import { avisoVerificacion, type TonoAviso } from '$lib/features/agencias/model/verificacion';
 import { lunesDeSemana, puedeEjecutarse, type Liquidacion } from '$lib/features/liquidaciones/model/liquidaciones';
 import { estadoVigencia, type Agency } from '$lib/features/agencias/model/agencia';
-import { yaSalio, type Plan } from '$lib/features/planes/model/plan';
+import { fechaBogota, yaSalio, type Plan } from '$lib/features/planes/model/plan';
 import { horaCorta } from '$lib/features/planes/model/politica';
 import { type VentaRow } from '$lib/features/ventas/model/ventas';
 import { totalesVentas, ventasPagadas } from '$lib/features/ventas/model/ventas';
-import { cop, decimal1 } from '$lib/shared/lib/format';
+import { cop, decimal1, plural } from '$lib/shared/lib/format';
 
 /** Cuántas salidas se muestran en el Resumen; el resto está en Planes. */
 export const SALIDAS_VISIBLES = 6;
@@ -32,11 +32,6 @@ function aISO(d: Date): string {
   return `${d.getFullYear()}-${m}-${dia}`;
 }
 
-/** «uno» si n es 1; si no, «otros». */
-export function plural(n: number, uno: string, otros: string): string {
-  return n === 1 ? uno : otros;
-}
-
 /* Fechas en español ----------------------------------------------------- */
 
 /** «Jueves 5 de noviembre» (o «Jueves 5 de nov» con mes corto). */
@@ -53,14 +48,14 @@ export function fechaConAnio(iso: string): string {
   return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-/** «Lunes 2 de noviembre»: la fecha de hoy bajo el saludo. */
+/** «Lunes 2 de noviembre»: la fecha de hoy bajo el saludo (día de Bogotá, como las salidas). */
 export function fechaDeHoy(hoy = new Date()): string {
-  return diaLargo(aISO(hoy));
+  return diaLargo(fechaBogota(hoy));
 }
 
-/** «hoy», «mañana» o «en 3 días». */
+/** «hoy», «mañana» o «en 3 días», contando desde el día de Bogotá (las fechas de los planes son de allá). */
 export function relativoDia(iso: string, hoy = new Date()): string {
-  const dias = Math.round((aFecha(iso).getTime() - aFecha(aISO(hoy)).getTime()) / 86_400_000);
+  const dias = Math.round((aFecha(iso).getTime() - aFecha(fechaBogota(hoy)).getTime()) / 86_400_000);
   return dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : `en ${dias} días`;
 }
 

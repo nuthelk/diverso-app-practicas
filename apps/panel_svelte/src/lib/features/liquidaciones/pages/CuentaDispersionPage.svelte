@@ -1,11 +1,13 @@
 <script lang="ts">
-  import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import EsqueletoPagina from '$lib/shared/ui/EsqueletoPagina.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import Select from '$lib/shared/ui/Select.svelte';
   import AvisoPrueba from '../components/AvisoPrueba.svelte';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
-import { miCuentaDispersion, guardarCuentaDispersion } from '../api/liquidaciones.api';
-import { mensajeError } from '$lib/shared/api/errores';
+  import { miCuentaDispersion, guardarCuentaDispersion } from '../api/liquidaciones.api';
+  import { mensajeError } from '$lib/shared/api/errores';
   import { goto } from '$app/navigation';
   import { avisar } from '$lib/shared/lib/toast.svelte';
   import {
@@ -75,22 +77,21 @@ import { mensajeError } from '$lib/shared/api/errores';
 </script>
 
 {#if cargando}
-  <div class="space-y-3 p-7">
-    {#each Array(4) as _}<Skeleton clase="h-14 rounded-xl" />{/each}
-  </div>
+  <EsqueletoPagina filas={4} clase="h-14" ancho={640} />
 {:else if !agencia}
   <Empty
-    icono="🏢"
+    icono={error ? 'sinConexion' : 'edificio'}
     titulo={error ? 'Sin conexión' : 'Aún no tienes agencia'}
     mensaje={error || 'Registra tu agencia para configurar tu cuenta para dispersiones.'}
   />
 {:else}
-  <div class="aparecer mx-auto max-w-[640px] px-4 py-6 sm:px-7">
-    <h1 class="text-[24px] font-extrabold tracking-tight">Cuenta para dispersiones</h1>
-    <p class="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-      Es la cuenta a la que se dispersan tus liquidaciones. Solo tu agencia y el equipo Diverso pueden
-      verla; en las listas solo se muestran los 4 últimos dígitos.
-    </p>
+  <Pagina ancho={640}>
+    <PageHeader titulo="Cuenta para dispersiones">
+      {#snippet contexto()}
+        Es la cuenta a la que se dispersan tus liquidaciones. Solo tu agencia y el equipo Diverso pueden
+        verla; en las listas solo se muestran los 4 últimos dígitos.
+      {/snippet}
+    </PageHeader>
     <div class="mt-4"><AvisoPrueba>Guardar tu cuenta no mueve dinero: las dispersiones son registros de prueba.</AvisoPrueba></div>
 
     <form class="tarjeta mt-5 space-y-4 p-6" onsubmit={guardar} novalidate>
@@ -106,7 +107,7 @@ import { mensajeError } from '$lib/shared/api/errores';
         <datalist id="bancos-sugeridos">
           {#each BANCOS as b}<option value={b}></option>{/each}
         </datalist>
-        {#if intentado && errores.banco}<span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.banco}</span>{/if}
+        {#if intentado && errores.banco}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.banco}</span>{/if}
       </label>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -127,14 +128,14 @@ import { mensajeError } from '$lib/shared/api/errores';
             bind:value={c.numero_cuenta}
             aria-invalid={intentado && !!errores.numero_cuenta}
           />
-          {#if intentado && errores.numero_cuenta}<span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.numero_cuenta}</span>{/if}
+          {#if intentado && errores.numero_cuenta}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.numero_cuenta}</span>{/if}
         </label>
       </div>
 
       <label class="block">
         <span class="etiqueta-campo">Titular *</span>
         <input class="campo" bind:value={c.titular} aria-invalid={intentado && !!errores.titular} autocomplete="off" />
-        {#if intentado && errores.titular}<span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.titular}</span>{/if}
+        {#if intentado && errores.titular}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.titular}</span>{/if}
       </label>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -154,11 +155,11 @@ import { mensajeError } from '$lib/shared/api/errores';
             bind:value={c.numero_documento}
             aria-invalid={intentado && !!errores.numero_documento}
           />
-          {#if intentado && errores.numero_documento}<span class="mt-1 block text-[12px] text-red-600" role="alert">{errores.numero_documento}</span>{/if}
+          {#if intentado && errores.numero_documento}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.numero_documento}</span>{/if}
         </label>
       </div>
 
-      {#if error}<p class="text-[13px] font-medium text-red-600" role="alert">{error}</p>{/if}
+      {#if error}<p class="text-[13px] font-medium text-error-ink" role="alert">{error}</p>{/if}
 
       <div class="flex justify-end gap-2 pt-1">
         <a class="btn btn-secundario" href="#/liquidaciones">Cancelar</a>
@@ -167,5 +168,5 @@ import { mensajeError } from '$lib/shared/api/errores';
         </button>
       </div>
     </form>
-  </div>
+  </Pagina>
 {/if}

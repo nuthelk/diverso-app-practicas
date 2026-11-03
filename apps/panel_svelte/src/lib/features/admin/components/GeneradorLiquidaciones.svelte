@@ -30,10 +30,10 @@
     <button class="btn btn-secundario" disabled={generando} onclick={onanticipos}>Generar anticipos ahora</button>
   </div>
   {#if rango}
-    <p class="mt-3 text-[12.5px] text-slate-500 dark:text-slate-400">
+    <p class="mt-3 text-[12.5px] text-suave">
       Semana del lunes {fechaTexto(rango.inicio)} al domingo {fechaTexto(rango.fin)}.
       {#if !semanaLista}
-        <span class="font-semibold text-orange-700 dark:text-orange-300">Aún no termina: solo se liquidan semanas completas.</span>
+        <span class="font-semibold text-alert-ink">Aún no termina: solo se liquidan semanas completas.</span>
       {/if}
     </p>
   {/if}

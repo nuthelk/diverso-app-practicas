@@ -129,3 +129,24 @@ export function cuentaResumen(parcial: Partial<CuentaResumen> = {}): CuentaResum
 
 /** Hoy fijo para los tests que dependen de la fecha: domingo 25-oct-2026, 12:00 locales. */
 export const HOY = new Date(2026, 9, 25, 12, 0, 0);
+
+/** El tsconfig del panel no trae los tipos de Node: solo se usa `process.env.TZ`. */
+declare const process: { env: Record<string, string | undefined> };
+
+/**
+ * Ejecuta `fn` con el reloj del navegador en otra zona horaria (restaura la anterior al terminar):
+ * las reglas de Bogotá (UTC−5 fijo) no deben cambiar con la zona de quien abre el panel.
+ */
+export function enZona<T>(zona: string, fn: () => T): T {
+  // Se restaura la zona resuelta, no el valor de TZ: borrar la variable no devuelve la zona del sistema.
+  const previa = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  process.env.TZ = zona;
+  try {
+    return fn();
+  } finally {
+    process.env.TZ = previa;
+  }
+}
+
+/** Domingo 25-oct-2026, 12:00 en Bogotá (17:00 UTC): el HOY de los tests que dependen de la zona de Bogotá. */
+export const HOY_BOGOTA = new Date(Date.UTC(2026, 9, 25, 17, 0, 0));

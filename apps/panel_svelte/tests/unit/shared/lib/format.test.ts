@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cop, fechaCorta, fechaLarga, fechaTexto, hoyISO } from '$lib/shared/lib/format';
+import { cop, fechaCorta, fechaLarga, fechaTexto, hoyISO, plural } from '$lib/shared/lib/format';
 
 /** Normaliza el NBSP que Intl usa entre «$» y el número. */
 const plano = (s: string) => s.replace(/\u00a0/g, ' ');
@@ -50,5 +50,13 @@ describe('hoyISO', () => {
   it('devuelve la fecha de hoy como yyyy-mm-dd', () => {
     vi.setSystemTime(new Date(2026, 9, 25, 9, 30));
     expect(hoyISO()).toBe('2026-10-25');
+  });
+});
+
+describe('plural', () => {
+  it('singular solo con exactamente 1; cero y varios van en plural', () => {
+    expect(plural(1, 'plan', 'planes')).toBe('plan');
+    expect(plural(0, 'plan', 'planes')).toBe('planes');
+    expect(plural(2, 'plan', 'planes')).toBe('planes');
   });
 });

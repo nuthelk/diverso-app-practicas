@@ -94,23 +94,23 @@ export function avisoVerificacion(a: Agency, hoy = new Date()): { tono: TonoAvis
   return null;
 }
 
-/** Texto y color de la vigencia del RNT en la tarjeta de cada agencia. */
+/** Texto y tinta (con contraste AA en claro y oscuro) de la vigencia del RNT en la tarjeta de cada agencia. */
 export function textoVigencia(a: Agency, hoy = new Date()): { texto: string; clase: string } {
   const dias = diasParaVencer(a, hoy);
   switch (estadoVigencia(a, hoy)) {
     case 'vencido':
-      return { texto: `RNT vencido hace ${Math.abs(dias!)} ${Math.abs(dias!) === 1 ? 'día' : 'días'}`, clase: 'text-red-600' };
+      return { texto: `RNT vencido hace ${Math.abs(dias!)} ${Math.abs(dias!) === 1 ? 'día' : 'días'}`, clase: 'text-error-ink' };
     case 'por_vencer':
       return {
         texto: dias === 0 ? 'RNT vence hoy' : `RNT vence en ${dias} ${dias === 1 ? 'día' : 'días'}`,
-        clase: 'text-orange-600',
+        clase: 'text-alert-ink',
       };
     case 'sin_vigencia':
-      return { texto: 'Sin vigencia registrada', clase: 'text-slate-400' };
+      return { texto: 'Sin vigencia registrada', clase: 'text-suave' };
     default:
       return {
         texto: `RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`,
-        clase: 'text-ok-600 dark:text-ok-500',
+        clase: 'text-ok-ink',
       };
   }
 }

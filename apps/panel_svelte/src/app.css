@@ -48,6 +48,10 @@
   --acento-ink: var(--color-brand-700);
   --pista: #e2e8f0;
   --barra: var(--color-brand-500);
+  /* Texto secundario (slate-600, 7,6:1 sobre blanco), borde fino de tarjetas y fondo al pasar el cursor. */
+  --suave: var(--color-slate-600);
+  --linea: rgb(226 232 240 / 0.8);
+  --hover: var(--color-slate-100);
 }
 .dark {
   --ok-ink: color-mix(in srgb, var(--color-ok-500) 45%, #fff);
@@ -56,6 +60,9 @@
   --acento-ink: var(--color-brand-200);
   --pista: var(--color-ink-600);
   --barra: var(--color-brand-300);
+  --suave: var(--color-slate-400);
+  --linea: var(--color-ink-600);
+  --hover: var(--color-ink-700);
 }
 
 @theme inline {
@@ -65,6 +72,9 @@
   --color-acento-ink: var(--acento-ink);
   --color-pista: var(--pista);
   --color-barra: var(--barra);
+  --color-suave: var(--suave);
+  --color-linea: var(--linea);
+  --color-hover: var(--hover);
 }
 
 html {
@@ -127,6 +137,7 @@ body {
 @layer components {
 .campo {
   width: 100%;
+  min-width: 0;
   border-radius: 12px;
   border: 1px solid rgb(0 0 0 / 0.1);
   background: rgb(0 0 0 / 0.03);
@@ -139,12 +150,16 @@ body {
   border-color: rgb(255 255 255 / 0.09);
   background: rgb(255 255 255 / 0.04);
 }
+.campo::placeholder {
+  color: var(--suave);
+  opacity: 0.85;
+}
 .campo:focus {
   border-color: var(--color-brand-400);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-400) 25%, transparent);
 }
 .campo[aria-invalid='true'] {
-  border-color: rgb(220 38 38 / 0.7);
+  border-color: color-mix(in srgb, var(--error-ink) 70%, transparent);
 }
 
 .etiqueta-campo {
@@ -152,10 +167,41 @@ body {
   margin-bottom: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-slate-600);
+  color: var(--suave);
 }
-.dark .etiqueta-campo {
-  color: var(--color-slate-300);
+
+/* Interruptor de los «Qué incluye» del plan. */
+.switch {
+  appearance: none;
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.18);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dark .switch {
+  background: rgb(255 255 255 / 0.22);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: white;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+.switch:checked {
+  background: var(--color-brand-600);
+}
+.switch:checked::after {
+  left: 19px;
 }
 
 .btn {
@@ -196,11 +242,113 @@ body {
   background: rgb(255 255 255 / 0.05);
 }
 .btn-peligro {
-  border: 1px solid rgb(220 38 38 / 0.35);
-  color: rgb(220 38 38);
+  border: 1px solid color-mix(in srgb, var(--error-ink) 35%, transparent);
+  color: var(--error-ink);
 }
 .btn-peligro:not(:disabled):hover {
-  background: rgb(220 38 38 / 0.07);
+  background: color-mix(in srgb, var(--error-ink) 8%, transparent);
+}
+/* Acción discreta de una fila (Editar, Fechas y cupos…): sin borde, tinta secundaria. */
+.btn-texto {
+  padding: 7px 12px;
+  font-weight: 600;
+  color: var(--suave);
+}
+.btn-texto:not(:disabled):hover {
+  background: var(--hover);
+  color: var(--color-slate-900);
+}
+.dark .btn-texto:not(:disabled):hover {
+  color: var(--color-slate-100);
+}
+/* Botón cuadrado con solo un ícono. */
+.boton-icono {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--linea);
+  background: white;
+  color: var(--suave);
+  transition: background-color 0.15s;
+}
+.dark .boton-icono {
+  background: var(--color-ink-800);
+}
+.boton-icono:hover {
+  background: var(--hover);
+}
+
+/* Enlace de texto dentro de la interfaz. */
+.enlace {
+  font-weight: 600;
+  color: var(--acento-ink);
+}
+.enlace:hover {
+  text-decoration: underline;
+}
+
+/* Filtro en forma de píldora (Ventas, Admin); `aria-pressed` marca el elegido. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--linea);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--suave);
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.chip:hover {
+  background: var(--hover);
+}
+.chip[aria-pressed='true'] {
+  border-color: var(--color-brand-600);
+  background: var(--color-brand-600);
+  color: white;
+}
+
+/* Etiqueta pequeña en mayúsculas (como «GESTIÓN» de la barra lateral). */
+.etiqueta-seccion {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--suave);
+}
+
+/* Tabla de conciliación: cabecera tenue, filas con línea fina, cifras a la derecha. */
+.tabla {
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+.tabla th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--suave);
+  background: color-mix(in srgb, var(--color-slate-500) 8%, transparent);
+}
+.tabla td {
+  padding: 12px 16px;
+  border-top: 1px solid var(--linea);
+}
+.tabla tbody tr:hover {
+  background: color-mix(in srgb, var(--color-slate-500) 5%, transparent);
+}
+.tabla .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Píldoras de estado: tinte del 12 % del color y tinta que llega a AA en claro y oscuro. */
@@ -254,11 +402,10 @@ body {
 
 .tarjeta {
   border-radius: 18px;
-  border: 1px solid rgb(226 232 240 / 0.8);
+  border: 1px solid var(--linea);
   background: white;
 }
 .dark .tarjeta {
-  border-color: var(--color-ink-600);
   background: var(--color-ink-800);
 }
 }

@@ -6,6 +6,11 @@ const copFmt = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
+/** «uno» si n es 1; si no, «otros». */
+export function plural(n: number, uno: string, otros: string): string {
+  return n === 1 ? uno : otros;
+}
+
 export function cop(v: number): string {
   return copFmt.format(v);
 }

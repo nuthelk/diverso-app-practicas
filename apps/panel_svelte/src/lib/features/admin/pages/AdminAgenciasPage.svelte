@@ -1,5 +1,7 @@
 <script lang="ts">
   import Skeleton from '$lib/shared/ui/Skeleton.svelte';
+  import Pagina from '$lib/shared/ui/Pagina.svelte';
+  import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import { mensajeError } from '$lib/shared/api/errores';
   import { avisar } from '$lib/shared/lib/toast.svelte';
@@ -119,32 +121,35 @@
 <div class="min-h-screen">
   <AdminCabecera href="#/admin/dispersiones" texto="Dispersiones de prueba" />
 
-  <div class="mx-auto max-w-[1040px] px-5 py-7 sm:px-7">
-    <h1 class="text-[26px] font-extrabold tracking-tight">Verificación de agencias</h1>
-    <p class="mt-1 max-w-[680px] text-[13.5px] leading-relaxed text-slate-500 dark:text-slate-400">
-      Contrasta el RNT en el registro oficial y la matrícula en la Cámara de Comercio antes de
-      aprobar. Una agencia solo vende mientras su RNT esté vigente; si cambia su RNT o su matrícula
-      vuelve automáticamente a esta cola.
-    </p>
+  <Pagina>
+    <PageHeader titulo="Verificación de agencias">
+      {#snippet contexto()}
+        <span class="block max-w-[680px]">
+          Contrasta el RNT en el registro oficial y la matrícula en la Cámara de Comercio antes de
+          aprobar. Una agencia solo vende mientras su RNT esté vigente; si cambia su RNT o su matrícula
+          vuelve automáticamente a esta cola.
+        </span>
+      {/snippet}
+    </PageHeader>
 
     <FiltrosAgencias {filtro} {conteos} bind:busqueda onelegir={elegirFiltro} />
 
     {#if cargando}
-      <div class="mt-6 space-y-3">
+      <div class="mt-6 space-y-3" role="status" aria-label="Cargando">
         {#each Array(4) as _}<Skeleton clase="h-[140px]" />{/each}
       </div>
     {:else if error}
-      <Empty icono="📡" titulo="No pudimos cargar las agencias" mensaje={error} />
+      <Empty icono="sinConexion" titulo="No pudimos cargar las agencias" mensaje={error} />
     {:else if visibles.length === 0}
       <Empty
-        icono="✓"
+        icono="check"
         titulo="Nada pendiente aquí"
         mensaje={filtro === 'pendientes'
           ? 'No hay agencias esperando verificación.'
           : 'No hay agencias en esta categoría.'}
       />
     {:else}
-      <ul class="mt-6 space-y-3">
+      <ul class="mt-6 space-y-4">
         {#each visibles as a (a.id)}
           <TarjetaAgencia
             agencia={a}
@@ -164,5 +169,5 @@
         {/each}
       </ul>
     {/if}
-  </div>
+  </Pagina>
 </div>

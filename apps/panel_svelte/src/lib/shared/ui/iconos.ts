@@ -1,0 +1,24 @@
+/** Trazos (`d`) de íconos de línea sobre un lienzo de 24 × 24; los dibuja `Icono.svelte`. */
+export const ICONOS = {
+  mas: 'M12 5v14M5 12h14',
+  cerrar: 'M6 6l12 12M18 6L6 18',
+  atras: 'M19 12H5m7 7l-7-7 7-7',
+  check: 'M20 6L9 17l-5-5',
+  editar: 'M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z',
+  calendario: 'M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z',
+  publicar: 'M12 19V5m-7 7l7-7 7 7',
+  papelera: 'M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m5 5v6m4-6v6',
+  alerta: 'M12 9v4m0 4h.01M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z',
+  info: 'M12 22a10 10 0 100-20 10 10 0 000 20zm0-6v-4m0-4h.01',
+  sinConexion:
+    'M2 2l20 20M8.5 16.4a5 5 0 017 0M5 12.9a10 10 0 015.2-2.8M19 12.9a10 10 0 00-2.4-1.9M2 8.8a15 15 0 014.2-2.7M22 8.8A15 15 0 0010.4 4.5M12 20h.01',
+  recibo: 'M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2zM8 8h8M8 12h8M8 16h5',
+  edificio: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6',
+  mapa: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
+  escudo:
+    'M9 12l2 2 4-4m5.6-2.4A11.95 11.95 0 0112 2.6 11.95 11.95 0 012.4 7.6 11.77 11.77 0 004 16.6 11.95 11.95 0 0012 22 11.95 11.95 0 0020 16.6a11.77 11.77 0 001.6-9z',
+  documento: 'M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z',
+  chevron: 'M6 9l6 6 6-6',
+} as const;
+
+export type NombreIcono = keyof typeof ICONOS;
