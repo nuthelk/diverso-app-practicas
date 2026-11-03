@@ -47,7 +47,8 @@ tools/iconos          → generador de los íconos de la app y de las webs (Pill
 ```
 
 - **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
-  aprendizaje y capítulos para quien viene de React Native y TypeScript).
+  aprendizaje, capítulos para quien viene de React Native y TypeScript y un recorrido de los
+  flujos de la app: entrar, catálogo, reservar y pagar, cancelar).
 - **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
   `BookingApi`, `CatalogApi`, `AgencyApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
   y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
@@ -361,7 +362,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 146 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 472 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 475 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`

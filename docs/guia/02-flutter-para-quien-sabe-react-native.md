@@ -395,8 +395,9 @@ final dorado = DiversoColors.of(context).dorado;
 ```
 
 Es el equivalente a ampliar el tipo del tema en RN (`theme.colors.gold`): un solo lugar, y el modo
-oscuro puede cambiar un valor sin tocar los widgets. Hoy los dos juegos de valores son iguales
-(son colores sólidos con texto blanco o que van sobre fotos).
+oscuro puede cambiar un valor sin tocar los widgets. Ahora mismo los dos juegos de valores son
+iguales (`oscuro = claro` en `diverso_colors.dart`): son colores sólidos con texto blanco o que van
+sobre fotos.
 
 **Tamaños, radios y espaciados.** Tampoco se escriben sueltos: `AppText` (tamaños de letra:
 `AppText.cuerpo` = 14, `AppText.tituloPagina` = 28…), `AppRadios` (`AppRadios.pill`) y `AppInsets`
@@ -497,9 +498,8 @@ Y un widget de funcionalidad, más grande, para leer despacio:
 `Positioned`, `Spacer`, callbacks opcionales, `context.push`). Su prueba,
 `apps/viajero/test/ui/core/widgets/rating/puntaje_nueva_test.dart`, la pinta sin red (capítulo 4).
 
-> **Estado de la estructura.** Estos widgets se irán moviendo y afinando en las fases siguientes
-> (ver la nota "En construcción" del capítulo 3). Si una ruta ya no existe, busca la clase por
-> nombre: `grep -rn "class PriceText" apps/viajero/lib`.
+> **Si una ruta ya no existe,** busca la clase por nombre:
+> `grep -rn "class PriceText" apps/viajero/lib`.
 
 ---
 

@@ -4,17 +4,9 @@ Este capítulo responde tres preguntas: **dónde vive cada cosa** en el repo, **
 desde Supabase hasta un widget** y **cómo se pasa de una pantalla a otra**. Es el capítulo que
 más te sirve para empezar a tocar código.
 
-> Volver al [plan de aprendizaje](README.md). Este capítulo cubre las sesiones 6 y 7.
-
-> ### En construcción
-> La fase **F4a** ya separó en `diverso_core` los *services* (consultas) de los *repositories*
-> (mapeo y reglas) y pasó el cliente de Supabase por constructor; la **F4b** dejó un solo punto de
-> creación de dependencias, partió el router y pasó el consentimiento a un redirect; la **F5a**
-> dejó el catálogo y la ficha del plan con view models de estado privado. Las fases **F5b** y
-> **F5c** hacen lo mismo con el resto de las pantallas.
-> Las rutas y los nombres de este capítulo describen el repo **ahora**; algunos cambiarán.
-> **Este capítulo se actualiza al terminar.** Los puntos que van a cambiar están marcados con
-> "Hoy".
+> Volver al [plan de aprendizaje](README.md). Este capítulo cubre las sesiones 6 y 7. Para ver
+> estas piezas trabajando juntas en los flujos reales, sigue con el
+> [capítulo 5](05-recorrido-de-diverso.md).
 
 ## Contenido
 
@@ -23,7 +15,7 @@ más te sirve para empezar a tocar código.
 3. [`ChangeNotifier`: el view model](#3-changenotifier-el-view-model)
 4. [`ListenableBuilder`: suscribirse y repintar](#4-listenablebuilder-suscribirse-y-repintar)
 5. [`Provider`: el contexto de React](#5-provider-el-contexto-de-react)
-6. [Dónde se crea todo: `main.dart`](#6-dónde-se-crea-todo-maindart)
+6. [Dónde se crea todo: `main.dart` y `composition_root.dart`](#6-dónde-se-crea-todo-maindart-y-composition_rootdart)
 7. [Seguir un toque de punta a punta](#7-seguir-un-toque-de-punta-a-punta)
 8. [Navegación con `go_router`](#8-navegación-con-go_router)
 
@@ -36,7 +28,8 @@ que también usa el panel Flutter legado (`apps/panel_agencias`).
 
 ```
 apps/viajero/lib/
-|-- main.dart                 arranque: Supabase + dependencias + runApp
+|-- main.dart                 arranque: Supabase + repositorios reales + runApp
+|-- composition_root.dart     buildViajeroApp: MultiProvider + DiversoApp (lo usan main y la prueba de arranque)
 |-- app.dart                  MaterialApp.router + tema; crea el router una sola vez
 |-- router/
 |   |-- app_routes.dart       constantes de rutas y helpers que arman cada URL
@@ -121,7 +114,7 @@ Reglas de dependencia (quién puede importar a quién):
 Por qué las reglas viven en modelos y view models y no en el widget: se **prueban sin dibujar
 nada**. `Plan.esNuevo` o `BookingsViewModel.activas` se verifican con un `test(...)` normal.
 
-> **Hoy.** Ninguna vista llama a un repositorio: el catálogo, la ficha del plan, «Mis reservas», el
+Ninguna vista llama a un repositorio: el catálogo, la ficha del plan, «Mis reservas», el
 > detalle de la reserva, la reseña, el perfil, el acceso, el checkout, el resultado del pago y la
 > confirmación (`checkout_loader.dart`, `reserva_view.dart`) pasan por su view model. La vista solo
 > lee el repositorio con `context.read<...Repository>()` para dárselo por constructor.
@@ -242,8 +235,10 @@ el `BuildContext`) recibe esa acción como argumento y pide un **resultado expl�
 `cerrado` (el viajero lo cerró sin pagar: el view model deja el aviso) o `redirigido` (en web la
 misma ventana ya navega a Wompi: termina «Procesando…» y nadie espera nada más).
 
-> **Hoy.** Los view models de agencias (`AgenciasViewModel`, `AgenciaViewModel`) todavía exponen sus
-> campos como **públicos** (la vista podría escribirlos); la fase F5c los deja como los anteriores.
+> **Excepción conocida.** Los view models de agencias (`AgenciasViewModel`, `AgenciaViewModel`)
+> todavía exponen algunos campos como **públicos** (`cargando`, `error`, `orden`…): la vista
+> podría escribirlos. Los demás view models de la app usan estado privado con getters de solo
+> lectura; al tocar las agencias, conviértelos igual.
 
 ## 4. `ListenableBuilder`: suscribirse y repintar
 
@@ -295,11 +290,11 @@ El paquete `provider` reparte objetos por el árbol, como un Context.
 
 | React | `provider` | Se usa en este repo |
 |---|---|---|
-| `<Ctx.Provider value={…}>` | `Provider<T>(create: (_) => …)` | `main.dart` |
-| varios providers anidados | `MultiProvider(providers: […])` | `main.dart` |
-| provider de algo que cambia | `ChangeNotifierProvider(create: …)` | `main.dart` (tema) |
+| `<Ctx.Provider value={…}>` | `Provider<T>.value(value: …)` | `composition_root.dart` |
+| varios providers anidados | `MultiProvider(providers: […])` | `composition_root.dart` |
+| provider de algo que cambia | `ChangeNotifierProvider(create: …)` | `composition_root.dart` (tema, consentimiento) |
 | `useContext(Ctx)` sin suscribirse | `context.read<T>()` | `catalog_view.dart`, `profile_view.dart`… |
-| `useContext` que se suscribe | `context.watch<T>()` | no se usa en el repo |
+| `useContext` que se suscribe | `context.watch<T>()` | `legal/views/consent_view.dart` (`ConsentViewModel`) |
 | `<Ctx.Consumer>` | `Consumer<T>(builder: …)` | `app.dart`, `profile/widgets/selector_apariencia.dart` |
 
 Dos puntos finos:
@@ -315,46 +310,62 @@ En las pruebas se reemplaza lo registrado con un doble:
 (`apps/viajero/test/ui/core/widgets/rating/puntaje_nueva_test.dart`). Es el "mock del
 contexto" de las pruebas con React Native Testing Library (capítulo 4).
 
-## 6. Dónde se crea todo: `main.dart`
+## 6. Dónde se crea todo: `main.dart` y `composition_root.dart`
 
-`apps/viajero/lib/main.dart` hace, en orden:
+El arranque está repartido en dos archivos para que las pruebas puedan construir la app igual
+que producción. `apps/viajero/lib/main.dart` hace, en orden:
 
 1. `WidgetsFlutterBinding.ensureInitialized()` — prepara Flutter antes de código asíncrono.
 2. `usePathUrlStrategy()` — URLs de web sin `#`, para que `/reserva/:id` funcione tras recargar.
 3. `initializeDateFormatting('es')` — fechas en español.
 4. `Supabase.initialize(url: DiversoConfig.supabaseUrl, publishableKey: DiversoConfig.supabaseKey)`.
-5. `runApp(MultiProvider(...))`.
+5. Crea el cliente, los `*Api` y los repositorios **reales** y se los pasa a `buildViajeroApp`.
 
-Es tu `index.js` más el `AppRegistry.registerComponent`. El paso 5 es el que registra las
-dependencias (recortado):
+Es tu `index.js` más el `AppRegistry.registerComponent`. El paso 5 (recortado):
 
 ```dart
 final client = Supabase.instance.client;
 final edgeFunctions = EdgeFunctionsApi(client: client);
 
 runApp(
-  MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
-      Provider<BookingRepository>.value(
-        value: BookingRepository(api: BookingApi(client: client), edgeFunctions: edgeFunctions),
-      ),
-      Provider<CatalogRepository>.value(
-        value: CatalogRepository(api: CatalogApi(client: client)),
-      ),
-      Provider<ReviewRepository>.value(value: ReviewRepository(client: client)),
-      Provider<AuthRepository>.value(value: AuthRepository(client: client)),
-      ChangeNotifierProvider(create: (context) => ConsentViewModel(auth: context.read())),
-      Provider<PaymentGateway>.value(value: WompiPaymentGateway(edgeFunctions: edgeFunctions)),
-    ],
-    child: const DiversoApp(),
+  buildViajeroApp(
+    auth: AuthRepository(client: client),
+    reservas: BookingRepository(
+      api: BookingApi(client: client),
+      edgeFunctions: edgeFunctions,
+    ),
+    catalogo: CatalogRepository(api: CatalogApi(client: client)),
+    resenas: ReviewRepository(client: client),
+    pasarela: WompiPaymentGateway(edgeFunctions: edgeFunctions),
+  ),
+);
 ```
 
-Es el **único** sitio donde se crean el cliente, los services y los repositories: cada uno recibe
-lo que necesita **por constructor** (`BookingRepository` recibe su `BookingApi`, y este el
-`SupabaseClient`). Nada en `diverso_core` lee `Supabase.instance`, así que en las pruebas basta
-con pasar un doble donde iría el real. Las pantallas no crean nada: hacen
-`context.read<BookingRepository>()`.
+`buildViajeroApp` (`apps/viajero/lib/composition_root.dart`) recibe esos objetos y registra todo
+lo que la UI puede pedir con `context.read`:
+
+```dart
+MultiProvider(
+  providers: [
+    ChangeNotifierProvider(create: (_) => ThemeModeViewModel()),
+    Provider<BookingRepository>.value(value: reservas),
+    Provider<CatalogRepository>.value(value: catalogo),
+    Provider<ReviewRepository>.value(value: resenas),
+    Provider<AuthRepository>.value(value: auth),
+    ChangeNotifierProvider(create: (context) => ConsentViewModel(auth: context.read())),
+    Provider<PaymentGateway>.value(value: pasarela),
+  ],
+  child: const DiversoApp(),
+)
+```
+
+`main.dart` es el **único** sitio donde se crean el cliente, los services y los repositories:
+cada uno recibe lo que necesita **por constructor** (`BookingRepository` recibe su `BookingApi`, y
+este el `SupabaseClient`). Nada en `diverso_core` lee `Supabase.instance`, así que en las pruebas
+basta con pasar un doble donde iría el real; `apps/viajero/test/app_arranque_test.dart` hace
+justo eso: llama a `buildViajeroApp` con repositorios falsos y comprueba que la app arranca en
+`/login` sin sesión, en el catálogo con sesión, y que cada pestaña se construye sin
+`ProviderNotFoundException`. Las pantallas no crean nada: hacen `context.read<BookingRepository>()`.
 
 La URL y la llave de Supabase salen de `DiversoConfig` (`packages/diverso_core/lib/config/diverso_config.dart`),
 que lee `--dart-define=SUPABASE_URL=...` al compilar. Por eso en el emulador de Android se ejecuta
@@ -364,7 +375,7 @@ con `--dart-define=SUPABASE_URL=http://10.0.2.2:54331` (ver el [README principal
 real (`WompiPaymentGateway`) que los tests reemplazan por un doble.
 
 El router tampoco toca `Supabase.instance`: `DiversoApp` lo construye con el `AuthRepository` y el
-`ConsentViewModel` que salen de este mismo `MultiProvider` (sección 8). Desde `main.dart` no hay
+`ConsentViewModel` que salen de este mismo `MultiProvider` (sección 8). Fuera de `main.dart` no hay
 ningún otro lugar en `lib/` que lea el global.
 
 ## 7. Seguir un toque de punta a punta

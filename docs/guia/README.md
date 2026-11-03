@@ -5,7 +5,7 @@ usando **su propio código**. Está escrita para quien ya sabe React Native y Ty
 concepto se explica a partir de lo que ya conoces.
 
 **Camino corto:** corre la app ([abajo](#antes-de-empezar-correr-la-app-y-las-pruebas)) y sigue
-las 8 sesiones del [plan de aprendizaje](#plan-de-aprendizaje) en orden. Cada una te dice qué leer,
+las 10 sesiones del [plan de aprendizaje](#plan-de-aprendizaje) en orden. Cada una te dice qué leer,
 qué hacer y cómo saber que ya la entendiste.
 
 ## Para quién es
@@ -34,10 +34,10 @@ Qué **no** cubre: el panel de agencias en Svelte (`apps/panel_svelte`), el pane
 
 | Parte | Contenido | Estado |
 |---|---|---|
-| **Parte 1: aprender Flutter y Dart** (esta) | Los 4 capítulos de abajo y el plan de aprendizaje | Disponible |
-| **Parte 2: Recorrido de Diverso** | Login, catálogo, reserva y pago, cancelación: el camino completo de cada flujo con las rutas finales | Próximamente, en la fase final del trabajo de arquitectura |
+| **Parte 1: aprender Flutter y Dart** | Los capítulos 1 a 4 y las sesiones 1 a 8 del plan de aprendizaje | Disponible |
+| **Parte 2: Recorrido de Diverso** | Capítulo 5 y sesiones 9 y 10: arrancar y entrar, catálogo, reservar y pagar, cancelar; el camino completo de cada flujo, archivo por archivo | Disponible |
 
-Capítulos de la parte 1:
+Capítulos:
 
 | Capítulo | De dónde partes | A dónde llegas |
 |---|---|---|
@@ -45,11 +45,10 @@ Capítulos de la parte 1:
 | [2. Flutter para quien sabe React Native](02-flutter-para-quien-sabe-react-native.md) | Componentes, hooks, flexbox | Leer y escribir widgets |
 | [3. Estado, arquitectura y navegación](03-estado-arquitectura-y-navegacion.md) | Hooks, Context, expo-router | Saber dónde vive cada cosa y cómo viaja un dato |
 | [4. Herramientas y pruebas](04-herramientas-y-pruebas.md) | npm, ESLint, Prettier, Jest | Analizar, formatear y probar sin miedo |
+| [5. Recorrido de Diverso](05-recorrido-de-diverso.md) | Los capítulos 1 a 4 | Seguir un flujo completo (de la pantalla a Postgres y Wompi) con el archivo y el método de cada paso |
 
-> **La arquitectura se está reordenando.** Esta guía describe el repo en su estado actual. Las
-> fases siguientes introducen *repositories*, mueven reglas y renombran archivos; el capítulo 3 lo
-> marca con "Hoy" donde algo va a cambiar, y la guía se actualiza al terminar. Si una ruta ya no
-> existe, busca la clase por nombre: `grep -rn "class NombreDeLaClase" apps packages`.
+> **Si una ruta ya no existe,** busca la clase por nombre:
+> `grep -rn "class NombreDeLaClase" apps packages`.
 
 ## Antes de empezar: correr la app y las pruebas
 
@@ -91,7 +90,7 @@ flutter test test/ui test/router
 
 ## Plan de aprendizaje
 
-Ocho sesiones, pensadas para 45–60 minutos cada una, en este orden. Ningún ejercicio cambia el
+Diez sesiones, pensadas para 45–60 minutos cada una, en este orden. Ningún ejercicio cambia el
 comportamiento de la app.
 
 | # | Sesión | Lees | Haces |
@@ -104,6 +103,8 @@ comportamiento de la app.
 | 6 | [Estado: de un toque al view model](#sesión-6-estado-de-un-toque-al-view-model) | Cap. 3 §3–7 | Seguir un toque en el catálogo |
 | 7 | [Navegación y sesión](#sesión-7-navegación-y-sesión) | Cap. 3 §8 | Seguir el `redirect` de sesión |
 | 8 | [Herramientas y pruebas](#sesión-8-herramientas-y-pruebas) | Cap. 4 | Escribir tu primera prueba de widget |
+| 9 | [Recorrido I: entrar y ver el catálogo](#sesión-9-recorrido-i-entrar-y-ver-el-catálogo) | Cap. 5 §1–3 | Trazar el arranque y una búsqueda de punta a punta |
+| 10 | [Recorrido II: reservar, pagar y cancelar](#sesión-10-recorrido-ii-reservar-pagar-y-cancelar) | Cap. 5 §4–6 | Trazar un pago y leer las reglas del servidor |
 
 Las rutas parten de la raíz del repo; `core` es `packages/diverso_core/lib/` y `viajero` es
 `apps/viajero/lib/`.
@@ -116,7 +117,7 @@ Las rutas parten de la raíz del repo; `core` es `packages/diverso_core/lib/` y 
 
 **Lee.**
 - Capítulo 3, secciones 1 y 2 (mapa de carpetas y capas).
-- `apps/viajero/lib/main.dart` y `apps/viajero/lib/app.dart` (arranque).
+- `apps/viajero/lib/main.dart`, `apps/viajero/lib/composition_root.dart` y `apps/viajero/lib/app.dart` (arranque).
 - `apps/viajero/lib/router/app_router.dart` (solo mira la lista de rutas; las constantes están en `app_routes.dart`).
 - `apps/viajero/lib/ui/features/catalog/views/catalog_view.dart` (solo hasta el primer `build`).
 
@@ -129,7 +130,7 @@ Las rutas parten de la raíz del repo; `core` es `packages/diverso_core/lib/` y 
 
 **Ya lo entendí si…**
 - [ ] Sin mirar, dices qué archivo dibuja el título "Descubre Antioquia".
-- [ ] Dices qué hace `main.dart` antes de `runApp` y por qué `Supabase.initialize` va ahí.
+- [ ] Dices qué hace `main.dart` antes de `runApp`, por qué `Supabase.initialize` va ahí y qué recibe `buildViajeroApp`.
 - [ ] Distingues `apps/viajero` de `packages/diverso_core` y por qué hay dos paquetes.
 
 ---
@@ -269,7 +270,7 @@ router.
 - `viajero/ui/features/catalog/views/catalog_view.dart` (`initState`, `dispose`,
   `ListenableBuilder` y `ChipCategoria` (`catalog/widgets/chip_categoria.dart`)).
 - `viajero/ui/core/theme/theme_mode_view_model.dart` (el view model más pequeño).
-- `viajero/main.dart` (los providers).
+- `viajero/composition_root.dart` (los providers; `main.dart` solo crea los repositorios reales).
 
 **Ejercicio.**
 1. Con el código abierto, completa una tabla con cada flecha del recorrido B del capítulo 3
@@ -363,17 +364,65 @@ router.
 
 ---
 
-## Parte 2: Recorrido de Diverso (próximamente)
+### Sesión 9: Recorrido I: entrar y ver el catálogo
 
-Llegará en la fase final del trabajo de arquitectura, cuando las carpetas y los nombres sean los
-definitivos. Seguirá, con el código real y las rutas finales, cuatro flujos:
+**Objetivo.** Seguir con el código abierto el arranque, la entrada y la carga del catálogo, sin
+perder el hilo entre capas.
 
-1. **Login** y registro con consentimiento legal.
-2. **Catálogo**: búsqueda, filtros, comparador y ficha del plan.
-3. **Reserva y pago**: del botón "Reservar" a la confirmación verificada por el servidor.
-4. **Cancelación** y reembolso de prueba.
+**Lee.**
+- [Capítulo 5](05-recorrido-de-diverso.md), secciones 1 a 3 (diagrama, flujo 1 y flujo 2).
+- `viajero/composition_root.dart` y `apps/viajero/test/app_arranque_test.dart`.
+- `viajero/router/sesion_redirect.dart` y `viajero/ui/features/legal/view_models/consent_view_model.dart`.
+- `core/data/repositories/catalog_repository.dart` (`search`) y `core/data/services/catalog_api.dart`.
 
-Cuando esté, la parte 1 se revisa para dejar sus rutas y nombres al día.
+**Ejercicio.**
+1. Con el emulador o la web, entra, cierra sesión y vuelve a entrar. Apunta en papel los 11 pasos
+   del flujo 1 con el archivo de cada uno; comprueba cuál de ellos es el que te saca de `/login`.
+2. Ejecuta `cd apps/viajero && flutter test test/app_arranque_test.dart` y lee qué comprueba cada
+   prueba. Pregúntate: ¿por qué la prueba llama a `buildViajeroApp` y no arma sus propios
+   providers?
+3. En Explorar aplica un filtro de destino y de precio a la vez y sigue el flujo 2 hasta
+   `CatalogApi.planesPublicados`. ¿Cuántas consultas hace «Aplicar filtros»? (Una; la prueba que lo
+   asegura está en `catalog_view_model_test.dart`.)
+
+**Ya lo entendí si…**
+- [ ] Dices qué dos oyentes reciben el evento de sesión y qué hace cada uno.
+- [ ] Explicas por qué un fallo de red al verificar el consentimiento **no** deja entrar.
+- [ ] Nombras la capa donde se filtra por fecha y la que la repite por comodidad de la pantalla.
+- [ ] Sabes qué pasa en pantalla si falta un `Provider` y qué prueba lo detecta.
+
+---
+
+### Sesión 10: Recorrido II: reservar, pagar y cancelar
+
+**Objetivo.** Entender el flujo de dinero: qué hace la app, qué hace el servidor y por qué la app
+nunca decide si un pago es verdadero.
+
+**Lee.**
+- [Capítulo 5](05-recorrido-de-diverso.md), secciones 4 a 6 (flujo 3, flujo 4 y mapa de errores).
+- `viajero/ui/features/checkout/view_models/checkout_view_model.dart` (`pagar`) y
+  `viajero/ui/features/checkout/pago_wompi.dart`.
+- `supabase/migrations/0012_reservar_antes_de_salir.sql` (`create_booking`) y, para curiosidad, el
+  principio de `supabase/functions/pagos-verificar/index.ts`.
+- `core/errors/mensaje_usuario.dart`.
+
+**Ejercicio.**
+1. Traza en papel el flujo 3 con tres columnas: *la app*, *Edge Function* y *Postgres*. Marca con
+   un círculo cada paso donde el servidor podría decir que no.
+2. Ejecuta `cd apps/viajero && flutter test test/ui/features/checkout` y localiza qué prueba cubre
+   «ya hay una reserva pendiente» y cuál «cerró el WebView sin pagar».
+3. Toma tres códigos del mapa de errores del capítulo 5 y encuentra, con `grep`, dónde se lanza
+   cada uno y dónde se escribe su mensaje.
+4. Opcional: provoca `RESERVA_PENDIENTE_EXISTENTE` en el emulador (toca «Pagar con Wompi», vuelve
+   atrás desde Wompi y entra otra vez al mismo checkout) y mira el aviso.
+
+**Ya lo entendí si…**
+- [ ] Explicas por qué dos teléfonos no pueden vender el mismo último cupo.
+- [ ] Dices por qué `pagos-verificar` no usa la URL de retorno para decidir si el pago fue aprobado.
+- [ ] Explicas qué firma `pagos-iniciar` y por qué esa firma no puede estar en la app.
+- [ ] Sabes qué pasa con el dinero si el pago llega cuando la reserva ya venció.
+
+---
 
 ## Glosario
 

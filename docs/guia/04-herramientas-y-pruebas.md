@@ -392,6 +392,7 @@ Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`
 | `apps/viajero/test/ui/features/plan/view_models/plan_detail_view_model_test.dart` | La ficha del plan: plan + reseñas, error, fecha elegida derivada (leer no muta) |
 | `apps/viajero/test/ui/features/catalog/views/filtros_test.dart` | Abrir la hoja de filtros, deslizar el precio y comprobar que «Aplicar filtros» consulta una sola vez |
 | `apps/viajero/test/ui/shell/app_shell_test.dart` | La barra inferior de pestañas |
+| `apps/viajero/test/app_arranque_test.dart` | La app entera cableada como en `main()` (`buildViajeroApp`) con repositorios falsos: arranque en `/login` o en el catálogo y las cuatro pestañas sin `ProviderNotFoundException` |
 | `apps/viajero/test/router/rutas_pago_test.dart` | El router completo con sesión simulada |
 | `apps/viajero/test/router/sesion_redirect_test.dart` | Una función pura (sesión + consentimiento + ubicación) sin Flutter |
 | `apps/viajero/test/router/consentimiento_guard_test.dart` | Un repositorio falso cuya respuesta se controla a mano (`Completer`) para probar la guardia paso a paso |
@@ -404,4 +405,5 @@ Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`
 ---
 
 **Anterior:** [3. Estado, arquitectura y navegación](03-estado-arquitectura-y-navegacion.md) ·
+**Siguiente:** [5. Recorrido de Diverso](05-recorrido-de-diverso.md) ·
 **Volver al** [plan de aprendizaje](README.md)
