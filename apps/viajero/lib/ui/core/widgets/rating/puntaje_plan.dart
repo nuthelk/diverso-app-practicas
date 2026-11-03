@@ -1,6 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../theme/app_text.dart';
 import 'insignia_nueva.dart';
 import 'rating_stars.dart';
 
@@ -17,7 +18,7 @@ class PuntajePlan extends StatelessWidget {
   Widget build(BuildContext context) {
     if (plan.esNuevo) return const InsigniaNueva();
     final suave = TextStyle(
-      fontSize: detallado ? 13 : 12,
+      fontSize: detallado ? AppText.detalle : AppText.leyenda,
       color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
     return Row(

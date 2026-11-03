@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_text.dart';
+
 /// Etiqueta de sección: pequeña, mayúsculas, espaciada — jerarquía silenciosa.
 class SectionLabel extends StatelessWidget {
   const SectionLabel(this.texto, {super.key, this.accion});
@@ -17,7 +19,7 @@ class SectionLabel extends StatelessWidget {
             child: Text(
               texto.toUpperCase(),
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: AppText.etiqueta,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

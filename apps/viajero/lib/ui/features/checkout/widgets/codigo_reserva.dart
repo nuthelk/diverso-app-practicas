@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Tarjeta con el código de la reserva, seleccionable para copiarlo.
 class CodigoReserva extends StatelessWidget {
@@ -22,7 +23,7 @@ class CodigoReserva extends StatelessWidget {
           Text(
             'CÓDIGO DE RESERVA',
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: AppText.micro,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.6,
               color: cs.onPrimaryContainer.withValues(alpha: .75),
@@ -32,7 +33,7 @@ class CodigoReserva extends StatelessWidget {
           SelectableText(
             codigo,
             style: TextStyle(
-              fontSize: 30,
+              fontSize: AppText.cifra,
               fontWeight: FontWeight.w900,
               letterSpacing: 3,
               color: cs.onPrimaryContainer,

@@ -2,6 +2,8 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/theme/diverso_colors.dart';
 
 /// Bandeja de comparación: va fija sobre la barra inferior (el catálogo la usa como
 /// `bottomNavigationBar`, así que la lista termina donde empieza y nunca tapa un precio ni un
@@ -64,13 +66,19 @@ class BandejaComparar extends StatelessWidget {
                         Text(
                           '$n de $maximo planes',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: AppText.enfasis,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -.2,
                           ),
                         ),
                         if (pista != null)
-                          Text(pista, style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant)),
+                          Text(
+                            pista,
+                            style: TextStyle(
+                              fontSize: AppText.leyendaGrande,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -121,7 +129,9 @@ class _Miniatura extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final respaldo = ColoredBox(
       color: cs.primaryContainer,
-      child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 20))),
+      child: Center(
+        child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: AppText.encabezadoS)),
+      ),
     );
     final foto = plan.fotoPrincipal;
     return Column(
@@ -135,7 +145,7 @@ class _Miniatura extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadios.control),
                 child: foto == null
                     ? respaldo
                     : Image.network(
@@ -155,7 +165,7 @@ class _Miniatura extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     iconSize: 14,
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: .62),
+                      backgroundColor: DiversoColors.of(context).controlSobreFoto,
                       foregroundColor: Colors.white,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -173,7 +183,11 @@ class _Miniatura extends StatelessWidget {
           plan.titulo,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, height: 1.2),
+          style: const TextStyle(
+            fontSize: AppText.etiqueta,
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+          ),
         ),
       ],
     );
@@ -198,7 +212,7 @@ class _Hueco extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: cs.surfaceContainerHigh.withValues(alpha: .4),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadios.control),
               border: Border.all(color: cs.outlineVariant),
             ),
             child: Icon(Icons.add_rounded, size: 20, color: cs.outline),

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
+import '../../../core/theme/app_text.dart';
 import '../widgets/aparecer.dart';
 import '../widgets/codigo_reserva.dart';
 import '../widgets/detalle_viaje.dart';
@@ -27,7 +29,7 @@ class BookingSuccessView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: AppInsets.pantalla,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: _anchoMaximo),
               child: Column(
@@ -55,7 +57,7 @@ class BookingSuccessView extends StatelessWidget {
                           '¡Listo, nos vemos ahí!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 26,
+                            fontSize: AppText.encabezado3xl,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -.8,
                             color: cs.onSurface,
@@ -65,7 +67,7 @@ class BookingSuccessView extends StatelessWidget {
                         Text(
                           'Tu reserva está confirmada y el cupo es tuyo.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                          style: TextStyle(fontSize: AppText.cuerpo, color: cs.onSurfaceVariant),
                         ),
                       ],
                     ),

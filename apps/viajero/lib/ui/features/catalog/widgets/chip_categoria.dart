@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Chip de una categoría de experiencia del catálogo; resalta la seleccionada.
 class ChipCategoria extends StatelessWidget {
@@ -55,7 +56,7 @@ class ChipCategoria extends StatelessWidget {
               Text(
                 categoria.label,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppText.detalle,
                   fontWeight: FontWeight.w600,
                   color: seleccionada ? cs.onPrimary : cs.onSurfaceVariant,
                 ),

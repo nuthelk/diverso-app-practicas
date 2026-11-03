@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 
 /// Comparador de planes "todo incluido" (Anexo 6, idea 7): enfrenta hasta 3
@@ -45,7 +47,7 @@ class _ComparatorViewState extends State<ComparatorView> {
                 Text(
                   'Elige con toda la información',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: AppText.encabezadoXl,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -.8,
                     color: cs.onSurface,
@@ -54,7 +56,7 @@ class _ComparatorViewState extends State<ComparatorView> {
                 const SizedBox(height: 4),
                 Text(
                   'Precio final por persona, sin cargos ocultos.',
-                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13.5),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: AppText.cuerpoChico),
                 ),
                 const SizedBox(height: 16),
                 _SelectorViajeros(
@@ -145,7 +147,7 @@ class _TablaComparacion extends StatelessWidget {
                         child: Text(
                           fila.titulo,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppText.leyenda,
                             fontWeight: FontWeight.w600,
                             color: cs.onSurfaceVariant,
                             height: 1.3,
@@ -199,7 +201,7 @@ class _TablaComparacion extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Desliza la tabla para ver todos los planes',
-                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                    style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
                   ),
                 ),
               ],
@@ -232,14 +234,19 @@ class _CabeceraPlan extends StatelessWidget {
           aspectRatio: 1.5,
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadios.control),
               color: cs.primaryContainer,
               image: plan.fotoPrincipal == null
                   ? null
                   : DecorationImage(image: NetworkImage(plan.fotoPrincipal!), fit: BoxFit.cover),
             ),
             child: plan.fotoPrincipal == null
-                ? Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 26)))
+                ? Center(
+                    child: Text(
+                      plan.categoria.emoji,
+                      style: const TextStyle(fontSize: AppText.encabezado3xl),
+                    ),
+                  )
                 : null,
           ),
         ),
@@ -248,7 +255,11 @@ class _CabeceraPlan extends StatelessWidget {
           plan.titulo,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, height: 1.25),
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: AppText.cuerpoChico,
+            height: 1.25,
+          ),
         ),
         if (mejorPrecio) ...[
           const SizedBox(height: 6),
@@ -256,12 +267,12 @@ class _CabeceraPlan extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
               color: cs.primaryContainer,
-              borderRadius: BorderRadius.circular(999),
+              borderRadius: BorderRadius.circular(AppRadios.pill),
             ),
             child: Text(
               'Mejor precio',
               style: TextStyle(
-                fontSize: 10.5,
+                fontSize: AppText.micro,
                 fontWeight: FontWeight.w700,
                 color: cs.onPrimaryContainer,
               ),
@@ -295,7 +306,11 @@ class _SelectorViajeros extends StatelessWidget {
         Expanded(
           child: Text(
             '¿Cuántos viajan?',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface),
+            style: TextStyle(
+              fontSize: AppText.cuerpo,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
           ),
         ),
         IconButton.outlined(
@@ -308,7 +323,7 @@ class _SelectorViajeros extends StatelessWidget {
           child: Text(
             '$pax',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: AppText.subtituloGrande, fontWeight: FontWeight.w800),
           ),
         ),
         IconButton.outlined(
@@ -343,7 +358,7 @@ class _ValorComparado extends StatelessWidget {
           maxLines: 1,
           softWrap: false,
           style: TextStyle(
-            fontSize: destacado ? 16 : 14.5,
+            fontSize: destacado ? AppText.subtitulo : AppText.cuerpoGrande,
             fontWeight: destacado ? FontWeight.w800 : FontWeight.w600,
             color: destacado ? cs.primary : cs.onSurface,
           ),
@@ -355,7 +370,7 @@ class _ValorComparado extends StatelessWidget {
     return Text(
       valor,
       style: TextStyle(
-        fontSize: 13,
+        fontSize: AppText.detalle,
         height: 1.4,
         fontWeight: incluido ? FontWeight.w700 : FontWeight.w500,
         color: incluido

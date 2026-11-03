@@ -1,6 +1,8 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../theme/app_text.dart';
+
 /// Precio protagonista: monto grande + unidad discreta.
 class PriceText extends StatelessWidget {
   const PriceText({super.key, required this.monto, this.alineado = CrossAxisAlignment.start});
@@ -18,7 +20,7 @@ class PriceText extends StatelessWidget {
         Text(
           formatCOP(monto),
           style: TextStyle(
-            fontSize: 21,
+            fontSize: AppText.encabezadoM,
             fontWeight: FontWeight.w800,
             letterSpacing: -.5,
             color: cs.onSurface,
@@ -26,7 +28,7 @@ class PriceText extends StatelessWidget {
         ),
         Text(
           'por persona · precio final',
-          style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant),
+          style: TextStyle(fontSize: AppText.micro, color: cs.onSurfaceVariant),
         ),
       ],
     );

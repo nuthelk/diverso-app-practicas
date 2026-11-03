@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_insets.dart';
+import '../../theme/app_text.dart';
+
 /// Estado vacío o de error: icono, título, mensaje y acción opcional.
 class EmptyState extends StatelessWidget {
   const EmptyState({
@@ -30,14 +33,18 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: AppInsets.tarjetaGrande,
               decoration: BoxDecoration(color: cs.surfaceContainerHigh, shape: BoxShape.circle),
               child: Icon(icono, size: 30, color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             Text(
               titulo,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -.3),
+              style: const TextStyle(
+                fontSize: AppText.subtituloGrande,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -.3,
+              ),
             ),
             const SizedBox(height: 5),
             ConstrainedBox(
@@ -45,7 +52,11 @@ class EmptyState extends StatelessWidget {
               child: Text(
                 mensaje,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.5, height: 1.45, color: cs.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: AppText.cuerpoChico,
+                  height: 1.45,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
             ),
             if (detalle != null) ...[
@@ -56,7 +67,7 @@ class EmptyState extends StatelessWidget {
                   detalle!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: AppText.nota,
                     fontFamily: 'monospace',
                     height: 1.35,
                     color: cs.onSurfaceVariant.withValues(alpha: .75),

@@ -1,7 +1,9 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/rating/estrellas_calificacion.dart';
 
 /// Una reseña verificada de la ficha del plan: avatar con la inicial, nombre, estrellas y comentario.
@@ -17,7 +19,7 @@ class ResenaItem extends StatelessWidget {
     final nombre = review.viajeroNombre?.trim() ?? '';
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: AppInsets.tarjeta,
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -31,14 +33,17 @@ class ResenaItem extends StatelessWidget {
                 radius: 15,
                 child: Text(
                   nombre.isEmpty ? 'V' : nombre.characters.first.toUpperCase(),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontSize: AppText.detalle, fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(width: 9),
               Expanded(
                 child: Text(
                   nombre.isEmpty ? 'Viajero' : review.viajeroNombre!,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: AppText.cuerpoChico,
+                  ),
                 ),
               ),
               EstrellasCalificacion(calificacion: review.calificacion, size: 14),
@@ -51,7 +56,10 @@ class ResenaItem extends StatelessWidget {
           ),
           if ((review.comentario ?? '').isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text(review.comentario!, style: const TextStyle(height: 1.45, fontSize: 13.5)),
+            Text(
+              review.comentario!,
+              style: const TextStyle(height: 1.45, fontSize: AppText.cuerpoChico),
+            ),
           ],
         ],
       ),

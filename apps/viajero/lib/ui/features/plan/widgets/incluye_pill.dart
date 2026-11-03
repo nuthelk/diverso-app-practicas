@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Píldora de «Qué incluye» (transporte, comida, un ítem del plan…).
 class IncluyePill extends StatelessWidget {
@@ -30,7 +31,7 @@ class IncluyePill extends StatelessWidget {
             child: Text(
               texto,
               overflow: textoLargo ? TextOverflow.ellipsis : TextOverflow.visible,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: AppText.leyendaGrande, fontWeight: FontWeight.w600),
             ),
           ),
         ],

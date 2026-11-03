@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../view_models/login_view_model.dart';
 import '../widgets/formulario_login.dart';
@@ -77,7 +78,7 @@ class _LoginViewState extends State<LoginView> {
           }
           return SafeArea(
             child: Center(
-              child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: formulario),
+              child: SingleChildScrollView(padding: AppInsets.pantalla, child: formulario),
             ),
           );
         },

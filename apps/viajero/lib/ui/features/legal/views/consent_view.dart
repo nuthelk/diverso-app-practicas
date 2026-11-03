@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_insets.dart';
+import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../view_models/consent_view_model.dart';
 import '../widgets/consent_checkboxes.dart';
 
@@ -43,11 +46,14 @@ class _ConsentViewState extends State<ConsentView> {
   /// No se pudo saber qué falta aceptar: no se deja pasar, se avisa y se ofrece reintentar.
   List<Widget> _sinVerificar(ConsentViewModel consentimiento, ColorScheme cs) => [
     Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(14)),
+      padding: AppInsets.tarjeta,
+      decoration: BoxDecoration(
+        color: cs.errorContainer,
+        borderRadius: BorderRadius.circular(AppRadios.field),
+      ),
       child: Text(
         'No pudimos verificar tu autorización. Revisa tu conexión e intenta de nuevo.',
-        style: TextStyle(color: cs.onErrorContainer, fontSize: 13.5, height: 1.4),
+        style: TextStyle(color: cs.onErrorContainer, fontSize: AppText.cuerpoChico, height: 1.4),
       ),
     ),
     const SizedBox(height: 16),
@@ -64,7 +70,10 @@ class _ConsentViewState extends State<ConsentView> {
     ),
     if (_error != null) ...[
       const SizedBox(height: 12),
-      Text(_error!, style: TextStyle(color: cs.error, fontSize: 13.5)),
+      Text(
+        _error!,
+        style: TextStyle(color: cs.error, fontSize: AppText.cuerpoChico),
+      ),
     ],
     const SizedBox(height: 24),
     FilledButton(
@@ -88,12 +97,12 @@ class _ConsentViewState extends State<ConsentView> {
               constraints: const BoxConstraints(maxWidth: 460),
               child: ListView(
                 shrinkWrap: true,
-                padding: const EdgeInsets.all(24),
+                padding: AppInsets.pantalla,
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: AppInsets.tarjeta,
                       decoration: BoxDecoration(
                         color: cs.primaryContainer,
                         borderRadius: BorderRadius.circular(18),
@@ -108,13 +117,21 @@ class _ConsentViewState extends State<ConsentView> {
                   const SizedBox(height: 18),
                   const Text(
                     'Antes de continuar',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -.6),
+                    style: TextStyle(
+                      fontSize: AppText.encabezadoXl,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -.6,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Actualizamos nuestros documentos legales. Necesitamos tu autorización '
                     'expresa para seguir gestionando tu cuenta y tus reservas.',
-                    style: TextStyle(fontSize: 14, height: 1.5, color: cs.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: AppText.cuerpo,
+                      height: 1.5,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   if (consentimiento.estado == EstadoConsentimiento.error)

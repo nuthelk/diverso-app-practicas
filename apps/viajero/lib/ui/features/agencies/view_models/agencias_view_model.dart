@@ -25,7 +25,7 @@ class AgenciasViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       _agencias = await _catalogo.agencias();
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('AgenciasViewModel.cargar: $e');
       error = 'No pudimos cargar las agencias. Revisa tu conexión e intenta de nuevo.';
       errorDetalle = e.toString();

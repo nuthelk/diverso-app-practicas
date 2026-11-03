@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/section_label.dart';
 import '../view_models/catalog_view_model.dart';
 
@@ -87,7 +88,11 @@ class _FiltrosSheetState extends State<FiltrosSheet> {
         children: [
           const Text(
             'Filtros',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -.5),
+            style: TextStyle(
+              fontSize: AppText.encabezadoL,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.5,
+            ),
           ),
           const SizedBox(height: 22),
           const SectionLabel('Fecha del plan'),
@@ -129,7 +134,10 @@ class _FiltrosSheetState extends State<FiltrosSheet> {
                 child: Text(
                   precio == null || precio == 0 ? 'Sin límite' : formatCOP(precio),
                   textAlign: TextAlign.right,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: AppText.cuerpoChico,
+                  ),
                 ),
               ),
             ],
@@ -173,7 +181,7 @@ class _FiltrosSheetState extends State<FiltrosSheet> {
                   title: Text(
                     d,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: AppText.cuerpo,
                       fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
                       color: sel ? cs.primary : cs.onSurface,
                     ),
@@ -233,7 +241,10 @@ class _OpcionFecha extends StatelessWidget {
           children: [
             Icon(icono, size: 19, color: cs.primary),
             const SizedBox(width: 10),
-            Text(texto, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            Text(
+              texto,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: AppText.cuerpo),
+            ),
           ],
         ),
       ),

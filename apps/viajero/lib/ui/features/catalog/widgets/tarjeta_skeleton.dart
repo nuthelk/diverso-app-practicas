@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/widgets/feedback/skeleton.dart';
 
 /// Marcador de posición con la forma de una [PlanCard] mientras carga el catálogo.
@@ -14,7 +15,7 @@ class TarjetaSkeleton extends StatelessWidget {
         children: [
           Skeleton(height: 168, radius: 0),
           Padding(
-            padding: EdgeInsets.all(14),
+            padding: AppInsets.tarjeta,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

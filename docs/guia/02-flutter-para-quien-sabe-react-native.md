@@ -385,8 +385,31 @@ Perfil (capítulo 3).
 **sobre** `X` (`onPrimary` es el texto sobre un fondo `primary`). Así el modo oscuro funciona
 sin tocar el widget: `test/ui/core/theme/modo_oscuro_test.dart` lo comprueba.
 
-Para valores propios que no son del tema (radios, breakpoints) el repo usa constantes:
-`AppRadios.pill` en `viajero/ui/core/theme/app_radii.dart` y `AppTheme.bpCompact`.
+**Lo que el `ColorScheme` no trae.** El dorado de las estrellas, los colores de las píldoras de
+estado o el aviso «¡Últimos N!» no son de Material. Viven en una `ThemeExtension`,
+`DiversoColors` (`viajero/ui/core/theme/diverso_colors.dart`), con su valor claro y oscuro, y se
+leen igual que el resto del tema:
+
+```dart
+final dorado = DiversoColors.of(context).dorado;
+```
+
+Es el equivalente a ampliar el tipo del tema en RN (`theme.colors.gold`): un solo lugar, y el modo
+oscuro puede cambiar un valor sin tocar los widgets. Hoy los dos juegos de valores son iguales
+(son colores sólidos con texto blanco o que van sobre fotos).
+
+**Tamaños, radios y espaciados.** Tampoco se escriben sueltos: `AppText` (tamaños de letra:
+`AppText.cuerpo` = 14, `AppText.tituloPagina` = 28…), `AppRadios` (`AppRadios.pill`) y `AppInsets`
+(`AppInsets.tarjeta`, `AppInsets.lista`), todos en `viajero/ui/core/theme/`; y `AppTheme.bpCompact`
+para el breakpoint. `AppText` solo guarda el tamaño: el peso, la altura y el color los pone cada
+`Text`, que hereda el resto del tema (por eso no se usan los estilos del `TextTheme`, que traen su
+propio interletraje y cambiarían lo que se ve).
+
+> **Cuando falla.** Si pones un `labelStyle` en el tema de un componente (`chipTheme`, por
+> ejemplo), **reemplaza** al de Material, no se mezcla con él: sin `color` el texto del chip se
+> pintaba blanco y no se leía sobre fondo claro. Por eso `chipTheme.labelStyle` lleva
+> `color: scheme.onSurface`; `test/ui/core/theme/chip_filtro_contraste_test.dart` mide el contraste
+> real (WCAG AA, 4.5:1) del texto y del ícono de borrar en claro y oscuro.
 
 ## 10. Assets e íconos
 

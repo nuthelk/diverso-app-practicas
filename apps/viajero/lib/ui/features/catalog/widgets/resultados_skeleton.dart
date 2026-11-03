@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_theme.dart';
 import 'plan_card.dart';
 import 'tarjeta_skeleton.dart';
@@ -15,7 +16,7 @@ class ResultadosSkeleton extends StatelessWidget {
         final esGrid = constraints.maxWidth > AppTheme.bpCompact;
         final n = esGrid ? 4 : 3;
         return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: AppInsets.listaConAire,
           child: esGrid
               ? GridView.builder(
                   shrinkWrap: true,
@@ -27,10 +28,8 @@ class ResultadosSkeleton extends StatelessWidget {
               : Column(
                   children: List.generate(
                     n,
-                    (_) => const Padding(
-                      padding: EdgeInsets.only(bottom: 14),
-                      child: TarjetaSkeleton(),
-                    ),
+                    (_) =>
+                        const Padding(padding: AppInsets.entreTarjetas, child: TarjetaSkeleton()),
                   ),
                 ),
         );

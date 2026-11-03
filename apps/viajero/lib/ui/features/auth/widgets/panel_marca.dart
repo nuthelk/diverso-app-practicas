@@ -1,6 +1,8 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_text.dart';
+
 /// Panel de marca de las pantallas anchas: logo, nombre y la promesa de Diverso sobre el color
 /// primario.
 class PanelMarca extends StatelessWidget {
@@ -21,7 +23,7 @@ class PanelMarca extends StatelessWidget {
           Text(
             'Diverso',
             style: TextStyle(
-              fontSize: 42,
+              fontSize: AppText.marca,
               fontWeight: FontWeight.w800,
               letterSpacing: -1.5,
               color: cs.onPrimary,
@@ -34,7 +36,7 @@ class PanelMarca extends StatelessWidget {
               'Planes turísticos de agencias antioqueñas verificadas. '
               'Precio final desde el inicio, cupos reales y pago protegido.',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: AppText.subtitulo,
                 height: 1.55,
                 color: cs.onPrimary.withValues(alpha: .85),
               ),

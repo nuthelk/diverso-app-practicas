@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/feedback/skeleton.dart';
 import '../acciones_reserva.dart';
@@ -117,7 +118,7 @@ class _ReservaDetalleViewState extends State<ReservaDetalleView> {
     }
     return _marco(
       ListView(
-        padding: const EdgeInsets.all(20),
+        padding: AppInsets.contenido,
         children: const [
           Skeleton(height: 190, radius: 20),
           SizedBox(height: 16),

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/agency_avatar.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
 
@@ -23,7 +25,7 @@ class TarjetaAgencia extends StatelessWidget {
       child: InkWell(
         onTap: () => context.push(AppRoutes.agencia(agency.id)),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: AppInsets.tarjeta,
           child: Row(
             children: [
               // Mismo avatar que la lista de agencias: logo o iniciales sobre el color de la agencia.
@@ -43,17 +45,20 @@ class TarjetaAgencia extends StatelessWidget {
                   children: [
                     Text(
                       agency.nombre,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: AppText.enfasis,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Agencia local · RNT ${agency.numeroRnt}',
-                      style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+                      style: TextStyle(fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant),
                     ),
                     if (agency.rntVigenteHasta != null)
                       Text(
                         'RNT vigente hasta el ${formatFechaTexto(agency.rntVigenteHasta!)}',
-                        style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                        style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
                       ),
                     // Debajo del texto y no a su lado: en celulares angostos le robaba el ancho al nombre.
                     if (agency.verificada) ...[

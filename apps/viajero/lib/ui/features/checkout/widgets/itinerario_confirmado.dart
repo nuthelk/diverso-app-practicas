@@ -1,7 +1,9 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Itinerario inmediato de la confirmación (Anexo 6): los primeros pasos y cuántos más hay.
 class ItinerarioConfirmado extends StatelessWidget {
@@ -16,7 +18,7 @@ class ItinerarioConfirmado extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: AppInsets.tarjetaGrande,
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -27,7 +29,7 @@ class ItinerarioConfirmado extends StatelessWidget {
           Text(
             'ITINERARIO',
             style: TextStyle(
-              fontSize: 10.5,
+              fontSize: AppText.micro,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.6,
               color: cs.onSurfaceVariant,
@@ -46,13 +48,16 @@ class ItinerarioConfirmado extends StatelessWidget {
                       paso.hora,
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 12.5,
+                        fontSize: AppText.leyendaGrande,
                         color: cs.primary,
                       ),
                     ),
                   ),
                   Expanded(
-                    child: Text(paso.actividad, style: const TextStyle(fontSize: 13, height: 1.4)),
+                    child: Text(
+                      paso.actividad,
+                      style: const TextStyle(fontSize: AppText.detalle, height: 1.4),
+                    ),
                   ),
                 ],
               ),
@@ -60,7 +65,7 @@ class ItinerarioConfirmado extends StatelessWidget {
           if (pasos.length > maxPasos)
             Text(
               '+ ${pasos.length - maxPasos} pasos más en la app',
-              style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
             ),
         ],
       ),

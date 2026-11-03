@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/agency_avatar.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
@@ -126,7 +128,7 @@ class _Esqueleto extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Aviso(
       child: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: AppInsets.contenido,
         children: const [
           Skeleton(height: 160, radius: AppRadios.card),
           SizedBox(height: 16),
@@ -181,7 +183,9 @@ class _Contenido extends StatelessWidget {
                           children: [
                             Text(
                               agencia.nombre,
-                              style: TituloPagina.estilo(cs).copyWith(fontSize: 24),
+                              style: TituloPagina.estilo(
+                                cs,
+                              ).copyWith(fontSize: AppText.encabezadoXl),
                             ),
                             const SizedBox(height: 8),
                             DatosAgencia(agencia: agencia),
@@ -196,7 +200,11 @@ class _Contenido extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       agencia.descripcion.trim(),
-                      style: TextStyle(fontSize: 14.5, height: 1.5, color: cs.onSurfaceVariant),
+                      style: TextStyle(
+                        fontSize: AppText.cuerpoGrande,
+                        height: 1.5,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 28),
@@ -214,7 +222,7 @@ class _Contenido extends StatelessWidget {
             )
           else if (esGrid)
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              padding: AppInsets.lista,
               sliver: SliverGrid.builder(
                 itemCount: planes.length,
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -228,11 +236,11 @@ class _Contenido extends StatelessWidget {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              padding: AppInsets.lista,
               sliver: SliverList.builder(
                 itemCount: planes.length,
                 itemBuilder: (context, i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
+                  padding: AppInsets.entreTarjetas,
                   child: PlanCard(plan: planes[i]),
                 ),
               ),

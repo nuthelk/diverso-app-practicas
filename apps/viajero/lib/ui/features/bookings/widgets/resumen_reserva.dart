@@ -1,9 +1,11 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
 import '../reserva_formato.dart';
-import 'reserva_widgets.dart';
+import 'color_reembolso.dart';
+import 'fila_dato.dart';
 
 /// Tarjeta con los datos de la reserva en el detalle: salida con su cuenta regresiva, punto de
 /// encuentro, personas y total, pago y reembolso (las filas que no aplican no se dibujan).
@@ -22,7 +24,7 @@ class ResumenReserva extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: AppInsets.tarjetaAmplia,
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadios.card),

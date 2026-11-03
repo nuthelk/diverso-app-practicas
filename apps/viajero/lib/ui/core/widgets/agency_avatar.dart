@@ -1,17 +1,7 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
-/// Colores de marca para el círculo de iniciales (todos con buen contraste con texto blanco).
-const _paleta = <Color>[
-  Color(0xFF0E6E4F), // verde selva
-  Color(0xFF2D4A73), // azul pizarra
-  Color(0xFF7A4A21), // tierra
-  Color(0xFF6B3A5B), // ciruela
-  Color(0xFF1F6F7A), // lago
-  Color(0xFF8A4B14), // cobre
-  Color(0xFF4A6A2A), // musgo
-  Color(0xFF4F4A8A), // añil
-];
+import '../theme/diverso_colors.dart';
 
 /// Color estable de una agencia: el mismo [clave] da siempre el mismo color (FNV-1a; `hashCode`
 /// no es estable entre ejecuciones).
@@ -20,7 +10,8 @@ Color colorDeAgencia(String clave) {
   for (final unidad in clave.codeUnits) {
     h = ((h ^ unidad) * 0x01000193) & 0xFFFFFFFF;
   }
-  return _paleta[h % _paleta.length];
+  const paleta = DiversoColors.paletaAgencias;
+  return paleta[h % paleta.length];
 }
 
 /// Logo de la agencia; mientras no suba uno (o si falla la carga), sus iniciales en un círculo de

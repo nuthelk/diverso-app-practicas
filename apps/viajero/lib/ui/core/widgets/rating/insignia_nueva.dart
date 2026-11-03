@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/app_radii.dart';
+import '../../theme/app_text.dart';
 
 /// Píldora «Nueva» de lo que aún no tiene reseñas (planes y agencias).
 class InsigniaNueva extends StatelessWidget {
@@ -19,7 +20,11 @@ class InsigniaNueva extends StatelessWidget {
       ),
       child: Text(
         texto,
-        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: cs.primary),
+        style: TextStyle(
+          fontSize: AppText.etiqueta,
+          fontWeight: FontWeight.w700,
+          color: cs.primary,
+        ),
       ),
     );
   }

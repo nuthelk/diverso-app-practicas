@@ -28,7 +28,7 @@ class AgenciaViewModel extends ChangeNotifier {
       noEncontrada = r == null;
       agencia = r?.agencia;
       planes = r?.planes ?? const [];
-    } catch (e) {
+    } on Object catch (e) {
       debugPrint('AgenciaViewModel.cargar: $e');
       error = 'No pudimos cargar la agencia. Revisa tu conexión e intenta de nuevo.';
       errorDetalle = e.toString();

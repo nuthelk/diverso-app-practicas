@@ -14,6 +14,8 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
+    - avoid_catches_without_on_clauses
+    - avoid_dynamic_calls
     - avoid_void_async
     - cancel_subscriptions
     - close_sinks

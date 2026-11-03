@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/diverso_colors.dart';
+
 /// Estrellas compactas + valor numérico opcional.
 class RatingStars extends StatelessWidget {
   const RatingStars({
@@ -19,7 +21,7 @@ class RatingStars extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.star_rounded, size: size + 2, color: const Color(0xFFE8A33D)),
+        Icon(Icons.star_rounded, size: size + 2, color: DiversoColors.of(context).dorado),
         if (mostrarNumero)
           Text(
             calificacion.toStringAsFixed(1),

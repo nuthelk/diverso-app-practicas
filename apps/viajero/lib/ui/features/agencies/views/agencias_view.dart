@@ -2,6 +2,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
@@ -64,7 +65,7 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
                   ),
                 if (c.cargando && !c.hayAgencias)
                   const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    padding: AppInsets.lista,
                     sliver: SliverToBoxAdapter(child: _Esqueletos()),
                   )
                 else if (c.error != null && !c.hayAgencias)
@@ -93,7 +94,7 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
                   )
                 else if (esGrid)
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    padding: AppInsets.lista,
                     sliver: SliverGrid.builder(
                       itemCount: c.agencias.length,
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -107,11 +108,11 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    padding: AppInsets.lista,
                     sliver: SliverList.builder(
                       itemCount: c.agencias.length,
                       itemBuilder: (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
+                        padding: AppInsets.entreTarjetas,
                         child: AgenciaCard(agencia: c.agencias[i]),
                       ),
                     ),
@@ -153,7 +154,7 @@ class _Esqueletos extends StatelessWidget {
       children: List.generate(
         3,
         (_) => const Padding(
-          padding: EdgeInsets.only(bottom: 14),
+          padding: AppInsets.entreTarjetas,
           child: Skeleton(height: 210, radius: AppRadios.card),
         ),
       ),

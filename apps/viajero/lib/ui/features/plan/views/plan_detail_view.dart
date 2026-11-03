@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/page/cabecera_colapsable.dart';
 import '../../../core/widgets/plan/paso_itinerario.dart';
@@ -139,7 +140,7 @@ class _Contenido extends StatelessWidget {
                 Text(
                   plan.titulo,
                   style: const TextStyle(
-                    fontSize: 26,
+                    fontSize: AppText.encabezado3xl,
                     fontWeight: FontWeight.w800,
                     height: 1.15,
                     letterSpacing: -.8,
@@ -163,7 +164,7 @@ class _Contenido extends StatelessWidget {
                           Text(
                             plan.duracionTexto,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: AppText.leyenda,
                               fontWeight: FontWeight.w700,
                               color: cs.onSecondaryContainer,
                             ),
@@ -185,7 +186,7 @@ class _Contenido extends StatelessWidget {
                     plan.descripcion,
                     style: TextStyle(
                       height: 1.55,
-                      fontSize: 14.5,
+                      fontSize: AppText.cuerpoGrande,
                       color: cs.onSurface.withValues(alpha: .85),
                     ),
                   ),
@@ -234,7 +235,10 @@ class _Contenido extends StatelessWidget {
                       Icon(Icons.flag_rounded, size: 17, color: cs.primary),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(plan.puntoEncuentro, style: const TextStyle(fontSize: 14.5)),
+                        child: Text(
+                          plan.puntoEncuentro,
+                          style: const TextStyle(fontSize: AppText.cuerpoGrande),
+                        ),
                       ),
                     ],
                   ),
@@ -255,7 +259,7 @@ class _Contenido extends StatelessWidget {
                   SectionLabel('Reseñas verificadas (${plan.reviewsCount})'),
                   Text(
                     'Carga al volver a abrir…',
-                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: AppText.detalle),
                   ),
                 ],
               ],

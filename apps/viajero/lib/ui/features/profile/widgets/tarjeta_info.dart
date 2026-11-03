@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Tarjeta informativa del perfil: ícono redondo, título y texto (compra protegida, tus datos).
 class TarjetaInfo extends StatelessWidget {
@@ -14,7 +16,7 @@ class TarjetaInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppInsets.tarjetaAmplia,
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -32,11 +34,18 @@ class TarjetaInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(
+                  titulo,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: AppText.cuerpo),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   cuerpo,
-                  style: TextStyle(fontSize: 13, height: 1.5, color: cs.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: AppText.detalle,
+                    height: 1.5,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

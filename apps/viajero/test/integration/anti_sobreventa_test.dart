@@ -74,7 +74,7 @@ void main() {
             'cancelar_reserva',
             params: {'p_booking_id': f['id'], 'p_viajero_id': f['viajero_id']},
           );
-        } catch (e) {
+        } on Object catch (e) {
           sinCancelar.add('${f['codigo']} (${f['estado']}): $e');
           continue;
         }
@@ -105,7 +105,7 @@ void main() {
         url: DiversoConfig.supabaseUrl,
         publishableKey: DiversoConfig.supabaseKey,
       );
-    } catch (e) {
+    } on Object {
       // Si ya fue inicializado en este proceso, continuar con la instancia.
     }
     client = Supabase.instance.client;
@@ -171,7 +171,7 @@ void main() {
       Future<(String, Object?)> intento(Future<CreatedBooking> Function() reservar) async {
         try {
           return ('ok', await reservar());
-        } catch (e) {
+        } on Object catch (e) {
           return ('error', e);
         }
       }

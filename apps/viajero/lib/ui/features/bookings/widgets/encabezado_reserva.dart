@@ -1,7 +1,12 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
-import 'reserva_widgets.dart';
+import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/theme/diverso_colors.dart';
+import 'chip_codigo.dart';
+import 'estado_reserva_pill.dart';
+import 'foto_reserva.dart';
 
 /// Cabecera de la tarjeta: foto (o respaldo) con un degradado arriba para que la insignia de fecha
 /// y la píldora de estado, ambas sólidas, se lean sobre cualquier imagen; el código de la reserva
@@ -82,10 +87,10 @@ class _InsigniaFecha extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadios.field),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .25),
+            color: DiversoColors.of(context).sombraInsignia,
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -97,7 +102,7 @@ class _InsigniaFecha extends StatelessWidget {
           Text(
             '${fecha.day}',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: AppText.encabezadoL,
               fontWeight: FontWeight.w800,
               height: 1,
               letterSpacing: -.5,
@@ -108,7 +113,7 @@ class _InsigniaFecha extends StatelessWidget {
           Text(
             _meses[fecha.month - 1],
             style: TextStyle(
-              fontSize: 11,
+              fontSize: AppText.nota,
               fontWeight: FontWeight.w700,
               letterSpacing: .8,
               color: cs.onSurfaceVariant,

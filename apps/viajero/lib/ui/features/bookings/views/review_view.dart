@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/theme/diverso_colors.dart';
 import '../view_models/review_view_model.dart';
 
 /// Reseña verificada: solo se llega desde una reserva propia ya viajada (RLS lo garantiza en el
@@ -57,7 +60,7 @@ class _ReviewViewState extends State<ReviewView> {
       appBar: AppBar(title: const Text('Tu reseña')),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: AppInsets.pantalla,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Column(
@@ -68,7 +71,7 @@ class _ReviewViewState extends State<ReviewView> {
                     plan.titulo,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 21,
+                      fontSize: AppText.encabezadoM,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -.5,
                       height: 1.2,
@@ -79,7 +82,7 @@ class _ReviewViewState extends State<ReviewView> {
                     Text(
                       formatFechaLarga(fecha),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+                      style: TextStyle(fontSize: AppText.detalle, color: cs.onSurfaceVariant),
                     ),
                   ],
                 ],
@@ -87,7 +90,11 @@ class _ReviewViewState extends State<ReviewView> {
                 Text(
                   '¿Cómo estuvo tu experiencia?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: cs.onSurface),
+                  style: TextStyle(
+                    fontSize: AppText.subtitulo,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Row(
@@ -101,7 +108,7 @@ class _ReviewViewState extends State<ReviewView> {
                       onPressed: bloqueado ? null : () => vm.calificar(i + 1),
                       icon: Icon(
                         marcada ? Icons.star_rounded : Icons.star_outline_rounded,
-                        color: marcada ? const Color(0xFFE8A33D) : cs.outline,
+                        color: marcada ? DiversoColors.of(context).dorado : cs.outline,
                       ),
                     );
                   }),
@@ -121,7 +128,7 @@ class _ReviewViewState extends State<ReviewView> {
                       style: TextStyle(
                         color: cs.primary,
                         fontWeight: FontWeight.w700,
-                        fontSize: 15,
+                        fontSize: AppText.enfasis,
                       ),
                     ),
                   ),
@@ -158,7 +165,7 @@ class _ReviewViewState extends State<ReviewView> {
                     Flexible(
                       child: Text(
                         'Reseña verificada: solo quien viajó puede opinar',
-                        style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                        style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
                       ),
                     ),
                   ],

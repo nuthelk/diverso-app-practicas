@@ -1,12 +1,15 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/page/cabecera_colapsable.dart';
 import '../../../core/widgets/plan/paso_itinerario.dart';
 import '../../../core/widgets/plan/tarjeta_cancelacion.dart';
 import '../../../core/widgets/section_label.dart';
 import 'acciones_detalle_reserva.dart';
-import 'reserva_widgets.dart';
+import 'chip_codigo.dart';
+import 'estado_reserva_pill.dart';
+import 'foto_reserva.dart';
 import 'resumen_reserva.dart';
 
 /// Detalle de una reserva: cabecera colapsable con la foto, título, agencia, estado y código,
@@ -58,7 +61,7 @@ class DetalleReserva extends StatelessWidget {
                   Text(
                     titulo,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: AppText.encabezadoXl,
                       fontWeight: FontWeight.w800,
                       height: 1.15,
                       letterSpacing: -.7,
@@ -74,7 +77,7 @@ class DetalleReserva extends StatelessWidget {
                           child: Text(
                             agencia,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: AppText.cuerpo,
                               fontWeight: FontWeight.w600,
                               color: cs.onSurfaceVariant,
                             ),

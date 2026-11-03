@@ -1,6 +1,8 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../theme/app_text.dart';
+
 /// Un paso del itinerario: hora a la izquierda y la actividad en una línea de tiempo.
 class PasoItinerario extends StatelessWidget {
   const PasoItinerario({super.key, required this.paso});
@@ -21,7 +23,7 @@ class PasoItinerario extends StatelessWidget {
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontWeight: FontWeight.w800,
-                fontSize: 13,
+                fontSize: AppText.detalle,
                 color: cs.primary,
                 height: 1.35,
               ),
@@ -43,7 +45,10 @@ class PasoItinerario extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: Text(paso.actividad, style: const TextStyle(height: 1.45, fontSize: 14)),
+              child: Text(
+                paso.actividad,
+                style: const TextStyle(height: 1.45, fontSize: AppText.cuerpo),
+              ),
             ),
           ),
         ],

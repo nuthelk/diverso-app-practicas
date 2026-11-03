@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/page/titulo_pagina.dart';
 import '../../../core/widgets/section_label.dart';
 import '../view_models/profile_view_model.dart';
@@ -127,7 +128,7 @@ class _ProfileViewState extends State<ProfileView> {
             child: Text(
               vm.inicial,
               style: TextStyle(
-                fontSize: 26,
+                fontSize: AppText.encabezado3xl,
                 fontWeight: FontWeight.w800,
                 color: cs.onPrimaryContainer,
               ),
@@ -136,15 +137,25 @@ class _ProfileViewState extends State<ProfileView> {
           const SizedBox(height: 12),
           Text(
             vm.nombre,
-            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.5),
+            style: const TextStyle(
+              fontSize: AppText.encabezadoM,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.5,
+            ),
           ),
-          Text(vm.email, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+          Text(
+            vm.email,
+            style: TextStyle(fontSize: AppText.detalle, color: cs.onSurfaceVariant),
+          ),
           if (vm.error != null)
             Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(vm.error!, style: TextStyle(fontSize: 13, color: cs.error)),
+                Text(
+                  vm.error!,
+                  style: TextStyle(fontSize: AppText.detalle, color: cs.error),
+                ),
                 TextButton(onPressed: vm.cargar, child: const Text('Reintentar')),
               ],
             ),

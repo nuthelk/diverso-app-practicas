@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/theme/diverso_colors.dart';
 import '../../../core/widgets/agency_avatar.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
 import '../../../core/widgets/rating/insignia_nueva.dart';
@@ -54,7 +56,7 @@ class AgenciaCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 15.5,
+                            fontSize: AppText.enfasisGrande,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -.3,
                           ),
@@ -83,7 +85,7 @@ class DatosAgencia extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final suave = TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant);
+    final suave = TextStyle(fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant);
     return Wrap(
       spacing: 10,
       runSpacing: 3,
@@ -95,11 +97,15 @@ class DatosAgencia extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.star_rounded, size: 17, color: Color(0xFFE8A33D)),
+              Icon(Icons.star_rounded, size: 17, color: DiversoColors.of(context).dorado),
               const SizedBox(width: 2),
               Text(
                 agencia.puntajeTexto,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onSurface),
+                style: TextStyle(
+                  fontSize: AppText.detalle,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
               ),
               const SizedBox(width: 3),
               Text('(${agencia.reviewsTotal})', style: suave),

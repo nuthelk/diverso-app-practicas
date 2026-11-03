@@ -4,11 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
+import '../../../core/theme/diverso_colors.dart';
 
 /// Pocos cupos: desde aquí hacia abajo se avisa «¡Últimos N!».
 const int _pocosCupos = 4;
-
-final _colorPocosCupos = Colors.orange.shade800;
 
 /// Barra inferior de la ficha: fechas con sus cupos, precio y el botón «Reservar» de la fecha
 /// elegida. No guarda estado: la fecha elegida la maneja quien la construye ([seleccionada] y
@@ -97,7 +97,7 @@ class BarraReserva extends StatelessWidget {
                           Text(
                             formatFechaCorta(f.fecha),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: AppText.detalle,
                               fontWeight: FontWeight.w700,
                               color: sel ? cs.onPrimary : cs.onSurface,
                             ),
@@ -105,12 +105,12 @@ class BarraReserva extends StatelessWidget {
                           Text(
                             pocos ? '¡Últimos ${f.cupoDisponible}!' : '${f.cupoDisponible} cupos',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: AppText.nota,
                               fontWeight: FontWeight.w600,
                               color: sel
                                   ? cs.onPrimary.withValues(alpha: .8)
                                   : pocos
-                                  ? _colorPocosCupos
+                                  ? DiversoColors.of(context).pocosCupos
                                   : cs.onSurfaceVariant,
                             ),
                           ),
@@ -131,7 +131,7 @@ class BarraReserva extends StatelessWidget {
                     Text(
                       formatCOP(plan.precioCop),
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: AppText.encabezadoL,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -.5,
                         color: cs.onSurface,
@@ -139,7 +139,7 @@ class BarraReserva extends StatelessWidget {
                     ),
                     Text(
                       'por persona · precio final',
-                      style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant),
+                      style: TextStyle(fontSize: AppText.micro, color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),

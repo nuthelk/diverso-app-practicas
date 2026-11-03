@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_text.dart';
+
 /// Cabecera colapsable con foto (detalle del plan, página de la agencia): con la foto a la vista
 /// el botón de volver flota sobre ella; al desplazarse termina SÓLIDA, del color de la página, con
 /// [titulo] y el botón de volver, de modo que nada se dibuja debajo de la barra de estado.
@@ -81,7 +83,7 @@ class _FondoSolido extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: AppText.encabezadoXs,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -.4,
                   color: tema.colorScheme.onSurface,

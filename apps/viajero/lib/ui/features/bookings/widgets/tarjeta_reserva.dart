@@ -1,9 +1,12 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
+import '../../../core/theme/app_text.dart';
 import '../reserva_formato.dart';
+import 'color_reembolso.dart';
 import 'encabezado_reserva.dart';
-import 'reserva_widgets.dart';
+import 'fila_dato.dart';
 
 /// Tarjeta de una reserva, tocable (abre el detalle): foto del plan como cabecera con la fecha de
 /// salida, el estado y el código encima; debajo el título y la agencia, los datos que importan
@@ -39,7 +42,7 @@ class TarjetaReserva extends StatelessWidget {
     final colorTexto = historial ? cs.onSurface.withValues(alpha: .72) : cs.onSurface;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: AppInsets.entreTarjetas,
       child: Card(
         color: cs.surfaceContainerLow,
         clipBehavior: Clip.antiAlias,
@@ -63,7 +66,7 @@ class TarjetaReserva extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          fontSize: 16,
+                          fontSize: AppText.subtitulo,
                           height: 1.25,
                           color: colorTexto,
                         ),
@@ -80,7 +83,7 @@ class TarjetaReserva extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 12.5,
+                                  fontSize: AppText.leyendaGrande,
                                   fontWeight: FontWeight.w600,
                                   color: cs.onSurfaceVariant,
                                 ),
@@ -131,14 +134,17 @@ class TarjetaReserva extends StatelessWidget {
                               const SizedBox(width: 6),
                               Text(
                                 textoPersonas(booking.pax),
-                                style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+                                style: TextStyle(
+                                  fontSize: AppText.detalle,
+                                  color: cs.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
                           Text(
                             formatCOP(booking.montoTotal),
                             style: TextStyle(
-                              fontSize: 17,
+                              fontSize: AppText.subtituloGrande,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -.3,
                               color: colorTexto,
@@ -203,7 +209,7 @@ class TarjetaReserva extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               'Ya dejaste tu reseña',
-                              style: TextStyle(fontSize: 12, color: cs.primary),
+                              style: TextStyle(fontSize: AppText.leyenda, color: cs.primary),
                             ),
                           ],
                         ),

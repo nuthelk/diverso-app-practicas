@@ -1,7 +1,9 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Detalle de la reserva confirmada: plan, fecha, personas, punto de encuentro, monto y referencia
 /// del pago.
@@ -18,7 +20,7 @@ class DetalleViaje extends StatelessWidget {
     final pago = booking.pago;
     final puntoEncuentro = plan?.puntoEncuentro ?? '';
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: AppInsets.tarjetaGrande,
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -28,7 +30,11 @@ class DetalleViaje extends StatelessWidget {
         children: [
           Text(
             plan?.titulo ?? 'Tu plan',
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5, height: 1.25),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: AppText.enfasisGrande,
+              height: 1.25,
+            ),
           ),
           const SizedBox(height: 12),
           if (fecha != null) _Fila(Icons.event_rounded, formatFechaLarga(fecha)),
@@ -45,7 +51,7 @@ class DetalleViaje extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Compra protegida: reembolso según la política de cancelación.',
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
                 ),
               ),
             ],
@@ -70,7 +76,9 @@ class _Fila extends StatelessWidget {
         children: [
           Icon(icono, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 10),
-          Expanded(child: Text(texto, style: const TextStyle(fontSize: 13.5))),
+          Expanded(
+            child: Text(texto, style: const TextStyle(fontSize: AppText.cuerpoChico)),
+          ),
         ],
       ),
     );

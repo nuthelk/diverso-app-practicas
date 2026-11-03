@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/plan/price_text.dart';
 import '../../../core/widgets/plan/verified_badge.dart';
 import '../../../core/widgets/rating/puntaje_plan.dart';
@@ -101,7 +102,7 @@ class PlanCard extends StatelessWidget {
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                            fontSize: AppText.detalle,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -115,7 +116,7 @@ class PlanCard extends StatelessWidget {
                             plan.duracionTexto,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: AppText.nota,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -141,7 +142,7 @@ class PlanCard extends StatelessWidget {
                             Text(
                               '${plan.fechasDisponibles.first.cupoDisponible} cupos',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: AppText.nota,
                                 fontWeight: FontWeight.w700,
                                 color: cs.primary,
                               ),
@@ -164,7 +165,7 @@ class PlanCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 15.5,
+                      fontSize: AppText.enfasisGrande,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
                       letterSpacing: -.3,
@@ -200,7 +201,9 @@ class _PortadaPlan extends StatelessWidget {
     if (plan.fotoPrincipal == null) {
       return Container(
         color: cs.primaryContainer,
-        child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
+        child: Center(
+          child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: AppText.emojiFoto)),
+        ),
       );
     }
     return Image.network(
@@ -213,7 +216,9 @@ class _PortadaPlan extends StatelessWidget {
       filterQuality: FilterQuality.low,
       errorBuilder: (_, _, _) => Container(
         color: cs.primaryContainer,
-        child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
+        child: Center(
+          child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: AppText.emojiFoto)),
+        ),
       ),
     );
   }

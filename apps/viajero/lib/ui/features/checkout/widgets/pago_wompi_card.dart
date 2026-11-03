@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Datos de prueba del sandbox de Wompi (docs.wompi.co): con ellos se simula cada desenlace.
 const datosPruebaWompi = <String>[
@@ -32,7 +34,7 @@ class PagoWompiCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppInsets.tarjetaAmplia,
           decoration: BoxDecoration(
             color: cs.primaryContainer,
             borderRadius: BorderRadius.circular(AppRadios.card),
@@ -49,7 +51,7 @@ class PagoWompiCard extends StatelessWidget {
                     child: Text(
                       'Pagar con Wompi',
                       style: TextStyle(
-                        fontSize: 15.5,
+                        fontSize: AppText.enfasisGrande,
                         fontWeight: FontWeight.w700,
                         color: cs.onPrimaryContainer,
                       ),
@@ -61,7 +63,11 @@ class PagoWompiCard extends StatelessWidget {
               Text(
                 'Eliges el medio en la página segura de Wompi; nosotros nunca vemos los datos de tu tarjeta '
                 'o cuenta. Medios aceptados:',
-                style: TextStyle(fontSize: 12.5, height: 1.35, color: cs.onPrimaryContainer),
+                style: TextStyle(
+                  fontSize: AppText.leyendaGrande,
+                  height: 1.35,
+                  color: cs.onPrimaryContainer,
+                ),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -71,7 +77,7 @@ class PagoWompiCard extends StatelessWidget {
                   for (final (icono, nombre) in _medios)
                     Chip(
                       avatar: Icon(icono, size: 16, color: cs.primary),
-                      label: Text(nombre, style: const TextStyle(fontSize: 12)),
+                      label: Text(nombre, style: const TextStyle(fontSize: AppText.leyenda)),
                       visualDensity: VisualDensity.compact,
                       side: BorderSide.none,
                     ),
@@ -92,14 +98,14 @@ class PagoWompiCard extends StatelessWidget {
               title: Text(
                 'Modo de prueba — no se cobra dinero real',
                 style: TextStyle(
-                  fontSize: 13.5,
+                  fontSize: AppText.cuerpoChico,
                   fontWeight: FontWeight.w700,
                   color: cs.onTertiaryContainer,
                 ),
               ),
               subtitle: Text(
                 'Toca para ver los datos de prueba',
-                style: TextStyle(fontSize: 11.5, color: cs.onTertiaryContainer),
+                style: TextStyle(fontSize: AppText.etiqueta, color: cs.onTertiaryContainer),
               ),
               childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
               expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -109,7 +115,11 @@ class PagoWompiCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Text(
                       '• $dato',
-                      style: TextStyle(fontSize: 12, height: 1.35, color: cs.onTertiaryContainer),
+                      style: TextStyle(
+                        fontSize: AppText.leyenda,
+                        height: 1.35,
+                        color: cs.onTertiaryContainer,
+                      ),
                     ),
                   ),
               ],
@@ -126,7 +136,7 @@ class PagoWompiCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Retenemos tus cupos 30 minutos mientras pagas. Reembolso según la política de cancelación.',
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
                 ),
               ),
             ],

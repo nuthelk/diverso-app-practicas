@@ -45,7 +45,8 @@ apps/viajero/lib/
 |   `-- go_router_refresh_stream.dart   Stream de sesión -> router
 `-- ui/
     |-- core/                 lo compartido por todas las pantallas
-    |   |-- theme/            app_theme, app_radii, theme_mode_view_model
+    |   |-- theme/            app_theme, diverso_colors, app_text, app_radii, app_insets,
+    |   |                     theme_mode_view_model
     |   `-- widgets/          {feedback,page,plan,rating}/ + section_label, agency_avatar
     |-- shell/                app_shell (barra inferior de pestañas), pagina_no_encontrada_view
     `-- features/<funcionalidad>/      agencies, auth, bookings, catalog, checkout,

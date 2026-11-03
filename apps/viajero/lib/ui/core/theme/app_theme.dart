@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'app_radii.dart';
+import 'app_text.dart';
+import 'diverso_colors.dart';
+
 /// Sistema de diseño Diverso: tokens + temas claro/oscuro.
 ///
 /// Principios: minimalista y tipográfico — superficies tonales sin bordes,
@@ -9,12 +13,6 @@ abstract final class AppTheme {
   // Marca ---------------------------------------------------------------
   static const Color seedViajero = Color(0xFF0E6E4F); // verde selva
   static const Color seedPanel = Color(0xFF2D4A73); // azul pizarra
-
-  // Escala de radios ----------------------------------------------------
-  static const double rField = 14;
-  static const double rCard = 20;
-  static const double rSheet = 28;
-  static const double rPill = 999;
 
   // Breakpoints (según skill de layouts responsivos) ---------------------
   static const double bpCompact = 640; // móvil → grid/columnas
@@ -48,7 +46,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         foregroundColor: scheme.onSurface,
         titleTextStyle: TextStyle(
-          fontSize: 15,
+          fontSize: AppText.enfasis,
           fontWeight: FontWeight.w700,
           letterSpacing: -.2,
           color: scheme.onSurface,
@@ -61,27 +59,31 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 52),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+            borderRadius: BorderRadius.all(Radius.circular(AppRadios.pill)),
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: -.2),
+          textStyle: const TextStyle(
+            fontSize: AppText.enfasis,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -.2,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 48),
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+            borderRadius: BorderRadius.all(Radius.circular(AppRadios.pill)),
           ),
           side: BorderSide(color: scheme.outlineVariant),
-          textStyle: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: AppText.cuerpoGrande, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(rPill)),
+            borderRadius: BorderRadius.all(Radius.circular(AppRadios.pill)),
           ),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: AppText.cuerpo, fontWeight: FontWeight.w600),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -90,23 +92,23 @@ abstract final class AppTheme {
             ? Colors.black.withValues(alpha: .04)
             : Colors.white.withValues(alpha: .05),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(rField),
+          borderRadius: BorderRadius.circular(AppRadios.field),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(rField),
+          borderRadius: BorderRadius.circular(AppRadios.field),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(rField),
+          borderRadius: BorderRadius.circular(AppRadios.field),
           borderSide: BorderSide(color: scheme.primary, width: 1.6),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(rField),
+          borderRadius: BorderRadius.circular(AppRadios.field),
           borderSide: BorderSide(color: scheme.error, width: 1.2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(rField),
+          borderRadius: BorderRadius.circular(AppRadios.field),
           borderSide: BorderSide(color: scheme.error, width: 1.6),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -114,12 +116,21 @@ abstract final class AppTheme {
       cardTheme: const CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rCard))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadios.card)),
+        ),
       ),
-      chipTheme: const ChipThemeData(
-        shape: StadiumBorder(),
+      // El `labelStyle` del tema REEMPLAZA al del Material 3 (que traía el color), no se mezcla con
+      // él: sin `color` el texto de los chips se pintaba blanco y en claro no se leía (bug U).
+      chipTheme: ChipThemeData(
+        shape: const StadiumBorder(),
         side: BorderSide.none,
-        labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        labelStyle: TextStyle(
+          fontSize: AppText.detalle,
+          fontWeight: FontWeight.w600,
+          color: scheme.onSurface,
+        ),
+        deleteIconColor: scheme.onSurfaceVariant,
       ),
       // Barra inferior fija y sólida: íconos grandes, el activo en verde con su píldora.
       navigationBarTheme: NavigationBarThemeData(
@@ -136,7 +147,7 @@ abstract final class AppTheme {
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            fontSize: 12,
+            fontSize: AppText.leyenda,
             fontWeight: states.contains(WidgetState.selected) ? FontWeight.w700 : FontWeight.w600,
             color: states.contains(WidgetState.selected) ? scheme.primary : scheme.onSurfaceVariant,
           ),
@@ -150,35 +161,44 @@ abstract final class AppTheme {
         selectedLabelTextStyle: TextStyle(
           color: scheme.onSurface,
           fontWeight: FontWeight.w700,
-          fontSize: 13.5,
+          fontSize: AppText.cuerpoChico,
         ),
         unselectedLabelTextStyle: TextStyle(
           color: scheme.onSurfaceVariant,
           fontWeight: FontWeight.w500,
-          fontSize: 13.5,
+          fontSize: AppText.cuerpoChico,
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           shape: WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(rPill)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadios.pill)),
           ),
           textStyle: const WidgetStatePropertyAll(
-            TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+            TextStyle(fontSize: AppText.cuerpoChico, fontWeight: FontWeight.w600),
           ),
         ),
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadios.field)),
+        ),
       ),
       dialogTheme: const DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rSheet))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadios.sheet)),
+        ),
       ),
       listTileTheme: const ListTileThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(rField))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(AppRadios.field)),
+        ),
       ),
       dividerTheme: DividerThemeData(color: scheme.outlineVariant.withValues(alpha: .5), space: 1),
+      extensions: [
+        if (brightness == Brightness.light) DiversoColors.claro else DiversoColors.oscuro,
+      ],
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_text.dart';
+
 /// Título de página compartido (Explorar, Agencias, Reservas, Perfil): grande y en negrita.
 class TituloPagina extends StatelessWidget {
   const TituloPagina(this.texto, {super.key});
@@ -7,7 +9,7 @@ class TituloPagina extends StatelessWidget {
   final String texto;
 
   static TextStyle estilo(ColorScheme cs) => TextStyle(
-    fontSize: 28,
+    fontSize: AppText.tituloPagina,
     fontWeight: FontWeight.w800,
     letterSpacing: -1,
     height: 1.1,

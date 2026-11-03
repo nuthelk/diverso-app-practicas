@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Acciones al pie del detalle: completar o verificar el pago si sigue pendiente, reseñar (o
 /// el aviso de que ya se reseñó), «Ver plan» y «Cancelar». Cada botón solo aparece si aplica.
@@ -53,7 +54,10 @@ class AccionesDetalleReserva extends StatelessWidget {
             children: [
               Icon(Icons.rate_review_rounded, size: 15, color: cs.primary),
               const SizedBox(width: 6),
-              Text('Ya dejaste tu reseña', style: TextStyle(fontSize: 13, color: cs.primary)),
+              Text(
+                'Ya dejaste tu reseña',
+                style: TextStyle(fontSize: AppText.detalle, color: cs.primary),
+              ),
             ],
           ),
           const SizedBox(height: 10),

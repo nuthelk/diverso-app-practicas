@@ -361,7 +361,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 146 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 163 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 472 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`
@@ -436,6 +436,9 @@ cd apps/viajero && flutter test
   `bookings/views/review_view_test.dart`, `profile/views/profile_view_test.dart` — los view models
   de reservas, reseña, perfil y acceso con repositorios falsos (carga, error, vacío, aviso que la
   vista consume, guardia de `dispose`) y que «Usar cuenta demo» no existe con el flag apagado.
+- `test/ui/core/theme/modo_oscuro_test.dart`, `chip_filtro_contraste_test.dart` — el tema: los
+  textos secundarios toman el color del tema en oscuro, y el chip de filtro activo (texto e ícono de
+  borrar) llega a contraste WCAG AA (4.5:1) en claro y oscuro, medido sobre lo que se pinta.
 - `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
   `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
   y sello de verificación/documentos legales.
@@ -464,6 +467,13 @@ solo servidor) · `payments` (pago aprobado, con id y método de la transacción
 
 - **Flutter 3.47.5** (actualizado desde 3.32.5 al iniciar el proyecto). El código
   usa las APIs actuales: `CardThemeData`, `RadioGroup`, `withValues`, wildcards `_`.
+- **Tokens de diseño del viajero** (`apps/viajero/lib/ui/core/theme/`): `AppTheme` (temas claro y
+  oscuro), `DiversoColors` (`ThemeExtension` con los colores que no están en el `ColorScheme`:
+  dorado de las estrellas, píldoras de estado, «pocos cupos», fondos sobre foto; se lee con
+  `DiversoColors.of(context)`), `AppText` (escala de tamaños de letra), `AppRadios` y `AppInsets`
+  (radios y espaciados repetidos). No se escriben colores, tamaños de letra ni radios sueltos en
+  los widgets. Lints estrictos en `analysis_options.yaml`, entre ellos
+  `avoid_catches_without_on_clauses` y `avoid_dynamic_calls`.
 - **Pasarela en modo prueba** (decisión del usuario): `WompiPaymentGateway` (en
   `diverso_core`, detrás de la abstracción `PaymentGateway`) inicia y verifica el pago
   llamando a las Edge Functions; la plataforma opera solo con transacciones de prueba hasta

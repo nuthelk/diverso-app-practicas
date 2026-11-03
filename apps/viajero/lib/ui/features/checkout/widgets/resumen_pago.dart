@@ -1,7 +1,9 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/section_label.dart';
 
 /// «Resumen» del checkout: precio por persona, personas y total a pagar.
@@ -25,7 +27,7 @@ class ResumenPago extends StatelessWidget {
       children: [
         const SectionLabel('Resumen'),
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: AppInsets.tarjetaAmplia,
           decoration: BoxDecoration(
             color: cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(AppRadios.card),
@@ -40,12 +42,12 @@ class ResumenPago extends StatelessWidget {
                 children: [
                   const Text(
                     'Total a pagar',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: AppText.enfasis),
                   ),
                   Text(
                     formatCOP(total),
                     style: TextStyle(
-                      fontSize: 19,
+                      fontSize: AppText.encabezadoXs,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -.4,
                       color: cs.primary,
@@ -60,7 +62,7 @@ class ResumenPago extends StatelessWidget {
                   const SizedBox(width: 5),
                   Text(
                     'Precio final, sin cargos ocultos',
-                    style: TextStyle(fontSize: 11.5, color: cs.outline),
+                    style: TextStyle(fontSize: AppText.etiqueta, color: cs.outline),
                   ),
                 ],
               ),
@@ -87,9 +89,15 @@ class _LineaPago extends StatelessWidget {
         children: [
           Text(
             etiqueta,
-            style: TextStyle(fontSize: 13.5, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: AppText.cuerpoChico,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-          Text(valor, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
+          Text(
+            valor,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: AppText.cuerpoChico),
+          ),
         ],
       ),
     );

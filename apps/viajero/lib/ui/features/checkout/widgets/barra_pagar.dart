@@ -1,6 +1,8 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_text.dart';
+
 /// Barra inferior del checkout: total, personas y el botón «Pagar con Wompi». [onPagar] null =
 /// botón bloqueado; [procesando] muestra el progreso.
 class BarraPagar extends StatelessWidget {
@@ -38,7 +40,7 @@ class BarraPagar extends StatelessWidget {
                 Text(
                   formatCOP(total),
                   style: TextStyle(
-                    fontSize: 21,
+                    fontSize: AppText.encabezadoM,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -.5,
                     color: cs.onSurface,
@@ -46,7 +48,7 @@ class BarraPagar extends StatelessWidget {
                 ),
                 Text(
                   'total por $pax ${pax == 1 ? 'persona' : 'personas'}',
-                  style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                  style: TextStyle(fontSize: AppText.nota, color: cs.onSurfaceVariant),
                 ),
               ],
             ),

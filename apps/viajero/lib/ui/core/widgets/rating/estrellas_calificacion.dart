@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/diverso_colors.dart';
+
 /// Calificación de una reseña: cinco estrellas, llenas hasta [calificacion] (1 a 5). A diferencia de
 /// [RatingStars] (resumen «★ 4.8»), aquí la cantidad de estrellas ES el dato.
 class EstrellasCalificacion extends StatelessWidget {
@@ -10,7 +12,7 @@ class EstrellasCalificacion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const dorado = Color(0xFFE8A33D);
+    final dorado = DiversoColors.of(context).dorado;
     final vacia = Theme.of(context).colorScheme.outlineVariant;
     return Semantics(
       label: '$calificacion de 5 estrellas',

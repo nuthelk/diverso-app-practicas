@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Casillas de autorización expresa (Ley 1581 de 2012). Nunca vienen
 /// marcadas: el titular debe aceptarlas de forma activa.
@@ -60,7 +61,7 @@ class ConsentCheckboxes extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12, top: 4),
             child: Text(
               'Debes aceptar ambos documentos para crear tu cuenta.',
-              style: TextStyle(fontSize: 12.5, color: cs.error),
+              style: TextStyle(fontSize: AppText.leyendaGrande, color: cs.error),
             ),
           ),
       ],
@@ -111,7 +112,11 @@ class _Fila extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text.rich(
                   TextSpan(children: partes),
-                  style: TextStyle(fontSize: 13, height: 1.45, color: cs.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: AppText.detalle,
+                    height: 1.45,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),

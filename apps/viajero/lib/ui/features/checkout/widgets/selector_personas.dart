@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/widgets/section_label.dart';
 
 /// «¿Cuántos viajan?»: botones − / + con el número de personas y los cupos de la fecha. Qué
@@ -49,7 +50,10 @@ class SelectorPersonas extends StatelessWidget {
                 child: Text(
                   '$pax',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    fontSize: AppText.encabezadoXs,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
               _BotonPersonas(
@@ -63,7 +67,7 @@ class SelectorPersonas extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           '$cupos cupos disponibles para esta fecha',
-          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+          style: TextStyle(fontSize: AppText.leyenda, color: cs.onSurfaceVariant),
         ),
       ],
     );

@@ -1,7 +1,9 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// «Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 330.000). Vence a las 14:35.»
 String textoReservaPendiente(Booking reserva) {
@@ -35,7 +37,7 @@ class ReservaPendienteAviso extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppInsets.tarjetaAmplia,
       decoration: BoxDecoration(
         color: cs.secondaryContainer,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -51,7 +53,11 @@ class ReservaPendienteAviso extends StatelessWidget {
               Expanded(
                 child: Text(
                   textoReservaPendiente(reserva),
-                  style: TextStyle(fontSize: 13.5, height: 1.4, color: cs.onSecondaryContainer),
+                  style: TextStyle(
+                    fontSize: AppText.cuerpoChico,
+                    height: 1.4,
+                    color: cs.onSecondaryContainer,
+                  ),
                 ),
               ),
             ],

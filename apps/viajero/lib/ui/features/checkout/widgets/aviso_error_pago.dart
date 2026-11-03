@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_radii.dart';
+import '../../../core/theme/app_text.dart';
 
 /// Caja de error del checkout con el mensaje del view model.
 class AvisoErrorPago extends StatelessWidget {
@@ -12,7 +14,7 @@ class AvisoErrorPago extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: AppInsets.tarjeta,
       decoration: BoxDecoration(
         color: cs.errorContainer,
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -22,7 +24,10 @@ class AvisoErrorPago extends StatelessWidget {
           Icon(Icons.error_outline_rounded, color: cs.onErrorContainer),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(mensaje, style: TextStyle(color: cs.onErrorContainer, fontSize: 13.5)),
+            child: Text(
+              mensaje,
+              style: TextStyle(color: cs.onErrorContainer, fontSize: AppText.cuerpoChico),
+            ),
           ),
         ],
       ),

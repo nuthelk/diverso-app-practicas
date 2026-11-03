@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/feedback/empty_state.dart';
 import '../../../core/widgets/page/titulo_pagina.dart';
@@ -182,7 +183,7 @@ class _CatalogViewState extends State<CatalogView> with AutomaticKeepAliveClient
                   // un sliver cambian en cada cuadro de scroll y re-ejecutarían
                   // este subárbol a 120 Hz, matando la fluidez.
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    padding: AppInsets.listaConAire,
                     sliver: SliverGrid.builder(
                       itemCount: vm.planes.length,
                       gridDelegate: planCardGridDelegate,
@@ -195,11 +196,11 @@ class _CatalogViewState extends State<CatalogView> with AutomaticKeepAliveClient
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    padding: AppInsets.listaConAire,
                     sliver: SliverList.builder(
                       itemCount: vm.planes.length,
                       itemBuilder: (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
+                        padding: AppInsets.entreTarjetas,
                         child: PlanCard(
                           plan: vm.planes[i],
                           comparada: vm.comparando(vm.planes[i]),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_insets.dart';
 import '../../theme/app_radii.dart';
+import '../../theme/app_text.dart';
 
 /// Política de cancelación del plan (Anexo 5), en una tarjeta tintada.
 class TarjetaCancelacion extends StatelessWidget {
@@ -12,7 +14,7 @@ class TarjetaCancelacion extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: AppInsets.tarjeta,
       decoration: BoxDecoration(
         color: cs.tertiaryContainer.withValues(alpha: .45),
         borderRadius: BorderRadius.circular(AppRadios.card),
@@ -28,13 +30,13 @@ class TarjetaCancelacion extends StatelessWidget {
               children: [
                 const Text(
                   'Política de cancelación',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: AppText.cuerpoChico),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   texto,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppText.detalle,
                     height: 1.45,
                     color: cs.onSurface.withValues(alpha: .8),
                   ),

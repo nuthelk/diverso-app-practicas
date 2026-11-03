@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../router/app_routes.dart';
+import '../../../core/theme/app_insets.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../legal/widgets/consent_checkboxes.dart';
 import '../view_models/login_view_model.dart';
@@ -53,7 +55,7 @@ class FormularioLogin extends StatelessWidget {
                     ? Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: AppInsets.tarjetaAmplia,
                             decoration: BoxDecoration(
                               color: cs.primaryContainer,
                               borderRadius: BorderRadius.circular(20),
@@ -68,7 +70,7 @@ class FormularioLogin extends StatelessWidget {
               Text(
                 vm.esRegistro ? 'Crea tu cuenta' : 'Bienvenido de vuelta',
                 style: const TextStyle(
-                  fontSize: 26,
+                  fontSize: AppText.encabezado3xl,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -.8,
                 ),
@@ -78,7 +80,7 @@ class FormularioLogin extends StatelessWidget {
                 vm.esRegistro
                     ? 'Explora y reserva planes de agencias verificadas.'
                     : 'Entra para seguir explorando Antioquia.',
-                style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant),
+                style: TextStyle(fontSize: AppText.cuerpo, color: cs.onSurfaceVariant),
               ),
               const SizedBox(height: 26),
               if (vm.esRegistro) ...[
@@ -129,7 +131,7 @@ class FormularioLogin extends StatelessWidget {
                 Text(
                   vm.error!,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: cs.error, fontSize: 13.5),
+                  style: TextStyle(color: cs.error, fontSize: AppText.cuerpoChico),
                 ),
               ],
               const SizedBox(height: 22),
@@ -170,7 +172,10 @@ class FormularioLogin extends StatelessWidget {
                   TextButton(
                     style: TextButton.styleFrom(
                       foregroundColor: cs.onSurfaceVariant,
-                      textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                      textStyle: const TextStyle(
+                        fontSize: AppText.leyendaGrande,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     onPressed: () => context.push(AppRoutes.legal('privacidad')),
                     child: const Text('Política de datos'),
@@ -178,7 +183,10 @@ class FormularioLogin extends StatelessWidget {
                   TextButton(
                     style: TextButton.styleFrom(
                       foregroundColor: cs.onSurfaceVariant,
-                      textStyle: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                      textStyle: const TextStyle(
+                        fontSize: AppText.leyendaGrande,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     onPressed: () => context.push(AppRoutes.legal('terminos-viajeros')),
                     child: const Text('Términos y condiciones'),

@@ -140,7 +140,9 @@ locales, no con getters ni con propiedades de otro objeto. Por eso aparece un `!
 if (plan.fotoPrincipal == null) {
   return Container(
     color: cs.primaryContainer,
-    child: Center(child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: 40))),
+    child: Center(
+      child: Text(plan.categoria.emoji, style: const TextStyle(fontSize: AppText.emojiFoto)),
+    ),
   );
 }
 return Image.network(
@@ -221,7 +223,8 @@ Lo que cambia:
 - No hace falta `this.` salvo que haya ambigüedad.
 - `abstract final class AppTheme` (en `viajero/ui/core/theme/app_theme.dart`) es una clase que
   solo agrupa constantes y métodos estáticos y no se puede instanciar ni heredar: lo más parecido
-  a un `namespace`.
+  a un `namespace`. `AppText`, `AppRadios` y `AppInsets` (misma carpeta) son lo mismo para los
+  tamaños de letra, los radios y los espaciados.
 
 **En este repo** — `packages/diverso_core/lib/models/plan.dart`:
 
@@ -683,16 +686,17 @@ Future<({AgenciaResumen agencia, List<Plan> planes})?> agenciaConPlanes(String a
 Es el tipo de retorno "objeto con `agencia` y `planes`, o `null`" sin declarar una clase para
 usarlo una vez. Se lee `resultado.agencia`, `resultado.planes`.
 
-**`switch` como expresión con patrones.** `viajero/ui/features/bookings/widgets/reserva_widgets.dart`,
+**`switch` como expresión con patrones.** `viajero/ui/features/bookings/widgets/estado_reserva_pill.dart`,
 `EstadoReservaPill`:
 
 ```dart
+final colores = DiversoColors.of(context);
 final (color, texto) = switch (booking.estado) {
-  BookingStatus.confirmada when realizada => (const Color(0xFF4A5C6E), 'Realizada'),
-  BookingStatus.confirmada => (const Color(0xFF1B7A4B), 'Confirmada'),
-  BookingStatus.pendientePago => (const Color(0xFFB25E09), 'Pendiente'),
-  BookingStatus.cancelada => (const Color(0xFFB3261E), 'Cancelada'),
-  BookingStatus.completada => (const Color(0xFF4A5C6E), 'Completada'),
+  BookingStatus.confirmada when realizada => (colores.estadoCerrada, 'Realizada'),
+  BookingStatus.confirmada => (colores.estadoConfirmada, 'Confirmada'),
+  BookingStatus.pendientePago => (colores.estadoPendiente, 'Pendiente'),
+  BookingStatus.cancelada => (colores.estadoCancelada, 'Cancelada'),
+  BookingStatus.completada => (colores.estadoCerrada, 'Completada'),
 };
 ```
 
