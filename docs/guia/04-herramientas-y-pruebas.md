@@ -70,9 +70,8 @@ dev_dependencies:
 - `diverso_core: path: …` enlaza un paquete **local**: es el equivalente a un workspace. Los
   cambios en `packages/diverso_core` se ven en la app sin publicar nada.
 - `dev_dependencies` solo existen para desarrollo y pruebas.
-- Hay **un `pubspec.yaml` por paquete** (`apps/viajero`, `packages/diverso_core`,
-  `apps/panel_agencias`): `flutter pub get` y `flutter test` se ejecutan dentro del directorio de
-  cada uno.
+- Hay **un `pubspec.yaml` por paquete** (`apps/viajero` y `packages/diverso_core`): `flutter pub get`
+  y `flutter test` se ejecutan dentro del directorio de cada uno.
 - La sección `flutter:` de `pubspec.yaml` declara assets y fuentes (capítulo 2, sección 10).
 
 ## 3. Ejecutar y hot reload
@@ -133,8 +132,8 @@ formatter:
 - Un comentario `// ignore: nombre_de_la_regla` apaga una regla en la línea siguiente. Úsalo con
   una razón escrita al lado.
 
-El criterio del repo: `flutter analyze` debe terminar **sin avisos** en `diverso_core`,
-`apps/viajero` y `apps/panel_agencias`.
+El criterio del repo: `flutter analyze` debe terminar **sin avisos** en `diverso_core` y
+`apps/viajero`.
 
 ## 5. `dart format`
 
@@ -366,7 +365,7 @@ Se abren desde tu editor (VS Code o Android Studio con el plugin de Flutter) o c
 
 ## 12. Antes de dar algo por terminado
 
-Desde el paquete que tocaste (`apps/viajero`, `packages/diverso_core` o `apps/panel_agencias`):
+Desde el paquete que tocaste (`apps/viajero` o `packages/diverso_core`):
 
 ```bash
 dart format .
@@ -374,8 +373,8 @@ flutter analyze
 flutter test
 ```
 
-Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero` y
-`apps/panel_agencias`, que dependen de él. Los conteos esperados están en la tabla de
+Si tocaste `packages/diverso_core`, corre también las pruebas de `apps/viajero`, que depende de
+él. Los conteos esperados están en la tabla de
 [Pruebas](../../README.md#pruebas) del README principal.
 
 ## Pruebas del repo, de la más simple a la más completa

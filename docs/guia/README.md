@@ -14,9 +14,8 @@ qué hacer y cómo saber que ya la entendiste.
 - Prefieres aprender con una app real, con rutas reales, que con ejemplos de juguete.
 - No necesitas conocer el backend: la guía solo toca Supabase donde la app lo llama.
 
-Qué **no** cubre: el panel de agencias en Svelte (`apps/panel_svelte`), el panel Flutter legado
-(`apps/panel_agencias`), las migraciones SQL ni las Edge Functions. Para eso está el
-[README principal](../../README.md).
+Qué **no** cubre: el panel de agencias en Svelte (`apps/panel_svelte`), las migraciones SQL ni las
+Edge Functions. Para eso está el [README principal](../../README.md).
 
 ## La app en 5 líneas
 
@@ -176,7 +175,7 @@ router.
 - `core/data/repositories/auth_repository.dart` (`onAuthStateChanged`).
 - `viajero/router/go_router_refresh_stream.dart` (la clase completa).
 - `core/data/repositories/llamar_edge_function.dart` (`on … catch`) y
-  `core/data/repositories/agency_repository.dart` (`typedef`).
+  `viajero/router/app_router.dart` (`typedef _Transicion`).
 
 **Ejercicio.**
 1. Dibuja en papel la ruta: *Supabase emite un evento de sesión* -> `GoRouterRefreshStream` ->

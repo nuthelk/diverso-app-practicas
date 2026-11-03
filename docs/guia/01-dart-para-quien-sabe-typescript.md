@@ -705,9 +705,9 @@ y la primera lleva una guarda `when`. Como el valor es un enum, el compilador co
 falte ninguna rama. Otra forma, con comodín `_`: `viajero/ui/features/bookings/reserva_formato.dart`
 (`0 => 'Hoy'`, `1 => 'Mañana'`, `_ => 'en $dias días'`).
 
-**`typedef`** es el `type` de TS para dar otro nombre a un tipo
-(`packages/diverso_core/lib/data/repositories/agency_repository.dart`: `typedef AgencyRef = Agency;`);
-también sirve para tipos de función, como el `Toggle` de arriba.
+**`typedef`** es el `type` de TS para dar otro nombre a un tipo; en este repo se usa para un tipo
+de función (`apps/viajero/lib/router/app_router.dart`: `typedef _Transicion = CustomTransitionPage<void>
+Function({required LocalKey key, required Widget child});`), como el `Toggle` de arriba.
 
 ## 12. Errores y `try`/`catch`
 

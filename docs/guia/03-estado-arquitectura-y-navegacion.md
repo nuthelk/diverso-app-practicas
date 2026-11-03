@@ -23,8 +23,8 @@ más te sirve para empezar a tocar código.
 
 ## 1. El mapa de carpetas
 
-Hay dos paquetes: la **app** (`apps/viajero`) y el **núcleo compartido** (`packages/diverso_core`),
-que también usa el panel Flutter legado (`apps/panel_agencias`).
+Hay dos paquetes: la **app** (`apps/viajero`) y el **núcleo** (`packages/diverso_core`), con los
+modelos, los errores y la capa de datos que la app usa.
 
 ```
 apps/viajero/lib/
