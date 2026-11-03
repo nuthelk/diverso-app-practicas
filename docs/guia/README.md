@@ -281,7 +281,7 @@ router.
 3. Repite con el recorrido A (modo oscuro): ¿qué notifica, y qué widgets escuchan?
 
 **Ya lo entendí si…**
-- [ ] Dices qué pasaría si `cargar()` no avisara (`_notificar()`) al terminar, y por qué avisar después de `dispose()` sería un error.
+- [ ] Dices qué pasaría si `cargar()` no avisara (`notificar()`) al terminar, y por qué avisar después de `dispose()` sería un error.
 - [ ] Explicas por qué la vista llama a `dispose()` del view model.
 - [ ] Distingues `context.read`, `Consumer` y `ListenableBuilder` y cuándo usar cada uno.
 

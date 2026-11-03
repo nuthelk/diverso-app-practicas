@@ -38,6 +38,7 @@ apps/viajero/lib/
 |   `-- go_router_refresh_stream.dart   Stream de sesión -> router
 `-- ui/
     |-- core/                 lo compartido por todas las pantallas
+    |   |-- notifica_si_vive  mixin con la guarda de dispose de los view models
     |   |-- theme/            app_theme, diverso_colors, app_text, app_radii, app_insets,
     |   |                     theme_mode_view_model
     |   `-- widgets/          {feedback,page,plan,rating}/ + section_label, agency_avatar
@@ -199,7 +200,9 @@ La lista de reservas se guarda una vez (privada, de solo lectura) y "próximas" 
 de ella. `BookingsViewModel` recibe un reloj (`DateTime Function()? reloj`) para que las pruebas
 fijen la hora; `esVigente` y la cancelación viven en la clase base `ReservaAccionesViewModel`
 (`bookings/view_models/reserva_acciones_view_model.dart`), que comparte con
-`ReservaDetalleViewModel` (el detalle de una reserva).
+`ReservaDetalleViewModel` (el detalle de una reserva). La regla en sí («pendiente o confirmada y
+que aún no sale») es del modelo: `Booking.vigente([ahora])` en `diverso_core`, y el view model solo
+le pasa su reloj.
 
 Un aviso para el usuario (el snackbar tras cancelar) también es estado del view model: `mensaje`
 es un getter de solo lectura; la vista lo muestra y llama `limpiarMensaje()` para **consumirlo**,
@@ -215,15 +218,34 @@ varios filtros a la vez los fija todos y consulta **una sola vez**: `aplicarFilt
 precioMax:, fecha:)` es lo que usa «Aplicar filtros» (antes eran tres consultas seguidas).
 
 Una carga puede terminar cuando la pantalla ya se cerró. Si el view model llamara a
-`notifyListeners()` después de `dispose()`, Flutter lanzaría un error; por eso ambos pasan por un
-método privado `_notificar()` que lo ignora si `_desechado` es `true` (es el `if (!mounted)` del
-view model):
+`notifyListeners()` después de `dispose()`, Flutter lanzaría un error; por eso todos los view
+models usan el mixin `NotificaSiVive` (`viajero/ui/core/notifica_si_vive.dart`), que se declara con
+`with` y les da `notificar()`, que lo ignora si el view model ya se desechó (es el
+`if (!mounted)` del view model), y `desechado`, para abandonar un trabajo en curso:
 
 ```dart
-void _notificar() {
-  if (!_desechado) notifyListeners();
+mixin NotificaSiVive on ChangeNotifier {
+  bool _desechado = false;
+  bool get desechado => _desechado;
+
+  @protected
+  void notificar() {
+    if (!_desechado) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _desechado = true;
+    super.dispose();
+  }
 }
+
+class CatalogViewModel extends ChangeNotifier with NotificaSiVive { /* ... */ }
 ```
+
+Un *mixin* es código que una clase "mezcla" con `with` sin heredar de él (como un hook
+reutilizable, pero para clases): así la guarda existe una sola vez en vez de copiada en cada view
+model.
 
 Un valor **derivado** no se guarda ni se corrige dentro de `build`: `PlanDetailViewModel` solo
 guarda el id de la fecha elegida y `fechaSeleccionada` la calcula a partir de `fechas` cada vez que

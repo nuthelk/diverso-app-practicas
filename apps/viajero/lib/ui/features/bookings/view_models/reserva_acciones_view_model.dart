@@ -2,19 +2,19 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/mensaje_de_error.dart';
+import '../../../core/notifica_si_vive.dart';
 import '../reserva_formato.dart';
 
 /// Lo que comparten «Mis reservas» y el detalle de la reserva: el aviso (snackbar) que la vista
 /// muestra y consume, la vista previa y la ejecución de la cancelación, y las reglas de qué se
 /// puede hacer con una reserva según el reloj. Cada pantalla decide qué recargar ([cargar]).
-abstract class ReservaAccionesViewModel extends ChangeNotifier {
+abstract class ReservaAccionesViewModel extends ChangeNotifier with NotificaSiVive {
   ReservaAccionesViewModel({required BookingRepository reservas, DateTime Function()? reloj})
     : _reloj = reloj ?? DateTime.now,
       _reservas = reservas;
 
   final BookingRepository _reservas;
   final DateTime Function() _reloj;
-  bool _desechado = false;
   String? _mensaje;
 
   /// Aviso pendiente de mostrar (resultado de una cancelación, un pago cerrado…). La vista lo
@@ -24,11 +24,8 @@ abstract class ReservaAccionesViewModel extends ChangeNotifier {
   /// Recarga lo que muestra la pantalla; se llama tras una cancelación.
   Future<void> cargar();
 
-  /// Pendiente o confirmada y que aún no sale: la única que se puede cancelar (el servidor rechaza
-  /// la cancelación después de la salida).
-  bool esVigente(Booking b) =>
-      (b.estado == BookingStatus.confirmada || b.estado == BookingStatus.pendientePago) &&
-      b.esFutura(_reloj());
+  /// Pendiente o confirmada y que aún no sale (ver [Booking.vigente]), según el reloj del view model.
+  bool esVigente(Booking b) => b.vigente(_reloj());
 
   bool puedeCancelar(Booking b) => esVigente(b);
 
@@ -75,16 +72,4 @@ abstract class ReservaAccionesViewModel extends ChangeNotifier {
   /// Para los view models de cada pantalla.
   @protected
   BookingRepository get repositorio => _reservas;
-
-  /// Una operación puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  @protected
-  void notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
-  }
 }

@@ -3,13 +3,14 @@ import 'dart:collection';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel de la pestaña «Agencias» (MVVM): lista pública de agencias y su orden. La vista lo
 /// escucha con [ListenableBuilder].
-class AgenciasViewModel extends ChangeNotifier {
+class AgenciasViewModel extends ChangeNotifier with NotificaSiVive {
   AgenciasViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
   final CatalogRepository _catalogo;
-  bool _desechado = false;
 
   List<AgenciaResumen> _agencias = const [];
   List<AgenciaResumen> _ordenadas = const [];
@@ -37,7 +38,7 @@ class AgenciasViewModel extends ChangeNotifier {
     _cargando = true;
     _error = null;
     _errorDetalle = null;
-    _notificar();
+    notificar();
     try {
       _agencias = await _catalogo.agencias();
       _ordenar();
@@ -47,7 +48,7 @@ class AgenciasViewModel extends ChangeNotifier {
       _errorDetalle = e.toString();
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
   }
 
@@ -55,19 +56,8 @@ class AgenciasViewModel extends ChangeNotifier {
     if (nuevo == _orden) return;
     _orden = nuevo;
     _ordenar();
-    _notificar();
+    notificar();
   }
 
   void _ordenar() => _ordenadas = UnmodifiableListView(ordenarAgencias(_agencias, _orden));
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
-  }
 }

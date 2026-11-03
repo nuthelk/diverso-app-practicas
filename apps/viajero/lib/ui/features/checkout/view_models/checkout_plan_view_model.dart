@@ -1,9 +1,11 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel de la carga de `/checkout/:planId/:fechaId`: trae el plan por id (la pantalla se
 /// reconstruye igual tras recargar la página en web) y localiza la fecha pedida.
-class CheckoutPlanViewModel extends ChangeNotifier {
+class CheckoutPlanViewModel extends ChangeNotifier with NotificaSiVive {
   CheckoutPlanViewModel({
     required CatalogRepository catalogo,
     required String planId,
@@ -15,7 +17,6 @@ class CheckoutPlanViewModel extends ChangeNotifier {
   final CatalogRepository _catalogo;
   final String _planId;
   final String _fechaId;
-  bool _desechado = false;
 
   Plan? _plan;
   bool _cargando = true;
@@ -40,7 +41,7 @@ class CheckoutPlanViewModel extends ChangeNotifier {
   Future<void> cargar() async {
     _cargando = true;
     _error = null;
-    _notificar();
+    notificar();
     try {
       _plan = await _catalogo.planDetalle(_planId);
     } on Object catch (e) {
@@ -48,18 +49,7 @@ class CheckoutPlanViewModel extends ChangeNotifier {
       _error = 'Revisa tu conexión e intenta de nuevo.';
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

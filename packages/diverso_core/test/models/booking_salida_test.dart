@@ -65,6 +65,38 @@ void main() {
     });
   });
 
+  group('vigente', () {
+    final sale = _ahora.add(const Duration(minutes: 1));
+
+    test('confirmada que sale en 1 minuto → vigente', () {
+      expect(_reserva(salida: sale).vigente(_ahora), isTrue);
+    });
+
+    test('pendiente de pago que sale en 1 minuto → vigente', () {
+      expect(_reserva(salida: sale, estado: BookingStatus.pendientePago).vigente(_ahora), isTrue);
+    });
+
+    test('salida exactamente ahora → ya no es vigente', () {
+      expect(_reserva(salida: _ahora).vigente(_ahora), isFalse);
+    });
+
+    test('salió hace 1 minuto → no vigente', () {
+      expect(
+        _reserva(salida: _ahora.subtract(const Duration(minutes: 1))).vigente(_ahora),
+        isFalse,
+      );
+    });
+
+    test('cancelada o completada, aunque la salida sea futura → no vigente', () {
+      expect(_reserva(salida: sale, estado: BookingStatus.cancelada).vigente(_ahora), isFalse);
+      expect(_reserva(salida: sale, estado: BookingStatus.completada).vigente(_ahora), isFalse);
+    });
+
+    test('sin salida conocida → no vigente', () {
+      expect(_reserva().vigente(_ahora), isFalse);
+    });
+  });
+
   group('puedeResenar', () {
     final salio = _ahora.subtract(const Duration(minutes: 1));
 

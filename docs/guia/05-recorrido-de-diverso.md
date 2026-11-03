@@ -162,7 +162,9 @@ fechas, cupos y reseñas.
    y llama a `CatalogApi.planesPublicados(...)`.
 4. `core/data/services/catalog_api.dart` → `CatalogApi.planesPublicados`: arma la consulta
    PostgREST sobre `plans` (`*, agencies(*), plan_dates(*)`) con los filtros que no son nulos,
-   solo planes `publicado`, fechas desde hoy, orden y `limit(60)`.
+   solo planes `publicado`, fechas desde hoy, orden y `limit(60)`. Si hay un día elegido la unión
+   con las fechas es interna (`plan_dates!inner(*)`): el servidor descarta los planes sin ese día
+   **antes** del límite de 60, no después.
 5. De vuelta, `search` convierte cada fila con `Plan.fromMap` (`core/models/plan.dart`) y, si hay
    una fecha elegida, deja solo los planes con una salida **aún no partida** ese día
    (`Plan.tieneSalidaEl`).

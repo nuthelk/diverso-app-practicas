@@ -2,10 +2,11 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/mensaje_de_error.dart';
+import '../../../core/notifica_si_vive.dart';
 
 /// ViewModel de la reseña (`/resena/:bookingId`): carga la reserva por id (o usa la que ya tenía
 /// «Mis reservas»), decide si se puede reseñar, guarda la calificación elegida y publica la reseña.
-class ReviewViewModel extends ChangeNotifier {
+class ReviewViewModel extends ChangeNotifier with NotificaSiVive {
   ReviewViewModel({
     required BookingRepository reservas,
     required ReviewRepository resenas,
@@ -27,7 +28,6 @@ class ReviewViewModel extends ChangeNotifier {
   final ReviewRepository _resenas;
   final String _bookingId;
   final DateTime Function() _reloj;
-  bool _desechado = false;
 
   Booking? _reserva;
   bool _cargando = false;
@@ -61,7 +61,7 @@ class ReviewViewModel extends ChangeNotifier {
     if (_reserva != null) return;
     _cargando = true;
     _error = null;
-    _notificar();
+    notificar();
     try {
       _reserva = await _reservas.reserva(_bookingId);
     } on Object catch (e) {
@@ -69,7 +69,7 @@ class ReviewViewModel extends ChangeNotifier {
       _error = mensajeDeError(e);
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
   }
 
@@ -77,7 +77,7 @@ class ReviewViewModel extends ChangeNotifier {
   void calificar(int estrellas) {
     if (estrellas < 1 || estrellas > maxEstrellas || estrellas == _calificacion) return;
     _calificacion = estrellas;
-    _notificar();
+    notificar();
   }
 
   /// Publica la reseña. `false` si ya hay un envío en curso, ya se publicó o el servidor la
@@ -86,7 +86,7 @@ class ReviewViewModel extends ChangeNotifier {
     if (_enviando || _publicada) return false;
     _enviando = true;
     _errorEnvio = null;
-    _notificar();
+    notificar();
     try {
       await _resenas.crear(
         bookingId: _bookingId,
@@ -101,18 +101,7 @@ class ReviewViewModel extends ChangeNotifier {
       return false;
     } finally {
       _enviando = false;
-      _notificar();
+      notificar();
     }
-  }
-
-  /// Una operación puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

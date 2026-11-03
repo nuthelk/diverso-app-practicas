@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// Si el usuario actual aceptó la versión vigente de los documentos legales.
 enum EstadoConsentimiento {
   /// Aún no se sabe (consulta en curso o sin sesión).
@@ -21,7 +23,7 @@ enum EstadoConsentimiento {
 /// sesión) y manda a `/consentimiento` a quien no esté al día. Se vuelve a consultar cuando
 /// cambia la sesión y a pedido ([reintentar], que la app llama al volver a primer plano y el
 /// botón «Reintentar»).
-class ConsentViewModel extends ChangeNotifier {
+class ConsentViewModel extends ChangeNotifier with NotificaSiVive {
   /// Una consulta que no responde en este tiempo cuenta como fallida (`error`, con «Reintentar»):
   /// sin esto una petición colgada dejaría la verificación abierta para siempre.
   static const tiempoLimite = Duration(seconds: 15);
@@ -40,7 +42,6 @@ class ConsentViewModel extends ChangeNotifier {
 
   /// Se incrementa en cada consulta o cambio de sesión: una respuesta vieja no pisa a una nueva.
   int _revision = 0;
-  bool _desechado = false;
 
   EstadoConsentimiento get estado => _estado;
 
@@ -54,7 +55,7 @@ class ConsentViewModel extends ChangeNotifier {
     _revision++;
     _pendientes = const [];
     _estado = EstadoConsentimiento.verificando;
-    notifyListeners();
+    notificar();
     if (usuario != null) unawaited(_revisar());
   }
 
@@ -62,19 +63,19 @@ class ConsentViewModel extends ChangeNotifier {
     final revision = ++_revision;
     if (_estado != EstadoConsentimiento.verificando) {
       _estado = EstadoConsentimiento.verificando;
-      notifyListeners();
+      notificar();
     }
     try {
       final pendientes = await _auth.consentimientosPendientes().timeout(tiempoLimite);
-      if (_desechado || revision != _revision) return;
+      if (desechado || revision != _revision) return;
       _pendientes = pendientes;
       _estado = pendientes.isEmpty ? EstadoConsentimiento.aceptado : EstadoConsentimiento.pendiente;
     } on Object catch (e) {
-      if (_desechado || revision != _revision) return;
+      if (desechado || revision != _revision) return;
       debugPrint('ConsentViewModel: no se pudo verificar el consentimiento: $e');
       _estado = EstadoConsentimiento.error;
     }
-    notifyListeners();
+    notificar();
   }
 
   /// Vuelve a consultar solo si la última consulta falló (si ya se sabe, no hay nada que repetir).
@@ -102,7 +103,6 @@ class ConsentViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _desechado = true;
     unawaited(_sesion.cancel());
     super.dispose();
   }

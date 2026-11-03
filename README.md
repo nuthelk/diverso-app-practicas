@@ -361,8 +361,8 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 320 (19 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 146 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 500 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
+| `diverso_core` | `cd packages/diverso_core && flutter test` | 154 |
+| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 517 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 | Panel Flutter legado | `cd apps/panel_agencias && flutter test` | 3 |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`
@@ -414,7 +414,7 @@ cd apps/viajero && flutter test
 - `test/ui/features/checkout/pago_abierto_test.dart`,
   `test/ui/features/checkout/view_models/*_test.dart` (`checkout`, `checkout_plan`, `reserva`,
   `pago_resultado`), `checkout/views/pago_resultado_view_test.dart` — el resultado explícito de
-  abrir el pago (`PagoAbierto`: en web `redirigido` termina «Procesando…»), los view models del
+  abrir el pago (`PagoAbierto`: en web `redirigido` termina «Procesando…» y deja bloqueado «Pagar con Wompi» hasta que la página se descarga), los view models del
   checkout con repositorios y pasarela falsos (carga, error, reserva pendiente, verificar y
   reintentar, guardia de `dispose`) y el reintento de pago desde la vista.
 - `test/router/sesion_redirect_test.dart`, `test/router/consentimiento_test.dart`,
@@ -437,6 +437,11 @@ cd apps/viajero && flutter test
   `bookings/views/review_view_test.dart`, `profile/views/profile_view_test.dart` — los view models
   de reservas, reseña, perfil y acceso con repositorios falsos (carga, error, vacío, aviso que la
   vista consume, guardia de `dispose`) y que «Usar cuenta demo» no existe con el flag apagado.
+- `test/ui/core/notifica_si_vive_test.dart` — la guarda de `dispose` que comparten los view models
+  (`NotificaSiVive`): notifica mientras vive y no lanza después de `dispose`.
+- `test/router/verificacion_final_probe_test.dart` — sondas de la verificación final: URL de retorno
+  e intercepción del pago, guarda del consentimiento con `desde`, `destinoSeguro`, enums de la base
+  y el mensaje `FECHA_YA_SALIO`.
 - `test/ui/core/theme/modo_oscuro_test.dart`, `chip_filtro_contraste_test.dart` — el tema: los
   textos secundarios toman el color del tema en oscuro, y el chip de filtro activo (texto e ícono de
   borrar) llega a contraste WCAG AA (4.5:1) en claro y oscuro, medido sobre lo que se pinta.

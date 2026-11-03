@@ -16,7 +16,6 @@ abstract final class AppTheme {
 
   // Breakpoints (según skill de layouts responsivos) ---------------------
   static const double bpCompact = 640; // móvil → grid/columnas
-  static const double bpMedium = 1000; // rail extendido en panel
 
   static ThemeData viajeroLight() => _build(seedViajero, Brightness.light);
   static ThemeData viajeroDark() => _build(seedViajero, Brightness.dark);

@@ -1,16 +1,17 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel del perfil: carga el perfil del viajero (nombre) y cierra la sesión. El correo sale
 /// de la sesión, así que se ve aunque el perfil no cargue.
-class ProfileViewModel extends ChangeNotifier {
+class ProfileViewModel extends ChangeNotifier with NotificaSiVive {
   ProfileViewModel({required AuthRepository auth}) : _auth = auth;
 
   /// Lo que se muestra mientras no hay nombre (cargando, error o perfil sin nombre).
   static const nombrePorDefecto = 'Viajero';
 
   final AuthRepository _auth;
-  bool _desechado = false;
 
   Profile? _perfil;
   bool _cargando = true;
@@ -35,7 +36,7 @@ class ProfileViewModel extends ChangeNotifier {
   Future<void> cargar() async {
     _cargando = true;
     _error = null;
-    _notificar();
+    notificar();
     try {
       _perfil = await _auth.currentProfile();
     } on Object catch (e) {
@@ -43,7 +44,7 @@ class ProfileViewModel extends ChangeNotifier {
       _error = 'No pudimos cargar tu perfil.';
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
   }
 
@@ -56,16 +57,5 @@ class ProfileViewModel extends ChangeNotifier {
       debugPrint('ProfileViewModel.cerrarSesion: $e');
       return false;
     }
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

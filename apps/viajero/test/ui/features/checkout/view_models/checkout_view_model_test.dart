@@ -96,6 +96,48 @@ void main() {
     expect(abiertos, ['nueva-1']);
   });
 
+  test(
+    'web: tras redirigir a Wompi el botón de pagar sigue bloqueado hasta que la página se descarga',
+    () async {
+      expect(vm.puedePagar, isTrue);
+      await vm.pagar(_fecha, (_) async => PagoAbierto.redirigido);
+      expect(vm.puedePagar, isFalse);
+      expect(vm.procesando, isFalse);
+    },
+  );
+
+  test('web: un segundo toque tras redirigir no abre otro pago ni crea otra reserva', () async {
+    await vm.pagar(_fecha, (id) async {
+      abiertos.add(id);
+      return PagoAbierto.redirigido;
+    });
+    await vm.pagar(_fecha, abrir(true));
+    expect(abiertos, ['nueva-1']);
+    expect(reservas.creadas, hasLength(1));
+  });
+
+  test('web: completar la reserva pendiente y ser redirigido también bloquea pagar', () async {
+    reservas.pendiente = Booking(
+      id: 'pend-1',
+      codigo: 'DIV-PEND01',
+      planDateId: 'fecha-1',
+      viajeroId: 'v-1',
+      pax: 2,
+      montoTotal: 300000,
+      estado: BookingStatus.pendientePago,
+      createdAt: DateTime.now(),
+    );
+    await vm.cargarPendiente(_fecha);
+    await vm.completarPendiente((_) async => PagoAbierto.redirigido);
+    expect(vm.puedePagar, isFalse);
+    expect(vm.procesando, isFalse);
+  });
+
+  test('cerrar el pago (móvil) deja pagar de nuevo: solo la redirección bloquea', () async {
+    await vm.pagar(_fecha, abrir(false));
+    expect(vm.puedePagar, isTrue);
+  });
+
   test('un error del servidor se muestra con su mensaje en español', () async {
     reservas.falloAlCrear = DiversoException('SIN_CUPO');
     await vm.pagar(_fecha, abrir(true));

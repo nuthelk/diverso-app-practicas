@@ -3,9 +3,11 @@ import 'dart:collection';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel de la ficha del plan: carga el plan con sus reseñas y guarda la fecha elegida en la
 /// barra de reserva. La vista lo escucha con [ListenableBuilder].
-class PlanDetailViewModel extends ChangeNotifier {
+class PlanDetailViewModel extends ChangeNotifier with NotificaSiVive {
   PlanDetailViewModel({
     required CatalogRepository catalogo,
     required ReviewRepository resenas,
@@ -20,7 +22,6 @@ class PlanDetailViewModel extends ChangeNotifier {
   final CatalogRepository _catalogo;
   final ReviewRepository _resenas;
   final String _planId;
-  bool _desechado = false;
 
   Plan? _plan;
   List<Review> _resenasPlan = const [];
@@ -52,7 +53,7 @@ class PlanDetailViewModel extends ChangeNotifier {
     _cargando = true;
     _error = null;
     _fechaId = null;
-    _notificar();
+    notificar();
     try {
       final plan = await _catalogo.planDetalle(_planId);
       final resenas = await _resenas.porPlan(_planId, limit: maxResenas);
@@ -63,7 +64,7 @@ class PlanDetailViewModel extends ChangeNotifier {
       _error = 'Revisa tu conexión e intenta de nuevo.';
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
   }
 
@@ -71,17 +72,6 @@ class PlanDetailViewModel extends ChangeNotifier {
   void seleccionarFecha(PlanDate fecha) {
     if (!fechas.any((f) => f.id == fecha.id)) return;
     _fechaId = fecha.id;
-    _notificar();
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
+    notificar();
   }
 }

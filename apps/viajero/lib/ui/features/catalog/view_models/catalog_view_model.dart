@@ -3,16 +3,17 @@ import 'dart:collection';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel del catálogo (MVVM): filtros, resultados y selección para
 /// comparar. La vista lo escucha con [ListenableBuilder].
-class CatalogViewModel extends ChangeNotifier {
+class CatalogViewModel extends ChangeNotifier with NotificaSiVive {
   CatalogViewModel({required CatalogRepository catalogo}) : _catalogo = catalogo;
 
   /// Cuántos planes se pueden comparar a la vez.
   static const int maxComparar = 3;
 
   final CatalogRepository _catalogo;
-  bool _desechado = false;
 
   // Estado expuesto (solo lectura hacia la vista)
   List<Plan> _planes = const [];
@@ -60,7 +61,7 @@ class CatalogViewModel extends ChangeNotifier {
     _cargando = true;
     _error = null;
     _errorDetalle = null;
-    _notificar();
+    notificar();
     try {
       final resultados = await _catalogo.search(
         FiltrosCatalogo(
@@ -83,13 +84,13 @@ class CatalogViewModel extends ChangeNotifier {
       _errorDetalle = e.toString();
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
   }
 
   void setTexto(String valor) {
     _texto = valor;
-    _notificar();
+    notificar();
   }
 
   Future<void> buscar() => cargar();
@@ -136,22 +137,11 @@ class CatalogViewModel extends ChangeNotifier {
     } else if (_seleccion.length < maxComparar) {
       _seleccion.add(p.id);
     }
-    _notificar();
+    notificar();
   }
 
   void limpiarComparar() {
     _seleccion.clear();
-    _notificar();
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
+    notificar();
   }
 }

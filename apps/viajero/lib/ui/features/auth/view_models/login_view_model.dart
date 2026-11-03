@@ -1,9 +1,11 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel del acceso: alterna entre entrar y crear cuenta, guarda las casillas de autorización
 /// (Ley 1581) y envía el formulario. Los campos de texto y su validación viven en la vista.
-class LoginViewModel extends ChangeNotifier {
+class LoginViewModel extends ChangeNotifier with NotificaSiVive {
   /// [cuentaDemo] decide si se ofrece «Usar cuenta demo»; por defecto solo en builds de debug
   /// (en release la clave de la cuenta de pruebas no debe estar a un toque).
   LoginViewModel({required AuthRepository auth, bool? cuentaDemo})
@@ -16,7 +18,6 @@ class LoginViewModel extends ChangeNotifier {
 
   final AuthRepository _auth;
   final bool _cuentaDemo;
-  bool _desechado = false;
 
   bool _esRegistro = false;
   bool _cargando = false;
@@ -43,17 +44,17 @@ class LoginViewModel extends ChangeNotifier {
     _esRegistro = !_esRegistro;
     _error = null;
     _intentoRegistro = false;
-    _notificar();
+    notificar();
   }
 
   void cambiarAceptaDatos(bool valor) {
     _aceptaDatos = valor;
-    _notificar();
+    notificar();
   }
 
   void cambiarAceptaTerminos(bool valor) {
     _aceptaTerminos = valor;
-    _notificar();
+    notificar();
   }
 
   /// Entra o crea la cuenta con lo escrito en el formulario. Al crear cuenta la autorización debe
@@ -68,13 +69,13 @@ class LoginViewModel extends ChangeNotifier {
     if (_cargando) return;
     if (_esRegistro) {
       _intentoRegistro = true;
-      _notificar();
+      notificar();
       if (!_aceptaDatos || !_aceptaTerminos) return;
     }
     if (!formularioValido) return;
     _cargando = true;
     _error = null;
-    _notificar();
+    notificar();
     try {
       if (_esRegistro) {
         await _auth.signUpViajero(
@@ -93,18 +94,7 @@ class LoginViewModel extends ChangeNotifier {
           : 'Correo o contraseña incorrectos, o no hay conexión.';
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
-  }
-
-  /// Una respuesta puede llegar cuando la pantalla ya se cerró (al entrar, el router la quita).
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

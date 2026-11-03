@@ -4,6 +4,7 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/notifica_si_vive.dart';
 import '../pago_abierto.dart';
 
 /// ViewModel del checkout: crea la reserva atómica (cupos retenidos 30 min) y pide a la
@@ -12,16 +13,16 @@ import '../pago_abierto.dart';
 /// Regla anti-duplicados: por viajero y fecha hay a lo sumo UNA reserva pendiente de pago.
 /// Si ya existe (p. ej. volvió atrás desde Wompi), `pagar` no crea otra: expone [pendiente]
 /// para que el viajero la complete o la cancele.
-class CheckoutViewModel extends ChangeNotifier {
+class CheckoutViewModel extends ChangeNotifier with NotificaSiVive {
   CheckoutViewModel({required BookingRepository reservas}) : _reservas = reservas;
 
   /// Máximo de personas por reserva.
   static const int maxPersonas = 20;
 
   final BookingRepository _reservas;
-  bool _desechado = false;
 
   bool _procesando = false;
+  bool _redirigido = false;
   String? _error;
   int _pax = 1;
   String? _bookingId;
@@ -51,15 +52,17 @@ class CheckoutViewModel extends ChangeNotifier {
   /// Se puede sumar otra persona mientras haya [cupos] en la fecha y no se pase del máximo.
   bool puedeAgregarPersona(int cupos) => !_personasFijas && _pax < cupos && _pax < maxPersonas;
 
-  /// «Pagar con Wompi» se bloquea mientras algo está en curso o hay una pendiente por resolver.
-  bool get puedePagar => !_procesando && _pendiente == null;
+  /// «Pagar con Wompi» se bloquea mientras algo está en curso, hay una pendiente por resolver o
+  /// (web) la misma ventana ya navega a Wompi: un segundo toque antes de que la página se descargue
+  /// abriría otro intento de pago de la misma reserva.
+  bool get puedePagar => !_procesando && !_redirigido && _pendiente == null;
 
   double total(Plan plan) => plan.precioCop * _pax;
 
   void setPax(int valor) {
     if (_personasFijas) return;
     _pax = valor.clamp(1, maxPersonas);
-    _notificar();
+    notificar();
   }
 
   /// Busca (al abrir el checkout) si ya hay una reserva pendiente vigente para [fecha].
@@ -71,7 +74,7 @@ class CheckoutViewModel extends ChangeNotifier {
       debugPrint('CheckoutViewModel.cargarPendiente: $e');
       _pendiente = null;
     }
-    _notificar();
+    notificar();
   }
 
   /// Reserva (una sola vez) y delega en [abrirPago] el cobro con Wompi. [abrirPago] dice cómo
@@ -80,7 +83,7 @@ class CheckoutViewModel extends ChangeNotifier {
     PlanDate fecha,
     Future<PagoAbierto> Function(String bookingId) abrirPago,
   ) async {
-    if (_procesando) return;
+    if (_procesando || _redirigido) return;
     await _ejecutar(() async {
       if (_bookingId == null) {
         final existente = await _reservas.reservaPendiente(fecha.id);
@@ -106,7 +109,7 @@ class CheckoutViewModel extends ChangeNotifier {
   /// Retoma [pendiente]: mismo id y mismas personas, sin crear otra reserva.
   Future<void> completarPendiente(Future<PagoAbierto> Function(String bookingId) abrirPago) async {
     final reserva = _pendiente;
-    if (reserva == null || _procesando) return;
+    if (reserva == null || _procesando || _redirigido) return;
     await _ejecutar(() async {
       _bookingId = reserva.id;
       _pax = reserva.pax;
@@ -128,6 +131,7 @@ class CheckoutViewModel extends ChangeNotifier {
 
   Future<void> _abrir(Future<PagoAbierto> Function(String bookingId) abrirPago) async {
     final abierto = await abrirPago(_bookingId!);
+    if (abierto == PagoAbierto.redirigido) _redirigido = true;
     if (abierto == PagoAbierto.cerrado) {
       _error =
           'Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar»; '
@@ -138,7 +142,7 @@ class CheckoutViewModel extends ChangeNotifier {
   Future<void> _ejecutar(Future<void> Function() accion) async {
     _procesando = true;
     _error = null;
-    _notificar();
+    notificar();
     unawaited(HapticFeedback.mediumImpact());
 
     try {
@@ -150,18 +154,6 @@ class CheckoutViewModel extends ChangeNotifier {
       _error = 'No pudimos iniciar el pago. Intenta de nuevo.';
     }
     _procesando = false;
-    _notificar();
-  }
-
-  /// Un pago puede terminar cuando la pantalla ya se cerró (el WebView navega al resultado): ahí
-  /// no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
+    notificar();
   }
 }

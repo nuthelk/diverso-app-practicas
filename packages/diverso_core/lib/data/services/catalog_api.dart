@@ -11,8 +11,14 @@ class CatalogApi {
 
   static const _seleccionPlan = '*, agencies(*), plan_dates(*)';
 
+  /// Con un día elegido la unión con `plan_dates` es interna (`!inner`): los filtros sobre
+  /// `plan_dates.fecha` descartan planes y no solo fechas, así el límite de 60 se aplica a los planes
+  /// que sí tienen ese día.
+  static const _seleccionPlanConDia = '*, agencies(*), plan_dates!inner(*)';
+
   /// Planes publicados con su agencia y las fechas desde [desde] (YYYY-MM-DD), aplicando los
-  /// filtros que no sean null. [busqueda] ya viene normalizada (minúsculas y sin tildes).
+  /// filtros que no sean null. Con [fecha] solo vienen los planes que tienen ese día.
+  /// [busqueda] ya viene normalizada (minúsculas y sin tildes).
   Future<List<Map<String, dynamic>>> planesPublicados({
     required String desde,
     required OrdenCatalogo orden,
@@ -26,7 +32,7 @@ class CatalogApi {
     // Filtros primero (PostgrestFilterBuilder); orden y límite al final.
     var query = _client
         .from('plans')
-        .select(_seleccionPlan)
+        .select(fecha == null ? _seleccionPlan : _seleccionPlanConDia)
         .eq('estado', PlanStatus.publicado.db)
         .gte('plan_dates.fecha', desde);
 

@@ -1,11 +1,12 @@
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
 import '../pago_abierto.dart';
 
 /// ViewModel de `/pago/resultado`: pregunta al servidor cómo quedó el pago (nunca se confía
 /// en la redirección del navegador) y, si Wompi aún no resuelve, reintenta unas veces.
-class PagoResultadoViewModel extends ChangeNotifier {
+class PagoResultadoViewModel extends ChangeNotifier with NotificaSiVive {
   PagoResultadoViewModel({
     required PaymentGateway pasarela,
     this.transactionId,
@@ -24,7 +25,6 @@ class PagoResultadoViewModel extends ChangeNotifier {
 
   final int maxIntentos;
   final Duration pausa;
-  bool _desechado = false;
 
   bool _cargando = true;
   PagoVerificado? _resultado;
@@ -58,9 +58,9 @@ class PagoResultadoViewModel extends ChangeNotifier {
     _resultado = null;
     _falla = null;
     _intentos = 0;
-    if (!yaCargando) _notificar();
+    if (!yaCargando) notificar();
 
-    while (!_desechado) {
+    while (!desechado) {
       _intentos++;
       try {
         _resultado = await _pasarela.verificar(transactionId: transactionId, bookingId: bookingId);
@@ -79,7 +79,7 @@ class PagoResultadoViewModel extends ChangeNotifier {
       await Future<void>.delayed(pausa);
     }
     _cargando = false;
-    _notificar();
+    notificar();
   }
 
   /// Vuelve a abrir el pago de [bookingId] (rechazado o cerrado) con [abrirPago]. No crea otra
@@ -91,7 +91,7 @@ class PagoResultadoViewModel extends ChangeNotifier {
     if (_reintentandoPago) return;
     _reintentandoPago = true;
     _errorReintento = null;
-    _notificar();
+    notificar();
     try {
       final abierto = await abrirPago(bookingId);
       if (abierto == PagoAbierto.cerrado) {
@@ -105,18 +105,6 @@ class PagoResultadoViewModel extends ChangeNotifier {
       _errorReintento = 'No pudimos iniciar el pago. Intenta de nuevo.';
     }
     _reintentandoPago = false;
-    _notificar();
-  }
-
-  /// La verificación y el nuevo intento pueden terminar cuando la pantalla ya se cerró (el pago
-  /// aprobado navega a la confirmación): ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
+    notificar();
   }
 }

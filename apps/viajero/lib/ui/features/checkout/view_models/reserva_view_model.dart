@@ -2,17 +2,17 @@ import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../core/mensaje_de_error.dart';
+import '../../../core/notifica_si_vive.dart';
 
 /// ViewModel de `/reserva/:bookingId`: carga la reserva por id para que la confirmación
 /// sobreviva a recargar la página en web.
-class ReservaViewModel extends ChangeNotifier {
+class ReservaViewModel extends ChangeNotifier with NotificaSiVive {
   ReservaViewModel({required BookingRepository reservas, required String bookingId})
     : _reservas = reservas,
       _bookingId = bookingId;
 
   final BookingRepository _reservas;
   final String _bookingId;
-  bool _desechado = false;
 
   Booking? _reserva;
   bool _cargando = true;
@@ -28,7 +28,7 @@ class ReservaViewModel extends ChangeNotifier {
   Future<void> cargar() async {
     _cargando = true;
     _error = null;
-    _notificar();
+    notificar();
     try {
       _reserva = await _reservas.reserva(_bookingId);
     } on Object catch (e) {
@@ -36,18 +36,7 @@ class ReservaViewModel extends ChangeNotifier {
       _error = mensajeDeError(e);
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

@@ -3,16 +3,17 @@ import 'dart:collection';
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../../core/notifica_si_vive.dart';
+
 /// ViewModel de la página de una agencia: su resumen público y sus planes publicados. La vista lo
 /// escucha con [ListenableBuilder].
-class AgenciaViewModel extends ChangeNotifier {
+class AgenciaViewModel extends ChangeNotifier with NotificaSiVive {
   AgenciaViewModel({required CatalogRepository catalogo, required String agencyId})
     : _catalogo = catalogo,
       _agencyId = agencyId;
 
   final CatalogRepository _catalogo;
   final String _agencyId;
-  bool _desechado = false;
 
   AgenciaResumen? _agencia;
   List<Plan> _planes = const [];
@@ -39,7 +40,7 @@ class AgenciaViewModel extends ChangeNotifier {
     _cargando = true;
     _error = null;
     _errorDetalle = null;
-    _notificar();
+    notificar();
     try {
       final r = await _catalogo.agenciaConPlanes(_agencyId);
       _noEncontrada = r == null;
@@ -51,18 +52,7 @@ class AgenciaViewModel extends ChangeNotifier {
       _errorDetalle = e.toString();
     } finally {
       _cargando = false;
-      _notificar();
+      notificar();
     }
-  }
-
-  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
-  void _notificar() {
-    if (!_desechado) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _desechado = true;
-    super.dispose();
   }
 }

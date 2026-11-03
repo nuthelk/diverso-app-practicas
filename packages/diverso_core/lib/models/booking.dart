@@ -120,6 +120,12 @@ class Booking {
   /// El viaje aún no sale. [ahora] permite fijar el reloj; sin salida conocida no es futuro.
   bool esFutura([DateTime? ahora]) => salida?.isAfter(ahora ?? DateTime.now()) ?? false;
 
+  /// Pendiente de pago o confirmada y que aún no sale: la única que se puede cancelar (el servidor
+  /// rechaza la cancelación después de la salida).
+  bool vigente([DateTime? ahora]) =>
+      (estado == BookingStatus.confirmada || estado == BookingStatus.pendientePago) &&
+      esFutura(ahora);
+
   /// Una reseña solo es posible si el viaje ya salió, la reserva está confirmada/completada
   /// y aún no se reseñó (RLS lo respalda en el servidor).
   bool puedeResenar([DateTime? ahora]) =>
