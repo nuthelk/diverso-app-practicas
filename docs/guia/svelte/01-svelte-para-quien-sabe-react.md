@@ -31,7 +31,7 @@ En Svelte un componente es un **archivo** con hasta tres partes, y el compilador
 código que **no se vuelve a ejecutar entero**: el `<script>` corre **una vez por instancia** y la
 plantilla se actualiza por trozos (más en el [capítulo 2](02-reactividad-con-runes.md#1-el-modelo-mental-compilado-no-re-render)).
 
-`apps/panel_svelte/src/shared/ui/Skeleton.svelte` es el componente completo más corto del panel:
+`apps/panel_svelte/src/lib/shared/ui/Skeleton.svelte` es el componente completo más corto del panel:
 
 ```svelte
 <script lang="ts">
@@ -49,24 +49,22 @@ plantilla se actualiza por trozos (más en el [capítulo 2](02-reactividad-con-r
 
 Cosas que ya puedes notar:
 
-- **Varios nodos raíz están permitidos.** `App.svelte` pinta un bloque `{#if}` y después `<Toast />`;
+- **Varios nodos raíz están permitidos.** `routes/+layout.svelte` pinta un bloque `{#if}` y después `<Toast />`;
   `PlanesPage.svelte` pinta dos bloques `{#if}` seguidos. Ninguno necesita un contenedor.
 - **No hay `import React`** ni runtime que importar: `$props`, `$state`… son *runes*, palabras que
   entiende el compilador y que no se importan.
-- **Un componente se importa como un valor**: `import Skeleton from '@/shared/ui/Skeleton.svelte';`
+- **Un componente se importa como un valor**: `import Skeleton from '$lib/shared/ui/Skeleton.svelte';`
   y se usa con mayúscula inicial, `<Skeleton clase="h-[150px]" />`. Un nombre en minúscula sería
   un elemento HTML.
-- **El punto de entrada** es `mount`, el equivalente de `createRoot(...).render(...)`
-  (`apps/panel_svelte/src/main.ts`):
-
-```ts
-const app = mount(App, { target: document.getElementById('app')! });
-```
+- **No escribes el punto de entrada.** En React llamarías `createRoot(...).render(<App />)`; aquí
+  no hay `main.ts` ni `mount(...)`: **SvelteKit** arranca la app y monta el componente raíz dentro
+  del `<body>` de `src/app.html`. Lo que tú escribes son páginas y *layouts* en `src/routes/`
+  ([capítulo 3, sección 5](03-arquitectura-del-panel.md#5-sveltekit-estático-y-el-router-por-hash)).
 
 ### `<script module>`: código que corre una vez por archivo
 
 Un segundo bloque `<script module>` se ejecuta **una vez cuando se carga el módulo**, no por cada
-instancia, y sus `export` salen del archivo. `apps/panel_svelte/src/features/planes/PlanesPage.svelte`
+instancia, y sus `export` salen del archivo. `apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte`
 lo usa para derivar tablas de búsqueda a partir de `CATEGORIAS`:
 
 ```svelte
@@ -85,7 +83,7 @@ Equivale a declarar una constante **fuera** de la función del componente en Rea
 ## 2. Estilos con alcance y `:global`
 
 Todo lo que escribes en `<style>` vale **solo para los elementos de ese archivo**. El compilador
-añade una clase con hash a esos elementos y a cada selector. `apps/panel_svelte/src/shared/ui/Select.svelte`:
+añade una clase con hash a esos elementos y a cada selector. `apps/panel_svelte/src/lib/shared/ui/Select.svelte`:
 
 ```svelte
 <style>
@@ -112,14 +110,13 @@ Compilado con `svelte/compiler`, el CSS queda así (el sufijo `svelte-…` cambi
 ```
 
 `:global(.dark)` le dice al compilador «esta parte del selector **no** la toques»: la clase `dark`
-vive en `<html>` (la fija `index.html` y la alterna `alternarTema` de `Shell.svelte`), fuera del
-componente. Sin `:global`, el
-selector nunca coincidiría.
+vive en `<html>` (la fija `app.html` y la alterna `alternarTema` de `Shell.svelte`), fuera del
+componente. Sin `:global`, el selector nunca coincidiría.
 
 ### El caso inverso: estilar elementos de componentes hijos
 
 Los elementos que pintan los **hijos** no llevan el hash del padre. Por eso
-`apps/panel_svelte/src/features/planes/PlanFormPage.svelte` ancla el selector en su propio
+`apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte` ancla el selector en su propio
 `<form class="plan-form">` y marca como global lo que está dentro:
 
 ```svelte
@@ -156,11 +153,11 @@ define el aspecto de los campos de sus hijos» sin que el CSS se escape al resto
 | Atributo dinámico | `atributo={expr}` (sin comillas) | `href={'#' + s.ruta}` (`Shell.svelte`) |
 | Atributo con texto mezclado | `class="fijo {expr}"` | `class="pulso … {clase}"` (`Skeleton.svelte`) |
 | Pasar una variable con su mismo nombre | `{nombre}` (atajo de `nombre={nombre}`) | `<AvatarAgencia {agencia} tam={72} />` (`LogoAgencia.svelte`) |
-| Esparcir props | `{...objeto}` | `<Pagina {...ruta.props} />` (`App.svelte`) |
+| Esparcir props | `{...objeto}` | `<Componente {...props} />`, igual que en React (el panel hoy no la usa) |
 | Condicional | `{#if}` `{:else if}` `{:else}` `{/if}` | ver abajo |
 
 No hay `&&` ni ternarios de JSX: los condicionales de **bloque** son `{#if}`.
-`apps/panel_svelte/src/features/planes/PlanesPage.svelte` los encadena para los tres estados
+`apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte` los encadena para los tres estados
 típicos de una pantalla que carga datos:
 
 ```svelte
@@ -212,22 +209,21 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 ## 5. `{#key}` y `{@const}`
 
 **`{#key expresión}`** destruye y vuelve a crear su contenido cada vez que el valor de la expresión
-cambia. Es el `key` de React aplicado a un componente suelto. El panel lo necesita en
-`apps/panel_svelte/src/app/App.svelte`, y el [capítulo 2](02-reactividad-con-runes.md#73-por-qué-app-usa-key-rutapatron) explica por qué:
+cambia. Es el `key` de React aplicado a un componente suelto. **El panel no lo usa hoy**: lo necesitó
+el router anterior, y con SvelteKit el mismo efecto sale de las carpetas de rutas (cada archivo
+`+page.svelte` es su propio componente). El [capítulo 2](02-reactividad-con-runes.md#73-por-qué-cada-ruta-es-su-propia-instancia)
+cuenta la historia. Su forma, en un ejemplo **ilustrativo (no está en el repo)**:
 
 ```svelte
-{#if ruta.componente}
-  {@const Pagina = ruta.componente}
-  <!-- /planes/nuevo y /planes/editar/x usan la misma página: cada ruta monta su propia instancia. -->
-  {#key ruta.patron}
-    <Pagina {...ruta.props} />
-  {/key}
-{:else}
+{#key planId}
+  <PlanFormPage {planId} />
+{/key}
 ```
 
 **`{@const nombre = expresión}`** declara una constante local **dentro de un bloque**
 (`{#if}`, `{#each}`, `{:else}`…, siempre como hijo directo). Es la forma de no repetir una
-expresión en la plantilla sin crear un componente. Arriba la usan `App.svelte` y `PlanesPage.svelte`.
+expresión en la plantilla sin crear un componente. Arriba lo usa `PlanesPage.svelte` dentro de su
+`{#each}`.
 
 ---
 
@@ -238,23 +234,26 @@ es igual: **cualquier variable con mayúscula inicial que contenga un componente
 etiqueta**. No existe ni hace falta `<svelte:component>` (en modo *runes* el compilador avisa con
 `svelte_component_deprecated`: «components are dynamic by default»).
 
-La tabla de rutas del panel guarda el componente de cada pantalla
-(`apps/panel_svelte/src/app/rutas.ts`):
+En el panel lo hace SvelteKit por ti. El archivo que genera, `.svelte-kit/generated/root.svelte` (no
+se versiona: aparece al correr `npm run dev` o `npm run prepare`), guarda el componente de cada nivel
+de la ruta (`constructors`) y lo pinta como etiqueta:
 
-```ts
-interface Ruta {
-  /** Segmentos literales, `:param` (obligatorio) o `:param?` (opcional). Los segmentos de más se ignoran. */
-  patron: string;
-  componente: Component<any>;
+```svelte
+{:else}
+	{@const Pyramid_0 = constructors[0]}
+	<!-- svelte-ignore binding_property_non_reactive -->
+	<Pyramid_0 bind:this={components[0]} data={data_0} {form} params={page.params} />
+
+{/if}
 ```
 
-y `App.svelte` lo pinta con `{@const Pagina = ruta.componente}` + `<Pagina {...ruta.props} />`
-(sección anterior). Si `Pagina` pasa a ser **otro** componente, Svelte destruye el anterior y monta
-el nuevo; si sigue siendo el **mismo**, conserva la instancia y solo actualiza las props. Esa
-segunda mitad es la fuente de una trampa real (capítulo 2, sección 7).
+Si `Pyramid_0` pasa a ser **otro** componente, Svelte destruye el anterior y monta el nuevo; si sigue
+siendo el **mismo**, conserva la instancia y solo actualiza las props. Esa segunda mitad es la fuente
+de una trampa real, y la razón de que `planes/nuevo` y `planes/editar/[[id]]` sean dos archivos de
+ruta distintos (capítulo 2, sección 7.3).
 
-`Component<any>` es el tipo de «un componente Svelte»; `Snippet` (sección siguiente) es el de «un
-trozo de plantilla».
+`Component` es el tipo de «un componente Svelte» (`import type { Component } from 'svelte'`);
+`Snippet` (sección siguiente) es el de «un trozo de plantilla».
 
 ---
 
@@ -267,7 +266,7 @@ compilador avisa con `slot_element_deprecated`). Se usan *snippets*.
 
 Todo lo que escribes entre `<Componente>` y `</Componente>` llega al componente como una prop
 llamada `children`, y se pinta con `{@render children()}`: exactamente el `children` de React.
-`apps/panel_svelte/src/features/planes/components/plan-form/Seccion.svelte` completo:
+`apps/panel_svelte/src/lib/features/planes/components/plan-form/Seccion.svelte` completo:
 
 ```svelte
 <script lang="ts">
@@ -298,7 +297,7 @@ Si el contenido es opcional, el tipo es `children?: Snippet` y se pinta con `{@r
 ### Snippets con nombre: pasar más de un trozo
 
 Una prop también puede ser un snippet con nombre; es lo que en React sería una *render prop* o
-varios «slots». `apps/panel_svelte/src/shared/ui/Empty.svelte` acepta dos formas de recibir el
+varios «slots». `apps/panel_svelte/src/lib/shared/ui/Empty.svelte` acepta dos formas de recibir el
 botón de acción y elige la que exista:
 
 ```svelte
@@ -318,7 +317,7 @@ botón de acción y elige la que exista:
 
 `{#snippet nombre()}…{/snippet}` define un trozo de plantilla **dentro del mismo archivo** para
 reutilizarlo con `{@render nombre()}`. Es lo que en React harías con una función auxiliar que
-devuelve JSX. `apps/panel_svelte/src/app/Shell.svelte` define la navegación una vez y la pinta en
+devuelve JSX. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte` define la navegación una vez y la pinta en
 la barra lateral de escritorio **y** en el menú desplegable móvil:
 
 ```svelte
@@ -332,12 +331,13 @@ la barra lateral de escritorio **y** en el menú desplegable móvil:
     {@render navegacion()}
 ```
 
-`App.svelte` hace lo mismo con `pagina()`: lo pinta dentro de `<Shell>` o solo, según el *layout*
-de la ruta (capítulo 3, sección 7).
+Los `+layout.svelte` de SvelteKit son la otra mitad de `children`: reciben la página como
+`children: Snippet` y la pintan dentro de su marco. `routes/(panel)/+layout.svelte` se la pasa al
+`Shell` con `<Shell>{@render children()}</Shell>` (capítulo 3, sección 8).
 
 Un snippet puede recibir parámetros (`{#snippet fila(item)}` + `{@render fila(x)}`), y su tipo es
 `Snippet<[TipoDelParametro]>`. En las pruebas, como un snippet no se puede escribir en un `.ts`,
-se fabrica con `createRawSnippet` (`apps/panel_svelte/src/app/Shell.test.ts`):
+se fabrica con `createRawSnippet` (`apps/panel_svelte/src/lib/features/agencias/components/Shell.test.ts`):
 
 ```ts
 const children = createRawSnippet(() => ({ render: () => '<p>contenido de la página</p>' }));
@@ -352,7 +352,7 @@ const children = createRawSnippet(() => ({ render: () => '<p>contenido de la pá
 Un evento es un **atributo en minúscula** cuyo valor es una función: `onclick`, `oninput`,
 `onsubmit`, `onkeydown`. Sin `on:click` (la forma de Svelte 4; el compilador avisa con
 `event_directive_deprecated`) y sin camelCase de React (`onClick`).
-`apps/panel_svelte/src/app/Shell.svelte`:
+`apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:
 
 ```svelte
     onclick={alternarTema}
@@ -363,7 +363,7 @@ Un evento es un **atributo en minúscula** cuyo valor es una función: `onclick`
 ```
 
 Los modificadores de Svelte 4 (`on:submit|preventDefault`) ya no existen en esta sintaxis: se hace a
-mano, como en React. `apps/panel_svelte/src/features/planes/PlanFormPage.svelte`:
+mano, como en React. `apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte`:
 
 ```svelte
   async function guardar(e: SubmitEvent) {
@@ -377,7 +377,7 @@ mano, como en React. `apps/panel_svelte/src/features/planes/PlanFormPage.svelte`
 ### Callbacks entre componentes
 
 Para que un hijo avise al padre, el padre le pasa **una función como prop**, como en React. La
-convención del panel es nombrarlas `on…` en minúscula. `apps/panel_svelte/src/features/agencias/components/LogoAgencia.svelte`:
+convención del panel es nombrarlas `on…` en minúscula. `apps/panel_svelte/src/lib/features/agencias/components/LogoAgencia.svelte`:
 
 ```svelte
     /** Recibe la URL pública nueva, o null cuando se quitó el logo. */
@@ -388,7 +388,7 @@ convención del panel es nombrarlas `on…` en minúscula. `apps/panel_svelte/sr
       onactualizado(await subirLogo(agencia, archivo));
 ```
 
-Y `apps/panel_svelte/src/features/admin/AdminAgenciasPage.svelte` pasa el suyo:
+Y `apps/panel_svelte/src/lib/features/admin/AdminAgenciasPage.svelte` pasa el suyo:
 
 ```svelte
     <FiltrosAgencias {filtro} {conteos} bind:busqueda onelegir={elegirFiltro} />
@@ -436,13 +436,13 @@ salió de él.
 ## 10. `class` y `style`
 
 `class` es `class`, no `className`. Se compone con interpolación y ternarios de JavaScript, igual
-que una plantilla de texto. `apps/panel_svelte/src/shared/ui/Select.svelte`:
+que una plantilla de texto. `apps/panel_svelte/src/lib/shared/ui/Select.svelte`:
 
 ```svelte
       class="size-4 shrink-0 text-slate-400 transition-transform {abierto ? 'rotate-180' : ''}"
 ```
 
-`style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/app/Shell.svelte`:
+`style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:
 
 ```svelte
       style="grid-template-columns: repeat({secciones.length}, minmax(0, 1fr))"
@@ -459,7 +459,9 @@ usa**: todo son cadenas con ternarios. Si lees otro código Svelte que sí las u
 | React / React Native | Svelte 5 (en este panel) |
 |---|---|
 | Componente de función + JSX | Archivo `.svelte` |
-| `ReactDOM.createRoot(el).render(<App />)` | `mount(App, { target: el })` (`main.ts`) |
+| `ReactDOM.createRoot(el).render(<App />)` | Nada que escribir: SvelteKit monta la app en `app.html` |
+| React Router / rutas de Next | Carpetas en `src/routes` con `+page.svelte` y `+layout.svelte` |
+| `useNavigate()` / `<Link to>` | `goto('#/ruta')` de `$app/navigation` / `<a href="#/ruta">` |
 | `function C({ a, b = 1 })` | `let { a, b = 1 } = $props()` |
 | `children` | `children: Snippet` + `{@render children()}` |
 | Render props / varios slots | Props de tipo `Snippet` + `{@render x()}` |
@@ -469,7 +471,7 @@ usa**: todo son cadenas con ternarios. Si lees otro código Svelte que sí las u
 | `useEffect(fn, [deps])` | `$effect(fn)` (dependencias automáticas) |
 | `useCallback`, `React.memo` | No hacen falta: el componente no se re-ejecuta |
 | `useRef` + `ref={r}` | `let r; … bind:this={r}` |
-| Context + Provider | Módulo `.svelte.ts` con `$state` (`auth`, `router`, `toast`) |
+| Context + Provider | Módulo `.svelte.ts` con `$state` (`auth`, `toast`); la ruta actual, `page` de `$app/state` |
 | `key` en listas | `(clave)` en `{#each}` |
 | `key` para reiniciar un componente | `{#key expr}` |
 | `{cond && <X />}` / ternario | `{#if}` / `{:else}` |

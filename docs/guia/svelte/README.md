@@ -15,21 +15,24 @@ app y cómo saber que ya la entendiste.
 - Prefieres aprender con una app real, con pantallas reales, que con ejemplos de juguete.
 - No necesitas conocer el backend: la guía solo toca Supabase donde el panel lo llama.
 
-Qué **no** cubre: SvelteKit (el panel no lo usa), las migraciones SQL, las Edge Functions, ni las
-apps Flutter (para esas está la [guía de Flutter y Dart](../README.md)). Para correr todo el
+Qué **no** cubre: de SvelteKit, solo lo que el panel usa (rutas por carpetas, layouts, `$app/*`,
+adapter estático; no hay `load`, acciones de formulario ni SSR), las migraciones SQL, las Edge
+Functions, ni las apps Flutter (para esas está la [guía de Flutter y Dart](../README.md)). Para correr todo el
 sistema, el [README principal](../../../README.md).
 
 ## El panel en 5 líneas
 
 1. Es la **cara B2B de Diverso**: las agencias turísticas gestionan sus planes, fechas y cupos,
    ven sus ventas y liquidaciones, y el rol admin verifica agencias (RNT) y ejecuta dispersiones.
-2. **Svelte 5 + Vite + Tailwind 4**, en TypeScript. **Sin SvelteKit**: es una SPA con un router por
-   hash (`#/planes`) escrito en unas pocas líneas.
-3. El código está organizado **por funcionalidad** (`src/features/planes/`, `ventas/`, `admin/`…),
-   con un esqueleto en `src/app/` y lo reutilizable en `src/shared/`, igual que `apps/viajero`.
+2. **Svelte 5 + SvelteKit 2 + Vite + Tailwind 4**, en TypeScript. SvelteKit en modo **estático**
+   (`adapter-static`, sale a `dist/`) y con **router por hash**: las URLs son `#/planes`, y cualquier
+   hosting de archivos sirve el panel. No hay servidor propio.
+3. Las pantallas se declaran con **carpetas en `src/routes/`** (un `+page.svelte` por URL, delgado),
+   y el código está organizado **por funcionalidad** (`src/lib/features/planes/`, `ventas/`,
+   `admin/`…) con lo reutilizable en `src/lib/shared/`, igual que `apps/viajero`.
 4. Los datos vienen de **Supabase** a través de un archivo `*.api.ts` por funcionalidad; las reglas
    se prueban como **funciones puras** y las pantallas con Vitest + Testing Library.
-5. Hoy: **509 pruebas en 31 archivos**; `npm run build` y `npx svelte-check` son parte de cada
+5. Hoy: **512 pruebas en 34 archivos**; `npm run build` y `npm run check` son parte de cada
    verificación.
 
 ## Cómo está organizada la guía
@@ -38,7 +41,7 @@ sistema, el [README principal](../../../README.md).
 |---|---|---|
 | [1. Svelte para quien sabe React](01-svelte-para-quien-sabe-react.md) | Componentes, JSX, props, `children` | Leer cualquier archivo `.svelte` del panel |
 | [2. Reactividad con *runes*](02-reactividad-con-runes.md) | `useState`, `useMemo`, `useEffect`, Context | Usar `$state`, `$derived`, `$effect`, `$props`; evitar las trampas reales del repo |
-| [3. Arquitectura del panel](03-arquitectura-del-panel.md) | Carpetas por tipo de archivo | Saber dónde vive cada cosa, cómo viaja un dato y cómo agregar una pantalla |
+| [3. Arquitectura del panel](03-arquitectura-del-panel.md) | Carpetas por tipo de archivo, React Router | Saber dónde vive cada cosa, cómo viaja un dato, cómo funcionan las rutas de SvelteKit y cómo agregar una pantalla |
 | [4. Pruebas y herramientas](04-pruebas-y-herramientas.md) | Jest, Webpack/Vite, ESLint | Probar, analizar y compilar con confianza |
 
 ## Cómo correr el panel
@@ -54,6 +57,8 @@ npm install
 npm run dev          # desarrollo: http://localhost:5173
 ```
 
+- **`npm run dev`** arranca SvelteKit (es un plugin de Vite). La primera vez genera `.svelte-kit/`
+  (tipos y alias); no se versiona.
 - **Puerto.** Si el 5173 está ocupado, Vite usa el siguiente (el panel ha corrido en el **5174**).
   Mira la URL que imprime la consola.
 - **Cuenta para entrar:** `graffiti@demo.com` (agencia verificada), `patrimonio@demo.com`
@@ -65,9 +70,9 @@ npm run dev          # desarrollo: http://localhost:5173
 Las tres comprobaciones del día a día (capítulo 4, sección 10):
 
 ```bash
-npm test             # Vitest: 31 archivos, 509 pruebas
-npm run build        # Vite: genera dist/ y termina con ✓ built
-npx svelte-check     # tipos y avisos de Svelte: 12 errores y 1 aviso conocidos (capítulo 4, sección 8)
+npm test             # Vitest: 34 archivos, 512 pruebas
+npm run build        # SvelteKit + Vite: genera dist/ y termina con ✓ built
+npm run check        # tipos y avisos de Svelte: 12 errores y 1 aviso conocidos (capítulo 4, sección 8)
 ```
 
 ## Plan de aprendizaje
@@ -82,10 +87,10 @@ cambian nada; los que modifican un archivo te dicen cómo deshacerlo
 | 2 | [Un archivo `.svelte`](#sesión-2-un-archivo-svelte) | Cap. 1 | Traducir un componente a React y leer otro |
 | 3 | [`$state`, `$derived` y props](#sesión-3-state-derived-y-props) | Cap. 2 §1–4 | Seguir el formulario del plan y leer el JS compilado |
 | 4 | [Efectos, estado compartido y trampas](#sesión-4-efectos-estado-compartido-y-trampas) | Cap. 2 §5–7 | Provocar a propósito las dos trampas |
-| 5 | [Datos, rutas y sesión](#sesión-5-datos-rutas-y-sesión) | Cap. 3 §3–9 | Seguir «Publicar» de punta a punta y registrar una ruta |
+| 5 | [Datos, rutas y sesión](#sesión-5-datos-rutas-y-sesión) | Cap. 3 §3–11 | Seguir «Publicar» de punta a punta y crear una ruta |
 | 6 | [Pruebas y herramientas](#sesión-6-pruebas-y-herramientas) | Cap. 4 | Escribir tu primera prueba |
 
-Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
+Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 ---
 
@@ -95,22 +100,22 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 **Lee.**
 - Capítulo 3, secciones 1 y 2 (mapa de carpetas y qué va dónde).
-- `index.html` (qué carga) y `main.ts` (qué hace `mount`).
-- `app/App.svelte` y, de `app/rutas.ts`, solo la lista `RUTAS`.
+- `app.html` (qué carga) y `routes/+layout.svelte` (qué rodea a todas las páginas).
+- `routes/(panel)/+layout.svelte` y un `+page.svelte` delgado, como `routes/login/+page.svelte`.
 
 **Ejercicio.**
 1. Levanta el Supabase local y el panel (sección anterior) y entra con `graffiti@demo.com`.
 2. Recorre Resumen, Planes, Ventas, Liquidaciones y Cuenta. Mira cómo cambia el `#/…` de la barra
-   de direcciones. Para cada una apunta: la fila de `RUTAS` que la declara y el archivo
-   `features/<funcionalidad>/…Page.svelte` que la dibuja.
+   de direcciones. Para cada una apunta: la carpeta de `routes/(panel)/…` con su `+page.svelte` y el
+   archivo `lib/features/<funcionalidad>/…Page.svelte` que dibuja la pantalla.
 3. Abre `#/login` y `#/planes/nuevo` y compara qué rodea a cada página (con menú lateral o sin él).
-   Busca en `rutas.ts` el campo que lo decide.
+   Busca qué carpeta lo decide.
 
 **Ya lo entendí si…**
 - [ ] Dices, sin mirar, qué archivo dibuja el título «Mis planes».
-- [ ] Explicas qué hace `mount(App, …)` y de dónde sale el `<div id="app">`.
-- [ ] Distingues `app/`, `features/` y `shared/` y dices en cuál pondrías un componente `Boton`.
-- [ ] Sabes a qué carpeta apunta `@/`.
+- [ ] Explicas quién monta la app (no hay `main.ts`) y de qué marcador de `app.html` cuelga.
+- [ ] Distingues `routes/`, `lib/features/` y `lib/shared/` y dices en cuál pondrías un componente `Boton`.
+- [ ] Sabes a qué carpeta apunta `$lib`.
 
 ---
 
@@ -120,8 +125,8 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 **Lee.**
 - Capítulo 1 completo.
-- `shared/ui/Skeleton.svelte`, `shared/ui/StatusPill.svelte` y `shared/ui/Empty.svelte`.
-- `features/planes/components/plan-form/Seccion.svelte` y `SeccionIncluye.svelte`.
+- `lib/shared/ui/Skeleton.svelte`, `lib/shared/ui/StatusPill.svelte` y `lib/shared/ui/Empty.svelte`.
+- `lib/features/planes/components/plan-form/Seccion.svelte` y `SeccionIncluye.svelte`.
 
 **Ejercicio.**
 1. Traduce `Skeleton.svelte` y `Seccion.svelte` a TSX en papel: sus props, el valor por defecto de
@@ -132,7 +137,7 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
    ```bash
    cd apps/panel_svelte
-   npx vitest run src/shared/ui/StatusPill.test.ts
+   npx vitest run src/lib/shared/ui/StatusPill.test.ts
    ```
 
 **Ya lo entendí si…**
@@ -149,10 +154,10 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 **Lee.**
 - Capítulo 2, secciones 1 a 4.
-- `features/ventas/VentasPage.svelte` (el `<script>`).
-- `features/planes/PlanFormPage.svelte` (`<script>` y plantilla).
-- `features/planes/components/plan-form/SeccionEncuentro.svelte` y `PoliticaCancelacion.svelte`.
-- `shared/ui/Select.svelte`.
+- `lib/features/ventas/VentasPage.svelte` (el `<script>`).
+- `lib/features/planes/PlanFormPage.svelte` (`<script>` y plantilla).
+- `lib/features/planes/components/plan-form/SeccionEncuentro.svelte` y `PoliticaCancelacion.svelte`.
+- `lib/shared/ui/Select.svelte`.
 
 **Ejercicio.**
 1. En `VentasPage.svelte` dibuja el grafo: `filtro` → `filtradas`, `ventas` → `totales`. Antes de
@@ -164,7 +169,7 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
    ```bash
    cd apps/panel_svelte
-   node --input-type=module -e "import { compile } from 'svelte/compiler'; import { readFileSync } from 'node:fs'; console.log(compile(readFileSync('src/shared/ui/Skeleton.svelte', 'utf8'), { filename: 'Skeleton.svelte', generate: 'client' }).js.code)"
+   node --input-type=module -e "import { compile } from 'svelte/compiler'; import { readFileSync } from 'node:fs'; console.log(compile(readFileSync('src/lib/shared/ui/Skeleton.svelte', 'utf8'), { filename: 'Skeleton.svelte', generate: 'client' }).js.code)"
    ```
 
 **Ya lo entendí si…**
@@ -181,30 +186,37 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 **Lee.**
 - Capítulo 2, secciones 5 a 7.
-- `app/App.svelte`, el `<script>` de `app/Shell.svelte`.
-- `shared/lib/router.svelte.ts`, `features/auth/auth.svelte.ts`, `shared/lib/toast.svelte.ts`.
-- El último `describe` de `app/rutas.test.ts`.
+- `routes/+layout.svelte` y el `<script>` de `lib/features/agencias/components/Shell.svelte`.
+- `lib/features/auth/auth.svelte.ts`, `lib/shared/lib/toast.svelte.ts` y `lib/shared/lib/ruta.ts`.
+- `routes/(panel)/planes/editar/[[id]]/+page.svelte` y `routes/(panel)/planes/nuevo/+page.svelte`.
 
 **Ejercicio.**
-1. Para cada uno de los cuatro `$effect` del capítulo (App, Shell, PlanesPage, PlanFormPage) anota
-   qué **lee** (sus dependencias) y qué **escribe**. ¿Cuál tiene una dependencia declarada «a
+1. Para cada uno de los cuatro `$effect` del capítulo (layout raíz, Shell, PlanesPage, PlanFormPage)
+   anota qué **lee** (sus dependencias) y qué **escribe**. ¿Cuál tiene una dependencia declarada «a
    propósito»?
-2. **Provoca la trampa del `{#key}`.** En `app/App.svelte` quita las dos líneas `{#key ruta.patron}` y
-   `{/key}`. En Planes pulsa «Editar» en un plan y, estando en el formulario, cambia a mano la URL a
-   `#/planes/nuevo`. Verás el formulario con los datos del plan anterior. Corre
-   `npx vitest run src/app`: **sigue en verde**, porque las pruebas cubren la tabla de rutas, no el
-   montaje de `App`. Deshaz con `git restore apps/panel_svelte/src/app/App.svelte`.
-3. **Provoca `ownership_invalid_mutation`.** En `features/planes/PlanFormPage.svelte` cambia
+2. **Provoca la trampa de la instancia compartida.** En
+   `routes/(panel)/planes/editar/[[id]]/+page.svelte` añade, encima de `<Pagina planId={params.id} />`,
+   un enlace: `<a href="#/planes/editar">sin id</a>`. En Planes pulsa «Editar» en un plan y, en el
+   formulario, pulsa «sin id». Antes, predice qué verás: la ruta es **la misma**, así que la instancia
+   se conserva. Si ves el formulario con los datos del plan, acabas de reproducir la trampa del
+   capítulo 2, sección 7.3. Ahora envuelve la página en `{#key params.id}` … `{/key}` y repite: el
+   formulario se reinicia. Deshaz con
+   `git restore "apps/panel_svelte/src/routes/(panel)/planes/editar/[[id]]/+page.svelte"`.
+   (No cambies el hash a mano en la barra de direcciones: Kit recarga la página entera y el estado se
+   pierde, capítulo 3, sección 7.)
+3. **Provoca `ownership_invalid_mutation`.** En `lib/features/planes/PlanFormPage.svelte` cambia
    `<SeccionIncluye bind:d />` por `<SeccionIncluye {d} />`. Con `npm run dev`, abre «Nuevo plan»,
    añade un ítem en «Qué incluye» y mira la consola del navegador. Deshaz con `git restore`.
 4. Piensa (sin código): si pasas de `#/planes/editar/a` a `#/planes/editar/b` antes de que `a`
-   termine de cargar, ¿qué impide que su respuesta pise a `b`? (Capítulo 2, nota final.)
+   termine de cargar, ¿qué impide que su respuesta pise a `b`? (Capítulo 2, primera pregunta abierta
+   de la sección 7.3.)
 
 **Ya lo entendí si…**
 - [ ] Explicas por qué `erroresPolitica` es un `$derived` y no un `$effect` que escribe un `$state`.
-- [ ] Dices qué hace `void router.path;` en `Shell.svelte`.
-- [ ] Explicas por qué `export const router = $state({ … })` es un objeto y no `export let path`.
-- [ ] Explicas, con tus palabras, por qué «misma posición + mismo componente» conserva la instancia.
+- [ ] Dices qué hace `void path;` en `Shell.svelte` y de dónde sale `path`.
+- [ ] Explicas por qué `export const auth = $state({ … })` es un objeto y no `export let userId`.
+- [ ] Explicas, con tus palabras, por qué «misma posición + mismo componente» conserva la instancia, y
+      por qué `planes/nuevo` y `planes/editar/[[id]]` son dos archivos de ruta.
 - [ ] Dices por qué `state_referenced_locally` en `planId` es aceptable hoy y cuándo dejaría de serlo.
 
 ---
@@ -214,11 +226,11 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 **Objetivo.** Seguir un dato de punta a punta y saber agregar una pantalla.
 
 **Lee.**
-- Capítulo 3, secciones 3 a 9.
-- `features/planes/PlanesPage.svelte` (`<script>`), `features/planes/planes.api.ts`
-  y `shared/api/errores.ts`.
-- `app/rutas.ts` completo y `app/sesion.ts`.
-- `features/ventas/ventas.api.ts` (cómo una funcionalidad usa a otras).
+- Capítulo 3, secciones 3 a 11.
+- `lib/features/planes/PlanesPage.svelte` (`<script>`), `lib/features/planes/planes.api.ts`
+  y `lib/shared/api/errores.ts`.
+- `routes/+layout.svelte`, `lib/features/auth/sesion.ts`, `params/doc.ts` y `routes/+error.svelte`.
+- `lib/features/ventas/ventas.api.ts` (cómo una funcionalidad usa a otras).
 
 **Ejercicio.**
 1. Con el código abierto, completa una tabla con cada flecha de «Publicar un plan»: *archivo y
@@ -226,24 +238,31 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
    que ve la persona y en la recarga de la lista.
 2. Predice, sin ejecutar: si `publicarPlan` lanzara un error con el mensaje `FECHA_CON_RESERVAS`,
    ¿qué texto sale y dónde? (Mira `errores.ts`.)
-3. Comprueba cómo se agrega una ruta: en `app/rutas.ts` añade temporalmente
-   `{ patron: '/prueba', componente: Planes, layout: 'panel' },` al final de `RUTAS` y abre
-   `#/prueba`. Luego `git restore apps/panel_svelte/src/app/rutas.ts`.
-4. En papel, aplica el checklist de la sección 9 a una pantalla «Reportes»: lista los archivos que
+3. Comprueba cómo se agrega una ruta: crea `routes/(panel)/prueba/+page.svelte` con
+   `<h1 class="p-10 text-xl font-bold">Prueba</h1>` y abre `#/prueba` (con `npm run dev` Kit descubre la
+   carpeta; recarga la página si no aparece). La verás **dentro del Shell**. Mueve la carpeta a
+   `routes/prueba/` y recarga: sin Shell. **Al terminar, borra la carpeta `prueba/`**: es un
+   ejercicio, no parte del repo.
+4. Comprueba la trampa del `#`. En `routes/+page.svelte` cambia `goto('#/starter', …)` por
+   `goto('/starter', …)` y abre `http://localhost:5173/` con sesión iniciada. Según el código de Kit
+   deberías ver la página de error con «did you forget the hash?». Deshaz con `git restore`.
+5. En papel, aplica el checklist de la sección 11 a una pantalla «Reportes»: lista los archivos que
    crearías y los que editarías.
-5. Lee las pruebas de la capa de app como documentación:
+6. Lee las pruebas de las piezas de rutas como documentación:
 
    ```bash
    cd apps/panel_svelte
-   npx vitest run src/app
+   npx vitest run src/lib/shared/lib/ruta.test.ts src/params/doc.test.ts src/lib/features/auth/sesion.test.ts
    ```
 
 **Ya lo entendí si…**
-- [ ] Dices por qué `/planes/nuevo` va antes que `/planes` en `RUTAS`.
-- [ ] Dices qué devuelve `resolverRuta('/nada')` y quién pinta el aviso.
+- [ ] Dices qué archivo atiende `#/planes/editar/p-1` y qué trae `params.id` ahí y en `#/planes/editar`.
+- [ ] Dices qué pasa con `#/ventas/x` (y por qué ya no hay coincidencia por prefijo) y qué se dibuja.
+- [ ] Explicas por qué `goto('/planes')` no sirve y por qué la ruta vive en `page.url.hash`.
 - [ ] Explicas por qué el guard espera a `auth.ready` y por qué es una función pura.
-- [ ] Dices por qué `shared/` no puede importar de `features/`.
+- [ ] Dices por qué `shared/` no puede importar de `features/` ni de `$app/*`.
 - [ ] Sabes dónde pondrías la lógica de un total nuevo y dónde la consulta que trae sus datos.
+- [ ] Explicas por qué el panel no tiene `hooks.server.ts` ni `$lib/server`, y cuándo cambiaría eso.
 
 ---
 
@@ -253,16 +272,16 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 
 **Lee.**
 - Capítulo 4 completo.
-- `vitest.config.ts`, `vite.config.ts` y `tsconfig.json` (el alias `@` en los tres).
-- `shared/ui/StatusPill.test.ts`, `features/planes/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
-  `features/planes/planes.api.test.ts`.
-- `test/supabase-falso.ts` y `test/fixtures.ts`.
+- `vite.config.ts`, `vitest.config.ts`, `svelte.config.js` y `tsconfig.json` (dónde nace el alias `$tests`).
+- `lib/shared/ui/StatusPill.test.ts`, `lib/features/planes/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
+  `lib/features/planes/planes.api.test.ts`.
+- `tests/supabase-falso.ts`, `tests/fixtures.ts` y `tests/pagina-falsa.svelte.ts`.
 
 **Ejercicio.**
 1. Ejecuta las tres comprobaciones y anota el resultado de cada una: archivos y pruebas de
-   `npm test`, `✓ built` de `npm run build` y los 12 errores de `npx svelte-check` (¿en qué tres
+   `npm test`, `✓ built` de `npm run build` y los 12 errores de `npm run check` (¿en qué tres
    archivos están?).
-2. Crea `apps/panel_svelte/src/shared/ui/Skeleton.test.ts`:
+2. Crea `apps/panel_svelte/src/lib/shared/ui/Skeleton.test.ts`:
 
    ```ts
    import { describe, expect, it } from 'vitest';
@@ -281,15 +300,16 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
    });
    ```
 
-3. Córrela con `npx vitest run src/shared/ui/Skeleton.test.ts`. Cambia `'h-24'` por `'h-25'` y mira
+3. Córrela con `npx vitest run src/lib/shared/ui/Skeleton.test.ts`. Cambia `'h-24'` por `'h-25'` y mira
    cómo falla. **Al terminar, borra el archivo**: es un ejercicio, no parte del repo.
-4. En `features/planes/PlanFormPage.test.ts`, localiza dónde se decide la respuesta de `miAgencia` y
-   qué `expect` comprueba lo que la página mandó a `crearPlan`.
+4. En `lib/features/planes/PlanFormPage.test.ts`, localiza dónde se decide la respuesta de `miAgencia`,
+   qué `expect` comprueba lo que la página mandó a `crearPlan` y cuál comprueba a dónde navegó (`goto`).
 
 **Ya lo entendí si…**
 - [ ] Dices qué tres comandos ejecutarías antes de dar un cambio por terminado y qué detecta cada uno.
 - [ ] Explicas por qué `fireEvent` se usa con `await`.
 - [ ] Dices cuándo usar `vi.mock('./planes.api', …)` y cuándo `supabase-falso`.
+- [ ] Explicas por qué `goto` y `$app/state` se mockean en las pruebas y qué hace `irA`.
 - [ ] Explicas por qué la primera vez que se reorganizó el panel el build falló con las pruebas en verde.
 - [ ] Sabes que «sin errores nuevos» en `svelte-check` significa «no más de 12».
 
@@ -311,7 +331,15 @@ Las rutas parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
 | **`.svelte.ts`** | Módulo donde los *runes* funcionan fuera de un componente | Un store o un Context |
 | **Funcionalidad (*feature*)** | Carpeta con las pantallas, componentes, lógica y datos de un tema | La carpeta `features/<f>/` de `apps/viajero` |
 | **`*.api.ts`** | Archivo que habla con Supabase para una funcionalidad | Un *service* / *repository* |
-| **Layout `sola` / `panel`** | Si la página se dibuja sin marco o dentro del `Shell` | Un layout de ruta |
+| **SvelteKit** | Framework sobre Svelte y Vite: rutas por carpetas, layouts, errores y build. Aquí, en modo estático | Next.js / Remix |
+| **`+page.svelte`** | La página de una carpeta de `src/routes`: define esa URL | Un componente de ruta (`pages/x.tsx`) |
+| **`+layout.svelte`** | Marco que envuelve a las páginas de su carpeta y de las de abajo; recibe `children` | Un layout de ruta con `<Outlet />` |
+| **Grupo de rutas `(panel)`** | Carpeta entre paréntesis: agrupa rutas bajo un layout sin aparecer en la URL | Los *route groups* de Next |
+| **Parámetro `[id]`, `[[id]]`, `[[doc=doc]]`** | Segmento dinámico obligatorio, opcional, u opcional validado por un *matcher* de `src/params/` | `:id`, `:id?` de React Router |
+| **`$lib`** | Alias de `src/lib`; `$tests` apunta a `tests/` | Un alias `@/` |
+| **`$app/navigation`, `$app/state`** | `goto` para navegar; `page` con la URL, los parámetros y el error actuales | `useNavigate`, `useLocation` |
+| **`adapter-static`** | Hace que `npm run build` deje solo archivos en `dist/` | `next export` |
+| **Router por hash** | La ruta va tras el `#` (`#/planes`): el hosting estático siempre sirve `/` | `HashRouter` |
 | **Guard** | Función que decide si una ruta exige sesión y a dónde mandar | El `redirect` de `go_router` |
 
 ---

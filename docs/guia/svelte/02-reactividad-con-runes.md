@@ -67,7 +67,7 @@ La contrapartida: las **reglas** de qué se lee y dónde importan (sección 7).
 ## 2. `$state`
 
 `$state(valor)` declara un dato reactivo. Es el `useState`, pero **sin setter**: lees y asignas la
-variable directamente. `apps/panel_svelte/src/features/planes/PlanFormPage.svelte`:
+variable directamente. `apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte`:
 
 ```svelte
   let d = $state<PlanDraft>(draftVacio());
@@ -80,7 +80,7 @@ variable directamente. `apps/panel_svelte/src/features/planes/PlanFormPage.svelt
 
 Si el valor es un objeto simple o un arreglo, Svelte lo envuelve en un `Proxy` y **cada propiedad
 anidada es reactiva**. Se muta directamente, sin copiar como en React (`setD({ ...d, titulo })`).
-`apps/panel_svelte/src/features/planes/components/plan-form/SeccionIncluye.svelte`:
+`apps/panel_svelte/src/lib/features/planes/components/plan-form/SeccionIncluye.svelte`:
 
 ```svelte
       d.incluye = lista;
@@ -110,7 +110,7 @@ proxies. Para el código del panel es transparente (`p.titulo`, `.map`, `.filter
 `$state` vale dentro de `.svelte` y de archivos `.svelte.ts` (sección 6). **No** se puede exportar
 un `$state` que se reasigna: el compilador lo rechaza con `state_invalid_export` («Cannot export
 state from a module if it is reassigned. Either export a function returning the state value or only
-mutate the state value's properties»). Por eso `router`, `auth` y `toast` son **objetos** que se
+mutate the state value's properties»). Por eso `auth` y `toast` son **objetos** que se
 mutan por propiedad.
 
 ---
@@ -132,7 +132,7 @@ Cuando el usuario escribe en un campo de la política, cambia una propiedad de `
 leyó esa propiedad, así que `erroresPolitica` se recalcula, y con él `politicaValida` y
 `textoVistaPrevia`. Nadie escribe un `setX` en cadena.
 
-Dos formas más del panel. En `apps/panel_svelte/src/shared/ui/Select.svelte` la etiqueta visible
+Dos formas más del panel. En `apps/panel_svelte/src/lib/shared/ui/Select.svelte` la etiqueta visible
 sale del `valor` actual y de la lista de opciones:
 
 ```svelte
@@ -140,7 +140,7 @@ sale del `valor` actual y de la lista de opciones:
 ```
 
 Y para lógica con varios `if`, `$derived.by(() => { … })`
-(`apps/panel_svelte/src/features/liquidaciones/LiquidacionesPage.svelte`):
+(`apps/panel_svelte/src/lib/features/liquidaciones/LiquidacionesPage.svelte`):
 
 ```svelte
   const anticipo = $derived.by(() => {
@@ -156,7 +156,7 @@ Y para lógica con varios `if`, `$derived.by(() => { … })`
 - Una derivada se **lee**, no se actualiza «a mano»; si necesitas cambiarla, cambia el dato del que
   sale.
 - La lógica no trivial de una derivada va en **funciones puras fuera del componente**:
-  `validarPolitica` y `textoPoliticaCompleto` viven en `apps/panel_svelte/src/features/planes/politica.ts`
+  `validarPolitica` y `textoPoliticaCompleto` viven en `apps/panel_svelte/src/lib/features/planes/politica.ts`
   y se prueban sin DOM (capítulo 4).
 
 ---
@@ -166,7 +166,7 @@ Y para lógica con varios `if`, `$derived.by(() => { … })`
 ### `$props`
 
 Las props se declaran **desestructurando `$props()`**, con su tipo y valores por defecto en la misma
-sentencia. `apps/panel_svelte/src/shared/ui/Select.svelte`:
+sentencia. `apps/panel_svelte/src/lib/shared/ui/Select.svelte`:
 
 ```svelte
   let {
@@ -231,34 +231,35 @@ declarado enlazable es la trampa 7.2.
 `$effect(() => { … })` ejecuta código **después de que el DOM se actualiza**, y lo vuelve a ejecutar
 cada vez que cambia algo que leyó **de forma síncrona** en su cuerpo. Es el `useEffect` con las
 dependencias automáticas. Si devuelve una función, se llama antes de volver a ejecutarse y al
-desmontar el componente. No corre en renderizado de servidor (aquí no aplica: el panel es una SPA).
+desmontar el componente. No corre en renderizado de servidor (aquí no aplica: con el router por hash SvelteKit no hace SSR, capítulo 3, sección 5).
 
 Los cuatro usos del panel:
 
-**1. Reaccionar a la sesión y la ruta** (`apps/panel_svelte/src/app/App.svelte`). Lee `auth.ready`,
-`router.path` y `auth.userId`; si hay que redirigir, navega:
+**1. Reaccionar a la sesión y la ruta** (`apps/panel_svelte/src/routes/+layout.svelte`). Lee
+`auth.ready`, `page.url` (vía `rutaActual`) y `auth.userId`; si hay que redirigir, navega:
 
 ```svelte
   $effect(() => {
     if (!auth.ready) return;
-    const destino = redireccionSesion(router.path, auth.userId);
-    if (destino) go(destino);
+    const destino = redireccionSesion(rutaActual(page.url), auth.userId);
+    if (destino) goto('#' + destino);
   });
 ```
 
 **2. Recargar al navegar, declarando una dependencia a propósito**
-(`apps/panel_svelte/src/app/Shell.svelte`). `void router.path;` no hace nada con el valor: solo
-**lo lee** para que el efecto se vuelva a ejecutar en cada cambio de ruta.
+(`apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`). `path` es un
+`$derived(rutaActual(page.url))`; `void path;` no hace nada con el valor: solo **lo lee** para que el
+efecto se vuelva a ejecutar en cada cambio de ruta.
 
 ```svelte
   $effect(() => {
     if (!auth.userId) return;
     // Se recarga al navegar para reflejar cambios de verificación sin F5.
-    void router.path;
+    void path;
     miAgencia()
 ```
 
-**3. Cargar datos al montar** (`apps/panel_svelte/src/features/planes/PlanesPage.svelte`):
+**3. Cargar datos al montar** (`apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte`):
 
 ```svelte
   $effect(() => {
@@ -272,7 +273,7 @@ el efecto pasaría a depender de `planes` y se repetiría. Solo cuenta lo que se
 `await`.
 
 **4. Cargar cuando cambia una prop** (`PlanFormPage.svelte`). Lee `planId` antes del `await`, así que
-si el padre pasa otro `planId`, el efecto vuelve a cargar:
+si el padre (la página de ruta, con `params.id`) pasa otro `planId`, el efecto vuelve a cargar:
 
 ```svelte
   $effect(() => {
@@ -292,7 +293,7 @@ correcto. Casos reales del panel donde **se evitó**:
 | Un valor que se calcula de otros (`erroresPolitica` desde `d`) | `$derived` | `PlanFormPage.svelte` |
 | Reaccionar a un clic o a un envío | El *handler* del evento | `alternarTema` en `Shell.svelte`, `guardar` en `PlanFormPage.svelte` |
 | Copiar un dato a otra variable «para mantenerla sincronizada» | `$derived`, o un solo dueño del dato (`bind:`) | `aviso = $derived(…)` en `Shell.svelte` |
-| Compartir estado entre pantallas | Un módulo `.svelte.ts` | `auth`, `router`, `toast` (sección 6) |
+| Compartir estado entre pantallas | Un módulo `.svelte.ts` | `auth`, `toast` y `page` de SvelteKit (sección 6) |
 
 Un efecto es para **sincronizar con algo de fuera de Svelte**: la red, el navegador, otra
 librería. Si tu efecto solo escribe en otros `$state` a partir de otros `$state`, casi seguro es un
@@ -314,21 +315,7 @@ En React compartirías `auth`, la ruta y los avisos con Context o un *store*. En
 **módulo** que exporta un objeto `$state`. Funciona porque los *runes* también se compilan en
 archivos cuyo nombre termina en **`.svelte.ts`** (o `.svelte.js`); en un `.ts` normal no.
 
-`apps/panel_svelte/src/shared/lib/router.svelte.ts`:
-
-```ts
-export const router = $state({ path: location.hash.slice(1) || '/' });
-
-addEventListener('hashchange', () => {
-  router.path = location.hash.slice(1) || '/';
-});
-
-export function go(path: string): void {
-  location.hash = '#' + path;
-}
-```
-
-`apps/panel_svelte/src/features/auth/auth.svelte.ts`:
+`apps/panel_svelte/src/lib/features/auth/auth.svelte.ts`:
 
 ```ts
 export const auth = $state({
@@ -341,7 +328,7 @@ supabase.auth.onAuthStateChange((_evento, sesion) => {
   auth.userId = sesion?.user?.id ?? null;
 ```
 
-`apps/panel_svelte/src/shared/lib/toast.svelte.ts`:
+`apps/panel_svelte/src/lib/shared/lib/toast.svelte.ts`:
 
 ```ts
 export const toast = $state({ mensaje: '' });
@@ -353,17 +340,38 @@ export function avisar(mensaje: string): void {
 
 Cómo se usan:
 
-- **Leer** es leer una propiedad: `router.path`, `auth.userId`, `toast.mensaje`. Dentro de una
-  plantilla, un `$derived` o un `$effect`, esa lectura queda registrada. `App.svelte` hace
-  `const ruta = $derived(resolverRuta(router.path));` y la pantalla cambia sola cuando cambia el hash.
-- **Escribir** es asignar la propiedad, normalmente desde una función del propio módulo (`go`,
-  `avisar`, el *callback* de `onAuthStateChange`). Así hay un solo lugar que cambia cada dato.
-- Se exporta un **objeto** y se muta por propiedad (no `export let path`), por la regla de la
+- **Leer** es leer una propiedad: `auth.userId`, `toast.mensaje`. Dentro de una plantilla, un
+  `$derived` o un `$effect`, esa lectura queda registrada: `Toast.svelte` pinta `{toast.mensaje}` y
+  aparece o desaparece solo.
+- **Escribir** es asignar la propiedad, normalmente desde una función del propio módulo (`avisar`,
+  el *callback* de `onAuthStateChange`). Así hay un solo lugar que cambia cada dato.
+- Se exporta un **objeto** y se muta por propiedad (no `export let userId`), por la regla de la
   sección 2.
-- El import lleva `.svelte` pero no `.ts`: `import { auth } from '@/features/auth/auth.svelte'`
+- El import lleva `.svelte` pero no `.ts`: `import { auth } from '$lib/features/auth/auth.svelte'`
   resuelve `auth.svelte.ts`.
-- Es un **singleton global**. En una SPA es lo que quieres; en las pruebas hay que reiniciarlo
-  (`router.path = '/'` en el `afterEach` de `Shell.test.ts`) o sustituirlo con `vi.mock` (capítulo 4).
+- Es un **singleton global**. En una SPA es lo que quieres; en las pruebas hay que sustituirlo con
+  `vi.mock` (capítulo 4) o reiniciarlo.
+
+### La ruta actual también es estado compartido: `page`
+
+Con el router por hash ya no hay un módulo del panel que guarde la ruta: la guarda **SvelteKit**, y la
+ofrece como `page` en `$app/state`. Es el mismo patrón, hecho por Kit. Por dentro
+(`node_modules/@sveltejs/kit/src/runtime/client/state.svelte.js`) es una clase cuyos campos son `$state.raw` (sección 2): `url`,
+`params`, `status`, `error`… Kit **reasigna** el valor entero en cada navegación (`page.url` pasa a ser
+otra `URL`), y por eso funciona sin proxies.
+
+```svelte
+  import { page } from '$app/state';
+  import { rutaActual } from '$lib/shared/lib/ruta';
+  // …
+  const path = $derived(rutaActual(page.url));
+```
+
+(`Shell.svelte`.) Cuando cambia el hash, `page.url` cambia, `path` se recalcula y todo lo que lo lea
+—el menú activo, los dos efectos— se entera solo. Reglas: se **lee** (no se asigna), y se lee dentro
+de una plantilla, un `$derived` o un `$effect`; si lo copias al nivel superior del script
+(`const url = page.url;`) tendrás la foto de ese momento (7.1). En las pruebas, `$app/state` se
+sustituye por un `page` falso que se mueve con `irA('/ruta')` (capítulo 4, sección 5).
 
 ---
 
@@ -395,8 +403,9 @@ https://svelte.dev/e/state_referenced_locally
 ```
 
 Aquí el aviso se acepta (hoy no se corrige): `cargando` solo debe empezar en `true` si se está
-editando un plan, y eso se decide al montar. Pero tiene una consecuencia: si `planId` cambiara con la misma instancia viva, `cargando` y `d` no se
-reiniciarían. Por eso `App.svelte` obliga a montar una instancia nueva por ruta (7.3).
+editando un plan, y eso se decide al montar. Pero tiene una consecuencia: si `planId` cambia con la instancia viva (de `#/planes/editar/a` a
+`#/planes/editar/b` la ruta es la misma), `cargando` no vuelve a `true` y solo el `$effect` recarga
+`d`. De `editar` a `nuevo` sí hay instancia nueva, porque cada ruta es la suya (7.3).
 
 Cómo distinguirlo:
 
@@ -452,66 +461,65 @@ Es la forma más fácil de provocarlo en el panel (sesión 4 del plan).
 En producción el aviso se reduce a una URL (`https://svelte.dev/e/ownership_invalid_mutation`), así
 que se ve en desarrollo y en `npm test`, no en la página publicada.
 
-### 7.3 Por qué `App` usa `{#key ruta.patron}`
+### 7.3 Por qué cada ruta es su propia instancia
 
-Es la trampa más instructiva del repo, y la documenta el registro de la tarea (L7).
+Es la trampa más instructiva del repo: nació con el router anterior, la documenta el registro de la
+tarea (L7) y hoy la resuelve SvelteKit con la estructura de carpetas.
 
 **El problema.** Svelte, igual que React, **reutiliza la instancia** de un componente cuando, en el
-mismo sitio de la plantilla, sigue siendo el mismo componente. `App.svelte` pinta `<Pagina
-{...ruta.props} />` con `Pagina` tomado de la tabla de rutas, y la tabla tiene dos entradas que
-apuntan a la **misma** página (`apps/panel_svelte/src/app/rutas.ts`):
+mismo sitio de la plantilla, sigue siendo el mismo componente. El router anterior tenía una tabla de
+rutas y un `App.svelte` que pintaba `<Pagina {...ruta.props} />`; la tabla tenía dos entradas que
+apuntaban a la **misma** página (código histórico, ya no está en el repo; se ve con
+`git show 90ba75b~1:apps/panel_svelte/src/app/rutas.ts`):
 
 ```ts
   { patron: '/planes/nuevo', componente: PlanForm, layout: 'panel', props: () => ({}) },
   { patron: '/planes/editar/:planId?', componente: PlanForm, layout: 'panel' },
 ```
 
-Pasar de `/planes/editar/p-1` a `/planes/nuevo` resuelve el **mismo** `PlanForm`, así que Svelte no
+Pasar de `/planes/editar/p-1` a `/planes/nuevo` resolvía el **mismo** `PlanForm`, así que Svelte no
 lo volvía a montar: el `<script>` no se ejecutaba de nuevo, y `d` seguía siendo el plan editado,
 **con su `id`**. Como `guardar` decide con `if (d.id == null)` entre crear y actualizar,
-«Nuevo plan» habría terminado **actualizando el plan anterior**. (Antes de la reorganización, `App.svelte`
-—en el commit `7c1c17a`— tenía una rama `{:else if}` distinta para cada una, `<PlanForm />` y
-`<PlanForm planId={seg[2]} />`; cambiar de rama destruye y recrea el componente, y por eso el
-problema no existía.)
+«Nuevo plan» habría terminado **actualizando el plan anterior**. Se arregló envolviendo la página en
+un `{#key ruta.patron}`, que destruye y recrea el bloque cuando cambia el patrón.
 
-**La solución.** `resolverRuta` devuelve también el `patron` que coincidió, y `App.svelte` envuelve
-la página en un `{#key}` sobre ese patrón:
+**Cómo está hoy.** Con SvelteKit no hace falta el `{#key}`: `planes/nuevo` y `planes/editar/[[id]]`
+son **dos archivos de ruta**, y Kit pinta cada nivel con *el componente de su ruta*. En el archivo
+que genera (`.svelte-kit/generated/root.svelte`, sin versionar) el nivel de la página es
+`<Pyramid_2 … />` con `Pyramid_2 = constructors[2]`. Los dos `+page.svelte` dibujan lo mismo, pero
+son componentes distintos, así que pasar de uno al otro destruye y monta: formulario nuevo, `d` nuevo
+(`draftVacio()`), `cargando` recalculado.
 
-```svelte
-    {#key ruta.patron}
-      <Pagina {...ruta.props} />
-    {/key}
+```
+#/planes/editar/p-1 ──► (panel)/planes/editar/[[id]]/+page.svelte  ─┐
+                                                                      ├─ PlanFormPage (instancias distintas)
+#/planes/nuevo      ──► (panel)/planes/nuevo/+page.svelte         ─┘
 ```
 
-Cuando el patrón cambia, el bloque se destruye y se vuelve a crear: instancia nueva, `d` nuevo
-(`draftVacio()`), `cargando` recalculado. Pruebas en `apps/panel_svelte/src/app/rutas.test.ts`:
-
-```ts
-  it('nuevo y editar usan PlanForm con patrones distintos (App los separa con {#key})', () => {
-    expect(resolverConPatron('/planes/nuevo').patron).toBe('/planes/nuevo');
-    expect(resolverConPatron('/planes/editar/p-1').patron).toBe('/planes/editar/:planId?');
-  });
-```
-
-**¿Por qué el patrón y no el path completo?** Porque dentro de una misma ruta
-(`/planes/editar/a` → `/planes/editar/b`) el patrón no cambia: se conserva la instancia y solo
-cambian las props, y el `$effect` de `PlanFormPage` (sección 5, uso 4) recarga el plan. La prueba
-siguiente lo fija:
-
-```ts
-  it('dentro de la misma ruta el patrón no cambia: solo cambian las props', () => {
-    expect(resolverConPatron('/planes/editar/a').patron).toBe(resolverConPatron('/planes/editar/b').patron);
-  });
-```
+**Dentro de una misma ruta, la instancia se conserva.** De `#/planes/editar/a` a
+`#/planes/editar/b` el archivo es el mismo: Kit actualiza `page.params`, el `+page.svelte` recibe
+`params.id` nuevo, `PlanFormPage` recibe otro `planId` y su `$effect` (sección 5, uso 4) recarga el
+plan. Eso es lo que se quiere cuando solo cambia el parámetro.
 
 **La lección general:** en Svelte (como en React), «misma posición + mismo componente» = misma
-instancia. Si una pantalla guarda estado inicial al montar, tienes que reiniciarla a mano con
-`{#key}` (React: `key`).
+instancia. Si una pantalla guarda estado inicial al montar, hay que reiniciarla a mano con `{#key}`
+(React: `key`) o, como aquí, dar a cada caso su propio archivo de ruta.
 
-> **Una pregunta abierta para la sesión 4.** El `$effect` de `PlanFormPage` no tiene función de
-> limpieza. Si pasas de `/planes/editar/a` a `/planes/editar/b` antes de que responda la primera
-> carga, ¿qué impide que la respuesta tardía de `a` pise a `b`? Hoy no hay protección explícita;
-> piensa cómo sería (pista: la función que devuelve un `$effect`).
+> **Un detalle de SvelteKit que cambia cómo reproducir esto.** Si cambias el hash **a mano en la
+> barra de direcciones**, Kit recarga la página entera a propósito (capítulo 3, sección 7), así que
+> no sirve para probar este tipo de trampa: el estado se pierde por la recarga. Hay que navegar con
+> un enlace o con `goto`. La sesión 4 del plan lo trabaja.
+
+> **Dos preguntas abiertas para la sesión 4.**
+> 1. El `$effect` de `PlanFormPage` no tiene función de limpieza. Si pasas de `/planes/editar/a` a
+>    `/planes/editar/b` antes de que responda la primera carga, ¿qué impide que la respuesta tardía de
+>    `a` pise a `b`? Hoy no hay protección explícita; piensa cómo sería (pista: la función que
+>    devuelve un `$effect`).
+> 2. `editar/[[id]]` también atiende `#/planes/editar` **sin** id, que es la misma ruta que
+>    `#/planes/editar/a`. Por la lectura del código (no lo he ejecutado), al pasar de una a otra con la
+>    instancia viva `planId` pasa a `undefined`, el efecto sale temprano y `d` conserva el plan de
+>    antes, con su `id`. ¿Qué cambio de una línea en `routes/(panel)/planes/editar/[[id]]/+page.svelte`
+>    reiniciaría la instancia? (Pista: la sección 5 del capítulo 1.)
 
 ---
 
@@ -526,9 +534,10 @@ instancia. Si una pantalla guarda estado inicial al montar, tienes que reiniciar
 | Recibir props | `let { a, b = 1 } = $props()` | `Select.svelte` |
 | Que el hijo edite una prop | `$bindable()` + `bind:` | `SeccionIncluye.svelte` |
 | Que el hijo avise | Prop-callback `on…` | `onactualizado`, `onelegir` |
-| Sincronizar con el exterior | `$effect(fn)` | `App.svelte`, `Shell.svelte` |
-| Compartir entre pantallas | Objeto `$state` exportado de `*.svelte.ts` | `auth`, `router`, `toast` |
-| Reiniciar un componente | `{#key expr}` | `App.svelte` |
+| Sincronizar con el exterior | `$effect(fn)` | `routes/+layout.svelte`, `Shell.svelte` |
+| Compartir entre pantallas | Objeto `$state` exportado de `*.svelte.ts` | `auth`, `toast` |
+| Saber en qué ruta estoy | `page` de `$app/state` | `rutaActual(page.url)` en `Shell.svelte` |
+| Reiniciar un componente | `{#key expr}` | (hoy no se usa: cada ruta es su archivo, 7.3) |
 
 ---
 
