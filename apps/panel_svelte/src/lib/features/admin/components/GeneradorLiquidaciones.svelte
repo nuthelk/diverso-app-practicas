@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fechaTexto } from '$lib/shared/lib/format';
-  import { rangoSemana, semanaTerminada } from '$lib/features/liquidaciones/liquidaciones';
+  import { rangoSemana, semanaTerminada } from '$lib/features/liquidaciones/model/liquidaciones';
 
   let {
     semana = $bindable(),

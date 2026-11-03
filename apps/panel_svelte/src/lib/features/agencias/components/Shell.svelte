@@ -3,12 +3,12 @@
   import Logo from '$lib/shared/ui/Logo.svelte';
   import Avatar from '$lib/shared/ui/Avatar.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
-  import { auth, signOut } from '$lib/features/auth/auth.svelte';
+  import { auth, signOut } from '$lib/features/auth/model/auth.svelte';
   import { page } from '$app/state';
   import { rutaActual } from '$lib/shared/lib/ruta';
-  import { miAgencia } from '../agencias.api';
-  import { avisoVerificacion } from '../verificacion';
-  import { estadoVigencia, type Agency } from '../agencia';
+  import { miAgencia } from '../api/agencias.api';
+  import { avisoVerificacion } from '../model/verificacion';
+  import { estadoVigencia, type Agency } from '../model/agencia';
 
   let { children }: { children: Snippet } = $props();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { PlanDraft } from '../../plan';
-  import type { ErroresPolitica } from '../../politica';
+  import type { PlanDraft } from '../../model/plan';
+  import type { ErroresPolitica } from '../../model/politica';
   import FotosPlan from './FotosPlan.svelte';
   import PoliticaCancelacion from './PoliticaCancelacion.svelte';
   import Seccion from './Seccion.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Pagina from '$lib/features/agencias/OnboardingPage.svelte';
+  import Pagina from '$lib/features/agencias/pages/OnboardingPage.svelte';
 </script>
 
 <Pagina />

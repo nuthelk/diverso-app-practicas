@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { VerificationLog } from '$lib/features/agencias/agencia';
+  import type { VerificationLog } from '$lib/features/agencias/model/agencia';
 
   let { historial }: { historial: VerificationLog[] } = $props();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Logo from '$lib/shared/ui/Logo.svelte';
-  import { auth, signOut } from '$lib/features/auth/auth.svelte';
+  import { auth, signOut } from '$lib/features/auth/model/auth.svelte';
 
   let { href, texto }: { href: string; texto: string } = $props();
 </script>

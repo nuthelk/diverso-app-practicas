@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cop, fechaCorta } from '$lib/shared/lib/format';
-  import { etiquetaTipoItem, type LiquidacionItem } from '../liquidaciones';
+  import { etiquetaTipoItem, type LiquidacionItem } from '../model/liquidaciones';
 
   let { items }: { items: LiquidacionItem[] } = $props();
 </script>

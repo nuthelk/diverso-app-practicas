@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agregarFoto } from '../../plan';
+  import { agregarFoto } from '../../model/plan';
 
   /** Fotos del plan como URLs: chips con las ya cargadas y un campo para sumar otra. */
   let { fotos = $bindable() }: { fotos: string[] } = $props();

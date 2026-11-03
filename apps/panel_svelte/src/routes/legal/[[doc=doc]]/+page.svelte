@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageProps } from './$types';
-  import Pagina from '$lib/features/legal/LegalPage.svelte';
+  import Pagina from '$lib/features/legal/pages/LegalPage.svelte';
 
   let { params }: PageProps = $props();
 </script>

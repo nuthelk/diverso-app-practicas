@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { textoCuenta, type CuentaResumen } from '$lib/features/liquidaciones/liquidaciones';
-  import type { Agency } from '$lib/features/agencias/agencia';
+  import { textoCuenta, type CuentaResumen } from '$lib/features/liquidaciones/model/liquidaciones';
+  import type { Agency } from '$lib/features/agencias/model/agencia';
 
   let {
     agencias,

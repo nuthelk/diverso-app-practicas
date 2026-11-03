@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FiltroLiquidaciones } from '$lib/features/liquidaciones/liquidaciones';
+  import type { FiltroLiquidaciones } from '$lib/features/liquidaciones/model/liquidaciones';
 
   let {
     filtro,

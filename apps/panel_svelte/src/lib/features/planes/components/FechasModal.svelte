@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { agregarFecha, eliminarFecha } from '../planes.api';
+  import { agregarFecha, eliminarFecha } from '../api/planes.api';
 import { mensajeError } from '$lib/shared/api/errores';
   import { fechaCorta, hoyISO } from '$lib/shared/lib/format';
-  import type { Plan } from '../plan';
+  import type { Plan } from '../model/plan';
   import { avisar } from '$lib/shared/lib/toast.svelte';
 
   let { plan, oncerrar }: { plan: Plan; oncerrar: () => void } = $props();

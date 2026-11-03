@@ -2,9 +2,9 @@
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import Avatar from '$lib/shared/ui/Avatar.svelte';
   import { fechaTexto } from '$lib/shared/lib/format';
-  import type { Agency, VerificationLog } from '$lib/features/agencias/agencia';
-  import { textoVigencia } from '$lib/features/agencias/verificacion';
-  import type { TipoAccion } from '../admin';
+  import type { Agency, VerificationLog } from '$lib/features/agencias/model/agencia';
+  import { textoVigencia } from '$lib/features/agencias/model/verificacion';
+  import type { TipoAccion } from '../model/admin';
   import FormularioAccionAgencia from './FormularioAccionAgencia.svelte';
   import HistorialAgencia from './HistorialAgencia.svelte';
 

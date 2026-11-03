@@ -3,8 +3,8 @@
   import '../app.css';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
-  import { auth } from '$lib/features/auth/auth.svelte';
-  import { redireccionSesion } from '$lib/features/auth/sesion';
+  import { auth } from '$lib/features/auth/model/auth.svelte';
+  import { redireccionSesion } from '$lib/features/auth/model/sesion';
   import { rutaActual } from '$lib/shared/lib/ruta';
   import Toast from '$lib/shared/ui/Toast.svelte';
 

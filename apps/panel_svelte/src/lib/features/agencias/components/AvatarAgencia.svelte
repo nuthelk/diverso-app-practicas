@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { colorDeAgencia, inicialesAgencia } from '../logo';
-  import type { Agency } from '../agencia';
+  import { colorDeAgencia, inicialesAgencia } from '../model/logo';
+  import type { Agency } from '../model/agencia';
 
   let {
     agencia,

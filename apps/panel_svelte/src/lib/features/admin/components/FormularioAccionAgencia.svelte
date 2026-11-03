@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Agency } from '$lib/features/agencias/agencia';
-  import type { TipoAccion } from '../admin';
+  import type { Agency } from '$lib/features/agencias/model/agencia';
+  import type { TipoAccion } from '../model/admin';
 
   let {
     agencia,

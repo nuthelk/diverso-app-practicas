@@ -1,7 +1,7 @@
 <script lang="ts">
   import Select from '$lib/shared/ui/Select.svelte';
-  import { CATEGORIAS, type CategoriaValor, type PlanDraft } from '../../plan';
-  import { componerDuracion, opcionesUnidad, type Unidad } from '../../duracion';
+  import { CATEGORIAS, type CategoriaValor, type PlanDraft } from '../../model/plan';
+  import { componerDuracion, opcionesUnidad, type Unidad } from '../../model/duracion';
   import Seccion from './Seccion.svelte';
 
   /** Título, destino, categoría, precio y duración (cantidad + unidad → `duracionTexto`). */

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { PlanDraft } from '../../plan';
-  import type { ErroresPolitica } from '../../politica';
+  import type { PlanDraft } from '../../model/plan';
+  import type { ErroresPolitica } from '../../model/politica';
 
   /** Horas y porcentajes de la política, sus errores (solo tras intentar guardar) y el texto que leerá el viajero. */
   let {

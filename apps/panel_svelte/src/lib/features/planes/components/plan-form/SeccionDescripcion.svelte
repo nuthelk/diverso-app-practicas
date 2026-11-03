@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PlanDraft } from '../../plan';
+  import type { PlanDraft } from '../../model/plan';
   import Seccion from './Seccion.svelte';
 
   let { d = $bindable() }: { d: PlanDraft } = $props();

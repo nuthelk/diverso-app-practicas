@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { agregarIncluye, type PlanDraft } from '../../plan';
+  import { agregarIncluye, type PlanDraft } from '../../model/plan';
   import Seccion from './Seccion.svelte';
 
   /** Interruptores de transporte/comida/hospedaje y la lista de ítems extra que incluye el plan. */

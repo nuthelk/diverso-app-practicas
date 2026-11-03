@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { AVISO_PRUEBA } from '../liquidaciones';
+  import { AVISO_PRUEBA } from '../model/liquidaciones';
 
   let { children }: { children?: Snippet } = $props();
 </script>

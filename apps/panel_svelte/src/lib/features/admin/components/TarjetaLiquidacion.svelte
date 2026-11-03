@@ -12,7 +12,7 @@
     type CuentaResumen,
     type Liquidacion,
     type LiquidacionItem,
-  } from '$lib/features/liquidaciones/liquidaciones';
+  } from '$lib/features/liquidaciones/model/liquidaciones';
 
   let {
     liquidacion: l,

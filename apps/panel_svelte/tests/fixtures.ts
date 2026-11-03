@@ -1,7 +1,7 @@
-import type { Agency } from '$lib/features/agencias/agencia';
-import type { Plan, PlanDate } from '$lib/features/planes/plan';
-import type { VentaRow } from '$lib/features/ventas/ventas';
-import type { CuentaResumen, Liquidacion, LiquidacionItem } from '$lib/features/liquidaciones/liquidaciones';
+import type { Agency } from '$lib/features/agencias/model/agencia';
+import type { Plan, PlanDate } from '$lib/features/planes/model/plan';
+import type { VentaRow } from '$lib/features/ventas/model/ventas';
+import type { CuentaResumen, Liquidacion, LiquidacionItem } from '$lib/features/liquidaciones/model/liquidaciones';
 
 /** Texto visible normalizado (espacios, saltos de línea y NBSP → un espacio). */
 export function texto(el: Element | null): string {

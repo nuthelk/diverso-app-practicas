@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FiltroAgencias } from '$lib/features/agencias/verificacion';
+  import type { FiltroAgencias } from '$lib/features/agencias/model/verificacion';
 
   let {
     filtro,

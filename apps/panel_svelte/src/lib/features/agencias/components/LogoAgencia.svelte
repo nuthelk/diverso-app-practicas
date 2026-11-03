@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { subirLogo, quitarLogo } from '../agencias.api';
+  import { subirLogo, quitarLogo } from '../api/agencias.api';
 import { mensajeError } from '$lib/shared/api/errores';
   import AvatarAgencia from './AvatarAgencia.svelte';
-  import { validarLogo } from '../logo';
+  import { validarLogo } from '../model/logo';
   import { avisar } from '$lib/shared/lib/toast.svelte';
-  import type { Agency } from '../agencia';
+  import type { Agency } from '../model/agencia';
 
   let {
     agencia,
