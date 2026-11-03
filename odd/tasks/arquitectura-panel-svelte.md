@@ -19,10 +19,10 @@ Rama `refactor/arquitectura-panel-svelte` en el worktree `.worktrees/panel-svelt
 - T4 [x] Partir PlanForm en subcomponentes — S3 — worker — commit: 36baad3
 - T5 [x] Partir Admin y AdminDispersiones en subcomponentes — S3 — worker — commit: d474a0c
 - T6 [x] Guía `docs/guia/svelte/` + README de la guía y del repo — S5 — worker — commit: fea2991 (y 38760b8: `oncerrar`)
-- T7 [ ] Verificación final: 414+ tests, build, svelte-check sin errores nuevos — S3 — inline — commit: —
-- T8 [ ] Migrar a SvelteKit estático con router por hash (S6): deps, config, `routes/`, `lib/`, `static/`, `app.html`, params, hooks.client, tests — S3, S6 — worker — commit: pendiente
-- T9 [ ] Guía y README al día con SvelteKit — S5, S6 — worker — commit: pendiente
-- T10 [ ] Verificación independiente (riesgo ítem 5: dependencias y build) — S3, S6 — gentle-ai-verify — commit: —
+- T7 [x] Verificación final: tests, build, svelte-check sin errores nuevos — S3 — inline — commit: — (512 tests / 34 archivos, build OK, check 12 = base)
+- T8 [x] Migrar a SvelteKit estático con router por hash (S6): deps, config, `routes/`, `lib/`, `static/`, `app.html`, params, hooks.client, tests — S3, S6 — worker — commit: 90ba75b (+ 67ad853 script de íconos, 94808a5 tests de regresión)
+- T9 [x] Guía y README al día con SvelteKit — S5, S6 — worker — commit: f1cc3cd, c5aa959
+- T10 [x] Verificación independiente (riesgo ítem 5: dependencias y build) — S3, S6 — gentle-ai-verify — commit: — (PASS en las 6 comprobaciones, sin bloqueos)
 
 ## Log
 
@@ -58,3 +58,5 @@ mi-app/
 
 me gusta que lo hagamos asi»
 - L9 (parent): el usuario miraba la carpeta principal; el trabajo vive en el worktree. Explicado que ese árbol es SvelteKit (otro framework), que `hooks.server.ts` y `$lib/server` no aplican (sin servidor: estático + Supabase desde el navegador con RLS) y que las URLs `#/` existen porque el hosting estático no devuelve index.html en otras rutas. Cuestionario → «SvelteKit estático, URLs #/ (Recomendado)». Riesgo ítem 5 (dependencias nuevas y build) → verificación independiente (T10).
+- L10 (worker T8 + verify T10): Kit 3.x exige vite 8 → se usa Kit 2.70.3 + adapter-static 3.0.10 (peers OK). Con `router.type: 'hash'`: `goto` recibe `'#/ruta'` (`goto('/ruta')` es navegación nativa → 404 en el estático), la ruta vive en `page.url.hash` (`rutaActual`), y el build rechaza `ssr`/`prerender`, así que no hay `+layout.ts` (desvío forzado de S6). `legal/[[doc=doc]]` en vez de `[doc=doc]` para que `/legal` siga dibujando LegalPage. Shell vive en `features/agencias/components` (shared no importa features). Diferencias aceptadas: sin coincidencia por prefijo, error sin Shell, `/` → `/starter`, documento legal desconocido → error; editar el hash a mano recarga la página (comportamiento de Kit). Verificación independiente: rutas equivalentes, guard byte a byte igual, sin código de servidor, 488/32 → con los tests de regresión propuestos, 512/34.
+- L11 (pendiente fuera de alcance): al pasar de `/planes/editar/a` a `/planes/editar` sin id el borrador conserva el plan anterior (ya pasaba con el router viejo). `npm audit` no se corrió (sin red); `cookie<0.7` llega con Kit y solo lo usa el servidor de Kit, que este build no usa.
