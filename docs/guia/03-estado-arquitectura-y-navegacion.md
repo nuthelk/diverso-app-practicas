@@ -207,7 +207,8 @@ en vez de escribir el campo (`mostrarAviso` en `bookings/acciones_reserva.dart`)
 
 `CatalogViewModel`, `PlanDetailViewModel`, `BookingsViewModel`, `ReservaDetalleViewModel`,
 `ReviewViewModel`, `ProfileViewModel`, `LoginViewModel`, `CheckoutViewModel`,
-`CheckoutPlanViewModel`, `ReservaViewModel` y `PagoResultadoViewModel` siguen esa forma: todo el
+`CheckoutPlanViewModel`, `ReservaViewModel`, `PagoResultadoViewModel`, `AgenciasViewModel` y
+`AgenciaViewModel` siguen esa forma: todo el
 estado es privado (`_planes`, `_cargando`, `_error`…) y la vista solo ve getters de solo lectura; para cambiar algo llama a un
 **comando** (`toggleCategoria`, `aplicarFiltros`, `seleccionarFecha`…). Un comando que cambia
 varios filtros a la vez los fija todos y consulta **una sola vez**: `aplicarFiltros(destino:,
@@ -235,10 +236,11 @@ el `BuildContext`) recibe esa acción como argumento y pide un **resultado expl�
 `cerrado` (el viajero lo cerró sin pagar: el view model deja el aviso) o `redirigido` (en web la
 misma ventana ya navega a Wompi: termina «Procesando…» y nadie espera nada más).
 
-> **Excepción conocida.** Los view models de agencias (`AgenciasViewModel`, `AgenciaViewModel`)
-> todavía exponen algunos campos como **públicos** (`cargando`, `error`, `orden`…): la vista
-> podría escribirlos. Los demás view models de la app usan estado privado con getters de solo
-> lectura; al tocar las agencias, conviértelos igual.
+Esto vale para **todos** los view models de la app, sin excepciones:
+`AgenciasViewModel` (`agencies/view_models/agencias_view_model.dart`: `cargar`, `cambiarOrden`) y
+`AgenciaViewModel` (`agencies/view_models/agencia_view_model.dart`: `cargar`) también guardan
+`_cargando`, `_error`, `_orden`… privados y los exponen con getters. Ninguna clase de
+`ui/features/*/view_models/` tiene un campo público que no sea `final`.
 
 ## 4. `ListenableBuilder`: suscribirse y repintar
 
@@ -444,7 +446,7 @@ están declaradas en un solo árbol de `GoRoute`.
 | `?id=…` (search params) | `state.uri.queryParameters['id']` | ruta `/pago/resultado` |
 | `router.push('/x')` | `context.push(AppRoutes.plan(id))` | `plan_card.dart` |
 | `router.replace` / navegar | `context.go('/x')` | `bookings_view.dart` |
-| `router.back()` | `context.pop()` | `agencia_view.dart` |
+| `router.back()` | `context.pop()` | `agencies/widgets/aviso_agencia.dart` |
 | parámetros-objeto (`params`) | `state.extra` (solo como atajo) | `/resena/:bookingId`, `/comparar?ids=…` |
 | `(tabs)/_layout.tsx` | `StatefulShellRoute.indexedStack` | `app_router.dart` |
 | `<Tabs>` con su barra | el widget `AppShell` | `ui/shell/app_shell.dart` |

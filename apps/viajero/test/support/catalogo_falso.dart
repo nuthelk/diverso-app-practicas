@@ -2,19 +2,25 @@ import 'dart:async';
 
 import 'package:diverso_core/diverso_core.dart';
 
-/// [CatalogRepository] sin Supabase para pruebas de view models y vistas del catálogo y la ficha.
+/// [CatalogRepository] sin Supabase para pruebas de view models y vistas del catálogo, la ficha y
+/// las agencias.
 class CatalogoFalso implements CatalogRepository {
   CatalogoFalso({
     this.planes = const [],
     this.destinosDisponibles = const [],
     Map<String, Plan> detalles = const {},
-  }) : detalles = {...detalles};
+    this.agenciasPublicas = const [],
+    Map<String, List<Plan>> planesPorAgencia = const {},
+  }) : detalles = {...detalles},
+       planesPorAgencia = {...planesPorAgencia};
 
   List<Plan> planes;
   List<String> destinosDisponibles;
   final Map<String, Plan> detalles;
+  List<AgenciaResumen> agenciasPublicas;
+  final Map<String, List<Plan>> planesPorAgencia;
 
-  /// Si no es null, `search`, `destinos` y `planDetalle` lo lanzan.
+  /// Si no es null, `search`, `destinos`, `planDetalle`, `agencias` y `agenciaConPlanes` lo lanzan.
   Object? fallo;
 
   /// Si no es null, las consultas esperan a que se complete (para probar respuestas tardías).
@@ -24,6 +30,8 @@ class CatalogoFalso implements CatalogRepository {
   final busquedas = <FiltrosCatalogo>[];
   int consultasDestinos = 0;
   final detallesPedidos = <String>[];
+  int consultasAgencias = 0;
+  final agenciasPedidas = <String>[];
 
   Future<void> _esperar() async {
     await compuerta?.future;
@@ -49,6 +57,24 @@ class CatalogoFalso implements CatalogRepository {
     detallesPedidos.add(planId);
     await _esperar();
     return detalles[planId]!;
+  }
+
+  @override
+  Future<List<AgenciaResumen>> agencias() async {
+    consultasAgencias++;
+    await _esperar();
+    return agenciasPublicas;
+  }
+
+  /// Null si la agencia no está en [agenciasPublicas] (no existe o no está habilitada).
+  @override
+  Future<({AgenciaResumen agencia, List<Plan> planes})?> agenciaConPlanes(String agencyId) async {
+    agenciasPedidas.add(agencyId);
+    await _esperar();
+    for (final a in agenciasPublicas) {
+      if (a.id == agencyId) return (agencia: a, planes: planesPorAgencia[agencyId] ?? const []);
+    }
+    return null;
   }
 
   @override

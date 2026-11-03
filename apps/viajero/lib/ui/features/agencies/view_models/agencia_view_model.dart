@@ -1,40 +1,68 @@
+import 'dart:collection';
+
 import 'package:diverso_core/diverso_core.dart';
 import 'package:flutter/foundation.dart';
 
-/// ViewModel de la página de una agencia: su resumen público y sus planes publicados.
+/// ViewModel de la página de una agencia: su resumen público y sus planes publicados. La vista lo
+/// escucha con [ListenableBuilder].
 class AgenciaViewModel extends ChangeNotifier {
-  AgenciaViewModel({required CatalogRepository catalogo, required this.agencyId})
-    : _catalogo = catalogo;
+  AgenciaViewModel({required CatalogRepository catalogo, required String agencyId})
+    : _catalogo = catalogo,
+      _agencyId = agencyId;
 
   final CatalogRepository _catalogo;
-  final String agencyId;
+  final String _agencyId;
+  bool _desechado = false;
 
-  AgenciaResumen? agencia;
-  List<Plan> planes = const [];
-  bool cargando = true;
+  AgenciaResumen? _agencia;
+  List<Plan> _planes = const [];
+  bool _cargando = true;
+  bool _noEncontrada = false;
+  String? _error;
+  String? _errorDetalle;
+
+  /// Null mientras se carga, si la carga falló o si la agencia no existe.
+  AgenciaResumen? get agencia => _agencia;
+  List<Plan> get planes => _planes;
+  bool get cargando => _cargando;
 
   /// La agencia no existe o no está habilitada (no se distingue a propósito).
-  bool noEncontrada = false;
-  String? error;
-  String? errorDetalle;
+  bool get noEncontrada => _noEncontrada;
+
+  /// Mensaje para el usuario si la última carga falló.
+  String? get error => _error;
+
+  /// Detalle técnico del último error (para soporte).
+  String? get errorDetalle => _errorDetalle;
 
   Future<void> cargar() async {
-    cargando = true;
-    error = null;
-    errorDetalle = null;
-    notifyListeners();
+    _cargando = true;
+    _error = null;
+    _errorDetalle = null;
+    _notificar();
     try {
-      final r = await _catalogo.agenciaConPlanes(agencyId);
-      noEncontrada = r == null;
-      agencia = r?.agencia;
-      planes = r?.planes ?? const [];
+      final r = await _catalogo.agenciaConPlanes(_agencyId);
+      _noEncontrada = r == null;
+      _agencia = r?.agencia;
+      _planes = UnmodifiableListView(r?.planes ?? const []);
     } on Object catch (e) {
       debugPrint('AgenciaViewModel.cargar: $e');
-      error = 'No pudimos cargar la agencia. Revisa tu conexión e intenta de nuevo.';
-      errorDetalle = e.toString();
+      _error = 'No pudimos cargar la agencia. Revisa tu conexión e intenta de nuevo.';
+      _errorDetalle = e.toString();
     } finally {
-      cargando = false;
-      notifyListeners();
+      _cargando = false;
+      _notificar();
     }
+  }
+
+  /// Una carga puede terminar cuando la pantalla ya se cerró: ahí no hay nadie a quien avisar.
+  void _notificar() {
+    if (!_desechado) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _desechado = true;
+    super.dispose();
   }
 }

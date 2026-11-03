@@ -22,7 +22,7 @@ class AgenciasView extends StatefulWidget {
 }
 
 class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClientMixin {
-  late final AgenciasViewModel _controller;
+  late final AgenciasViewModel _viewModel;
 
   @override
   bool get wantKeepAlive => true;
@@ -30,12 +30,12 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
-    _controller = AgenciasViewModel(catalogo: context.read<CatalogRepository>())..cargar();
+    _viewModel = AgenciasViewModel(catalogo: context.read<CatalogRepository>())..cargar();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _viewModel.dispose();
     super.dispose();
   }
 
@@ -47,43 +47,43 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
     return Scaffold(
       appBar: AppBar(title: const TituloPagina('Agencias')),
       body: ListenableBuilder(
-        listenable: _controller,
+        listenable: _viewModel,
         builder: (context, _) {
-          final c = _controller;
+          final vm = _viewModel;
           return RefreshIndicator(
-            onRefresh: c.cargar,
+            onRefresh: vm.cargar,
             child: CustomScrollView(
               // Permite el gesto de recargar aunque la lista sea corta o esté vacía.
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                if (c.hayAgencias || c.cargando)
+                if (vm.hayAgencias || vm.cargando)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                      child: _SelectorOrden(orden: c.orden, onChanged: c.cambiarOrden),
+                      child: _SelectorOrden(orden: vm.orden, onChanged: vm.cambiarOrden),
                     ),
                   ),
-                if (c.cargando && !c.hayAgencias)
+                if (vm.cargando && !vm.hayAgencias)
                   const SliverPadding(
                     padding: AppInsets.lista,
                     sliver: SliverToBoxAdapter(child: _Esqueletos()),
                   )
-                else if (c.error != null && !c.hayAgencias)
+                else if (vm.error != null && !vm.hayAgencias)
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
                       icono: Icons.cloud_off_rounded,
                       titulo: 'Sin conexión',
-                      mensaje: c.error!,
-                      detalle: c.errorDetalle,
+                      mensaje: vm.error!,
+                      detalle: vm.errorDetalle,
                       accion: FilledButton.tonalIcon(
-                        onPressed: c.cargar,
+                        onPressed: vm.cargar,
                         icon: const Icon(Icons.refresh_rounded),
                         label: const Text('Reintentar'),
                       ),
                     ),
                   )
-                else if (!c.hayAgencias)
+                else if (!vm.hayAgencias)
                   const SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState(
@@ -96,24 +96,24 @@ class _AgenciasViewState extends State<AgenciasView> with AutomaticKeepAliveClie
                   SliverPadding(
                     padding: AppInsets.lista,
                     sliver: SliverGrid.builder(
-                      itemCount: c.agencias.length,
+                      itemCount: vm.agencias.length,
                       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: 430,
                         mainAxisSpacing: 14,
                         crossAxisSpacing: 14,
                         childAspectRatio: 1.7,
                       ),
-                      itemBuilder: (context, i) => AgenciaCard(agencia: c.agencias[i]),
+                      itemBuilder: (context, i) => AgenciaCard(agencia: vm.agencias[i]),
                     ),
                   )
                 else
                   SliverPadding(
                     padding: AppInsets.lista,
                     sliver: SliverList.builder(
-                      itemCount: c.agencias.length,
+                      itemCount: vm.agencias.length,
                       itemBuilder: (context, i) => Padding(
                         padding: AppInsets.entreTarjetas,
-                        child: AgenciaCard(agencia: c.agencias[i]),
+                        child: AgenciaCard(agencia: vm.agencias[i]),
                       ),
                     ),
                   ),
