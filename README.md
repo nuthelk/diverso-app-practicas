@@ -49,8 +49,9 @@ tools/iconos          → generador de los íconos de la app y de las webs (Pill
 - **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
   aprendizaje y capítulos para quien viene de React Native y TypeScript). **Guía del panel y de
   Svelte 5:** [`docs/guia/svelte/`](docs/guia/svelte/README.md) (Svelte desde React, runes,
-  SvelteKit estático con rutas por carpetas y la arquitectura por funcionalidad de
-  `apps/panel_svelte`).
+  SvelteKit estático con rutas por carpetas, la arquitectura por funcionalidad de
+  `apps/panel_svelte` —cada una con `pages/`, `components/`, `api/` y `model/`— y sus pruebas en
+  `tests/unit/`).
 - **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
   `BookingApi`, `CatalogApi`, `AgencyApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
   y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
@@ -162,7 +163,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - **Ley 1581 de 2012:** autorización expresa (casillas no marcadas) en el registro
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
-  piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/features/legal/legal.ts` y
+  piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/features/legal/model/legal.ts` y
   `packages/diverso_core/lib/legal/documento_legal.dart` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias

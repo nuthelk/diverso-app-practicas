@@ -67,7 +67,7 @@ La contrapartida: las **reglas** de qué se lee y dónde importan (sección 7).
 ## 2. `$state`
 
 `$state(valor)` declara un dato reactivo. Es el `useState`, pero **sin setter**: lees y asignas la
-variable directamente. `apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte`:
+variable directamente. `apps/panel_svelte/src/lib/features/planes/pages/PlanFormPage.svelte`:
 
 ```svelte
   let d = $state<PlanDraft>(draftVacio());
@@ -140,7 +140,7 @@ sale del `valor` actual y de la lista de opciones:
 ```
 
 Y para lógica con varios `if`, `$derived.by(() => { … })`
-(`apps/panel_svelte/src/lib/features/liquidaciones/LiquidacionesPage.svelte`):
+(`apps/panel_svelte/src/lib/features/liquidaciones/pages/LiquidacionesPage.svelte`):
 
 ```svelte
   const anticipo = $derived.by(() => {
@@ -156,7 +156,7 @@ Y para lógica con varios `if`, `$derived.by(() => { … })`
 - Una derivada se **lee**, no se actualiza «a mano»; si necesitas cambiarla, cambia el dato del que
   sale.
 - La lógica no trivial de una derivada va en **funciones puras fuera del componente**:
-  `validarPolitica` y `textoPoliticaCompleto` viven en `apps/panel_svelte/src/lib/features/planes/politica.ts`
+  `validarPolitica` y `textoPoliticaCompleto` viven en `apps/panel_svelte/src/lib/features/planes/model/politica.ts`
   y se prueban sin DOM (capítulo 4).
 
 ---
@@ -259,7 +259,7 @@ efecto se vuelva a ejecutar en cada cambio de ruta.
     miAgencia()
 ```
 
-**3. Cargar datos al montar** (`apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte`):
+**3. Cargar datos al montar** (`apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte`):
 
 ```svelte
   $effect(() => {
@@ -315,7 +315,7 @@ En React compartirías `auth`, la ruta y los avisos con Context o un *store*. En
 **módulo** que exporta un objeto `$state`. Funciona porque los *runes* también se compilan en
 archivos cuyo nombre termina en **`.svelte.ts`** (o `.svelte.js`); en un `.ts` normal no.
 
-`apps/panel_svelte/src/lib/features/auth/auth.svelte.ts`:
+`apps/panel_svelte/src/lib/features/auth/model/auth.svelte.ts`:
 
 ```ts
 export const auth = $state({
@@ -347,7 +347,7 @@ Cómo se usan:
   el *callback* de `onAuthStateChange`). Así hay un solo lugar que cambia cada dato.
 - Se exporta un **objeto** y se muta por propiedad (no `export let userId`), por la regla de la
   sección 2.
-- El import lleva `.svelte` pero no `.ts`: `import { auth } from '$lib/features/auth/auth.svelte'`
+- El import lleva `.svelte` pero no `.ts`: `import { auth } from '$lib/features/auth/model/auth.svelte'`
   resuelve `auth.svelte.ts`.
 - Es un **singleton global**. En una SPA es lo que quieres; en las pruebas hay que sustituirlo con
   `vi.mock` (capítulo 4) o reiniciarlo.

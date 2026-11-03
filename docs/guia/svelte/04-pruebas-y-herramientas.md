@@ -157,7 +157,7 @@ export default defineConfig({
   plugins: [sveltekit(), svelteTesting()],
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.test.ts'],
+    include: ['tests/**/*.test.ts'],
   },
 });
 ```
@@ -165,21 +165,46 @@ export default defineConfig({
 - **`sveltekit()`** es el mismo plugin del build: da los alias (`$lib`, `$tests`) y compila los
   `.svelte`. Los módulos `$app/*` también resuelven, pero necesitan el runtime de Kit en marcha, que
   en las pruebas no existe: por eso se **mockean** (sección 5).
-- **`include: ['src/**/*.test.ts']`**: solo se ejecutan las pruebas de `src/`. `tests/` guarda los
-  *helpers* (sección 6), no pruebas.
+- **`include: ['tests/**/*.test.ts']`**: se ejecuta todo `*.test.ts` bajo `tests/`; `src/` no tiene
+  pruebas. Los *helpers* de la raíz de `tests/` (sección 6) no terminan en `.test.ts`, así que no se
+  ejecutan como pruebas.
 - **`jsdom`** simula un navegador (DOM, `location.hash`, eventos) dentro de Node. No hay Tailwind en
   las pruebas: no hay CSS, y no hace falta.
 - **`svelteTesting()`** (de `@testing-library/svelte/vite`) se encarga de tres cosas: que Svelte se
   cargue en su versión de navegador, que el DOM se **limpie solo** tras cada prueba y que las
   dependencias de Testing Library se procesen como el resto. Sin él habría que desmontar a mano.
-- **Las pruebas están junto a lo que prueban** (`ventas.ts` + `ventas.test.ts`), y hoy son **34
-  archivos y 512 pruebas**.
+- **Las pruebas están en `tests/unit/`, espejo de `src/`**, y hoy son **34 archivos y 512 pruebas**
+  (se explica abajo).
 - Vitest compila los componentes en **modo desarrollo**: los avisos de Svelte (como
   `ownership_invalid_mutation`, capítulo 2) salen en la consola de las pruebas.
 
+### Dónde está la prueba y cómo importa lo que prueba
+
+`src/` contiene solo código; `tests/unit/` repite su estructura (capítulo 3, sección 2). La prueba de
+`src/lib/features/auth/model/sesion.ts` es `tests/unit/features/auth/model/sesion.test.ts`: el mismo
+camino, sin el `lib/` y con `.test` en el nombre. Por eso **no puede importar con `./`** y usa el alias
+`$lib`, que apunta a `src/lib`. `apps/panel_svelte/tests/unit/features/auth/model/sesion.test.ts`:
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { redireccionSesion } from '$lib/features/auth/model/sesion';
+```
+
+Las ayudas se importan con `$tests` (`import { agencia, texto } from '$tests/fixtures'`). Lo único que
+no cuelga de `$lib` son `src/params` y `src/routes`, así que sus pruebas importan relativo.
+`apps/panel_svelte/tests/unit/params/doc.test.ts`:
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { DOCUMENTOS } from '$lib/features/legal/model/legal';
+import { match } from '../../../src/params/doc';
+```
+
+Si añades un archivo a `src/`, su prueba va en la ruta espejo; ninguna herramienta lo comprueba.
+
 ### Una prueba de componente
 
-`apps/panel_svelte/src/lib/shared/ui/StatusPill.test.ts` renderiza el componente con sus props y mira el
+`apps/panel_svelte/tests/unit/shared/ui/StatusPill.test.ts` renderiza el componente con sus props y mira el
 DOM resultante:
 
 ```ts
@@ -203,10 +228,10 @@ Svelte aplica los cambios en una microtarea, no en el acto. Las funciones de
 `@testing-library/svelte` ya lo resuelven: `fireEvent` es **asíncrona** y espera a Svelte
 (`await tick()`), así que se usa siempre con `await`. Para datos que llegan de una promesa se
 usan `await screen.findByText(...)` o `await vi.waitFor(...)`.
-`apps/panel_svelte/src/lib/features/planes/PlanFormPage.test.ts`:
+`apps/panel_svelte/tests/unit/features/planes/pages/PlanFormPage.test.ts`:
 
 ```ts
-    await fireEvent.input(screen.getByLabelText(PARCIAL_H), { target: { value: '24' } });
+    await fireEvent.input(screen.getByLabelText(PARCIAL_H), { target: { value: '48' } });
     await fireEvent.input(screen.getByLabelText(PARCIAL_PCT), { target: { value: '50' } });
     await fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => expect(texto(container)).toContain('La ventana parcial debe ser menor que la de cancelación gratuita.'));
@@ -219,7 +244,7 @@ sección 9). Se buscan los elementos como los vería una persona: `getByLabelTex
 ### Componentes con contenido hijo
 
 Un componente que recibe `children` necesita un *snippet*; en un `.ts` se fabrica con
-`createRawSnippet` (`apps/panel_svelte/src/lib/features/agencias/components/Shell.test.ts`):
+`createRawSnippet` (`apps/panel_svelte/tests/unit/features/agencias/components/Shell.test.ts`):
 
 ```ts
 const children = createRawSnippet(() => ({ render: () => '<p>contenido de la página</p>' }));
@@ -232,21 +257,21 @@ y se pasa como prop: `render(Shell, { children })`.
 ## 5. Mockear el `*.api.ts` de una funcionalidad
 
 Una **página** pide datos a su `*.api.ts`. En su prueba se sustituye ese módulo con `vi.mock` para
-no tocar la red y para decidir qué datos «llegan». `apps/panel_svelte/src/lib/features/planes/PlanFormPage.test.ts`:
+no tocar la red y para decidir qué datos «llegan». `apps/panel_svelte/tests/unit/features/planes/pages/PlanFormPage.test.ts`:
 
 ```ts
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
-vi.mock('$lib/features/agencias/agencias.api', () => ({
+vi.mock('$lib/features/agencias/api/agencias.api', () => ({
   miAgencia: vi.fn(),
 }));
-vi.mock('./planes.api', () => ({
+vi.mock('$lib/features/planes/api/planes.api', () => ({
   misPlanes: vi.fn(),
   crearPlan: vi.fn(),
   actualizarPlan: vi.fn(),
 }));
 
 import { goto } from '$app/navigation';
-import { actualizarPlan, crearPlan, misPlanes } from './planes.api';
+import { actualizarPlan, crearPlan, misPlanes } from '$lib/features/planes/api/planes.api';
 ```
 
 ```ts
@@ -264,6 +289,9 @@ Reglas que se ven ahí:
 
 - **`vi.mock` se eleva** (Vitest lo ejecuta antes de los `import`), por eso el patrón pone los
   `vi.mock` arriba y los `import` de los módulos mockeados debajo.
+- **El mock se escribe con `$lib/…`, aunque la página importe relativo.** La página dice
+  `from '../api/planes.api'` y la prueba mockea `'$lib/features/planes/api/planes.api'`: Vitest mockea
+  por archivo resuelto, y ambos caminos llevan al mismo `planes.api.ts`.
 - El mock **solo declara las funciones que la página usa**. Si la página importa otra y no está en
   el mock, la prueba falla con un error que nombra la función que falta: te dice qué dependencias tiene la página.
 - Cada prueba decide la respuesta: `miAgenciaMock.mockResolvedValue(agencia())` y comprueba lo que la
@@ -289,11 +317,14 @@ export function irA(ruta: string): void {
 }
 ```
 
-`apps/panel_svelte/src/lib/features/agencias/components/Shell.test.ts` los une:
+`apps/panel_svelte/tests/unit/features/agencias/components/Shell.test.ts` los une:
 
 ```ts
 vi.mock('$app/state', () => import('$tests/pagina-falsa.svelte'));
-vi.mock('$lib/features/auth/auth.svelte', () => ({
+vi.mock('$lib/features/agencias/api/agencias.api', () => ({
+  miAgencia: vi.fn(),
+}));
+vi.mock('$lib/features/auth/model/auth.svelte', () => ({
   auth: { userId: 'u-1', email: 'agencia@diverso.app' },
   signOut: vi.fn(),
 }));
@@ -323,7 +354,7 @@ el cliente de Supabase por uno falso que **registra** lo que recibe.
  */
 ```
 
-y `apps/panel_svelte/src/lib/features/planes/planes.api.test.ts` lo usa:
+y `apps/panel_svelte/tests/unit/features/planes/api/planes.api.test.ts` lo usa:
 
 ```ts
 vi.mock('$lib/shared/api/supabase', () => import('$tests/supabase-falso'));
@@ -366,14 +397,15 @@ función se prueba como función.
 
 | Qué pruebas | Cómo | Ejemplo |
 |---|---|---|
-| Lógica pura (`<f>.ts`, `ruta.ts`, `sesion.ts`, `errores.ts`, `format.ts`, el *matcher* `params/doc.ts`) | Llamas la función y comparas. Sin DOM, sin mocks | `sesion.test.ts`, `ruta.test.ts`, `doc.test.ts`, `ventas.test.ts` |
+| Lógica pura (`model/<f>.ts`, `ruta.ts`, `sesion.ts`, `errores.ts`, `format.ts`, el *matcher* `params/doc.ts`) | Llamas la función y comparas. Sin DOM, sin mocks | `sesion.test.ts`, `ruta.test.ts`, `doc.test.ts`, `ventas.test.ts` |
 | Acceso a datos (`*.api.ts`) | `supabase-falso` y miras `rec` | `planes.api.test.ts` |
 | Un componente | `render(Componente, props)` y consultas por rol o etiqueta | `StatusPill.test.ts`, `LogoAgencia.test.ts` |
 | Una página | Mock del `*.api.ts` + `render` + eventos | `PlanFormPage.test.ts`, `VentasPage.test.ts` |
 | Un marco con estado compartido | Mock de `auth` y `$app/state` falso (`irA`) | `Shell.test.ts` |
-| Una página de ruta (`+page.svelte`) | No se prueba aparte: es un adaptador de tres líneas; se prueba la pantalla de `lib/` | — |
+| Una página de ruta (`+page.svelte`) | No se prueba una por una: es un adaptador de tres líneas. `arbol.test.ts` lee todas y comprueba qué pantalla de `lib/` dibuja cada una; la pantalla se prueba aparte | `arbol.test.ts` |
 
-Una prueba de lógica pura es la más barata. `apps/panel_svelte/src/lib/features/auth/sesion.test.ts`:
+Todas viven en `tests/unit/`, en la ruta espejo del archivo que prueban. Una prueba de lógica pura es
+la más barata. `apps/panel_svelte/tests/unit/features/auth/model/sesion.test.ts`:
 
 ```ts
     it('trata el userId vacío como sin sesión', () => {
@@ -381,10 +413,13 @@ Una prueba de lógica pura es la más barata. `apps/panel_svelte/src/lib/feature
     });
 ```
 
-Dos pruebas del panel también **leen archivos del repo** para no desalinearse de la base de datos:
-`politica.test.ts` compara el texto de la política con los vectores de las pruebas SQL
-(`supabase/tests/0005_endurecimiento_pagos.sql` y otras). Usan `node:fs` y `process`, y eso explica
-los errores conocidos de la sección siguiente.
+Tres pruebas del panel también **leen archivos del repo** para no desalinearse de la base de datos
+y de la app móvil: `politica.test.ts` compara el texto de la política con los vectores de las pruebas
+SQL (`supabase/tests/0005_endurecimiento_pagos.sql` y otras), `legal.test.ts` compara la versión de los
+documentos con `documento_legal.dart` y las migraciones, y `Logo.test.ts` compara el PNG del panel con
+el de Flutter. Usan `node:fs` y `process` (rutas desde `apps/panel_svelte`, el directorio donde corre
+`npm test`, no desde la carpeta de la prueba), y eso explica los errores conocidos de la sección
+siguiente.
 
 ---
 
@@ -408,10 +443,10 @@ siguen igual tras migrar a SvelteKit. «Terminado» significa **no sumar ninguno
 
 | Archivo | Errores | Causa |
 |---|---|---|
-| `src/lib/features/planes/politica.test.ts` | 7 | `node:fs`, `node:path` y `process` sin tipos de Node |
-| `src/lib/features/legal/legal.test.ts` | 4 | lo mismo + un parámetro `f` implícitamente `any` |
-| `src/lib/shared/ui/Logo.test.ts` | 1 | `node:fs` sin tipos de Node |
-| `src/lib/features/planes/PlanFormPage.svelte` | (aviso) | `state_referenced_locally` en `planId` (capítulo 2, sección 7.1) |
+| `tests/unit/features/planes/model/politica.test.ts` | 7 | `node:fs`, `node:path` y `process` sin tipos de Node |
+| `tests/unit/features/legal/model/legal.test.ts` | 4 | lo mismo + un parámetro `f` implícitamente `any` |
+| `tests/unit/shared/ui/Logo.test.ts` | 1 | `node:fs` sin tipos de Node |
+| `src/lib/features/planes/pages/PlanFormPage.svelte` | (aviso) | `state_referenced_locally` en `planId` (capítulo 2, sección 7.1) |
 
 Los 12 errores vienen de que esas pruebas usan APIs de Node y el proyecto no tiene `@types/node`
 (`node_modules/@types` no lo trae). Vitest las ejecuta sin problema (por eso `npm test` pasa); solo el
@@ -446,8 +481,8 @@ Con SvelteKit el build detecta además cosas propias de Kit que ninguna prueba v
 - Un `$lib/server/…` importado desde código del navegador.
 - Dos carpetas de `routes/` que resuelven a la misma URL.
 
-Las `+page.svelte` delgadas no tienen pruebas propias: el «mapa de rutas» es el sistema de archivos, y
-quien lo valida al compilar es `sveltekit()`.
+Las `+page.svelte` delgadas no tienen pruebas propias: `arbol.test.ts` fija qué pantalla dibuja cada
+una, pero el «mapa de rutas» es el sistema de archivos, y quien lo valida al compilar es `sveltekit()`.
 
 | Comprobación | Qué detecta | Qué NO detecta |
 |---|---|---|
@@ -470,12 +505,14 @@ npm run check        # 12 errores y 1 aviso: los de la sección 8, ninguno nuevo
 ```
 
 - [ ] Las tres pasan.
-- [ ] Si añadiste una pantalla, pruébala (su `…Page.test.ts`) y comprueba que su `+page.svelte` existe en
-      la carpeta de la URL (capítulo 3, sección 11).
+- [ ] Si añadiste una pantalla, pruébala (su `…Page.test.ts` en `tests/unit/features/<f>/pages/`),
+      comprueba que su `+page.svelte` existe en la carpeta de la URL y añádela a `ESPERADO` en
+      `tests/unit/routes/arbol.test.ts` (capítulo 3, sección 11).
 - [ ] Si cambiaste la regla de quién ve qué, `sesion.test.ts`; si tocaste `rutaActual` o el matcher
       `doc`, `ruta.test.ts` / `doc.test.ts`.
 - [ ] Si tocaste un `*.api.ts`, su prueba con `supabase-falso` comprueba la fila que se manda.
-- [ ] Moviste o renombraste un módulo: los `vi.mock` de las pruebas apuntan a la ruta nueva.
+- [ ] Moviste o renombraste un módulo: su prueba se movió a la ruta espejo y los `vi.mock` apuntan a
+      la ruta nueva.
 - [ ] Toda navegación nueva lleva el `#`: `goto('#/ruta')`, `href="#/ruta"`.
 
 ---

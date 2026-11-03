@@ -61,15 +61,26 @@ Cosas que ya puedes notar:
   del `<body>` de `src/app.html`. Lo que tú escribes son páginas y *layouts* en `src/routes/`
   ([capítulo 3, sección 5](03-arquitectura-del-panel.md#5-sveltekit-estático-y-el-router-por-hash)).
 
+> **¿Por qué el script, la plantilla y el estilo van en el mismo archivo?** Es el diseño de Svelte:
+> un componente es **un solo archivo**. El estilo con alcance (sección 2) funciona porque el
+> compilador ve la plantilla y el `<style>` juntos: marca con un hash los elementos del archivo y
+> reescribe cada selector. Además `vitePreprocess()` (en `svelte.config.js`) solo procesa lo que está
+> escrito dentro del `<style>`: no existe un `<style src="…">` que traiga el CSS de otro archivo. El
+> costo es menor de lo que parece: de los 65 archivos `.svelte` de `src/` solo 3 tienen `<style>`
+> (`FechasModal`, `PlanFormPage` y `Select`; compruébalo con `grep -rl '<style' src --include=*.svelte`),
+> y el resto se estila con clases de Tailwind en la plantilla (capítulo 4, sección 3). Lo que no es
+> presentación sale del componente: la lógica pura vive en `.ts` de `model/`, con sus pruebas
+> (capítulo 3, sección 2).
+
 ### `<script module>`: código que corre una vez por archivo
 
 Un segundo bloque `<script module>` se ejecuta **una vez cuando se carga el módulo**, no por cada
-instancia, y sus `export` salen del archivo. `apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte`
+instancia, y sus `export` salen del archivo. `apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte`
 lo usa para derivar tablas de búsqueda a partir de `CATEGORIAS`:
 
 ```svelte
 <script module lang="ts">
-  import { CATEGORIAS } from './plan';
+  import { CATEGORIAS } from '../model/plan';
   export const CATEGORIA_LABELS = Object.fromEntries(CATEGORIAS.map((c) => [c.valor, c.label]));
   export const CATEGORIA_EMOJIS = CATEGORIAS;
 </script>
@@ -116,7 +127,7 @@ componente. Sin `:global`, el selector nunca coincidiría.
 ### El caso inverso: estilar elementos de componentes hijos
 
 Los elementos que pintan los **hijos** no llevan el hash del padre. Por eso
-`apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte` ancla el selector en su propio
+`apps/panel_svelte/src/lib/features/planes/pages/PlanFormPage.svelte` ancla el selector en su propio
 `<form class="plan-form">` y marca como global lo que está dentro:
 
 ```svelte
@@ -157,7 +168,7 @@ define el aspecto de los campos de sus hijos» sin que el CSS se escape al resto
 | Condicional | `{#if}` `{:else if}` `{:else}` `{/if}` | ver abajo |
 
 No hay `&&` ni ternarios de JSX: los condicionales de **bloque** son `{#if}`.
-`apps/panel_svelte/src/lib/features/planes/PlanesPage.svelte` los encadena para los tres estados
+`apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte` los encadena para los tres estados
 típicos de una pantalla que carga datos:
 
 ```svelte
@@ -337,7 +348,7 @@ Los `+layout.svelte` de SvelteKit son la otra mitad de `children`: reciben la p�
 
 Un snippet puede recibir parámetros (`{#snippet fila(item)}` + `{@render fila(x)}`), y su tipo es
 `Snippet<[TipoDelParametro]>`. En las pruebas, como un snippet no se puede escribir en un `.ts`,
-se fabrica con `createRawSnippet` (`apps/panel_svelte/src/lib/features/agencias/components/Shell.test.ts`):
+se fabrica con `createRawSnippet` (`apps/panel_svelte/tests/unit/features/agencias/components/Shell.test.ts`):
 
 ```ts
 const children = createRawSnippet(() => ({ render: () => '<p>contenido de la página</p>' }));
@@ -363,7 +374,7 @@ Un evento es un **atributo en minúscula** cuyo valor es una función: `onclick`
 ```
 
 Los modificadores de Svelte 4 (`on:submit|preventDefault`) ya no existen en esta sintaxis: se hace a
-mano, como en React. `apps/panel_svelte/src/lib/features/planes/PlanFormPage.svelte`:
+mano, como en React. `apps/panel_svelte/src/lib/features/planes/pages/PlanFormPage.svelte`:
 
 ```svelte
   async function guardar(e: SubmitEvent) {
@@ -388,7 +399,7 @@ convención del panel es nombrarlas `on…` en minúscula. `apps/panel_svelte/sr
       onactualizado(await subirLogo(agencia, archivo));
 ```
 
-Y `apps/panel_svelte/src/lib/features/admin/AdminAgenciasPage.svelte` pasa el suyo:
+Y `apps/panel_svelte/src/lib/features/admin/pages/AdminAgenciasPage.svelte` pasa el suyo:
 
 ```svelte
     <FiltrosAgencias {filtro} {conteos} bind:busqueda onelegir={elegirFiltro} />

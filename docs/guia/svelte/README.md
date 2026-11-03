@@ -29,9 +29,11 @@ sistema, el [README principal](../../../README.md).
    hosting de archivos sirve el panel. No hay servidor propio.
 3. Las pantallas se declaran con **carpetas en `src/routes/`** (un `+page.svelte` por URL, delgado),
    y el código está organizado **por funcionalidad** (`src/lib/features/planes/`, `ventas/`,
-   `admin/`…) con lo reutilizable en `src/lib/shared/`, igual que `apps/viajero`.
-4. Los datos vienen de **Supabase** a través de un archivo `*.api.ts` por funcionalidad; las reglas
-   se prueban como **funciones puras** y las pantallas con Vitest + Testing Library.
+   `admin/`…), cada una con las mismas carpetas por rol (`pages/`, `components/`, `api/` y `model/`),
+   y con lo reutilizable en `src/lib/shared/`, igual que `apps/viajero`.
+4. Los datos vienen de **Supabase** a través de un archivo `api/<f>.api.ts` por funcionalidad; las
+   reglas se prueban como **funciones puras** y las pantallas con Vitest + Testing Library. Las
+   pruebas viven en `tests/unit/`, espejo de `src/`: `src/` queda solo con código.
 5. Hoy: **512 pruebas en 34 archivos**; `npm run build` y `npm run check` son parte de cada
    verificación.
 
@@ -90,7 +92,8 @@ cambian nada; los que modifican un archivo te dicen cómo deshacerlo
 | 5 | [Datos, rutas y sesión](#sesión-5-datos-rutas-y-sesión) | Cap. 3 §3–11 | Seguir «Publicar» de punta a punta y crear una ruta |
 | 6 | [Pruebas y herramientas](#sesión-6-pruebas-y-herramientas) | Cap. 4 | Escribir tu primera prueba |
 
-Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otra cosa.
+Las rutas de archivo parten de `apps/panel_svelte/src/`; las que empiezan por `tests/` (y los
+comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 
 ---
 
@@ -107,15 +110,18 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 1. Levanta el Supabase local y el panel (sección anterior) y entra con `graffiti@demo.com`.
 2. Recorre Resumen, Planes, Ventas, Liquidaciones y Cuenta. Mira cómo cambia el `#/…` de la barra
    de direcciones. Para cada una apunta: la carpeta de `routes/(panel)/…` con su `+page.svelte` y el
-   archivo `lib/features/<funcionalidad>/…Page.svelte` que dibuja la pantalla.
+   archivo `lib/features/<funcionalidad>/pages/…Page.svelte` que dibuja la pantalla.
 3. Abre `#/login` y `#/planes/nuevo` y compara qué rodea a cada página (con menú lateral o sin él).
    Busca qué carpeta lo decide.
+4. Abre `lib/features/planes/` y ubica cada archivo en `pages/`, `components/`, `api/` o `model/`.
+   Después busca su prueba en `tests/unit/features/planes/`: es la misma ruta, sin el `lib/`.
 
 **Ya lo entendí si…**
 - [ ] Dices, sin mirar, qué archivo dibuja el título «Mis planes».
 - [ ] Explicas quién monta la app (no hay `main.ts`) y de qué marcador de `app.html` cuelga.
 - [ ] Distingues `routes/`, `lib/features/` y `lib/shared/` y dices en cuál pondrías un componente `Boton`.
 - [ ] Sabes a qué carpeta apunta `$lib`.
+- [ ] Dices en qué carpeta de una funcionalidad iría un tipo nuevo, una consulta, un botón y una pantalla.
 
 ---
 
@@ -137,7 +143,7 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 
    ```bash
    cd apps/panel_svelte
-   npx vitest run src/lib/shared/ui/StatusPill.test.ts
+   npx vitest run tests/unit/shared/ui/StatusPill.test.ts
    ```
 
 **Ya lo entendí si…**
@@ -154,8 +160,8 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 
 **Lee.**
 - Capítulo 2, secciones 1 a 4.
-- `lib/features/ventas/VentasPage.svelte` (el `<script>`).
-- `lib/features/planes/PlanFormPage.svelte` (`<script>` y plantilla).
+- `lib/features/ventas/pages/VentasPage.svelte` (el `<script>`).
+- `lib/features/planes/pages/PlanFormPage.svelte` (`<script>` y plantilla).
 - `lib/features/planes/components/plan-form/SeccionEncuentro.svelte` y `PoliticaCancelacion.svelte`.
 - `lib/shared/ui/Select.svelte`.
 
@@ -187,7 +193,7 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 **Lee.**
 - Capítulo 2, secciones 5 a 7.
 - `routes/+layout.svelte` y el `<script>` de `lib/features/agencias/components/Shell.svelte`.
-- `lib/features/auth/auth.svelte.ts`, `lib/shared/lib/toast.svelte.ts` y `lib/shared/lib/ruta.ts`.
+- `lib/features/auth/model/auth.svelte.ts`, `lib/shared/lib/toast.svelte.ts` y `lib/shared/lib/ruta.ts`.
 - `routes/(panel)/planes/editar/[[id]]/+page.svelte` y `routes/(panel)/planes/nuevo/+page.svelte`.
 
 **Ejercicio.**
@@ -204,7 +210,7 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
    `git restore "apps/panel_svelte/src/routes/(panel)/planes/editar/[[id]]/+page.svelte"`.
    (No cambies el hash a mano en la barra de direcciones: Kit recarga la página entera y el estado se
    pierde, capítulo 3, sección 7.)
-3. **Provoca `ownership_invalid_mutation`.** En `lib/features/planes/PlanFormPage.svelte` cambia
+3. **Provoca `ownership_invalid_mutation`.** En `lib/features/planes/pages/PlanFormPage.svelte` cambia
    `<SeccionIncluye bind:d />` por `<SeccionIncluye {d} />`. Con `npm run dev`, abre «Nuevo plan»,
    añade un ítem en «Qué incluye» y mira la consola del navegador. Deshaz con `git restore`.
 4. Piensa (sin código): si pasas de `#/planes/editar/a` a `#/planes/editar/b` antes de que `a`
@@ -227,10 +233,10 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 
 **Lee.**
 - Capítulo 3, secciones 3 a 11.
-- `lib/features/planes/PlanesPage.svelte` (`<script>`), `lib/features/planes/planes.api.ts`
+- `lib/features/planes/pages/PlanesPage.svelte` (`<script>`), `lib/features/planes/api/planes.api.ts`
   y `lib/shared/api/errores.ts`.
-- `routes/+layout.svelte`, `lib/features/auth/sesion.ts`, `params/doc.ts` y `routes/+error.svelte`.
-- `lib/features/ventas/ventas.api.ts` (cómo una funcionalidad usa a otras).
+- `routes/+layout.svelte`, `lib/features/auth/model/sesion.ts`, `params/doc.ts` y `routes/+error.svelte`.
+- `lib/features/ventas/api/ventas.api.ts` (cómo una funcionalidad usa a otras).
 
 **Ejercicio.**
 1. Con el código abierto, completa una tabla con cada flecha de «Publicar un plan»: *archivo y
@@ -252,7 +258,7 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 
    ```bash
    cd apps/panel_svelte
-   npx vitest run src/lib/shared/lib/ruta.test.ts src/params/doc.test.ts src/lib/features/auth/sesion.test.ts
+   npx vitest run tests/unit/shared/lib/ruta.test.ts tests/unit/params/doc.test.ts tests/unit/features/auth/model/sesion.test.ts
    ```
 
 **Ya lo entendí si…**
@@ -273,20 +279,21 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 **Lee.**
 - Capítulo 4 completo.
 - `vite.config.ts`, `vitest.config.ts`, `svelte.config.js` y `tsconfig.json` (dónde nace el alias `$tests`).
-- `lib/shared/ui/StatusPill.test.ts`, `lib/features/planes/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
-  `lib/features/planes/planes.api.test.ts`.
+- `tests/unit/shared/ui/StatusPill.test.ts`, `tests/unit/features/planes/pages/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
+  `tests/unit/features/planes/api/planes.api.test.ts`.
 - `tests/supabase-falso.ts`, `tests/fixtures.ts` y `tests/pagina-falsa.svelte.ts`.
 
 **Ejercicio.**
 1. Ejecuta las tres comprobaciones y anota el resultado de cada una: archivos y pruebas de
    `npm test`, `✓ built` de `npm run build` y los 12 errores de `npm run check` (¿en qué tres
    archivos están?).
-2. Crea `apps/panel_svelte/src/lib/shared/ui/Skeleton.test.ts`:
+2. Crea `apps/panel_svelte/tests/unit/shared/ui/Skeleton.test.ts` (la ruta espejo de
+   `src/lib/shared/ui/Skeleton.svelte`):
 
    ```ts
    import { describe, expect, it } from 'vitest';
    import { render } from '@testing-library/svelte';
-   import Skeleton from './Skeleton.svelte';
+   import Skeleton from '$lib/shared/ui/Skeleton.svelte';
 
    describe('Skeleton', () => {
      it('usa la clase por defecto', () => {
@@ -300,15 +307,16 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
    });
    ```
 
-3. Córrela con `npx vitest run src/lib/shared/ui/Skeleton.test.ts`. Cambia `'h-24'` por `'h-25'` y mira
+3. Córrela con `npx vitest run tests/unit/shared/ui/Skeleton.test.ts`. Cambia `'h-24'` por `'h-25'` y mira
    cómo falla. **Al terminar, borra el archivo**: es un ejercicio, no parte del repo.
-4. En `lib/features/planes/PlanFormPage.test.ts`, localiza dónde se decide la respuesta de `miAgencia`,
+4. En `tests/unit/features/planes/pages/PlanFormPage.test.ts`, localiza dónde se decide la respuesta de `miAgencia`,
    qué `expect` comprueba lo que la página mandó a `crearPlan` y cuál comprueba a dónde navegó (`goto`).
 
 **Ya lo entendí si…**
 - [ ] Dices qué tres comandos ejecutarías antes de dar un cambio por terminado y qué detecta cada uno.
 - [ ] Explicas por qué `fireEvent` se usa con `await`.
-- [ ] Dices cuándo usar `vi.mock('./planes.api', …)` y cuándo `supabase-falso`.
+- [ ] Dices cuándo usar `vi.mock('$lib/features/planes/api/planes.api', …)` y cuándo `supabase-falso`.
+- [ ] Dices en qué ruta va la prueba de `src/lib/features/ventas/model/ventas.ts` y por qué importa con `$lib` y no con `./`.
 - [ ] Explicas por qué `goto` y `$app/state` se mockean en las pruebas y qué hace `irA`.
 - [ ] Explicas por qué la primera vez que se reorganizó el panel el build falló con las pruebas en verde.
 - [ ] Sabes que «sin errores nuevos» en `svelte-check` significa «no más de 12».
@@ -329,8 +337,9 @@ Las rutas de archivo parten de `apps/panel_svelte/src/` salvo que se indique otr
 | **`bind:`** | Enlace de doble vía entre una variable y un campo o una prop | Input controlado |
 | **Alcance de estilos** | El `<style>` de un componente solo afecta a sus elementos; `:global()` lo evita | CSS Modules |
 | **`.svelte.ts`** | Módulo donde los *runes* funcionan fuera de un componente | Un store o un Context |
-| **Funcionalidad (*feature*)** | Carpeta con las pantallas, componentes, lógica y datos de un tema | La carpeta `features/<f>/` de `apps/viajero` |
-| **`*.api.ts`** | Archivo que habla con Supabase para una funcionalidad | Un *service* / *repository* |
+| **Funcionalidad (*feature*)** | Carpeta con las pantallas (`pages/`), componentes (`components/`), datos (`api/`) y lógica pura (`model/`) de un tema | La carpeta `features/<f>/` de `apps/viajero` |
+| **`*.api.ts`** | Archivo de `api/` que habla con Supabase para una funcionalidad | Un *service* / *repository* |
+| **`tests/unit/`** | Las pruebas, en la misma ruta que el archivo que prueban (sin el `lib/`); `src/` queda solo con código | Jest con `__tests__/` aparte |
 | **SvelteKit** | Framework sobre Svelte y Vite: rutas por carpetas, layouts, errores y build. Aquí, en modo estático | Next.js / Remix |
 | **`+page.svelte`** | La página de una carpeta de `src/routes`: define esa URL | Un componente de ruta (`pages/x.tsx`) |
 | **`+layout.svelte`** | Marco que envuelve a las páginas de su carpeta y de las de abajo; recibe `children` | Un layout de ruta con `<Outlet />` |
