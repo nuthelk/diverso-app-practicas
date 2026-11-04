@@ -12,14 +12,14 @@
 
 <fieldset class="space-y-2.5">
   <legend class="sr-only">Autorizaciones</legend>
-  <label class="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed">
+  <label class="flex cursor-pointer items-start gap-3 text-[15px] leading-relaxed">
     <input
       type="checkbox"
       required
       bind:checked={datos}
-      class="mt-0.5 size-4 shrink-0 accent-brand-600"
+      class="mt-1 size-[18px] shrink-0 accent-helecho"
     />
-    <span class="text-suave">
+    <span class="text-tinta-2">
       Autorizo de manera previa, expresa e informada el tratamiento de mis datos personales según
       la
       <a href="#/legal/privacidad" target="_blank" rel="noopener"
@@ -28,14 +28,14 @@
       > (Ley 1581 de 2012).
     </span>
   </label>
-  <label class="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed">
+  <label class="flex cursor-pointer items-start gap-3 text-[15px] leading-relaxed">
     <input
       type="checkbox"
       required
       bind:checked={terminos}
-      class="mt-0.5 size-4 shrink-0 accent-brand-600"
+      class="mt-1 size-[18px] shrink-0 accent-helecho"
     />
-    <span class="text-suave">
+    <span class="text-tinta-2">
       Acepto los
       <a href={'#/legal/' + terminosDoc} target="_blank" rel="noopener"
         class="enlace underline-offset-2"

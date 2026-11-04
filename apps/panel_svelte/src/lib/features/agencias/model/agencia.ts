@@ -1,5 +1,7 @@
 /** La agencia (tabla `agencies`), su historial de verificación y la vigencia de su RNT. */
 
+import { fechaBogota } from '$lib/features/planes/model/plan';
+
 export type VerificationStatus = 'pendiente' | 'verificado' | 'rechazado';
 
 export interface Agency {
@@ -55,13 +57,20 @@ export function estadoVigencia(a: Pick<Agency, 'rnt_vigente_hasta'>, hoy = new D
   return 'vigente';
 }
 
+/**
+ * Días de calendario entre hoy y el último día de vigencia, contados con la fecha de Bogotá (UTC−5): el mismo día que
+ * ven las salidas, sin importar la zona del navegador. 0 el día del vencimiento, negativo si ya venció.
+ */
 export function diasParaVencer(a: Pick<Agency, 'rnt_vigente_hasta'>, hoy = new Date()): number | null {
   if (!a.rnt_vigente_hasta) return null;
-  const h = new Date(hoy);
-  h.setHours(0, 0, 0, 0);
-  const v = new Date(a.rnt_vigente_hasta + 'T00:00:00');
-  return Math.round((v.getTime() - h.getTime()) / 86_400_000);
+  return (diaUTC(a.rnt_vigente_hasta) - diaUTC(fechaBogota(hoy))) / 86_400_000;
 }
+
+/** Medianoche UTC de un `yyyy-mm-dd`: restar dos de ellas da días enteros, sin saltos de horario de verano. */
+const diaUTC = (iso: string): number => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+};
 
 /** Vigencia sugerida al verificar: 31 de marzo del año siguiente. */
 export function vigenciaSugerida(hoy = new Date()): string {

@@ -1,6 +1,9 @@
 <script lang="ts">
   import Logo from '$lib/shared/ui/Logo.svelte';
   import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
+  import Curvas from '$lib/shared/ui/Curvas.svelte';
+  import Helecho from '$lib/shared/ui/Helecho.svelte';
+  import Heliconia from '$lib/shared/ui/Heliconia.svelte';
   import Icono from '$lib/shared/ui/Icono.svelte';
   import { ICONOS } from '$lib/shared/ui/iconos';
   import { auth, signIn } from '../model/auth.svelte';
@@ -44,28 +47,30 @@
 </script>
 
 <div class="grid min-h-screen lg:grid-cols-[5fr_6fr]">
-  <!-- Marca: superficie clara con el colibrí de fondo -->
-  <aside class="relative hidden overflow-hidden border-r border-linea bg-brand-50 p-12 lg:flex lg:flex-col dark:bg-ink-900">
-    <Logo size={520} clase="pointer-events-none absolute -right-28 -bottom-24 text-brand-600/[0.07] dark:text-brand-300/[0.06]" />
+  <!-- Marca: el monte oscuro del riel, con curvas de nivel, helecho y el colibrí -->
+  <aside class="monte relative hidden overflow-hidden bg-bosque p-12 text-sobre-bosque lg:flex lg:flex-col">
+    <Curvas forma="alto" clase="inset-0 size-full text-sobre-bosque-2 opacity-[0.17]" />
+    <Helecho clase="-bottom-10 left-8 h-[380px] w-[253px] text-sobre-bosque-2 opacity-30" />
+    <Heliconia clase="top-0 right-14 h-[140px] w-[88px] text-heliconia opacity-90" />
 
     <div class="relative flex items-center gap-3">
-      <MarcaTile tam={40} />
-      <span class="text-lg font-extrabold tracking-tight">Diverso</span>
+      <Logo size={40} />
+      <span class="font-titulo text-[28px] leading-none font-bold tracking-[0.01em]">Diverso</span>
     </div>
 
     <div class="relative mt-auto">
-      <h1 class="text-[38px] leading-[1.12] font-extrabold tracking-tight">
+      <h1 class="text-[46px] leading-[1.06] tracking-[-0.003em]">
         Vende Antioquia<br />al viajero correcto
       </h1>
-      <p class="mt-4 max-w-md text-[15px] leading-relaxed text-suave">
+      <p class="mt-5 max-w-md text-[17px] leading-relaxed text-sobre-bosque-2">
         El marketplace donde las agencias verificadas publican experiencias y los viajeros del
         Valle de Aburrá reservan con confianza.
       </p>
-      <ul class="mt-9 space-y-3.5 text-[13.5px] font-medium">
+      <ul class="mt-9 space-y-4 text-[16px] font-semibold">
         {#each BENEFICIOS as b}
-          <li class="flex items-center gap-3">
-            <span class="rounded-[10px] bg-brand-600/10 p-2 text-acento-ink dark:bg-brand-400/15">
-              <Icono trazo={b.icono} clase="size-4" />
+          <li class="flex items-center gap-3.5">
+            <span class="grid size-10 shrink-0 place-items-center rounded-brote border-[1.5px] border-sobre-bosque-2 bg-bosque-2">
+              <Icono trazo={b.icono} clase="size-5" />
             </span>
             {b.texto}
           </li>
@@ -73,17 +78,20 @@
       </ul>
     </div>
 
-    <div class="relative mt-10 text-xs text-suave">© Diverso · Turismo de Antioquia</div>
+    <div class="relative mt-10 text-sm text-sobre-bosque-2">© Diverso · Turismo de Antioquia</div>
   </aside>
 
   <!-- Formulario -->
-  <div class="grid place-items-center bg-paper px-5 py-14 sm:px-6 dark:bg-ink-950">
-    <div class="tarjeta aparecer w-full max-w-[400px] p-8">
-      <MarcaTile tam={52} />
-      <h2 class="mt-4 text-[23px] font-extrabold tracking-tight">Diverso · Agencias</h2>
-      <p class="mt-1 text-[13.5px] text-suave">Publica planes, gestiona cupos y concilia tus pagos.</p>
+  <div class="relative grid place-items-center overflow-hidden bg-niebla px-5 py-14 sm:px-6">
+    <Curvas clase="-top-20 -right-24 h-[320px] w-[640px] max-w-none text-musgo opacity-30" />
+    <div class="tarjeta aparecer relative w-full max-w-[420px] rounded-hoja-grande p-8 sm:p-9">
+      <div class="flex items-center gap-3">
+        <MarcaTile tam={52} />
+        <h2 class="text-[26px] leading-[1.1]">Diverso · Agencias</h2>
+      </div>
+      <p class="mt-3 text-[16px] text-tinta-2">Publica planes, gestiona cupos y concilia tus pagos.</p>
 
-      <form class="mt-6 space-y-3.5" onsubmit={entrar}>
+      <form class="mt-6 space-y-4" onsubmit={entrar}>
         <label class="block">
           <span class="etiqueta-campo">Correo de la agencia</span>
           <input type="email" required bind:value={email} placeholder="tucorreo@agencia.com" class="campo" />
@@ -94,16 +102,16 @@
         </label>
 
         {#if error}
-          <p class="text-center text-[13px] font-medium text-error-ink" role="alert">{error}</p>
+          <p class="text-center text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
         {/if}
 
-        <button type="submit" disabled={cargando} class="btn btn-primario w-full py-2.5">
+        <button type="submit" disabled={cargando} class="btn btn-primario w-full">
           {cargando ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
 
-      <div class="etiqueta-seccion mt-6">CUENTAS DEMO · CONTRASEÑA demo1234</div>
-      <div class="mt-2.5 flex flex-wrap gap-2">
+      <div class="etiqueta-seccion mt-7 border-t border-dashed border-linea pt-5">CUENTAS DEMO · CONTRASEÑA <span class="normal-case">demo1234</span></div>
+      <div class="mt-3 flex flex-wrap gap-2">
         {#each demos as d}
           <button
             type="button"

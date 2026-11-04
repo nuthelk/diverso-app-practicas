@@ -94,7 +94,7 @@
     </PageHeader>
     <div class="mt-4"><AvisoPrueba>Guardar tu cuenta no mueve dinero: las dispersiones son registros de prueba.</AvisoPrueba></div>
 
-    <form class="tarjeta mt-5 space-y-4 p-6" onsubmit={guardar} novalidate>
+    <form class="tarjeta mt-5 space-y-4 rounded-hoja-grande p-6 sm:p-8" onsubmit={guardar} novalidate>
       <label class="block">
         <span class="etiqueta-campo">Banco *</span>
         <input
@@ -107,7 +107,7 @@
         <datalist id="bancos-sugeridos">
           {#each BANCOS as b}<option value={b}></option>{/each}
         </datalist>
-        {#if intentado && errores.banco}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.banco}</span>{/if}
+        {#if intentado && errores.banco}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.banco}</span>{/if}
       </label>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -128,14 +128,14 @@
             bind:value={c.numero_cuenta}
             aria-invalid={intentado && !!errores.numero_cuenta}
           />
-          {#if intentado && errores.numero_cuenta}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.numero_cuenta}</span>{/if}
+          {#if intentado && errores.numero_cuenta}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.numero_cuenta}</span>{/if}
         </label>
       </div>
 
       <label class="block">
         <span class="etiqueta-campo">Titular *</span>
         <input class="campo" bind:value={c.titular} aria-invalid={intentado && !!errores.titular} autocomplete="off" />
-        {#if intentado && errores.titular}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.titular}</span>{/if}
+        {#if intentado && errores.titular}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.titular}</span>{/if}
       </label>
 
       <div class="grid gap-4 sm:grid-cols-2">
@@ -155,11 +155,11 @@
             bind:value={c.numero_documento}
             aria-invalid={intentado && !!errores.numero_documento}
           />
-          {#if intentado && errores.numero_documento}<span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.numero_documento}</span>{/if}
+          {#if intentado && errores.numero_documento}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.numero_documento}</span>{/if}
         </label>
       </div>
 
-      {#if error}<p class="text-[13px] font-medium text-error-ink" role="alert">{error}</p>{/if}
+      {#if error}<p class="text-[15px] font-semibold text-heliconia" role="alert">{error}</p>{/if}
 
       <div class="flex justify-end gap-2 pt-1">
         <a class="btn btn-secundario" href="#/liquidaciones">Cancelar</a>

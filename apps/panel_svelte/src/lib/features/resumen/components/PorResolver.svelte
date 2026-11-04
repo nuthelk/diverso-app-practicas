@@ -33,7 +33,7 @@
       Todo al día
     </p>
   {:else}
-    <ul class="mt-3.5 grid gap-3.5 ancho:grid-cols-[1.3fr_1fr]">
+    <ul class="mt-3.5 grid gap-3.5 {avisos.length > 1 ? 'min-[1100px]:grid-cols-2' : ''}">
       {#each avisos as a (a.clave)}
         <li
           data-aviso={a.clave}

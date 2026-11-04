@@ -3,7 +3,7 @@
   import Icono from './Icono.svelte';
   import { ICONOS } from './iconos';
 
-  /** Cabecera de pantalla: título, una línea de contexto y, a la derecha, la acción principal. */
+  /** Cabecera de pantalla: título en la tipografía de títulos, una línea de contexto y, a la derecha, la acción principal. */
   let {
     titulo,
     atras,
@@ -24,17 +24,17 @@
 <header class="flex flex-wrap items-end gap-x-4 gap-y-3">
   <div class="min-w-0 flex-1 basis-[260px]">
     {#if atras}
-      <a href={atras.href} class="enlace mb-2 inline-flex items-center gap-1 text-[14px]">
-        <Icono trazo={ICONOS.atras} clase="size-3.5" />
+      <a href={atras.href} class="enlace mb-1 inline-flex min-h-11 items-center gap-1.5 text-[15px]">
+        <Icono trazo={ICONOS.atras} clase="size-4" />
         {atras.texto}
       </a>
     {/if}
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <h1 class="text-[30px] leading-[1.1] font-bold sm:text-[36px]">{titulo}</h1>
+      <h1 class="text-[32px] leading-[1.08] tracking-[-0.003em] text-balance sm:text-[40px]">{titulo}</h1>
       {#if junto}{@render junto()}{/if}
     </div>
     {#if contexto}
-      <p class="mt-1 text-[15px] leading-relaxed text-suave">{@render contexto()}</p>
+      <p class="mt-2 max-w-[68ch] text-[17px] leading-relaxed text-tinta-2">{@render contexto()}</p>
     {/if}
   </div>
   {#if accion}

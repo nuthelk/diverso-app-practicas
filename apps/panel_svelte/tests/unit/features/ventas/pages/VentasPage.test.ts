@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/svelte';
-import { agencia, texto, venta } from '$tests/fixtures';
+import { agencia, simularPantalla, texto, venta } from '$tests/fixtures';
+import { cop, fechaCorta } from '$lib/shared/lib/format';
 
 vi.mock('$lib/features/ventas/api/ventas.api', () => ({
   misVentas: vi.fn(),
@@ -11,7 +12,10 @@ import VentasPage from '$lib/features/ventas/pages/VentasPage.svelte';
 
 const misVentasMock = vi.mocked(misVentas);
 
-afterEach(() => vi.resetAllMocks());
+afterEach(() => {
+  vi.resetAllMocks();
+  vi.unstubAllGlobals();
+});
 
 const ventas = [
   venta({ booking_id: 'a', monto_total: 200000, comision: 24000, saldo_agencia: 176000 }),
@@ -99,5 +103,66 @@ describe('Ventas', () => {
     misVentasMock.mockRejectedValue(new Error('sin red'));
     render(VentasPage);
     expect(await screen.findByText('Sin conexión')).toBeTruthy();
+  });
+});
+
+describe('Ventas · celular (lista de tarjetas)', () => {
+  const sinNbsp = (s: string) => s.replace(/ /g, ' ');
+  /** Etiqueta → valor de cada dato de una tarjeta. */
+  const datos = (li: Element) =>
+    Object.fromEntries([...li.querySelectorAll('dl > div')].map((d) => [texto(d.querySelector('dt')), texto(d.querySelector('dd'))]));
+  const ids = (c: HTMLElement) => [...c.querySelectorAll('[data-lista-tarjetas] > li')].map((li) => li.getAttribute('data-venta'));
+
+  it('en pantalla ancha sigue la tabla y no hay lista de tarjetas', async () => {
+    simularPantalla(false);
+    misVentasMock.mockResolvedValue({ agencia: agencia(), planes: [], ventas });
+    const { container } = render(VentasPage);
+    await screen.findByText('Ventas y conciliación');
+    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
+  });
+
+  it('por debajo de sm la tabla pasa a tarjetas con los mismos datos, sin ocultar ninguno', async () => {
+    simularPantalla(true);
+    misVentasMock.mockResolvedValue({ agencia: agencia(), planes: [], ventas });
+    const { container } = render(VentasPage);
+    await screen.findByText('Ventas y conciliación');
+    expect(container.querySelector('table')).toBeNull();
+    const tarjetas = [...container.querySelectorAll('[data-lista-tarjetas] > li')];
+    expect(tarjetas).toHaveLength(4);
+
+    const v = ventas[0];
+    expect(texto(tarjetas[0])).toContain(v.codigo);
+    expect(texto(tarjetas[0])).toContain(v.plan_titulo);
+    expect(texto(tarjetas[0])).toContain('Confirmada');
+    expect(datos(tarjetas[0])).toEqual({
+      Fecha: fechaCorta(v.fecha),
+      Pax: String(v.pax),
+      Monto: sinNbsp(cop(v.monto_total)),
+      Comisión: `- ${sinNbsp(cop(v.comision))}`,
+      Saldo: sinNbsp(cop(v.saldo_agencia)),
+    });
+    expect(texto(tarjetas[2])).toContain('Pendiente');
+    expect(texto(tarjetas[3])).toContain('Cancelada');
+  });
+
+  it('los filtros y los totales funcionan igual con tarjetas', async () => {
+    simularPantalla(true);
+    misVentasMock.mockResolvedValue({ agencia: agencia({ comision_pct: 15 }), planes: [], ventas });
+    const { container } = render(VentasPage);
+    await screen.findByText('Ventas y conciliación');
+    expect(texto(container)).toContain('Ventas pagadas $ 300.000');
+    await fireEvent.click(screen.getByRole('button', { name: 'Pagadas' }));
+    expect(ids(container)).toEqual(['a', 'b']);
+    await fireEvent.click(screen.getByRole('button', { name: 'Pendientes de pago' }));
+    expect(ids(container)).toEqual(['c']);
+  });
+
+  it('sin ventas muestra el mismo vacío, no una lista', async () => {
+    simularPantalla(true);
+    misVentasMock.mockResolvedValue({ agencia: null, planes: [], ventas: [] });
+    const { container } = render(VentasPage);
+    expect(await screen.findByText('Sin ventas aquí')).toBeTruthy();
+    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
   import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
+  import Curvas from '$lib/shared/ui/Curvas.svelte';
   import Spinner from '$lib/shared/ui/Spinner.svelte';
   import { auth, perfilActual } from '../model/auth.svelte';
   import { goto } from '$app/navigation';
@@ -24,9 +25,10 @@ import { consentimientosPendientes } from '$lib/features/legal/api/legal.api';
   });
 </script>
 
-<div class="grid min-h-screen place-items-center" role="status" aria-label="Cargando">
-  <div class="flex flex-col items-center gap-5">
-    <MarcaTile tam={48} />
+<div class="relative grid min-h-screen place-items-center overflow-hidden" role="status" aria-label="Cargando">
+  <Curvas clase="top-1/2 left-1/2 h-[420px] w-[840px] max-w-none -translate-x-1/2 -translate-y-1/2 text-musgo opacity-25" />
+  <div class="relative flex flex-col items-center gap-5">
+    <MarcaTile tam={56} />
     <Spinner />
   </div>
 </div>

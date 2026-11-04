@@ -14,7 +14,7 @@
         <input
           value={paso.hora}
           oninput={(e) => (d.itinerario[i] = { hora: e.currentTarget.value, actividad: paso.actividad })}
-          class="campo w-[92px] shrink-0 text-center"
+          class="campo cifra w-[96px] shrink-0 text-center text-[17px]"
           placeholder="07:00"
         />
         <input
@@ -25,7 +25,7 @@
         />
         <button
           type="button"
-          class="grid size-[38px] shrink-0 place-items-center rounded-xl text-suave transition-colors hover:bg-error-ink/10 hover:text-error-ink"
+          class="grid size-11 shrink-0 place-items-center rounded-full text-tinta-2 transition-colors hover:bg-heliconia-bg hover:text-heliconia"
           aria-label="Quitar paso {i + 1}"
           onclick={() => (d.itinerario = d.itinerario.filter((_, j) => j !== i))}
         >
@@ -36,7 +36,7 @@
   </div>
   <button
     type="button"
-    class="btn btn-texto -ml-3 mt-3 text-acento-ink"
+    class="btn btn-texto -ml-3 mt-3 text-helecho"
     onclick={() => (d.itinerario = [...d.itinerario, { hora: '', actividad: '' }])}
   >
     <Icono trazo={ICONOS.mas} clase="size-4" />

@@ -149,7 +149,7 @@
           : 'No hay agencias en esta categoría.'}
       />
     {:else}
-      <ul class="mt-6 space-y-4">
+      <ul class="mt-6 grid items-start gap-5 min-[1500px]:grid-cols-2">
         {#each visibles as a (a.id)}
           <TarjetaAgencia
             agencia={a}

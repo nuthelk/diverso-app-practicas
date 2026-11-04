@@ -75,20 +75,20 @@
 
   <ol class="mt-6 grid gap-3 sm:grid-cols-3">
     {#each pasos as p}
-      <li class="tarjeta flex items-start gap-3 p-4">
+      <li class="tarjeta flex items-start gap-3.5 p-4">
         <span
-          class="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-600/10
-            text-[12.5px] font-extrabold text-acento-ink dark:bg-brand-400/15">{p.n}</span
+          class="font-titulo grid size-10 shrink-0 place-items-center rounded-brote bg-helecho text-[20px] leading-none font-bold text-sobre-helecho"
+          >{p.n}</span
         >
         <span>
-          <span class="block text-[13px] font-bold">{p.titulo}</span>
-          <span class="block text-[12px] text-suave">{p.texto}</span>
+          <span class="font-titulo block text-[19px] leading-tight font-bold">{p.titulo}</span>
+          <span class="mt-0.5 block text-[15px] text-tinta-2">{p.texto}</span>
         </span>
       </li>
     {/each}
   </ol>
 
-  <form class="tarjeta mt-5 grid gap-4 p-6 sm:grid-cols-2 sm:p-7" onsubmit={guardar}>
+  <form class="tarjeta mt-5 grid gap-4 rounded-hoja-grande p-6 sm:grid-cols-2 sm:p-8" onsubmit={guardar}>
     <label class="sm:col-span-2">
       <span class="etiqueta-campo">Nombre de la agencia *</span>
       <input required bind:value={nombre} class="campo" autocomplete="organization" />
@@ -106,7 +106,7 @@
         aria-invalid={intentado && !rntValido}
         aria-describedby="ayuda-rnt"
       />
-      <span id="ayuda-rnt" class="mt-1 block text-[11.5px] text-suave"
+      <span id="ayuda-rnt" class="mt-1 block text-[14px] text-tinta-2"
         >Entre 4 y 8 dígitos, tal como aparece en tu certificado.</span
       >
     </label>
@@ -152,7 +152,7 @@
     </div>
 
     {#if error}
-      <p class="text-[13px] font-medium text-error-ink sm:col-span-2" role="alert">{error}</p>
+      <p class="text-[15px] font-semibold text-heliconia sm:col-span-2" role="alert">{error}</p>
     {/if}
 
     <div class="flex justify-end sm:col-span-2">

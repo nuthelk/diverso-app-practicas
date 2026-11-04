@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import { agencia, cuentaResumen, itemLiquidacion, liquidacion, texto } from '$tests/fixtures';
+import { agencia, cuentaResumen, itemLiquidacion, liquidacion, simularPantalla, texto } from '$tests/fixtures';
 
 vi.mock('$lib/features/agencias/api/agencias.api', () => ({
   miAgencia: vi.fn(),
@@ -28,7 +28,10 @@ const cuentasMock = vi.mocked(cuentasResumen);
 const serviciosMock = vi.mocked(serviciosPrestados);
 const detalleMock = vi.mocked(liquidacionDetalle);
 
-afterEach(() => vi.resetAllMocks());
+afterEach(() => {
+  vi.resetAllMocks();
+  vi.unstubAllGlobals();
+});
 
 /** Texto de cada celda de una fila de la tabla. */
 const celdas = (fila: Element) => [...fila.querySelectorAll('td')].map((td) => texto(td));
@@ -307,5 +310,81 @@ describe('LiquidacionDetalle', () => {
     detalleMock.mockRejectedValue(new Error('sin permisos'));
     render(LiquidacionDetallePage, { id: 'x' });
     expect(await screen.findByText('sin permisos')).toBeTruthy();
+  });
+});
+
+describe('Liquidaciones · celular (lista de tarjetas)', () => {
+  const datos = (li: Element) =>
+    Object.fromEntries([...li.querySelectorAll('dl > div')].map((d) => [texto(d.querySelector('dt')), texto(d.querySelector('dd'))]));
+
+  it('en pantalla ancha sigue la tabla', async () => {
+    simularPantalla(false);
+    preparar();
+    const { container } = render(LiquidacionesPage);
+    await screen.findByText('2 feb – 8 feb 2026');
+    expect(container.querySelector('table')).toBeTruthy();
+    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
+  });
+
+  it('por debajo de sm cada liquidación es una tarjeta con periodo, tipo, estado, referencia y todas las cifras', async () => {
+    simularPantalla(true);
+    preparar();
+    const { container } = render(LiquidacionesPage);
+    await screen.findByText('2 feb – 8 feb 2026');
+    expect(container.querySelector('table')).toBeNull();
+    const [a, b] = [...container.querySelectorAll('[data-lista-tarjetas] > li')];
+
+    expect(texto(a)).toContain('2 feb – 8 feb 2026');
+    expect(texto(a)).toContain('Semanal');
+    expect(texto(a)).toContain('Pendiente');
+    expect(a.querySelector('a')!.getAttribute('href')).toBe('#/liquidaciones/liq-s');
+    expect(datos(a)).toEqual({
+      Bruto: '$ 400.000',
+      Comisión: '- $ 48.000',
+      Neto: '$ 352.000',
+      'Anticipos descontados': '$ 79.200',
+      'A pagar': '$ 272.800',
+    });
+
+    expect(texto(b)).toContain('Anticipo');
+    expect(texto(b)).toContain('Pagada (prueba)');
+    expect(texto(b)).toContain('PRUEBA-20260203-ABC123DEF4');
+    expect(datos(b)['A pagar']).toBe('$ 79.200');
+  });
+
+  it('sin liquidaciones muestra el vacío de siempre', async () => {
+    simularPantalla(true);
+    preparar();
+    misLiquidacionesMock.mockResolvedValue([]);
+    const { container } = render(LiquidacionesPage);
+    expect(await screen.findByText('Aún no hay liquidaciones')).toBeTruthy();
+    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
+  });
+
+  it('el detalle también pasa sus reservas a tarjetas, con el ajuste en tinta de urgencia', async () => {
+    simularPantalla(true);
+    detalleMock.mockResolvedValue({
+      ...semanal,
+      liquidacion_items: [
+        itemLiquidacion({ id: 'a' }),
+        itemLiquidacion({
+          id: 'b',
+          tipo: 'ajuste',
+          monto_bruto: -24000,
+          comision: -2880,
+          monto_neto: -21120,
+          bookings: { codigo: 'DV-BBBB', pax: 1, plan_dates: { fecha: '2026-02-05', plans: { titulo: 'Jardín' } } },
+        }),
+      ],
+    });
+    const { container } = render(LiquidacionDetallePage, { id: 'liq-s' });
+    await screen.findByText('DV-AAAA');
+    expect(container.querySelector('table')).toBeNull();
+    const [a, b] = [...container.querySelectorAll('[data-lista-tarjetas] > li')];
+    expect(texto(a)).toContain('Guatapé');
+    expect(datos(a)).toEqual({ Bruto: '$ 100.000', Comisión: '$ 12.000', Neto: '$ 88.000' });
+    expect(texto(b)).toContain('Ajuste por reembolso');
+    expect(b.innerHTML).toContain('text-heliconia');
+    expect(datos(b)).toEqual({ Bruto: '-$ 24.000', Comisión: '-$ 2.880', Neto: '-$ 21.120' });
   });
 });

@@ -6,6 +6,8 @@
   import Metrica from '$lib/shared/ui/Metrica.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
+  import Dato from '$lib/shared/ui/Dato.svelte';
+  import { pantallaCelular } from '$lib/shared/lib/pantalla';
   import AvisoPrueba from '../components/AvisoPrueba.svelte';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
   import { misLiquidaciones, cuentasResumen, serviciosPrestados } from '../api/liquidaciones.api';
@@ -24,6 +26,8 @@
 
   /** Servicios prestados desde los que la agencia recibe anticipo (Anexo 8 §3.2). */
   const MIN_SERVICIOS_ANTICIPO = 10;
+
+  const celular = pantallaCelular();
 
   let cargando = $state(true);
   let error = $state('');
@@ -93,18 +97,18 @@
 
     <div class="mt-4"><AvisoPrueba>Las liquidaciones se registran como pagos de prueba: nada se transfiere a tu banco.</AvisoPrueba></div>
 
-    <dl class="mt-5 grid gap-3 sm:grid-cols-2">
+    <dl class="mt-6 grid grid-cols-2 gap-3">
       <Metrica etiqueta="Pendiente de dispersar" valor={cop(resumen.pendiente)} tono="alerta" />
       <Metrica etiqueta="Dispersado (prueba)" valor={cop(resumen.pagadoPrueba)} tono="ok" />
     </dl>
 
-    <div class="mt-4 space-y-1.5 text-[12.5px] text-suave">
+    <div class="mt-5 space-y-1.5 text-[15px] text-tinta-2">
       <p>
         {#if cuenta}
-          Cuenta para dispersiones: <strong class="text-slate-900 dark:text-slate-100">{textoCuenta(cuenta)}</strong>
+          Cuenta para dispersiones: <strong class="text-tinta">{textoCuenta(cuenta)}</strong>
           · <a class="enlace" href="#/cuenta-dispersiones">Cambiar</a>
         {:else}
-          <span class="font-semibold text-alert-ink">Aún no registras tu cuenta para dispersiones</span>
+          <span class="font-bold text-prueba-ink">Aún no registras tu cuenta para dispersiones</span>
           — sin ella no se puede ejecutar ninguna liquidación.
           <a class="enlace" href="#/cuenta-dispersiones">Registrarla</a>
         {/if}
@@ -112,14 +116,48 @@
       {#if anticipo}<p>{anticipo}</p>{/if}
     </div>
 
-    <Tarjeta sinRelleno clase="mt-5 overflow-hidden">
-      {#if liquidaciones.length === 0}
+    {#if liquidaciones.length === 0}
+      <Tarjeta sinRelleno clase="mt-6 overflow-hidden">
         <Empty
           icono="recibo"
           titulo="Aún no hay liquidaciones"
           mensaje="La primera aparece el lunes siguiente a la semana en que prestes un servicio pagado."
         />
-      {:else}
+      </Tarjeta>
+    {:else if celular.current}
+      <!-- Celular: una tarjeta por liquidación, con los mismos datos de la tabla -->
+      <ul class="mt-6 space-y-3" aria-label="Liquidaciones" data-lista-tarjetas>
+        {#each liquidaciones as l (l.id)}
+          <li class="tarjeta p-4" data-liquidacion={l.id}>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <a class="enlace cifra text-[20px] leading-tight" href={'#/liquidaciones/' + l.id}>
+                  {periodoTexto(l.periodo_inicio, l.periodo_fin)}
+                </a>
+                <p class="mt-0.5 text-[15px] text-tinta-2">{etiquetaTipoLiquidacion(l.tipo)}</p>
+              </div>
+              <StatusPill estado={l.estado} />
+            </div>
+            {#if (l.estado === 'pendiente' && !puedeEjecutarse(l)) || l.referencia_prueba}
+              <div class="mt-1.5 text-[14px] text-tinta-2">
+                {#if l.estado === 'pendiente' && !puedeEjecutarse(l)}<p>Se descontará de la próxima semanal</p>{/if}
+                {#if l.referencia_prueba}<p class="break-all">{l.referencia_prueba}</p>{/if}
+              </div>
+            {/if}
+            <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-dashed border-linea pt-3">
+              <Dato etiqueta="Bruto">{cop(l.monto_bruto)}</Dato>
+              <Dato etiqueta="Comisión" tono="alerta">- {cop(l.comision)}</Dato>
+              <Dato etiqueta="Neto">{cop(l.monto_neto)}</Dato>
+              <Dato etiqueta="Anticipos descontados">{cop(l.anticipos_descontados)}</Dato>
+              <Dato etiqueta="A pagar" clase="col-span-2">
+                <span class="text-[24px] font-bold">{cop(l.monto_a_pagar)}</span>
+              </Dato>
+            </dl>
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <Tarjeta sinRelleno clase="mt-6 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="tabla min-w-[980px]">
             <thead>
@@ -137,24 +175,24 @@
             <tbody>
               {#each liquidaciones as l (l.id)}
                 <tr>
-                  <td class="font-semibold whitespace-nowrap">
+                  <td class="fecha font-semibold whitespace-nowrap">
                     <a class="enlace" href={'#/liquidaciones/' + l.id}>
                       {periodoTexto(l.periodo_inicio, l.periodo_fin)}
                     </a>
                   </td>
                   <td>{etiquetaTipoLiquidacion(l.tipo)}</td>
                   <td class="num">{cop(l.monto_bruto)}</td>
-                  <td class="num text-alert-ink">- {cop(l.comision)}</td>
+                  <td class="num text-prueba-ink">- {cop(l.comision)}</td>
                   <td class="num">{cop(l.monto_neto)}</td>
                   <td class="num">{cop(l.anticipos_descontados)}</td>
-                  <td class="num font-extrabold">{cop(l.monto_a_pagar)}</td>
+                  <td class="num font-bold">{cop(l.monto_a_pagar)}</td>
                   <td>
                     <StatusPill estado={l.estado} />
                     {#if l.estado === 'pendiente' && !puedeEjecutarse(l)}
-                      <div class="mt-0.5 text-[11px] text-suave">Se descontará de la próxima semanal</div>
+                      <div class="mt-0.5 text-[13px] text-tinta-2">Se descontará de la próxima semanal</div>
                     {/if}
                     {#if l.referencia_prueba}
-                      <div class="mt-0.5 text-[11px] text-suave">{l.referencia_prueba}</div>
+                      <div class="mt-0.5 text-[13px] text-tinta-2">{l.referencia_prueba}</div>
                     {/if}
                   </td>
                 </tr>
@@ -162,7 +200,7 @@
             </tbody>
           </table>
         </div>
-      {/if}
-    </Tarjeta>
+      </Tarjeta>
+    {/if}
   </Pagina>
 {/if}

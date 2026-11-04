@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { Agency } from '$lib/features/agencias/model/agencia';
 import type { Plan, PlanDate } from '$lib/features/planes/model/plan';
 import type { VentaRow } from '$lib/features/ventas/model/ventas';
@@ -146,6 +147,23 @@ export function enZona<T>(zona: string, fn: () => T): T {
   } finally {
     process.env.TZ = previa;
   }
+}
+
+/**
+ * Simula el tamaño de pantalla (`matchMedia`): con `celular` verdadero coincide el `max-width` y las pantallas con
+ * lista de tarjetas la dibujan en lugar de la tabla. Quien la use llama `vi.unstubAllGlobals()` al terminar.
+ */
+export function simularPantalla(celular: boolean): void {
+  vi.stubGlobal('matchMedia', (media: string) => ({
+    matches: celular,
+    media,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  }));
 }
 
 /** Domingo 25-oct-2026, 12:00 en Bogotá (17:00 UTC): el HOY de los tests que dependen de la zona de Bogotá. */

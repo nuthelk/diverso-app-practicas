@@ -22,7 +22,7 @@
   ];
 </script>
 
-<div class="mt-6 flex flex-wrap items-center gap-2">
+<div class="mt-7 flex flex-wrap items-center gap-2">
   {#each FILTROS as f}
     <button
       class="chip"
@@ -31,12 +31,12 @@
     >
       {f.etiqueta}
       <span
-        class="rounded-full px-1.5 text-[11px] tabular-nums
+        class="cifra rounded-full px-2 text-[14px] leading-[22px]
           {filtro === f.valor
-          ? 'bg-sobre-helecho/20'
+          ? 'bg-sobre-helecho text-helecho'
           : f.valor === 'atencion' && conteos.atencion > 0
             ? 'bg-prueba-bg text-prueba-ink'
-            : 'bg-slate-500/12'}">{conteos[f.valor]}</span
+            : 'bg-niebla-2 text-tinta-2'}">{conteos[f.valor]}</span
       >
     </button>
   {/each}
@@ -45,7 +45,7 @@
     type="search"
     bind:value={busqueda}
     placeholder="Buscar por nombre, RNT o ciudad"
-    class="campo w-full py-2 text-[13px] sm:w-[260px]"
+    class="campo w-full sm:w-[300px]"
     aria-label="Buscar agencias"
   />
 </div>

@@ -16,7 +16,7 @@
 </script>
 
 <section
-  class="monte relative mt-11 grid gap-[18px] overflow-hidden rounded-[8px_34px_8px_34px] border border-bosque-2 bg-bosque px-5 py-[22px] text-sobre-bosque sm:px-8 sm:py-[26px] lg:grid-cols-[1.3fr_1fr] lg:items-center lg:gap-10"
+  class="monte relative grid gap-[18px] overflow-hidden rounded-[8px_34px_8px_34px] border border-bosque-2 bg-bosque px-5 py-[22px] text-sobre-bosque sm:px-8 sm:py-[26px] lg:grid-cols-[1.3fr_1fr] lg:items-center lg:gap-10 ancho:grid-cols-1 ancho:gap-[18px]"
   aria-labelledby="h-dinero"
   data-dinero
 >
@@ -27,7 +27,7 @@
     <p class="font-titulo mt-1 text-[42px] leading-[1.1] font-bold tracking-[-0.01em] lg:text-[46px]" data-monto>{dinero.monto}</p>
     <p class="font-titulo mt-1.5 text-[16px] text-sobre-bosque-2" data-desglose>{dinero.desglose}</p>
   </div>
-  <div class="relative border-t border-dashed border-sobre-bosque-2 pt-3.5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-9">
+  <div class="relative border-t border-dashed border-sobre-bosque-2 pt-3.5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-9 ancho:border-t ancho:border-l-0 ancho:pt-3.5 ancho:pl-0">
     <p class="font-titulo text-[19px]" data-proximo>
       {proximo.texto}
       {#if proximo.monto}<b class="text-[24px]">{proximo.monto}</b>{/if}

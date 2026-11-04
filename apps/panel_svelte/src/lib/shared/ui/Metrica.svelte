@@ -4,12 +4,13 @@
     etiqueta,
     valor,
     tono = 'neutro',
-  }: { etiqueta: string; valor: string; tono?: 'neutro' | 'acento' | 'alerta' | 'ok' } = $props();
+    clase = '',
+  }: { etiqueta: string; valor: string; tono?: 'neutro' | 'acento' | 'alerta' | 'ok'; clase?: string } = $props();
 
-  const TINTAS = { neutro: '', acento: 'text-acento-ink', alerta: 'text-alert-ink', ok: 'text-ok-ink' } as const;
+  const TINTAS = { neutro: '', acento: 'text-helecho', alerta: 'text-prueba-ink', ok: 'text-helecho' } as const;
 </script>
 
-<div class="tarjeta px-5 py-3.5">
-  <dt class="text-[12.5px] font-semibold text-suave">{etiqueta}</dt>
-  <dd class="font-titulo mt-1 text-[24px] leading-[1.15] font-bold tabular-nums {TINTAS[tono]}">{valor}</dd>
+<div class="tarjeta px-4 py-4 sm:px-5 {clase}">
+  <dt class="text-[14px] font-bold text-tinta-2">{etiqueta}</dt>
+  <dd class="cifra mt-1 text-[23px] whitespace-nowrap sm:text-[30px] leading-[1.1] font-bold {TINTAS[tono]}">{valor}</dd>
 </div>

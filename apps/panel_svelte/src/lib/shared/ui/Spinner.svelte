@@ -4,6 +4,6 @@
 </script>
 
 <div
-  class="size-7 animate-spin rounded-full border-2 border-brand-600 border-t-transparent dark:border-brand-300 dark:border-t-transparent {clase}"
+  class="size-7 animate-spin rounded-full border-2 border-helecho border-t-transparent {clase}"
   aria-hidden="true"
 ></div>

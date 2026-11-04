@@ -71,8 +71,8 @@ apps/panel_svelte/
         |   `-- ventas/           ventas y conciliación
         `-- shared/
             |-- api/              supabase.ts (el cliente) y errores.ts
-            |-- lib/              format.ts, ruta.ts, toast.svelte.ts
-            `-- ui/               Aviso, Avatar, Empty, EsqueletoPagina, Icono, Logo, MarcaTile, Metrica,
+            |-- lib/              format.ts, pantalla.ts, ruta.ts, toast.svelte.ts
+            `-- ui/               Aviso, Avatar, Dato, Empty, EsqueletoPagina, Icono, Logo, MarcaTile, Metrica,
                                   PageHeader, Pagina, Select, Skeleton, Spinner, StatusPill, Tarjeta, Toast
                                   (y iconos.ts, tonos.ts)
 ```
@@ -210,18 +210,19 @@ etiquetas tenues). Para que no se copie en cada página, cada patrón vive en **
 | Pieza | Qué resuelve | Se usa en |
 |---|---|---|
 | `app.css` | Los colores y, en `@layer components`, las clases repetidas: `.tarjeta`, `.btn` (`btn-primario`, `btn-secundario`, `btn-peligro`, `btn-texto`), `.campo`, `.etiqueta-campo`, `.chip`, `.tabla`, `.pildora-*`, `.switch`, `.boton-icono`, `.enlace`, `.etiqueta-seccion` | todas las pantallas |
-| `Pagina` | Contenedor de una pantalla: mismo aire a los lados y arriba, ancho máximo | las páginas con menú y las de administración |
+| `Pagina` | Contenedor de una pantalla: mismo aire a los lados y arriba. Sin `ancho` llena todo el espacio (tope `ANCHO_DATOS` = 1920 px): es lo de Resumen, Planes, Ventas, Liquidaciones y Admin. Los formularios y textos de lectura pasan un `ancho` menor (`<Pagina ancho={820}>`) para que las líneas se lean cómodas | las páginas con menú y las de administración |
 | `PageHeader` | Cabecera: título (h1), una línea de contexto y la acción principal a la derecha | Resumen, Planes, Ventas, Liquidaciones, Cuenta, Admin, Onboarding, formulario de plan |
 | `Tarjeta` | Tarjeta con título (h2), descripción y acción opcionales | Ventas, Liquidaciones, detalle de liquidación, formulario de plan |
 | `Aviso` | Franja de aviso con ícono según el tono (`info`, `alerta`, `error`) | Resumen, documentos legales, aviso de modo de prueba |
 | `Metrica` | Una cifra con su etiqueta, con la tinta del lado de la plata en que está | Ventas, Liquidaciones, detalle de liquidación |
+| `Dato` | Un dato de las tarjetas de lista del celular: su etiqueta y, debajo, el valor en la tipografía de cifras. `pantallaCelular()` (`shared/lib/pantalla.ts`, por debajo de `sm`) hace que Ventas y Liquidaciones cambien la tabla por una lista de tarjetas con los mismos datos | Ventas, Liquidaciones |
 | `Icono` + `iconos.ts` | Ícono de línea decorativo; los trazos viven en un solo archivo | casi todas |
 | `MarcaTile` | El colibrí sobre el azul de la marca | marco, login, starter, legal, error |
 | `Spinner`, `Skeleton`, `EsqueletoPagina`, `Empty` | Estados de carga y de vacío | las pantallas que piden datos |
 
 La regla: si un patrón aparece en dos pantallas, se mueve a una de estas piezas; si es un color o un
-borde que cambia con el tema, se usa el token de `app.css` (`text-suave`, `border-linea`,
-`text-acento-ink`…) en vez de repetir `dark:…` en cada página.
+borde que cambia con el tema, se usa el token de `app.css` (`text-tinta-2`, `border-linea`,
+`text-helecho`…) en vez de repetir `dark:…` en cada página.
 
 ---
 

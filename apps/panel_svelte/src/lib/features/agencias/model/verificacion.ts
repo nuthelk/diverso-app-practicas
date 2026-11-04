@@ -88,7 +88,10 @@ export function avisoVerificacion(a: Agency, hoy = new Date()): { tono: TonoAvis
     const dias = diasParaVencer(a, hoy)!;
     return {
       tono: 'alerta',
-      texto: `Tu RNT vence el ${fechaTexto(a.rnt_vigente_hasta!)} (en ${dias} ${dias === 1 ? 'día' : 'días'}). Renuévalo a tiempo para no dejar de vender.`,
+      texto:
+        dias === 0
+          ? 'Tu RNT vence hoy. Renuévalo hoy mismo para no dejar de vender.'
+          : `Tu RNT vence el ${fechaTexto(a.rnt_vigente_hasta!)} (en ${dias} ${dias === 1 ? 'día' : 'días'}). Renuévalo a tiempo para no dejar de vender.`,
     };
   }
   return null;
@@ -99,18 +102,18 @@ export function textoVigencia(a: Agency, hoy = new Date()): { texto: string; cla
   const dias = diasParaVencer(a, hoy);
   switch (estadoVigencia(a, hoy)) {
     case 'vencido':
-      return { texto: `RNT vencido hace ${Math.abs(dias!)} ${Math.abs(dias!) === 1 ? 'día' : 'días'}`, clase: 'text-error-ink' };
+      return { texto: `RNT vencido hace ${Math.abs(dias!)} ${Math.abs(dias!) === 1 ? 'día' : 'días'}`, clase: 'text-heliconia' };
     case 'por_vencer':
       return {
         texto: dias === 0 ? 'RNT vence hoy' : `RNT vence en ${dias} ${dias === 1 ? 'día' : 'días'}`,
-        clase: 'text-alert-ink',
+        clase: 'text-prueba-ink',
       };
     case 'sin_vigencia':
-      return { texto: 'Sin vigencia registrada', clase: 'text-suave' };
+      return { texto: 'Sin vigencia registrada', clase: 'text-tinta-2' };
     default:
       return {
         texto: `RNT vigente hasta el ${fechaTexto(a.rnt_vigente_hasta!)}`,
-        clase: 'text-ok-ink',
+        clase: 'text-helecho',
       };
   }
 }

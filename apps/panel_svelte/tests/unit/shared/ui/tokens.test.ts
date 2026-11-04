@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 // (vitest vacía los `?raw` de CSS, así que se leen del disco; las pruebas corren desde la raíz de la app)
 const css = readFileSync('src/app.css', 'utf8');
 const fuentes = readFileSync('src/fuentes.css', 'utf8');
+const fuentesSvelte = import.meta.glob('/src/**/*.{svelte,ts}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 // `app.css` es la única fuente de los tokens visuales (paleta «Bosque de niebla», claro y oscuro). Aquí se fijan los
 // nombres del artboard, que cada tema los defina todos y que los pares de texto/fondo del Shell lleguen a AA.
@@ -66,10 +67,18 @@ describe('tokens de app.css', () => {
     });
   }
 
-  it('los nombres antiguos (suave, hover, ok-ink…) son alias de los tokens, no colores sueltos', () => {
-    const alias = [...css.matchAll(/--(suave|hover|pista|barra|acento-ink|ok-ink|alert-ink|error-ink):\s*([^;]+);/g)].map((m) => m[2].trim());
-    expect(alias.length).toBe(8);
-    expect(alias.every((v) => v.startsWith('var(--'))).toBe(true);
+  it('ya no quedan los alias temporales (suave, hover, ok-ink…) ni las escalas slate, brand e ink de antes del rediseño', () => {
+    expect(css).not.toMatch(/--(suave|hover|pista|barra|acento-ink|ok-ink|alert-ink|error-ink|color-dorado):/);
+    expect(css).not.toMatch(/--color-(slate|brand|ink|paper)[-\w]*:/);
+    expect(css).not.toMatch(/--color-(suave|hover|pista|barra|acento-ink|ok-ink|alert-ink|error-ink):/);
+  });
+
+  it('ninguna pantalla usa ya los nombres antiguos', () => {
+    const antiguos = /(?<![\w-])(?:[\w:-]*:)?(?:text|bg|border|ring|accent|fill|stroke|divide|shadow)-(?:suave|hover|pista|barra|acento-ink|ok-ink|alert-ink|error-ink|paper|dorado|(?:slate|brand|ink)-\d{2,3})(?![\w-])/;
+    const sucias = Object.entries(fuentesSvelte)
+      .filter(([, texto]) => antiguos.test(texto))
+      .map(([ruta]) => ruta);
+    expect(sucias).toEqual([]);
   });
 });
 

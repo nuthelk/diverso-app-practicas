@@ -48,7 +48,7 @@
     onclick={() => (abierto = !abierto)}
   >
     <span class="truncate">{etiqueta}</span>
-    <Icono trazo={ICONOS.chevron} clase="size-4 text-suave transition-transform {abierto ? 'rotate-180' : ''}" />
+    <Icono trazo={ICONOS.chevron} clase="size-4 text-tinta-2 transition-transform {abierto ? 'rotate-180' : ''}" />
   </button>
 
   {#if abierto}
@@ -66,7 +66,7 @@
             class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[15px] transition-colors
               {o.valor === valor
               ? 'bg-niebla-2 font-bold text-helecho'
-              : 'text-tinta hover:bg-hover'}"
+              : 'text-tinta hover:bg-niebla-2'}"
             onclick={() => elegir(o.valor)}
           >
             {#if o.valor === valor}

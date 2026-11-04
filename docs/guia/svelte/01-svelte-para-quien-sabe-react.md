@@ -35,10 +35,10 @@ plantilla se actualiza por trozos (más en el [capítulo 2](02-reactividad-con-r
 
 ```svelte
 <script lang="ts">
-  let { clase = 'h-24 rounded-[18px]' }: { clase?: string } = $props();
+  let { clase = 'h-24 rounded-hoja' }: { clase?: string } = $props();
 </script>
 
-<div class="pulso rounded-[18px] bg-slate-200/70 dark:bg-ink-700 {clase}"></div>
+<div class="pulso bg-niebla-2 {clase}"></div>
 ```
 
 | Parte | Qué es | Equivalente en React |
@@ -110,7 +110,7 @@ repo)**:
     background: rgb(255 255 255 / 0.04);
   }
   .campo:focus {
-    border-color: var(--color-brand-400);
+    border-color: var(--foco);
   }
 </style>
 ```
@@ -120,7 +120,7 @@ Compilado con `svelte/compiler`, el CSS queda así (el sufijo `svelte-…` cambi
 ```css
 .campo.svelte-3hxbpg { border-radius: 12px; padding: 9px 14px; }
 .dark .campo.svelte-3hxbpg { background: rgb(255 255 255 / 0.04); }
-.campo.svelte-3hxbpg:focus { border-color: var(--color-brand-400); }
+.campo.svelte-3hxbpg:focus { border-color: var(--foco); }
 ```
 
 `:global(.dark)` le dice al compilador «esta parte del selector **no** la toques»: la clase `dark`
@@ -145,7 +145,7 @@ selector en su propio elemento y marca como global lo que está dentro. Es lo qu
     color: rgb(148 163 184);
   }
   .plan-form :global(.campo:focus) {
-    border-color: var(--color-brand-400);
+    border-color: var(--foco);
   }
 </style>
 ```
@@ -226,7 +226,7 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 {#each fechas as f (f.id)}
   <!-- … -->
 {:else}
-  <li class="py-6 text-center text-[13px] text-suave">Sin fechas todavía — agrega la primera.</li>
+  <li class="py-6 text-center text-[13px] text-tinta-2">Sin fechas todavía — agrega la primera.</li>
 {/each}
 ```
 
@@ -464,7 +464,7 @@ que una plantilla de texto. `apps/panel_svelte/src/lib/shared/ui/Select.svelte` 
 viaja como prop `clase` del componente `Icono`, que la pone en su `class`):
 
 ```svelte
-      clase="size-4 text-suave transition-transform {abierto ? 'rotate-180' : ''}"
+      clase="size-4 text-tinta-2 transition-transform {abierto ? 'rotate-180' : ''}"
 ```
 
 `style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:

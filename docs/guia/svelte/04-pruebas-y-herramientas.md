@@ -122,23 +122,33 @@ configura en CSS, y el plugin `tailwindcss()` de Vite (arriba) hace el resto. El
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-  /* Azul pizarra de la marca (panel) */
-  --color-brand-600: #2d4a73;
+  --font-sans: "Atkinson Hyperlegible Next", Calibri, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-titulo: "Newsreader", Constantia, "Palatino Linotype", Cambria, Georgia, serif;
+  --radius-hoja: 6px 20px 6px 20px;
+}
+
+:root {
+  --niebla: #edf0ea;      /* fondo de página */
+  --superficie: #f9fbf7;  /* tarjetas */
+  --tinta: #17261e;       /* texto */
+  --helecho: #3a6b43;     /* acción principal */
+}
+.dark { --niebla: #0e1612; --superficie: #18261f; --tinta: #e6efe8; --helecho: #8fcb93; }
 ```
 
 | Pieza | Qué hace |
 |---|---|
 | `@import "tailwindcss"` | Carga Tailwind |
-| `@theme { --color-brand-600: … }` | Crea los colores de marca: `bg-brand-600`, `text-brand-700`. También `ok-500` (verde de estados positivos), `ink-800` (fondos oscuros) y `paper` |
+| `@theme { --font-titulo: … }` | Crea las tipografías (`font-titulo`) y los radios (`rounded-hoja`) |
+| `@theme inline { --color-helecho: var(--helecho) }` | Convierte cada token de color en utilidades: `bg-helecho`, `text-tinta`, `bg-superficie` |
 | `@custom-variant dark (…)` | Define `dark:` como «un ancestro tiene la clase `dark`», no como «el sistema está en modo oscuro» |
 
 **Modo oscuro por clase.** `src/app.html` arranca en **claro**: un pequeño script, antes del primer
 render, añade la clase `dark` a `<html>` solo si en `localStorage` hay `diverso-panel-theme = dark`; el
 botón de `Shell.svelte` la alterna y guarda la elección. Por eso en los componentes se escribe
-`bg-white dark:bg-ink-800`. Los colores que cambian con el tema (`--suave`, `--linea`, `--acento-ink`…)
-se declaran una vez en `app.css` (en `:root` y en `.dark`) y se usan como utilidades: `text-suave`,
-`border-linea`, `text-acento-ink`.
+`bg-superficie text-tinta`: los colores que cambian con el tema (`--tinta`, `--linea`, `--helecho`…)
+se declaran una vez en `app.css` (en `:root` y en `.dark`) y se usan como utilidades: `text-tinta-2`,
+`border-linea`, `text-helecho`. Las cifras (precios, fechas, horas) llevan la clase `.cifra`, que las pone en `font-titulo`.
 
 Dos reglas prácticas:
 

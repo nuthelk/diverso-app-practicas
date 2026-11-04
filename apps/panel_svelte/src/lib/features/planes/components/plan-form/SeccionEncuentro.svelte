@@ -31,7 +31,7 @@
           type="time"
           required
           bind:value={d.horaSalida}
-          class="campo"
+          class="campo cifra text-[18px]"
           aria-invalid={intentado && !!errores.horaSalida}
         />
       </label>

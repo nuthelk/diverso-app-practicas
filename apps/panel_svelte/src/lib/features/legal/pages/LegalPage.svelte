@@ -13,12 +13,12 @@
 </script>
 
 <div class="min-h-screen">
-  <header class="sticky top-0 z-10 border-b border-linea bg-superficie/90 backdrop-blur dark:bg-ink-900/90">
-    <div class="mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4 sm:px-6">
+  <header class="sticky top-0 z-10 border-b border-linea bg-niebla/90 backdrop-blur">
+    <div class="mx-auto flex h-[64px] max-w-[760px] items-center gap-3 px-4 sm:px-6">
       <MarcaTile tam={32} />
-      <span class="text-[14px] font-extrabold tracking-tight"><span class="max-sm:hidden">Diverso&nbsp;·&nbsp;</span>Documentos legales</span>
+      <span class="font-titulo text-[19px] font-bold"><span class="max-sm:hidden">Diverso&nbsp;·&nbsp;</span>Documentos legales</span>
       <div class="flex-1"></div>
-      <button class="btn btn-secundario py-1.5 text-[12.5px] whitespace-nowrap" onclick={() => history.back()}>
+      <button class="btn btn-secundario whitespace-nowrap" onclick={() => history.back()}>
         <Icono trazo={ICONOS.atras} clase="size-3.5" />
         Volver
       </button>
@@ -27,13 +27,13 @@
 
   <article class="mx-auto max-w-[760px] px-5 py-10 sm:px-6">
     {#if !documento}
-      <p class="text-suave">Documento no encontrado.</p>
+      <p class="text-tinta-2">Documento no encontrado.</p>
     {:else}
       <p class="etiqueta-seccion">VERSIÓN {VERSION_LEGAL.toUpperCase()}</p>
-      <h1 class="mt-2 text-[28px] leading-tight font-extrabold tracking-tight sm:text-[30px]">
+      <h1 class="mt-2 text-[34px] leading-[1.1] text-balance sm:text-[42px]">
         {documento.titulo}
       </h1>
-      <p class="mt-2 text-[15px] leading-relaxed text-suave">{documento.resumen}</p>
+      <p class="mt-3 text-[18px] leading-relaxed text-tinta-2">{documento.resumen}</p>
 
       <div class="mt-6">
         <Aviso role="note">
@@ -43,10 +43,10 @@
       </div>
 
       {#each documento.secciones as s}
-        <section class="mt-8">
-          <h2 class="text-[16px] font-bold tracking-tight">{s.titulo}</h2>
+        <section class="mt-9 border-t border-dashed border-linea pt-6">
+          <h2 class="text-[24px] leading-[1.2]">{s.titulo}</h2>
           {#each s.parrafos as p}
-            <p class="mt-2.5 text-[14.5px] leading-[1.7] text-slate-700 dark:text-slate-300">{p}</p>
+            <p class="mt-3 text-[17px] leading-[1.7] text-tinta">{p}</p>
           {/each}
         </section>
       {/each}

@@ -12,11 +12,11 @@
   };
 </script>
 
-<ol class="mt-3 space-y-2 border-l-2 border-linea pl-4">
+<ol class="mt-4 space-y-3 border-l-2 border-dashed border-contorno pl-4">
   {#each historial as h (h.id)}
-    <li class="text-[12.5px]">
-      <div class="font-semibold">{ETIQUETA_ACCION[h.accion]}</div>
-      <div class="text-suave">
+    <li class="text-[15px]">
+      <div class="font-bold">{ETIQUETA_ACCION[h.accion]}</div>
+      <div class="text-tinta-2">
         {new Date(h.created_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
         · RNT {h.numero_rnt}
         {h.vigente_hasta ? ` · vigente hasta ${h.vigente_hasta}` : ''}
@@ -24,6 +24,6 @@
       </div>
     </li>
   {:else}
-    <li class="text-[12.5px] text-suave">Sin registros todavía.</li>
+    <li class="text-[15px] text-tinta-2">Sin registros todavía.</li>
   {/each}
 </ol>

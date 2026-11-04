@@ -155,7 +155,7 @@
 {/snippet}
 
 {#if cargando}
-  <Pagina ancho={1240}>
+  <Pagina>
     <div class="space-y-4" role="status" aria-label="Cargando">
       <Skeleton clase="h-14 w-80 max-w-full rounded-lg" />
       <Skeleton clase="h-[96px]" />
@@ -168,7 +168,7 @@
 {:else if !agencia}
   <Empty icono="edificio" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
 {:else}
-  <Pagina ancho={1240}>
+  <Pagina>
     <PageHeader titulo="Buen día, {agencia.nombre}">
       {#snippet contexto()}
         <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -202,7 +202,7 @@
     <PorResolver {avisos} />
 
     <section class="mt-9" aria-labelledby="h-semana">
-      <div class="grid grid-cols-1 gap-6 ancho:grid-cols-[minmax(0,1fr)_336px] ancho:items-start">
+      <div class="grid grid-cols-1 gap-6 ancho:grid-cols-[minmax(0,1fr)_clamp(336px,24vw,480px)] ancho:items-start">
         <AgendaSemana
           {semana}
           {desplazamiento}
@@ -223,12 +223,14 @@
       </div>
     </section>
 
-    <div class="mt-11 grid gap-x-12 gap-y-9 lg:grid-cols-2 lg:items-start">
+    <!-- Abajo: planes y reseñas en dos columnas; con mucho ancho, la plata se suma como tercera columna -->
+    <div class="mt-11 grid gap-x-10 gap-y-9 lg:grid-cols-2 ancho:grid-cols-3 lg:items-start">
       <TusPlanes datos={tusPlanes(planes, hoy)} />
       <ResenasRecientes resenas={resenas === null ? null : resenasParaMostrar(resenas, hoy)} />
+      <div class="lg:col-span-2 ancho:col-span-1">
+        <DineroDelMes dinero={dineroDelMes(ventasLista, agencia.comision_pct, hoy)} proximo={lineaProximoPago(pago, liquidaciones !== null)} />
+      </div>
     </div>
-
-    <DineroDelMes dinero={dineroDelMes(ventasLista, agencia.comision_pct, hoy)} proximo={lineaProximoPago(pago, liquidaciones !== null)} />
   </Pagina>
 
   {#if esCelular && hojaAbierta}

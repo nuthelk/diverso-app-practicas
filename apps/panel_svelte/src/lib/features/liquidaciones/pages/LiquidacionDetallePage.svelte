@@ -58,14 +58,14 @@
     >
       {#snippet junto()}<StatusPill estado={liq!.estado} />{/snippet}
       {#snippet contexto()}
-        {#if liq!.referencia_prueba}Referencia: <strong class="text-slate-900 dark:text-slate-100">{liq!.referencia_prueba}</strong>{/if}
+        {#if liq!.referencia_prueba}Referencia: <strong class="text-tinta">{liq!.referencia_prueba}</strong>{/if}
       {/snippet}
     </PageHeader>
 
     <div class="mt-4"><AvisoPrueba /></div>
 
     {#if notaEstado(liq)}
-      <p class="mt-3 rounded-xl bg-slate-500/8 px-4 py-2.5 text-[12.5px] text-suave" role="status">
+      <p class="mt-3 rounded-hoja-chica bg-niebla-2 px-4 py-3 text-[15px] text-tinta-2" role="status">
         {notaEstado(liq)}
         {#if liq.compensada_en}
           <a class="enlace" href={'#/liquidaciones/' + liq.compensada_en}>Ver la liquidación que la absorbió</a>
@@ -73,13 +73,13 @@
       </p>
     {/if}
 
-    <dl class="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {#each metricas as [etiqueta, valor]}
-        <Metrica {etiqueta} valor={cop(valor)} tono={etiqueta === 'A pagar' ? 'ok' : 'neutro'} />
+        <Metrica {etiqueta} valor={cop(valor)} tono={etiqueta === 'A pagar' ? 'ok' : 'neutro'} clase={etiqueta === 'A pagar' ? 'col-span-2 sm:col-span-1' : ''} />
       {/each}
     </dl>
 
-    <h2 class="etiqueta-seccion mt-7 mb-2">DETALLE POR RESERVA</h2>
+    <h2 class="etiqueta-seccion mt-8 mb-2.5">DETALLE POR RESERVA</h2>
     <Tarjeta sinRelleno clase="overflow-hidden">
       {#if liq.liquidacion_items.length === 0}
         <Empty icono="recibo" titulo="Sin items" mensaje="Esta liquidación no tiene reservas asociadas." />
@@ -87,7 +87,7 @@
         <ItemsLiquidacion items={liq.liquidacion_items} />
       {/if}
     </Tarjeta>
-    <p class="mt-3 text-[12px] leading-relaxed text-suave">
+    <p class="mt-4 max-w-[78ch] text-[14.5px] leading-relaxed text-tinta-2">
       Bruto − comisión = neto. A pagar = neto − anticipos descontados. La retención por cancelación es lo
       que no se reembolsó al viajero (menos la comisión). Los ajustes devuelven un anticipo que el
       reembolso dejó sin respaldo, y el saldo anterior absorbe una liquidación que quedó en cero o negativa.

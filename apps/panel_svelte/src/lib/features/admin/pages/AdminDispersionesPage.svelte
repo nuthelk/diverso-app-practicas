@@ -170,7 +170,7 @@
     {:else if visibles.length === 0}
       <Empty icono="recibo" titulo="Nada por aquí" mensaje="No hay liquidaciones en esta categoría. Genera la semana o los anticipos." />
     {:else}
-      <ul class="mt-4 space-y-4">
+      <ul class="mt-4 grid items-start gap-5 min-[1500px]:grid-cols-2">
         {#each visibles as l (l.id)}
           <TarjetaLiquidacion
             liquidacion={l}

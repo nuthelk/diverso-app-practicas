@@ -30,43 +30,6 @@
   --radius-hoja-grande: 8px 30px 8px 30px;
   --radius-brote: 50% 50% 50% 8px;
 
-  /*
-   * Escalas con los nombres de Tailwind que el panel ya usa, repintadas con la paleta del bosque (valores fijos:
-   * las parejas `text-slate-600 dark:text-slate-400` siguen funcionando). Lo nuevo usa los tokens semánticos.
-   */
-  --color-slate-50: #f4f7f2;
-  --color-slate-100: #e4eae2;
-  --color-slate-200: #ccd6ca;
-  --color-slate-300: #b2c0b3;
-  --color-slate-400: #97ad9e;
-  --color-slate-500: #66786b;
-  --color-slate-600: #405146;
-  --color-slate-700: #2f3f35;
-  --color-slate-800: #22322a;
-  --color-slate-900: #17261e;
-  --color-slate-950: #0e1612;
-
-  /* Helecho: la acción principal. */
-  --color-brand-50: #eef4ea;
-  --color-brand-100: #ddeAd7;
-  --color-brand-200: #b8d8b4;
-  --color-brand-300: #8fcb93;
-  --color-brand-400: #5e9a68;
-  --color-brand-500: #4a7f54;
-  --color-brand-600: #3a6b43;
-  --color-brand-700: #2f5736;
-  --color-brand-800: #234228;
-  --color-brand-900: #1d382a;
-
-  --color-ink-950: #0e1612;
-  --color-ink-900: #141f19;
-  --color-ink-800: #18261f;
-  --color-ink-700: #213429;
-  --color-ink-600: #2a3d33;
-
-  --color-paper: #edf0ea;
-
-
   /* Ancho desde el que caben los 4 indicadores del Resumen en una fila (el contenido llega a 1096 px). */
   --breakpoint-ancho: 86rem;
 }
@@ -128,18 +91,6 @@
   color-scheme: dark;
 }
 
-/* Nombres antiguos que el panel ya usa, ahora alias de los tokens (lo nuevo usa los tokens directamente). */
-:root {
-  --suave: var(--tinta-2);
-  --hover: var(--niebla-2);
-  --pista: var(--niebla-2);
-  --barra: var(--helecho);
-  --acento-ink: var(--helecho);
-  --ok-ink: var(--helecho);
-  --alert-ink: var(--prueba-ink);
-  --error-ink: var(--heliconia);
-}
-
 @theme inline {
   --color-niebla: var(--niebla);
   --color-niebla-2: var(--niebla-2);
@@ -161,20 +112,9 @@
   --color-sobre-heliconia: var(--sobre-heliconia);
   --color-heliconia-bg: var(--heliconia-bg);
   --color-pico: var(--pico);
-  /* Estrellas de calificación: el pico de la heliconia. */
-  --color-dorado: var(--pico);
   --color-prueba-bg: var(--prueba-bg);
   --color-prueba-ink: var(--prueba-ink);
   --color-foco: var(--foco);
-  /* alias antiguos */
-  --color-suave: var(--suave);
-  --color-hover: var(--hover);
-  --color-pista: var(--pista);
-  --color-barra: var(--barra);
-  --color-acento-ink: var(--acento-ink);
-  --color-ok-ink: var(--ok-ink);
-  --color-alert-ink: var(--alert-ink);
-  --color-error-ink: var(--error-ink);
 }
 
 html {
@@ -261,7 +201,7 @@ body {
   background: var(--superficie);
   color: var(--tinta);
   padding: 9px 14px;
-  font-size: 15px;
+  font-size: 16px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -432,39 +372,60 @@ body {
 
 /* Etiqueta pequeña en mayúsculas. */
 .etiqueta-seccion {
-  font-size: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--tinta-2);
 }
 
-/* Tabla de conciliación: cabecera hundida en la niebla, filas con línea fina, cifras a la derecha. */
+/* Precios, fechas, horas y cifras grandes: Newsreader con cifras de caja alta (Atkinson dibuja el cero tachado). */
+.cifra {
+  font-family: var(--font-titulo);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Tabla de conciliación: cabecera hundida en la niebla, filas con línea fina; fechas y cifras en la tipografía de títulos. */
 .tabla {
   width: 100%;
-  font-size: 14px;
+  font-size: 15px;
   border-collapse: collapse;
 }
 .tabla th {
-  padding: 10px 16px;
+  padding: 12px 12px;
   text-align: left;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   white-space: nowrap;
   color: var(--tinta-2);
   background: var(--niebla-2);
 }
+.tabla th:first-child,
+.tabla td:first-child {
+  padding-left: 20px;
+}
+.tabla th:last-child,
+.tabla td:last-child {
+  padding-right: 20px;
+}
 .tabla td {
-  padding: 12px 16px;
+  padding: 13px 12px;
   border-top: 1px solid var(--linea);
 }
 .tabla tbody tr:hover {
   background: color-mix(in srgb, var(--niebla-2) 60%, transparent);
 }
+.tabla td.num,
+.tabla td.fecha {
+  font-family: var(--font-titulo);
+  font-size: 17px;
+  font-variant-numeric: lining-nums tabular-nums;
+}
 .tabla .num {
   text-align: right;
-  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Píldoras de estado: fondo tintado y tinta que llega a AA en claro, oscuro y sobre el monte. */

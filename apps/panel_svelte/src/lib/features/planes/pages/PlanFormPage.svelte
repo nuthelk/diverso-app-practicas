@@ -102,9 +102,9 @@
       <SeccionEncuentro bind:d errores={erroresPolitica} {intentado} {textoVistaPrevia} />
 
       {#if error}
-        <p class="text-[13px] font-medium text-error-ink" role="alert">{error}</p>
+        <p class="text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
       {/if}
-      <p class="pb-4 text-[12px] text-suave">
+      <p class="pb-4 text-[14px] text-tinta-2">
         * El precio es final: lo que ve el viajero es lo que paga, sin cargos ocultos (Anexo 4).
       </p>
     </form>

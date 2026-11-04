@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Curvas from '$lib/shared/ui/Curvas.svelte';
   import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
   import Consentimiento from '../components/Consentimiento.svelte';
   import { consentimientosPendientes, registrarConsentimiento } from '../api/legal.api';
@@ -29,11 +30,12 @@
   }
 </script>
 
-<div class="grid min-h-screen place-items-center bg-paper px-6 py-12 dark:bg-ink-950">
-  <form class="tarjeta aparecer w-full max-w-[460px] p-8" onsubmit={aceptar}>
-    <MarcaTile tam={48} />
-    <h1 class="mt-4 text-[22px] font-extrabold tracking-tight">Antes de continuar</h1>
-    <p class="mt-1.5 text-[13.5px] leading-relaxed text-suave">
+<div class="relative grid min-h-screen place-items-center overflow-hidden bg-niebla px-6 py-12">
+  <Curvas clase="-top-20 -right-24 h-[320px] w-[640px] max-w-none text-musgo opacity-30" />
+  <form class="tarjeta aparecer relative w-full max-w-[480px] rounded-hoja-grande p-8 sm:p-9" onsubmit={aceptar}>
+    <MarcaTile tam={52} />
+    <h1 class="mt-4 text-[30px] leading-[1.1]">Antes de continuar</h1>
+    <p class="mt-2 text-[16px] leading-relaxed text-tinta-2">
       Actualizamos nuestros documentos legales. Necesitamos tu autorización expresa para seguir
       tratando los datos de tu cuenta.
     </p>
@@ -41,7 +43,7 @@
     <div class="mt-6"><Consentimiento bind:datos bind:terminos /></div>
 
     {#if error}
-      <p class="mt-4 text-[13px] font-medium text-error-ink" role="alert">{error}</p>
+      <p class="mt-4 text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
     {/if}
 
     <div class="mt-7 flex items-center justify-between gap-3">

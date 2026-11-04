@@ -75,33 +75,37 @@
       {/snippet}
     </PageHeader>
 
-    <ul class="mt-5 space-y-4">
+    <ul class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,520px),1fr))] gap-5">
       {#each planes as p (p.id)}
         {@const publicado = p.estado === 'publicado'}
         {@const futuras = fechasFuturas(p)}
-        <li class="tarjeta px-5 py-[18px] transition-shadow hover:shadow-sm hover:shadow-slate-900/5">
-          <div class="flex items-start gap-3.5">
+        <li class="tarjeta flex flex-col overflow-hidden">
+          <div class="flex items-start gap-4 px-5 pt-5">
             {#if p.fotos[0]}
-              <img src={p.fotos[0]} alt="" class="size-14 shrink-0 rounded-[14px] object-cover" loading="lazy" />
+              <img src={p.fotos[0]} alt="" class="size-16 shrink-0 rounded-hoja-chica object-cover" loading="lazy" />
             {:else}
-              <div class="flex size-14 shrink-0 items-center justify-center rounded-[14px] bg-brand-600/10 text-xl dark:bg-brand-400/15" aria-hidden="true">
+              <div class="flex size-16 shrink-0 items-center justify-center rounded-hoja-chica bg-relleno text-2xl" aria-hidden="true">
                 {#each CATEGORIA_EMOJIS as ce}
                   {#if ce.valor === p.categoria}{ce.emoji}{/if}
                 {/each}
               </div>
             {/if}
             <div class="min-w-0 flex-1">
-              <div class="line-clamp-2 text-[15px] leading-snug font-bold">{p.titulo}</div>
-              <div class="mt-1 text-[12.5px] leading-relaxed text-suave">
+              <h2 class="line-clamp-2 text-[22px] leading-[1.2]">{p.titulo}</h2>
+              <p class="mt-1 text-[15px] leading-relaxed text-tinta-2">
                 {p.destino} · {CATEGORIA_LABELS[p.categoria] ?? p.categoria} · {p.duracion_texto} ·
-                {cop(p.precio_cop)} · ★ {p.rating_promedio.toFixed(1)} ({p.reviews_count})
-              </div>
+                <span class="cifra text-[17px] text-tinta">{cop(p.precio_cop)}</span> · ★
+                <span class="cifra text-[17px] text-tinta">{p.rating_promedio.toFixed(1)}</span> ({p.reviews_count})
+              </p>
             </div>
             <StatusPill estado={p.estado} />
           </div>
 
-          <p class="mt-3.5 flex items-start gap-2 text-[12.5px] font-medium {futuras.length === 0 ? 'text-alert-ink' : 'text-acento-ink'}">
-            <Icono trazo={ICONOS.calendario} clase="mt-px size-4" />
+          <p
+            class="mx-5 mt-4 mb-4 flex items-start gap-2.5 rounded-hoja-chica px-3.5 py-2.5 text-[15px] font-semibold
+              {futuras.length === 0 ? 'bg-prueba-bg text-prueba-ink' : 'bg-niebla-2 text-tinta'}"
+          >
+            <Icono trazo={ICONOS.calendario} clase="mt-0.5 size-[18px] shrink-0" />
             <span>
               {futuras.length === 0
                 ? 'Sin fechas futuras — agrega fechas para vender'
@@ -112,7 +116,7 @@
             </span>
           </p>
 
-          <div class="mt-3.5 flex flex-wrap items-center gap-1 border-t border-linea pt-3">
+          <div class="mt-auto flex flex-wrap items-center gap-1 border-t border-dashed border-linea px-4 py-3">
             <a href={'#/planes/editar/' + p.id} class="btn btn-texto whitespace-nowrap">
               <Icono trazo={ICONOS.editar} clase="size-4" />
               Editar

@@ -51,7 +51,7 @@
           min="1"
           required
           bind:value={d.precioCop}
-          class="campo"
+          class="campo cifra text-[18px]"
           placeholder="150000"
         />
       </label>
@@ -64,7 +64,7 @@
             required
             bind:value={duracionCantidad}
             oninput={componer}
-            class="campo w-[74px] shrink-0 text-center"
+            class="campo cifra w-[80px] shrink-0 text-center text-[18px]"
           />
           <Select
             clase="flex-1"

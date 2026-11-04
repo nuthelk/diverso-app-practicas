@@ -17,12 +17,12 @@
 </script>
 
 <div
-  class="space-y-3 rounded-xl border border-linea bg-paper p-4 dark:bg-ink-900"
+  class="space-y-3 rounded-hoja-chica border border-linea bg-niebla p-4"
   role="group"
   aria-label="Política de cancelación"
 >
-  <h3 class="text-[13px] font-bold">Política de cancelación y reembolsos</h3>
-  <p class="text-[12px] leading-relaxed text-suave">
+  <h3 class="text-[19px] leading-tight">Política de cancelación y reembolsos</h3>
+  <p class="text-[15px] leading-relaxed text-tinta-2">
     Las horas se cuentan hacia atrás desde la fecha del plan y su hora de salida. Con estos
     números se calcula el reembolso al cancelar y se escribe el texto que ve el viajero.
   </p>
@@ -39,7 +39,7 @@
         aria-invalid={intentado && !!errores.horasGratis}
       />
       {#if intentado && errores.horasGratis}
-        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.horasGratis}</span>
+        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.horasGratis}</span>
       {/if}
     </label>
     <label class="block">
@@ -54,7 +54,7 @@
         aria-invalid={intentado && !!errores.horasParcial}
       />
       {#if intentado && errores.horasParcial}
-        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.horasParcial}</span>
+        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.horasParcial}</span>
       {/if}
     </label>
     <label class="block">
@@ -70,7 +70,7 @@
         aria-invalid={intentado && !!errores.porcentajeParcial}
       />
       {#if intentado && errores.porcentajeParcial}
-        <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.porcentajeParcial}</span>
+        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.porcentajeParcial}</span>
       {/if}
     </label>
   </div>
@@ -83,14 +83,14 @@
       placeholder="Ej.: Avisar restricciones alimentarias."
       aria-invalid={intentado && !!errores.notas}
     ></textarea>
-    <span class="mt-1 block text-[12px] text-suave">
+    <span class="mt-1 block text-[14px] text-tinta-2">
       Frases que no cambian el reembolso: se muestran al viajero después de la política.
     </span>
     {#if intentado && errores.notas}
-      <span class="mt-1 block text-[12px] text-error-ink" role="alert">{errores.notas}</span>
+      <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.notas}</span>
     {/if}
   </label>
-  <p class="text-[13px] leading-relaxed" data-testid="politica-texto">
+  <p class="text-[15px] leading-relaxed" data-testid="politica-texto">
     <span class="font-semibold">Lo que verá el viajero:</span>
     {textoVistaPrevia}
   </p>

@@ -28,7 +28,7 @@
 </script>
 
 <form
-  class="mt-4 rounded-xl border border-linea bg-paper p-4 dark:bg-ink-900"
+  class="mt-4 rounded-hoja-chica border border-linea bg-niebla p-4"
   {onsubmit}
 >
   {#if tipo === 'rechazar'}
@@ -50,25 +50,25 @@
       <span class="etiqueta-campo">RNT vigente hasta *</span>
       <input type="date" required min={hoyISO} bind:value={fechaVigencia} class="campo" />
     </label>
-    <label class="mt-3 flex items-start gap-2.5 text-[12.5px] text-suave">
-      <input type="checkbox" bind:checked={confirmado} class="mt-0.5 size-4 accent-brand-600" />
+    <label class="mt-3 flex items-start gap-2.5 text-[15px] text-tinta-2">
+      <input type="checkbox" bind:checked={confirmado} class="mt-1 size-[18px] shrink-0 accent-helecho" />
       Confirmo que contrasté el RNT {agencia.numero_rnt} y la matrícula
       {agencia.matricula_camara_comercio} en las fuentes oficiales.
     </label>
   {/if}
 
   {#if error}
-    <p class="mt-3 text-[12.5px] font-medium text-error-ink" role="alert">{error}</p>
+    <p class="mt-3 text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
   {/if}
 
   <div class="mt-4 flex justify-end gap-2">
-    <button type="button" class="btn btn-secundario py-1.5" onclick={oncancelar}>Cancelar</button>
+    <button type="button" class="btn btn-secundario " onclick={oncancelar}>Cancelar</button>
     {#if tipo === 'rechazar'}
-      <button type="submit" class="btn btn-peligro py-1.5" disabled={procesando || !motivo.trim()}>
+      <button type="submit" class="btn btn-peligro " disabled={procesando || !motivo.trim()}>
         {procesando ? 'Guardando…' : 'Confirmar rechazo'}
       </button>
     {:else}
-      <button type="submit" class="btn btn-primario py-1.5" disabled={procesando || !confirmado}>
+      <button type="submit" class="btn btn-primario " disabled={procesando || !confirmado}>
         {procesando ? 'Guardando…' : tipo === 'verificar' ? 'Verificar agencia' : 'Guardar vigencia'}
       </button>
     {/if}

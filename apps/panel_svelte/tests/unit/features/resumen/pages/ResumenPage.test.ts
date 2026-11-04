@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/svelte';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/svelte';
 import { agencia, cuentaResumen, fecha, liquidacion, plan, texto, venta } from '$tests/fixtures';
 
 vi.mock('$lib/features/ventas/api/ventas.api', () => ({
@@ -227,12 +227,34 @@ describe('ResumenPage · por resolver', () => {
     const items = within(region).getAllByRole('listitem');
     expect(items).toHaveLength(2);
     expect(texto(items[0])).toContain('Urgente · hoy');
-    expect(texto(items[0])).toContain('Tu RNT vence el 3 de noviembre de 2026');
+    expect(texto(items[0])).toContain('Tu RNT vence hoy.');
     expect(within(items[0]).getByRole('link', { name: 'Renovar RNT' }).getAttribute('href')).toBe(URL_RENOVAR_RNT);
     expect(texto(items[1])).toContain('Pendiente');
     expect(within(items[1]).getByRole('link', { name: 'Registrar cuenta' }).getAttribute('href')).toBe('#/cuenta-dispersiones');
     expect(texto(region.querySelector('[data-cuenta]'))).toBe('2');
     expect(texto(region.querySelector('h2'))).toBe('Por resolver 2 (2 avisos)');
+  });
+
+  it('ocupa todo el ancho: un aviso llena la fila y dos van en dos columnas', async () => {
+    cargar({ agencia: agencia() }, { cuentas: [] });
+    const uno = await pintar();
+    expect(uno.container.querySelectorAll('[data-aviso]')).toHaveLength(1);
+    expect(uno.container.querySelector('[data-aviso]')!.parentElement!.className).not.toContain('grid-cols-2');
+    cleanup();
+
+    cargar({ agencia: agencia({ rnt_vigente_hasta: '2026-11-03' }) }, { cuentas: [] });
+    const dos = await pintar();
+    expect(dos.container.querySelectorAll('[data-aviso]')).toHaveLength(2);
+    expect(dos.container.querySelector('[data-aviso]')!.parentElement!.className).toContain('grid-cols-2');
+  });
+
+  it('la pantalla no tiene tope de ancho por debajo de 1920 px y la parte baja se reparte en columnas', async () => {
+    cargar();
+    const { container } = await pintar();
+    expect((container.querySelector('.mx-auto') as HTMLElement).style.maxWidth).toBe('1920px');
+    const baja = container.querySelector('[data-tus-planes]')!.parentElement!;
+    expect(baja.className).toContain('ancho:grid-cols-3');
+    expect([...baja.children].map((h) => (h.matches('[data-tus-planes]') ? 'planes' : h.matches('[data-resenas]') ? 'resenas' : h.querySelector('[data-dinero]') ? 'dinero' : '?'))).toEqual(['planes', 'resenas', 'dinero']);
   });
 
   it('el aviso de RNT urgente se pinta distinto del pendiente', async () => {

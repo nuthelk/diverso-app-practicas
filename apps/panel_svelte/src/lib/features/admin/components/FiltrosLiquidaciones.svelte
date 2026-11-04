@@ -13,8 +13,8 @@
   ];
 </script>
 
-<div class="mt-8 flex flex-wrap items-center gap-2">
-  <h2 class="mr-2 text-[18px] font-extrabold tracking-tight">Liquidaciones</h2>
+<div class="mt-10 flex flex-wrap items-center gap-2">
+  <h2 class="mr-3 text-[28px] leading-[1.15]">Liquidaciones</h2>
   {#each FILTROS as f}
     <button
       class="chip"

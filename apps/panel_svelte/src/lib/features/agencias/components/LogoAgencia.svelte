@@ -60,7 +60,7 @@ import { mensajeError } from '$lib/shared/api/errores';
 
     <div class="min-w-[220px] flex-1">
       <h2 id="logo-titulo" class="text-[15px] font-bold">Logo</h2>
-      <p class="mt-0.5 text-[12.5px] leading-relaxed text-slate-500 dark:text-slate-400">
+      <p class="mt-0.5 text-[12.5px] leading-relaxed text-tinta-2">
         Los viajeros lo ven junto al nombre de tu agencia en la app. PNG, JPG o WebP de hasta 2 MB. Mientras no
         subas uno, mostramos tus iniciales.
       </p>
@@ -80,7 +80,7 @@ import { mensajeError } from '$lib/shared/api/errores';
         {/if}
       </div>
       {#if error}
-        <p class="mt-2 text-[12.5px] font-medium text-error-ink" role="alert">{error}</p>
+        <p class="mt-2 text-[12.5px] font-medium text-heliconia" role="alert">{error}</p>
       {/if}
     </div>
   </div>

@@ -10,6 +10,8 @@
   import Empty from '$lib/shared/ui/Empty.svelte';
   import { misVentas } from '../api/ventas.api';
   import { mensajeError } from '$lib/shared/api/errores';
+  import Dato from '$lib/shared/ui/Dato.svelte';
+  import { pantallaCelular } from '$lib/shared/lib/pantalla';
   import { cop, fechaCorta } from '$lib/shared/lib/format';
   import type { VentaRow } from '../model/ventas';
   import { ventasPagadas, totalesVentas, filtrarVentas, type FiltroVentas } from '../model/ventas';
@@ -19,6 +21,8 @@
     { valor: 'confirmadas', etiqueta: 'Pagadas' },
     { valor: 'pendientes', etiqueta: 'Pendientes de pago' },
   ];
+
+  const celular = pantallaCelular();
 
   let cargando = $state(true);
   let error = $state('');
@@ -69,20 +73,46 @@
       {/snippet}
     </PageHeader>
 
-    <dl class="mt-5 grid gap-3 sm:grid-cols-3">
+    <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
       <Metrica etiqueta="Ventas pagadas" valor={cop(totales.total)} tono="acento" />
       <Metrica etiqueta="Comisión ({comisionPct}%)" valor="- {cop(totales.comision)}" tono="alerta" />
-      <Metrica etiqueta="Saldo a recibir" valor={cop(totales.saldo)} tono="ok" />
+      <Metrica etiqueta="Saldo a recibir" valor={cop(totales.saldo)} tono="ok" clase="col-span-2 sm:col-span-1" />
     </dl>
 
-    <Tarjeta sinRelleno clase="mt-5 overflow-hidden">
-      {#if filtradas.length === 0}
+    {#if filtradas.length === 0}
+      <Tarjeta sinRelleno clase="mt-6 overflow-hidden">
         <Empty
           icono="recibo"
           titulo="Sin ventas aquí"
           mensaje="Cuando los viajeros reserven tus planes, verás la conciliación en esta pantalla."
         />
-      {:else}
+      </Tarjeta>
+    {:else if celular.current}
+      <!-- Celular: una tarjeta por venta, con los mismos datos de la tabla -->
+      <ul class="mt-6 space-y-3" aria-label="Ventas" data-lista-tarjetas>
+        {#each filtradas as v (v.booking_id)}
+          <li class="tarjeta p-4" data-venta={v.booking_id}>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="cifra text-[20px] leading-tight break-words">{v.codigo}</p>
+                <p class="mt-0.5 text-[15px] text-tinta-2">{v.plan_titulo}</p>
+              </div>
+              <StatusPill estado={v.booking_estado} />
+            </div>
+            <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-dashed border-linea pt-3">
+              <Dato etiqueta="Fecha">{fechaCorta(v.fecha)}</Dato>
+              <Dato etiqueta="Pax">{v.pax}</Dato>
+              <Dato etiqueta="Monto">{cop(v.monto_total)}</Dato>
+              <Dato etiqueta="Comisión" tono="alerta">- {cop(v.comision)}</Dato>
+              <Dato etiqueta="Saldo" clase="col-span-2">
+                <span class="text-[24px] font-bold">{cop(v.saldo_agencia)}</span>
+              </Dato>
+            </dl>
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <Tarjeta sinRelleno clase="mt-6 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="tabla min-w-[880px]">
             <thead>
@@ -100,24 +130,24 @@
             <tbody>
               {#each filtradas as v (v.booking_id)}
                 <tr>
-                  <td class="font-semibold whitespace-nowrap">{v.codigo}</td>
-                  <td class="max-w-[260px] truncate text-suave">{v.plan_titulo}</td>
-                  <td class="whitespace-nowrap">{fechaCorta(v.fecha)}</td>
+                  <td class="fecha font-semibold whitespace-nowrap">{v.codigo}</td>
+                  <td class="max-w-[360px] truncate text-tinta-2">{v.plan_titulo}</td>
+                  <td class="fecha whitespace-nowrap">{fechaCorta(v.fecha)}</td>
                   <td class="num">{v.pax}</td>
                   <td class="num">{cop(v.monto_total)}</td>
-                  <td class="num text-alert-ink">- {cop(v.comision)}</td>
-                  <td class="num font-extrabold">{cop(v.saldo_agencia)}</td>
+                  <td class="num text-prueba-ink">- {cop(v.comision)}</td>
+                  <td class="num font-bold">{cop(v.saldo_agencia)}</td>
                   <td><StatusPill estado={v.booking_estado} /></td>
                 </tr>
               {/each}
             </tbody>
           </table>
         </div>
-      {/if}
-    </Tarjeta>
+      </Tarjeta>
+    {/if}
 
-    <p class="mt-4 flex items-start gap-2 text-[12px] leading-relaxed text-suave">
-      <Icono trazo={ICONOS.info} clase="mt-px size-4" />
+    <p class="mt-5 flex items-start gap-2.5 text-[15px] leading-relaxed text-tinta-2">
+      <Icono trazo={ICONOS.info} clase="mt-0.5 size-[18px] shrink-0" />
       <span>
         Modo de prueba (Wompi sandbox): los cobros a los viajeros son transacciones de prueba y no se mueve dinero
         real. Concilia estos saldos con tus
