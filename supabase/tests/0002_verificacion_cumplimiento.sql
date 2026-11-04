@@ -27,12 +27,24 @@ end $$;
 do $$ begin execute format('grant usage on schema %I to authenticated', pg_my_temp_schema()::regnamespace); end $$;
 
 -- 1. Viajero: solo ve agencias habilitadas -------------------------------
+-- Lo esperado se calcula con los datos del día (un RNT puede vencer y sacar una agencia),
+-- y se exige que haya agencias de ambos lados para que la prueba siga probando algo.
+create temp table esperado as
+  select (select count(*) from agencies where public.agencia_habilitada(id)) as agencias,
+         (select count(*) from agencies) as total,
+         (select count(*) from plans
+           where estado = 'publicado' and public.agencia_habilitada(agency_id)) as planes;
+grant select on esperado to authenticated;
+select pg_temp.ok((select agencias between 1 and total - 1 from esperado),
+                  'el seed tiene agencias habilitadas y no habilitadas');
 select pg_temp.como('viajero@demo.com');
 set role authenticated;
-select pg_temp.ok((select count(*) from agencies) = 11, 'viajero ve 11 agencias habilitadas');
+select pg_temp.ok((select count(*) from agencies) = (select agencias from esperado),
+                  'viajero ve solo las agencias habilitadas');
 select pg_temp.ok(not exists (select 1 from agencies where estado_verificacion = 'pendiente'),
                   'viajero no ve la agencia pendiente');
-select pg_temp.ok((select count(*) from plans) = 29, 'viajero ve 29 planes publicados');
+select pg_temp.ok((select count(*) from plans) = (select planes from esperado),
+                  'viajero ve solo los planes publicados de agencias habilitadas');
 reset role;
 
 -- 2. Dueño no se autoverifica ni toca la vigencia -------------------------
