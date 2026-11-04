@@ -11,6 +11,11 @@ export function plural(n: number, uno: string, otros: string): string {
   return n === 1 ? uno : otros;
 }
 
+/** «A», «A y B» o «A, B y C». */
+export function unirNombres(nombres: string[]): string {
+  return nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}` : (nombres[0] ?? '');
+}
+
 export function cop(v: number): string {
   return copFmt.format(v);
 }

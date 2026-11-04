@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cop, fechaCorta, fechaLarga, fechaTexto, hoyISO, plural } from '$lib/shared/lib/format';
+import { cop, fechaCorta, fechaLarga, fechaTexto, hoyISO, plural, unirNombres } from '$lib/shared/lib/format';
 
 /** Normaliza el NBSP que Intl usa entre «$» y el número. */
 const plano = (s: string) => s.replace(/\u00a0/g, ' ');
@@ -58,5 +58,14 @@ describe('plural', () => {
     expect(plural(1, 'plan', 'planes')).toBe('plan');
     expect(plural(0, 'plan', 'planes')).toBe('planes');
     expect(plural(2, 'plan', 'planes')).toBe('planes');
+  });
+});
+
+describe('unirNombres', () => {
+  it('uno, dos o más, con «y» antes del último', () => {
+    expect(unirNombres([])).toBe('');
+    expect(unirNombres(['A'])).toBe('A');
+    expect(unirNombres(['A', 'B'])).toBe('A y B');
+    expect(unirNombres(['A', 'B', 'C'])).toBe('A, B y C');
   });
 });
