@@ -30,7 +30,7 @@
   --radius-hoja-grande: 8px 30px 8px 30px;
   --radius-brote: 50% 50% 50% 8px;
 
-  /* Ancho desde el que caben los 4 indicadores del Resumen en una fila (el contenido llega a 1096 px). */
+  /* Ancho desde el que el Resumen pone la semana y «Quiénes van» lado a lado y la cabecera muestra «Modo de prueba». */
   --breakpoint-ancho: 86rem;
 }
 
