@@ -124,6 +124,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0012_reservar_antes_de_salir.sql` | `create_booking` rechaza con `FECHA_YA_SALIO` una fecha cuya salida (fecha + `plans.hora_salida`, hora de Bogotá) ya ocurrió; `crear_intento_pago` rechaza con `RESERVA_YA_SALIO` pagar una reserva cuya `salida_at` ya pasó; «hoy» es la fecha de Bogotá, no la UTC |
 | `0013_checkout_vence_en_la_salida.sql` | `crear_intento_pago` firma la expiración del checkout de Wompi como el menor de `created_at + 30 min` y `salida_at`: una reserva hecha minutos antes de partir no se puede pagar después de la salida |
 | `0015_quienes_van.sql` | Lectura para el panel de agencias, solo `authenticated` y solo para el dueño de la agencia: `quienes_van(uuid[])` (reservas `pendiente_pago`/`confirmada` de sus planes: código, nombre corto «Laura V.», personas, estado; sin teléfono, correo ni documento) y `resenas_recientes_agencia(int)` (últimas reseñas de sus planes, tope 20, con el mismo nombre corto) |
+| `0016_nombre_corto_seguro.sql` | El nombre corto que ve la agencia descarta toda palabra con @ o dígitos y separa por cualquier espacio Unicode: un correo o teléfono escrito como nombre nunca llega al panel («Viajero» si no queda nada) |
 
 ### RPC y tareas programadas
 
@@ -371,6 +372,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0013 (el checkout vence en la salida) | ver «Pruebas SQL» | 8 |
 | SQL 0014 (RLS: reservas ajenas y consentimientos) | ver «Pruebas SQL» | 10 |
 | SQL 0015 (quiénes van y reseñas recientes) | ver «Pruebas SQL» | 48 |
+| SQL 0016 (nombre corto sin correos ni teléfonos) | ver «Pruebas SQL» | 15 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 604 (42 archivos) |
@@ -389,7 +391,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`, `0014_rls_resena_ajena`, `0015_quienes_van`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`, `0014_rls_resena_ajena`, `0015_quienes_van`, `0016_nombre_corto_seguro`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).
