@@ -80,7 +80,7 @@ import { mensajeError } from '$lib/shared/api/errores';
         {/if}
       </div>
       {#if error}
-        <p class="mt-2 text-[12.5px] font-medium text-red-600" role="alert">{error}</p>
+        <p class="mt-2 text-[12.5px] font-medium text-error-ink" role="alert">{error}</p>
       {/if}
     </div>
   </div>

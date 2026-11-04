@@ -77,15 +77,22 @@ describe('Shell · navegación', () => {
 });
 
 describe('Shell · marca, agencia y barra superior', () => {
-  it('barra lateral: marca, bloque de la agencia con su verificación, sección GESTIÓN y pie legal', async () => {
+  it('riel: el colibrí con «Diverso / Panel de agencias», el carnet de la agencia con ciudad y verificación, y el sendero', async () => {
     vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours' }));
     render(Shell, { children });
     await screen.findAllByText('Comuna 13 Graffiti Tours');
 
     expect(screen.getByText('Panel de agencias')).toBeTruthy();
-    expect(screen.getByText('GESTIÓN')).toBeTruthy();
-    expect(screen.getAllByText('Verificada').length).toBeGreaterThan(0);
-    const nav = screen.getByRole('navigation', { name: 'GESTIÓN' });
+    expect(screen.getAllByRole('link', { name: 'Diverso, panel de agencias, ir al resumen' }).map((a) => a.getAttribute('href'))).toEqual([
+      '#/dashboard',
+      '#/dashboard',
+    ]); // riel + barra del celular
+    const carnet = screen.getByRole('group', { name: 'Agencia activa' });
+    expect(texto(carnet)).toContain('Comuna 13 Graffiti Tours');
+    expect(texto(carnet)).toContain('Medellín');
+    expect(within(carnet).getByText('Verificada')).toBeTruthy();
+    expect(screen.queryByText('GESTIÓN')).toBeNull();
+    const nav = screen.getByRole('navigation', { name: 'Secciones del panel' });
     expect(within(nav).getAllByRole('link').map((a) => a.textContent?.trim())).toEqual([
       'Resumen',
       'Planes',
@@ -93,17 +100,38 @@ describe('Shell · marca, agencia y barra superior', () => {
       'Liquidaciones',
       'Cuenta para dispersiones',
     ]);
-    const pie = screen.getAllByRole('link', { name: 'Términos y privacidad' });
-    expect(pie[0].getAttribute('href')).toBe('#/legal/terminos-agencias');
   });
 
-  it('la barra superior dice dónde estás y que los pagos son de prueba', async () => {
+  it('el riel y la cabecera llevan solo decoración aria-hidden (colibrí aparte): nada de ruido para el lector de pantalla', async () => {
+    vi.mocked(miAgencia).mockResolvedValue(agencia());
+    const { container } = render(Shell, { children });
+    await screen.findAllByText('Aventuras Antioquia');
+    const svgs = [...container.querySelectorAll('svg')].filter((s) => s.getAttribute('aria-hidden') !== 'true');
+    expect(svgs).toEqual([]);
+  });
+
+  it('la cabecera dice dónde estás, la fecha de hoy en Bogotá y que los pagos son de prueba', async () => {
     vi.mocked(miAgencia).mockResolvedValue(agencia());
     irA('/planes/nuevo');
     const { container } = render(Shell, { children });
     await screen.findAllByText('Aventuras Antioquia');
     expect(texto(container.querySelector('[data-migas]'))).toBe('Panel · Planes');
     expect(screen.getAllByText('Modo de prueba: los pagos no mueven dinero real').length).toBeGreaterThan(0);
+  });
+
+  it('la fecha de la cabecera es la de Bogotá, no la de la zona del navegador', async () => {
+    vi.mocked(miAgencia).mockResolvedValue(agencia());
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T03:00:00Z')); // 22:00 del martes 3 en Bogotá (UTC−5)
+    try {
+      const { container } = render(Shell, { children });
+      await screen.findAllByText('Aventuras Antioquia');
+      const hora = container.querySelector('time')!;
+      expect(texto(hora)).toBe('Martes, 3 de noviembre de 2026');
+      expect(hora.getAttribute('datetime')).toBe('2026-11-03');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('fuera del menú (registro de la agencia) la ubicación es solo «Panel»', async () => {
@@ -131,12 +159,11 @@ describe('Shell · menú del usuario', () => {
     await screen.findAllByText('Comuna 13 Graffiti Tours');
     return r;
   }
-  const boton = () => screen.getByRole('button', { name: /Comuna 13/ });
+  const boton = () => screen.getByRole('button', { name: 'Mi cuenta' });
 
-  it('arranca cerrado y muestra el nombre corto de la agencia', async () => {
+  it('arranca cerrado y se llama «Mi cuenta»', async () => {
     await pintar();
-    expect(boton().textContent).toContain('Comuna 13');
-    expect(boton().textContent).not.toContain('Graffiti');
+    expect(boton().textContent).toContain('Mi cuenta');
     expect(boton().getAttribute('aria-expanded')).toBe('false');
     expect(boton().getAttribute('aria-haspopup')).toBe('true');
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).toBeNull();
@@ -212,7 +239,7 @@ describe('Shell · tema', () => {
   it('el ítem del menú de usuario hace lo mismo y cambia su texto a «Modo claro»', async () => {
     document.documentElement.classList.remove('dark');
     await pintar();
-    const usuario = screen.getByRole('button', { name: /Aventuras Antioquia/ });
+    const usuario = screen.getByRole('button', { name: 'Mi cuenta' });
     await fireEvent.click(usuario);
     const menu = document.getElementById(usuario.getAttribute('aria-controls')!)!;
     await fireEvent.click(within(menu).getByRole('button', { name: 'Modo oscuro' }));
@@ -222,16 +249,37 @@ describe('Shell · tema', () => {
 });
 
 describe('Shell · móvil', () => {
-  it('el botón de menú se abre y se cierra y anuncia su estado', async () => {
+  it('ya no hay botón de hamburguesa: las cinco secciones están en la barra inferior', async () => {
     vi.mocked(miAgencia).mockResolvedValue(agencia());
     render(Shell, { children });
     await screen.findAllByText('Aventuras Antioquia');
-    const abrir = screen.getByRole('button', { name: 'Abrir menú' });
-    expect(abrir.getAttribute('aria-expanded')).toBe('false');
-    await fireEvent.click(abrir);
-    const cerrar = screen.getByRole('button', { name: 'Cerrar menú' });
-    expect(cerrar.getAttribute('aria-expanded')).toBe('true');
-    await fireEvent.click(cerrar);
-    expect(screen.getByRole('button', { name: 'Abrir menú' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /menú/i })).toBeNull();
+  });
+
+  it('la barra inferior lleva las 5 secciones, marca la actual y respeta la zona segura del teléfono', async () => {
+    vi.mocked(miAgencia).mockResolvedValue(agencia());
+    irA('/ventas');
+    render(Shell, { children });
+    await screen.findAllByText('Aventuras Antioquia');
+    const nav = screen.getByRole('navigation', { name: 'Navegación inferior' });
+    expect(within(nav).getAllByRole('link').map((a) => a.textContent?.trim())).toEqual([
+      'Resumen',
+      'Planes',
+      'Ventas',
+      'Liquidaciones',
+      'Cuenta',
+    ]);
+    expect(within(nav).getAllByRole('link', { current: 'page' }).map((a) => a.getAttribute('href'))).toEqual(['#/ventas']);
+    expect(nav.getAttribute('class')).toContain('pb-[env(safe-area-inset-bottom)]');
+    expect(nav.getAttribute('class')).toContain('lg:hidden');
+  });
+
+  it('la barra superior del celular muestra la agencia y el modo de prueba va en su propia franja', async () => {
+    vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours' }));
+    render(Shell, { children });
+    await screen.findAllByText('Comuna 13 Graffiti Tours');
+    expect(screen.getByText('Diverso · Panel de agencias')).toBeTruthy();
+    const franjas = screen.getAllByText('Modo de prueba: los pagos no mueven dinero real');
+    expect(franjas.some((f) => f.getAttribute('class')?.includes('ancho:hidden'))).toBe(true);
   });
 });

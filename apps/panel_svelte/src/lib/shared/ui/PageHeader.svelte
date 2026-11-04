@@ -24,17 +24,17 @@
 <header class="flex flex-wrap items-end gap-x-4 gap-y-3">
   <div class="min-w-0 flex-1 basis-[260px]">
     {#if atras}
-      <a href={atras.href} class="enlace mb-2 inline-flex items-center gap-1 text-[12.5px]">
+      <a href={atras.href} class="enlace mb-2 inline-flex items-center gap-1 text-[14px]">
         <Icono trazo={ICONOS.atras} clase="size-3.5" />
         {atras.texto}
       </a>
     {/if}
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <h1 class="text-[24px] leading-[1.2] font-extrabold tracking-[-0.2px] sm:text-[26px]">{titulo}</h1>
+      <h1 class="text-[30px] leading-[1.1] font-bold sm:text-[36px]">{titulo}</h1>
       {#if junto}{@render junto()}{/if}
     </div>
     {#if contexto}
-      <p class="mt-1 text-[13.5px] leading-relaxed text-suave">{@render contexto()}</p>
+      <p class="mt-1 text-[15px] leading-relaxed text-suave">{@render contexto()}</p>
     {/if}
   </div>
   {#if accion}

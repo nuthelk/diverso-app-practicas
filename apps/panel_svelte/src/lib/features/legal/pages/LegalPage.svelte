@@ -13,7 +13,7 @@
 </script>
 
 <div class="min-h-screen">
-  <header class="sticky top-0 z-10 border-b border-linea bg-white/90 backdrop-blur dark:bg-ink-900/90">
+  <header class="sticky top-0 z-10 border-b border-linea bg-superficie/90 backdrop-blur dark:bg-ink-900/90">
     <div class="mx-auto flex h-[60px] max-w-[760px] items-center gap-3 px-4 sm:px-6">
       <MarcaTile tam={32} />
       <span class="text-[14px] font-extrabold tracking-tight"><span class="max-sm:hidden">Diverso&nbsp;·&nbsp;</span>Documentos legales</span>

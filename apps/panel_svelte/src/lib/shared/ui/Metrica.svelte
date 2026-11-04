@@ -11,5 +11,5 @@
 
 <div class="tarjeta px-5 py-3.5">
   <dt class="text-[12.5px] font-semibold text-suave">{etiqueta}</dt>
-  <dd class="mt-1 text-[20px] leading-[1.15] font-extrabold tracking-[-0.02em] tabular-nums {TINTAS[tono]}">{valor}</dd>
+  <dd class="font-titulo mt-1 text-[24px] leading-[1.15] font-bold tabular-nums {TINTAS[tono]}">{valor}</dd>
 </div>

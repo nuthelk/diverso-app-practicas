@@ -1,80 +1,180 @@
 @import "tailwindcss";
+@import "./fuentes.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Identidad «Bosque de niebla» (artboards 02 de design/panel-naturaleza). Este archivo es la ÚNICA fuente de los
+ * tokens visuales: la paleta de abajo (claro y oscuro), las tipografías, los radios «hoja» y las clases compartidas.
+ * Los componentes usan los tokens por su nombre (`bg-superficie`, `text-tinta-2`, `border-linea`…); no llevan colores sueltos.
+ *
+ *   niebla / niebla-2 / superficie   fondo de página, zonas hundidas, tarjetas
+ *   linea / contorno                 bordes decorativos / borde de controles (≥ 3:1)
+ *   tinta / tinta-2 / tinta-3        texto principal, secundario, terciario (≥ 4,5:1)
+ *   bosque / bosque-2 / sobre-*      el monte oscuro (riel, barra del celular, tarjeta de dinero) y su texto
+ *   helecho / sobre-helecho          acción principal, enlaces, barras
+ *   musgo / relleno                  curvas de nivel y relleno de cupos reservados
+ *   heliconia / sobre-heliconia / heliconia-bg   único acento cálido: hoy, urgente, hito activo, errores
+ *   pico                             estrellas de reseñas
+ *   prueba-bg / prueba-ink           «Modo de prueba», avisos y notas
+ *   foco / foco-bosque               anillo de foco sobre claro / sobre el monte
+ */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next", Calibri, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  /* Títulos, nombres de plan y cifras grandes (los precios llevan cifras de caja alta). */
+  --font-titulo: "Newsreader", Constantia, "Palatino Linotype", Cambria, Georgia, serif;
 
-  /* Azul pizarra de la marca (panel) */
-  --color-brand-50: #eef3f9;
-  --color-brand-100: #d8e3f0;
-  --color-brand-200: #b3c7e0;
-  --color-brand-300: #86a6cc;
-  --color-brand-400: #5d84b4;
-  --color-brand-500: #3f6a9c;
-  --color-brand-600: #2d4a73;
-  --color-brand-700: #253d5f;
-  --color-brand-800: #1c2f4a;
-  --color-brand-900: #15233c;
+  /* Radios «hoja»: dos esquinas casi rectas y dos amplias (nunca una tarjeta redonda uniforme). Botones y chips: píldora. */
+  --radius-hoja: 6px 20px 6px 20px;
+  --radius-hoja-chica: 4px 14px 4px 14px;
+  --radius-hoja-grande: 8px 30px 8px 30px;
+  --radius-brote: 50% 50% 50% 8px;
 
-  /* Verde Diverso (estados positivos) */
-  --color-ok-500: #1b7a4b;
-  --color-ok-600: #176a41;
+  /*
+   * Escalas con los nombres de Tailwind que el panel ya usa, repintadas con la paleta del bosque (valores fijos:
+   * las parejas `text-slate-600 dark:text-slate-400` siguen funcionando). Lo nuevo usa los tokens semánticos.
+   */
+  --color-slate-50: #f4f7f2;
+  --color-slate-100: #e4eae2;
+  --color-slate-200: #ccd6ca;
+  --color-slate-300: #b2c0b3;
+  --color-slate-400: #97ad9e;
+  --color-slate-500: #66786b;
+  --color-slate-600: #405146;
+  --color-slate-700: #2f3f35;
+  --color-slate-800: #22322a;
+  --color-slate-900: #17261e;
+  --color-slate-950: #0e1612;
 
-  --color-ink-950: #0f1216;
-  --color-ink-900: #14181e;
-  --color-ink-800: #171b22;
-  --color-ink-700: #1e242c;
-  --color-ink-600: #262b33;
+  /* Helecho: la acción principal. */
+  --color-brand-50: #eef4ea;
+  --color-brand-100: #ddeAd7;
+  --color-brand-200: #b8d8b4;
+  --color-brand-300: #8fcb93;
+  --color-brand-400: #5e9a68;
+  --color-brand-500: #4a7f54;
+  --color-brand-600: #3a6b43;
+  --color-brand-700: #2f5736;
+  --color-brand-800: #234228;
+  --color-brand-900: #1d382a;
 
-  --color-paper: #fafaf8;
+  --color-ink-950: #0e1612;
+  --color-ink-900: #141f19;
+  --color-ink-800: #18261f;
+  --color-ink-700: #213429;
+  --color-ink-600: #2a3d33;
 
-  /* Estrellas de calificación (dorado de la marca viajero) */
-  --color-dorado: #e8a33d;
+  --color-paper: #edf0ea;
+
 
   /* Ancho desde el que caben los 4 indicadores del Resumen en una fila (el contenido llega a 1096 px). */
   --breakpoint-ancho: 86rem;
 }
 
-/*
- * Tintas y pistas que cambian con el tema. Los valores son los del tema por defecto de Tailwind
- * (orange-300/800, red-300/700, slate-200) o derivados con color-mix; así el texto pequeño llega a AA en ambos modos.
- */
 :root {
-  --ok-ink: var(--color-ok-600);
-  --alert-ink: #9a3412;
-  --error-ink: #b91c1c;
-  --acento-ink: var(--color-brand-700);
-  --pista: #e2e8f0;
-  --barra: var(--color-brand-500);
-  /* Texto secundario (slate-600, 7,6:1 sobre blanco), borde fino de tarjetas y fondo al pasar el cursor. */
-  --suave: var(--color-slate-600);
-  --linea: rgb(226 232 240 / 0.8);
-  --hover: var(--color-slate-100);
+  --niebla: #edf0ea;
+  --niebla-2: #e1e7df;
+  --superficie: #f9fbf7;
+  --linea: #ccd6ca;
+  --contorno: #66786b;
+  --tinta: #17261e;
+  --tinta-2: #405146;
+  --tinta-3: #566659;
+  --bosque: #1d382a;
+  --bosque-2: #2b4b3a;
+  --sobre-bosque: #e8f0e4;
+  --sobre-bosque-2: #b9cdbe;
+  --helecho: #3a6b43;
+  --sobre-helecho: #ffffff;
+  --musgo: #6a8c4b;
+  --relleno: #cbddb8;
+  --heliconia: #b5361e;
+  --sobre-heliconia: #ffffff;
+  --heliconia-bg: #fbe9e2;
+  --pico: #9c6208;
+  --prueba-bg: #f4e8c6;
+  --prueba-ink: #55400a;
+  --foco: #0e5f7a;
+  --foco-bosque: #a9dceb;
+  --bruma: rgb(255 255 255 / 0.65);
+  color-scheme: light;
 }
 .dark {
-  --ok-ink: color-mix(in srgb, var(--color-ok-500) 45%, #fff);
-  --alert-ink: #fdba74;
-  --error-ink: #fca5a5;
-  --acento-ink: var(--color-brand-200);
-  --pista: var(--color-ink-600);
-  --barra: var(--color-brand-300);
-  --suave: var(--color-slate-400);
-  --linea: var(--color-ink-600);
-  --hover: var(--color-ink-700);
+  --niebla: #0e1612;
+  --niebla-2: #141f19;
+  --superficie: #18261f;
+  --linea: #2a3d33;
+  --contorno: #7c9684;
+  --tinta: #e6efe8;
+  --tinta-2: #b7c9bc;
+  --tinta-3: #97ad9e;
+  --bosque: #08100c;
+  --bosque-2: #14241b;
+  --sobre-bosque: #e6efe8;
+  --sobre-bosque-2: #a9bfaf;
+  --helecho: #8fcb93;
+  --sobre-helecho: #0b1f11;
+  --musgo: #7fa35c;
+  --relleno: #2d4b35;
+  --heliconia: #ff8f70;
+  --sobre-heliconia: #2b0d06;
+  --heliconia-bg: #3a1a12;
+  --pico: #f0b94d;
+  --prueba-bg: #3a3116;
+  --prueba-ink: #f0dda2;
+  --foco: #8bd3ea;
+  --foco-bosque: #8bd3ea;
+  --bruma: rgb(130 170 150 / 0.1);
+  color-scheme: dark;
+}
+
+/* Nombres antiguos que el panel ya usa, ahora alias de los tokens (lo nuevo usa los tokens directamente). */
+:root {
+  --suave: var(--tinta-2);
+  --hover: var(--niebla-2);
+  --pista: var(--niebla-2);
+  --barra: var(--helecho);
+  --acento-ink: var(--helecho);
+  --ok-ink: var(--helecho);
+  --alert-ink: var(--prueba-ink);
+  --error-ink: var(--heliconia);
 }
 
 @theme inline {
+  --color-niebla: var(--niebla);
+  --color-niebla-2: var(--niebla-2);
+  --color-superficie: var(--superficie);
+  --color-linea: var(--linea);
+  --color-contorno: var(--contorno);
+  --color-tinta: var(--tinta);
+  --color-tinta-2: var(--tinta-2);
+  --color-tinta-3: var(--tinta-3);
+  --color-bosque: var(--bosque);
+  --color-bosque-2: var(--bosque-2);
+  --color-sobre-bosque: var(--sobre-bosque);
+  --color-sobre-bosque-2: var(--sobre-bosque-2);
+  --color-helecho: var(--helecho);
+  --color-sobre-helecho: var(--sobre-helecho);
+  --color-musgo: var(--musgo);
+  --color-relleno: var(--relleno);
+  --color-heliconia: var(--heliconia);
+  --color-sobre-heliconia: var(--sobre-heliconia);
+  --color-heliconia-bg: var(--heliconia-bg);
+  --color-pico: var(--pico);
+  /* Estrellas de calificación: el pico de la heliconia. */
+  --color-dorado: var(--pico);
+  --color-prueba-bg: var(--prueba-bg);
+  --color-prueba-ink: var(--prueba-ink);
+  --color-foco: var(--foco);
+  /* alias antiguos */
+  --color-suave: var(--suave);
+  --color-hover: var(--hover);
+  --color-pista: var(--pista);
+  --color-barra: var(--barra);
+  --color-acento-ink: var(--acento-ink);
   --color-ok-ink: var(--ok-ink);
   --color-alert-ink: var(--alert-ink);
   --color-error-ink: var(--error-ink);
-  --color-acento-ink: var(--acento-ink);
-  --color-pista: var(--pista);
-  --color-barra: var(--barra);
-  --color-suave: var(--suave);
-  --color-linea: var(--linea);
-  --color-hover: var(--hover);
 }
 
 html {
@@ -83,14 +183,31 @@ html {
 }
 
 body {
-  @apply bg-paper text-slate-900 dark:bg-ink-950 dark:text-slate-100;
+  background: var(--niebla);
+  color: var(--tinta);
+  font-size: 17px;
+  line-height: 1.5;
+  font-variant-numeric: lining-nums;
 }
 
-/* Foco visible y consistente */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-titulo);
+    font-weight: 700;
+    font-variant-numeric: lining-nums;
+  }
+}
+
+/* Foco visible y consistente; sobre el monte oscuro (`.monte`) el anillo es claro. */
 :focus-visible {
-  outline: 2px solid var(--color-brand-400);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: 3px solid var(--anillo, var(--foco));
+  outline-offset: 3px;
+}
+.monte {
+  --anillo: var(--foco-bosque);
 }
 
 ::-webkit-scrollbar {
@@ -98,7 +215,7 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(128, 138, 150, 0.4);
+  background: color-mix(in srgb, var(--contorno) 55%, transparent);
   border-radius: 8px;
   border: 2px solid transparent;
   background-clip: content-box;
@@ -138,82 +255,78 @@ body {
 .campo {
   width: 100%;
   min-width: 0;
+  min-height: 44px;
   border-radius: 12px;
-  border: 1px solid rgb(0 0 0 / 0.1);
-  background: rgb(0 0 0 / 0.03);
+  border: 1px solid var(--contorno);
+  background: var(--superficie);
+  color: var(--tinta);
   padding: 9px 14px;
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.dark .campo {
-  border-color: rgb(255 255 255 / 0.09);
-  background: rgb(255 255 255 / 0.04);
-}
 .campo::placeholder {
-  color: var(--suave);
-  opacity: 0.85;
+  color: var(--tinta-3);
 }
 .campo:focus {
-  border-color: var(--color-brand-400);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-400) 25%, transparent);
+  border-color: var(--foco);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--foco) 25%, transparent);
 }
 .campo[aria-invalid='true'] {
-  border-color: color-mix(in srgb, var(--error-ink) 70%, transparent);
+  border-color: var(--heliconia);
 }
 
 .etiqueta-campo {
   display: block;
   margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--suave);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta-2);
 }
 
 /* Interruptor de los «Qué incluye» del plan. */
 .switch {
   appearance: none;
   flex-shrink: 0;
-  width: 38px;
-  height: 22px;
+  width: 42px;
+  height: 24px;
   border-radius: 999px;
-  background: rgb(0 0 0 / 0.18);
+  background: var(--contorno);
   position: relative;
   cursor: pointer;
   transition: background 0.2s;
-}
-.dark .switch {
-  background: rgb(255 255 255 / 0.22);
 }
 .switch::after {
   content: '';
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 999px;
-  background: white;
+  background: var(--superficie);
   transition: left 0.2s;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
 }
 .switch:checked {
-  background: var(--color-brand-600);
+  background: var(--helecho);
 }
 .switch:checked::after {
-  left: 19px;
+  left: 21px;
+  background: var(--sobre-helecho);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  min-height: 44px;
   border-radius: 999px;
   padding: 9px 20px;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s, filter 0.15s;
   cursor: pointer;
 }
 .btn:disabled {
@@ -221,74 +334,61 @@ body {
   cursor: not-allowed;
 }
 .btn-primario {
-  background: var(--color-brand-600);
-  color: white;
+  background: var(--helecho);
+  color: var(--sobre-helecho);
 }
 .btn-primario:not(:disabled):hover {
-  background: var(--color-brand-500);
+  filter: brightness(1.12);
 }
 .btn-secundario {
-  border: 1px solid rgb(0 0 0 / 0.12);
-  color: var(--color-slate-700);
+  border: 1px solid var(--contorno);
+  background: var(--superficie);
+  color: var(--tinta);
 }
 .btn-secundario:not(:disabled):hover {
-  background: rgb(0 0 0 / 0.04);
-}
-.dark .btn-secundario {
-  border-color: rgb(255 255 255 / 0.12);
-  color: var(--color-slate-200);
-}
-.dark .btn-secundario:not(:disabled):hover {
-  background: rgb(255 255 255 / 0.05);
+  background: var(--niebla-2);
 }
 .btn-peligro {
-  border: 1px solid color-mix(in srgb, var(--error-ink) 35%, transparent);
-  color: var(--error-ink);
+  border: 1px solid var(--heliconia);
+  color: var(--heliconia);
 }
 .btn-peligro:not(:disabled):hover {
-  background: color-mix(in srgb, var(--error-ink) 8%, transparent);
+  background: var(--heliconia-bg);
 }
 /* Acción discreta de una fila (Editar, Fechas y cupos…): sin borde, tinta secundaria. */
 .btn-texto {
   padding: 7px 12px;
-  font-weight: 600;
-  color: var(--suave);
+  font-weight: 700;
+  color: var(--tinta-2);
 }
 .btn-texto:not(:disabled):hover {
-  background: var(--hover);
-  color: var(--color-slate-900);
+  background: var(--niebla-2);
+  color: var(--tinta);
 }
-.dark .btn-texto:not(:disabled):hover {
-  color: var(--color-slate-100);
-}
-/* Botón cuadrado con solo un ícono. */
+/* Botón redondo con solo un ícono (44 px: cabe un pulgar). */
 .boton-icono {
   display: inline-flex;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  border: 1px solid var(--linea);
-  background: white;
-  color: var(--suave);
+  border-radius: 999px;
+  border: 1px solid var(--contorno);
+  background: var(--superficie);
+  color: var(--tinta);
   transition: background-color 0.15s;
 }
-.dark .boton-icono {
-  background: var(--color-ink-800);
-}
 .boton-icono:hover {
-  background: var(--hover);
+  background: var(--niebla-2);
 }
 
 /* Enlace de texto dentro de la interfaz. */
 .enlace {
-  font-weight: 600;
-  color: var(--acento-ink);
-}
-.enlace:hover {
+  font-weight: 700;
+  color: var(--helecho);
   text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 /* Filtro en forma de píldora (Ventas, Admin); `aria-pressed` marca el elegido. */
@@ -296,117 +396,131 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 40px;
   border-radius: 999px;
-  border: 1px solid var(--linea);
-  padding: 6px 14px;
-  font-size: 12.5px;
-  font-weight: 600;
+  border: 1px solid var(--contorno);
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 700;
   white-space: nowrap;
-  color: var(--suave);
+  color: var(--tinta-2);
   transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   cursor: pointer;
 }
 .chip:hover {
-  background: var(--hover);
+  background: var(--niebla-2);
 }
 .chip[aria-pressed='true'] {
-  border-color: var(--color-brand-600);
-  background: var(--color-brand-600);
-  color: white;
+  border-color: var(--helecho);
+  background: var(--helecho);
+  color: var(--sobre-helecho);
 }
 
-/* Etiqueta pequeña en mayúsculas (como «GESTIÓN» de la barra lateral). */
+/* Etiqueta pequeña en mayúsculas. */
 .etiqueta-seccion {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--suave);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-2);
 }
 
-/* Tabla de conciliación: cabecera tenue, filas con línea fina, cifras a la derecha. */
+/* Tabla de conciliación: cabecera hundida en la niebla, filas con línea fina, cifras a la derecha. */
 .tabla {
   width: 100%;
-  font-size: 13px;
+  font-size: 14px;
   border-collapse: collapse;
 }
 .tabla th {
   padding: 10px 16px;
   text-align: left;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   white-space: nowrap;
-  color: var(--suave);
-  background: color-mix(in srgb, var(--color-slate-500) 8%, transparent);
+  color: var(--tinta-2);
+  background: var(--niebla-2);
 }
 .tabla td {
   padding: 12px 16px;
   border-top: 1px solid var(--linea);
 }
 .tabla tbody tr:hover {
-  background: color-mix(in srgb, var(--color-slate-500) 5%, transparent);
+  background: color-mix(in srgb, var(--niebla-2) 60%, transparent);
 }
 .tabla .num {
   text-align: right;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Píldoras de estado: tinte del 12 % del color y tinta que llega a AA en claro y oscuro. */
+/* Píldoras de estado: fondo tintado y tinta que llega a AA en claro, oscuro y sobre el monte. */
 .pildora {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   border-radius: 999px;
-  padding: 0 8px;
-  font-size: 10.5px;
+  padding: 1px 10px;
+  font-size: 12px;
   line-height: 18px;
   font-weight: 700;
   white-space: nowrap;
 }
 .pildora-ok {
-  background: color-mix(in srgb, var(--color-ok-500) 12%, transparent);
-  color: var(--ok-ink);
+  background: color-mix(in srgb, var(--helecho) 14%, transparent);
+  color: var(--helecho);
 }
 .pildora-alerta {
-  background: color-mix(in srgb, #f97316 12%, transparent);
-  color: var(--alert-ink);
+  background: var(--prueba-bg);
+  color: var(--prueba-ink);
 }
 .pildora-error {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
-  color: var(--error-ink);
+  background: var(--heliconia-bg);
+  color: var(--heliconia);
 }
 .pildora-neutra {
-  background: color-mix(in srgb, #64748b 15%, transparent);
-  color: var(--color-slate-600);
+  background: var(--niebla-2);
+  color: var(--tinta-2);
 }
-.dark .pildora-neutra {
-  color: var(--color-slate-400);
+.monte .pildora {
+  background: color-mix(in srgb, var(--sobre-bosque) 14%, transparent);
+  color: var(--sobre-bosque);
 }
 
 /* «Saltar al contenido»: solo aparece con el foco del teclado. */
 .saltar {
   position: absolute;
-  left: 12px;
-  top: -48px;
+  left: 16px;
+  top: -64px;
   z-index: 60;
   border-radius: 999px;
-  background: var(--color-brand-600);
-  padding: 8px 14px;
-  font-size: 13px;
+  background: var(--helecho);
+  padding: 10px 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: white;
+  color: var(--sobre-helecho);
 }
 .saltar:focus {
   top: 12px;
 }
 
 .tarjeta {
-  border-radius: 18px;
+  border-radius: 6px 20px 6px 20px;
   border: 1px solid var(--linea);
-  background: white;
+  background: var(--superficie);
 }
-.dark .tarjeta {
-  background: var(--color-ink-800);
+
+/* Indicador «Modo de prueba»: ficha de papel con borde de trazos. */
+.prueba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px dashed currentColor;
+  background: var(--prueba-bg);
+  color: var(--prueba-ink);
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
 }
 }
 

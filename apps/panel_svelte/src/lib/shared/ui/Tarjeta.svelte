@@ -28,10 +28,10 @@
 <section class="tarjeta {clase}" aria-labelledby={titulo ? uid : undefined} aria-label={titulo ? undefined : etiqueta}>
   {#if titulo}
     <div class="flex items-baseline justify-between gap-3 px-5 pt-4">
-      <h2 id={uid} class="text-[15px] font-bold tracking-[-0.2px]">{titulo}</h2>
+      <h2 id={uid} class="text-[18px] leading-[1.25] font-bold">{titulo}</h2>
       {#if accion}{@render accion()}{/if}
     </div>
-    {#if descripcion}<p class="px-5 pt-0.5 text-[12.5px] text-suave">{descripcion}</p>{/if}
+    {#if descripcion}<p class="px-5 pt-0.5 text-[14px] text-suave">{descripcion}</p>{/if}
   {/if}
   <div class={sinRelleno ? '' : titulo ? 'px-5 pt-4 pb-5' : 'p-5'}>{@render children()}</div>
 </section>

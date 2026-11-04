@@ -33,9 +33,9 @@
       <span
         class="rounded-full px-1.5 text-[11px] tabular-nums
           {filtro === f.valor
-          ? 'bg-white/20'
+          ? 'bg-sobre-helecho/20'
           : f.valor === 'atencion' && conteos.atencion > 0
-            ? 'bg-orange-500/15 text-alert-ink'
+            ? 'bg-prueba-bg text-prueba-ink'
             : 'bg-slate-500/12'}">{conteos[f.valor]}</span
       >
     </button>

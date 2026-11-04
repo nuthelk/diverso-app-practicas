@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { esActiva, nombreCorto, SECCIONES, seccionActual } from '$lib/features/agencias/model/navegacion';
+import { esActiva, SECCIONES, seccionActual } from '$lib/features/agencias/model/navegacion';
 
 describe('SECCIONES', () => {
   it('Resumen, Planes, Ventas, Liquidaciones y Cuenta para dispersiones, en ese orden', () => {
@@ -31,17 +31,5 @@ describe('esActiva / seccionActual', () => {
     expect(seccionActual('/cuenta-dispersiones')?.etiqueta).toBe('Cuenta para dispersiones');
     expect(seccionActual('/onboarding')).toBeNull();
     expect(seccionActual('/')).toBeNull();
-  });
-});
-
-describe('nombreCorto', () => {
-  it.each([
-    ['Comuna 13 Graffiti Tours', 'Comuna 13'],
-    ['Aventuras Antioquia', 'Aventuras Antioquia'],
-    ['EcoAndes', 'EcoAndes'],
-    ['  Río   Claro   Viajes ', 'Río Claro'],
-    ['', ''],
-  ])('«%s» → «%s»', (nombre, esperado) => {
-    expect(nombreCorto(nombre)).toBe(esperado);
   });
 });

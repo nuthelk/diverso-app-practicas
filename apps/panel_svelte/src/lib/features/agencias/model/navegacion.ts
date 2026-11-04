@@ -1,36 +1,36 @@
-/** Las secciones del menú del panel y su estado activo. */
+/** Las secciones del panel (el sendero del riel y la barra inferior del celular) y su estado activo. */
 
 export interface Seccion {
   ruta: string;
   etiqueta: string;
   /** Nombre breve para la barra inferior móvil, si la etiqueta no cabe. */
   corta?: string;
-  /** Trazo (`d`) del ícono de 24 × 24. */
+  /** Trazo (`d`) del ícono de 24 × 24, en el trazo de línea del bosque. */
   icono: string;
 }
 
 export const SECCIONES: Seccion[] = [
-  { ruta: '/dashboard', etiqueta: 'Resumen', icono: 'M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10 3h8v5h-8v-5z' },
+  { ruta: '/dashboard', etiqueta: 'Resumen', icono: 'M2.5 19.5l6-10 3.8 6 2.4-3.2 6.8 7.2zM7.2 12.2l1.3 1.2 1.3-1.2' },
   {
     ruta: '/planes',
     etiqueta: 'Planes',
-    icono: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7',
+    icono: 'M3.8 18a2.2 2.2 0 104.4 0 2.2 2.2 0 10-4.4 0M15.8 6a2.2 2.2 0 104.4 0 2.2 2.2 0 10-4.4 0M8.2 18H15a3 3 0 000-6H9a3 3 0 010-6h6.8',
   },
   {
     ruta: '/ventas',
     etiqueta: 'Ventas',
-    icono: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+    icono: 'M3 8a2 2 0 000 8v1.5A1.5 1.5 0 004.5 19h15a1.5 1.5 0 001.5-1.5V16a2 2 0 010-8V6.5A1.5 1.5 0 0019.5 5h-15A1.5 1.5 0 003 6.5zM14.5 5.5v13',
   },
   {
     ruta: '/liquidaciones',
     etiqueta: 'Liquidaciones',
-    icono: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    icono: 'M3 7a6 2.8 0 1012 0 6 2.8 0 10-12 0M3 7v4c0 1.5 2.7 2.8 6 2.8s6-1.3 6-2.8V7M3 11v4c0 1.5 2.7 2.8 6 2.8 1 0 1.9-.1 2.7-.3M13 16.5a4 4 0 108 0 4 4 0 10-8 0',
   },
   {
     ruta: '/cuenta-dispersiones',
     etiqueta: 'Cuenta para dispersiones',
     corta: 'Cuenta',
-    icono: 'M3 10h18M5 6l7-3 7 3M4 10v9m4-9v9m4-9v9m4-9v9m4-9v9M3 21h18',
+    icono: 'M3 9.5L12 4l9 5.5M5 10v7M9.5 10v7M14.5 10v7M19 10v7M3 20h18',
   },
 ];
 
@@ -42,9 +42,4 @@ export function esActiva(path: string, ruta: string): boolean {
 /** La sección a la que pertenece la ruta; null en páginas fuera del menú (p. ej. el registro de la agencia). */
 export function seccionActual(path: string): Seccion | null {
   return SECCIONES.find((s) => esActiva(path, s.ruta)) ?? null;
-}
-
-/** Las dos primeras palabras del nombre: lo que cabe en el botón del usuario. */
-export function nombreCorto(nombre: string): string {
-  return nombre.split(/\s+/).filter(Boolean).slice(0, 2).join(' ');
 }

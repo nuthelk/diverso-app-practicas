@@ -76,7 +76,7 @@
   </dl>
 
   {#if a.estado_verificacion === 'rechazado' && a.motivo_rechazo}
-    <p class="mt-3 rounded-xl bg-red-500/10 px-3.5 py-2.5 text-[12.5px] text-error-ink">
+    <p class="mt-3 rounded-xl bg-heliconia-bg px-3.5 py-2.5 text-[12.5px] text-error-ink">
       Motivo del rechazo: {a.motivo_rechazo}
     </p>
   {/if}

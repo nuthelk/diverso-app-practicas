@@ -29,7 +29,7 @@
           data-dia
           class="relative pl-[22px] before:absolute before:top-2.5 before:-bottom-1 before:left-1 before:w-0.5 before:rounded-sm
             before:bg-acento-ink/28 after:absolute after:top-[7px] after:left-0 after:size-2.5 after:rounded-full
-            after:border-2 after:border-acento-ink after:bg-white last:before:bottom-auto last:before:h-2 dark:after:bg-ink-800"
+            after:border-2 after:border-acento-ink after:bg-superficie last:before:bottom-auto last:before:h-2 dark:after:bg-ink-800"
         >
           <div data-dia-titulo class="flex items-baseline gap-2 pt-1 pb-0.5 text-[12px] font-bold text-acento-ink">
             {g.dia}

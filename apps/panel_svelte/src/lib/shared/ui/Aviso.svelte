@@ -21,7 +21,7 @@
   const ICONO_DEL_TONO = { info: ICONOS.info, alerta: ICONOS.alerta, error: ICONOS.alerta } as const;
 </script>
 
-<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl px-4 py-[11px] text-[13.5px] leading-[1.35] {TONOS_AVISO[tono]}" {role}>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-hoja-chica px-4 py-[11px] text-[14.5px] leading-[1.4] {TONOS_AVISO[tono]}" {role}>
   <Icono trazo={ICONO_DEL_TONO[tono]} />
   <span class="min-w-[200px] flex-1">{@render children()}</span>
   {#if accion}{@render accion()}{/if}

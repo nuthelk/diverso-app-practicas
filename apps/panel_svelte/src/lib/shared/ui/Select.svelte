@@ -53,9 +53,8 @@
 
   {#if abierto}
     <ul
-      class="aparecer absolute z-30 mt-1.5 max-h-60 w-full overflow-y-auto rounded-xl border
-        border-linea bg-white py-1 shadow-xl shadow-slate-900/8
-        dark:bg-ink-700 dark:shadow-black/60"
+      class="aparecer absolute z-30 mt-1.5 max-h-60 w-full overflow-y-auto rounded-hoja-chica border
+        border-linea bg-superficie py-1 shadow-xl shadow-black/20"
       role="listbox"
     >
       {#each opciones as o (o.valor)}
@@ -64,10 +63,10 @@
             type="button"
             role="option"
             aria-selected={o.valor === valor}
-            class="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[13.5px] transition-colors
+            class="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[15px] transition-colors
               {o.valor === valor
-              ? 'bg-brand-600/12 font-bold text-acento-ink'
-              : 'text-slate-700 hover:bg-hover dark:text-slate-200 dark:hover:bg-ink-600'}"
+              ? 'bg-niebla-2 font-bold text-helecho'
+              : 'text-tinta hover:bg-hover'}"
             onclick={() => elegir(o.valor)}
           >
             {#if o.valor === valor}
