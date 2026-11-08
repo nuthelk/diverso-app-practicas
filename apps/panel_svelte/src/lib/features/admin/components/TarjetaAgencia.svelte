@@ -42,41 +42,41 @@
   const vig = $derived(textoVigencia(a));
 </script>
 
-<li class="tarjeta overflow-hidden p-5">
-  <div class="flex items-center gap-3">
+<li class="tarjeta overflow-hidden">
+  <div class="flex items-center gap-3 px-5 pt-4 pb-3">
     <Avatar iniciales={a.nombre} tam={44} />
     <div class="min-w-0 flex-1">
-      <h2 class="truncate text-[21px] leading-tight max-sm:break-words max-sm:whitespace-normal">{a.nombre}</h2>
-      <div class="text-[15px] text-tinta-2">
+      <h2 class="truncate text-destacado max-sm:break-words max-sm:whitespace-normal">{a.nombre}</h2>
+      <div class="text-detalle text-tinta-2">
         {a.ciudad}{a.created_at ? ` · registrada el ${fechaTexto(a.created_at)}` : ''}
       </div>
     </div>
     <StatusPill estado={a.estado_verificacion} />
   </div>
 
-  <dl class="mt-4 grid gap-x-6 gap-y-3 border-t border-dashed border-linea pt-4 text-[15px] sm:grid-cols-3">
+  <dl class="grid gap-x-6 gap-y-3 border-t border-linea px-5 py-4 sm:grid-cols-3">
     <div>
-      <dt class="text-tinta-2">RNT</dt>
-      <dd class="cifra text-[18px]">{a.numero_rnt}</dd>
+      <dt class="text-detalle text-tinta-2">RNT</dt>
+      <dd class="text-destacado font-semibold tabular-nums">{a.numero_rnt}</dd>
     </div>
     <div>
-      <dt class="text-tinta-2">Matrícula mercantil</dt>
-      <dd class="cifra text-[18px]">{a.matricula_camara_comercio}</dd>
+      <dt class="text-detalle text-tinta-2">Matrícula mercantil</dt>
+      <dd class="text-destacado font-semibold tabular-nums">{a.matricula_camara_comercio}</dd>
     </div>
     <div>
-      <dt class="text-tinta-2">Vigencia</dt>
+      <dt class="text-detalle text-tinta-2">Vigencia</dt>
       <dd class="font-bold {vig.clase}">{vig.texto}</dd>
     </div>
     {#if a.email || a.telefono}
       <div class="sm:col-span-3">
-        <dt class="text-tinta-2">Contacto</dt>
+        <dt class="text-detalle text-tinta-2">Contacto</dt>
         <dd>{[a.email, a.telefono].filter(Boolean).join(' · ')}</dd>
       </div>
     {/if}
   </dl>
 
   {#if a.estado_verificacion === 'rechazado' && a.motivo_rechazo}
-    <p class="mt-3 rounded-hoja-chica bg-heliconia-bg px-3.5 py-3 text-[15px] text-heliconia">
+    <p class="mx-5 mb-4 rounded-campo bg-heliconia-bg px-3.5 py-3 text-detalle text-heliconia">
       Motivo del rechazo: {a.motivo_rechazo}
     </p>
   {/if}
@@ -95,27 +95,20 @@
     />
   {/if}
 
-  <!-- Acciones -->
-  <div
-    class="mt-4 flex flex-wrap items-center gap-2 border-t border-dashed border-linea pt-3.5"
-  >
-    <button
-      class="btn btn-texto -ml-3"
-      aria-expanded={historialAbierto}
-      onclick={onhistorial}
-    >
+  <div class="flex flex-wrap items-center gap-2 border-t border-linea px-5 py-3">
+    <button class="btn btn-texto -ml-3" aria-expanded={historialAbierto} onclick={onhistorial}>
       {historialAbierto ? 'Ocultar historial' : 'Ver historial'}
     </button>
     <div class="flex-1"></div>
     {#if !accion}
       {#if a.estado_verificacion === 'pendiente'}
-        <button class="btn btn-peligro " onclick={() => onabrir('rechazar')}>Rechazar</button>
-        <button class="btn btn-primario " onclick={() => onabrir('verificar')}>Verificar</button>
+        <button class="btn btn-peligro" onclick={() => onabrir('rechazar')}>Rechazar</button>
+        <button class="btn btn-primario" onclick={() => onabrir('verificar')}>Verificar</button>
       {:else if a.estado_verificacion === 'verificado'}
-        <button class="btn btn-peligro " onclick={() => onabrir('rechazar')}>Retirar verificación</button>
-        <button class="btn btn-primario " onclick={() => onabrir('vigencia')}>Renovar vigencia RNT</button>
+        <button class="btn btn-peligro" onclick={() => onabrir('rechazar')}>Quitar verificación</button>
+        <button class="btn btn-primario" onclick={() => onabrir('vigencia')}>Renovar vigencia RNT</button>
       {:else}
-        <button class="btn btn-secundario " onclick={() => onabrir('verificar')}>Reconsiderar y verificar</button>
+        <button class="btn btn-secundario" onclick={() => onabrir('verificar')}>Verificar agencia</button>
       {/if}
     {/if}
   </div>

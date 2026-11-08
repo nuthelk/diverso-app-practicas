@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Chips from '$lib/shared/ui/Chips.svelte';
+  import Campo from '$lib/shared/ui/Campo.svelte';
   import type { FiltroAgencias } from '$lib/features/agencias/model/verificacion';
 
   let {
@@ -20,32 +22,15 @@
     { valor: 'rechazadas', etiqueta: 'Rechazadas' },
     { valor: 'todas', etiqueta: 'Todas' },
   ];
+
+  const opciones = $derived(FILTROS.map((f) => ({ ...f, cantidad: conteos[f.valor] })));
 </script>
 
-<div class="mt-7 flex flex-wrap items-center gap-2">
-  {#each FILTROS as f}
-    <button
-      class="chip"
-      aria-pressed={filtro === f.valor}
-      onclick={() => onelegir(f.valor)}
-    >
-      {f.etiqueta}
-      <span
-        class="cifra rounded-full px-2 text-[14px] leading-[22px]
-          {filtro === f.valor
-          ? 'bg-sobre-helecho text-helecho'
-          : f.valor === 'atencion' && conteos.atencion > 0
-            ? 'bg-prueba-bg text-prueba-ink'
-            : 'bg-niebla-2 text-tinta-2'}">{conteos[f.valor]}</span
-      >
-    </button>
-  {/each}
-  <div class="flex-1"></div>
-  <input
-    type="search"
-    bind:value={busqueda}
-    placeholder="Buscar por nombre, RNT o ciudad"
-    class="campo w-full sm:w-[300px]"
-    aria-label="Buscar agencias"
-  />
+<div class="mt-6 flex flex-wrap items-end gap-x-4 gap-y-3">
+  <Chips etiqueta="Qué agencias ver" {opciones} valor={filtro} onchange={(v) => onelegir(v as FiltroAgencias)} />
+  <Campo etiqueta="Buscar agencias" clase="w-full sm:ml-auto sm:w-72">
+    {#snippet control(atributos)}
+      <input {...atributos} type="search" bind:value={busqueda} placeholder="Nombre, RNT o ciudad" class="campo" />
+    {/snippet}
+  </Campo>
 </div>

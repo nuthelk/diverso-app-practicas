@@ -3,7 +3,6 @@
   import Pagina from '$lib/shared/ui/Pagina.svelte';
   import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
-  import AvisoPrueba from '$lib/features/liquidaciones/components/AvisoPrueba.svelte';
   import { cuentasResumen, liquidacionDetalle } from '$lib/features/liquidaciones/api/liquidaciones.api';
   import { mensajeError } from '$lib/shared/api/errores';
   import { avisar } from '$lib/shared/lib/toast.svelte';
@@ -27,6 +26,7 @@
   import { avisoAnticiposGenerados, avisoSemanaGenerada } from '../model/admin';
   import AdminCabecera from '../components/AdminCabecera.svelte';
   import AnticiposAgencias from '../components/AnticiposAgencias.svelte';
+  import ConfirmarDispersion from '../components/ConfirmarDispersion.svelte';
   import FiltrosLiquidaciones from '../components/FiltrosLiquidaciones.svelte';
   import GeneradorLiquidaciones from '../components/GeneradorLiquidaciones.svelte';
   import TarjetaLiquidacion from '../components/TarjetaLiquidacion.svelte';
@@ -66,6 +66,12 @@
   cargar();
 
   const visibles = $derived(filtrarLiquidaciones(liquidaciones, filtro));
+  const conteos = $derived<Record<FiltroLiquidaciones, number>>({
+    pendientes: filtrarLiquidaciones(liquidaciones, 'pendientes').length,
+    pagadas: filtrarLiquidaciones(liquidaciones, 'pagadas').length,
+    todas: liquidaciones.length,
+  });
+  const porConfirmar = $derived(liquidaciones.find((l) => l.id === confirmando));
   const cuentaDe = (agencyId: string) => cuentas.find((c) => c.agency_id === agencyId);
   const verificadas = $derived(agencias.filter((a) => a.estado_verificacion === 'verificado'));
 
@@ -139,20 +145,16 @@
   }
 </script>
 
-<div class="min-h-screen">
-  <AdminCabecera href="#/admin" texto="Verificación de agencias" />
+<AdminCabecera activa="dispersiones" />
 
+<main id="principal" tabindex="-1" class="outline-none">
   <Pagina>
     <PageHeader titulo="Dispersiones de prueba">
       {#snippet contexto()}
-        <span class="block max-w-[720px]">
-          Cada lunes a las 06:00 (Bogotá) se liquida la semana anterior y cada hora se calculan los
-          anticipos. Aquí puedes generarlos a mano, ejecutar la dispersión de prueba y bloquear el
-          anticipo de una agencia.
-        </span>
+        Las liquidaciones de la semana se generan solas los lunes por la mañana y los anticipos, cada hora. Aquí puedes
+        generarlos a mano, registrar la dispersión de prueba y bloquear el anticipo de una agencia.
       {/snippet}
     </PageHeader>
-    <div class="mt-4"><AvisoPrueba>Ejecutar solo marca la liquidación como pagada de prueba; no se transfiere nada.</AvisoPrueba></div>
 
     <GeneradorLiquidaciones
       bind:semana
@@ -161,38 +163,46 @@
       onanticipos={anticiposAhora}
     />
 
-    <FiltrosLiquidaciones {filtro} onelegir={(valor) => (filtro = valor)} />
+    <FiltrosLiquidaciones {filtro} {conteos} onelegir={(valor) => (filtro = valor)} />
 
     {#if cargando}
-      <div class="mt-4 space-y-3" role="status" aria-label="Cargando">{#each Array(3) as _}<Skeleton clase="h-[110px]" />{/each}</div>
+      <div class="mt-4 space-y-3" role="status" aria-label="Cargando">
+        {#each Array(3) as _}<Skeleton clase="h-28 rounded-hoja-chica" />{/each}
+      </div>
     {:else if error}
-      <Empty icono="sinConexion" titulo="No pudimos cargar las liquidaciones" mensaje={error} />
+      <Empty icono="sinConexion" titulo="No pudimos cargar las liquidaciones" mensaje={error}>
+        {#snippet accion()}<button class="btn btn-secundario" onclick={cargar}>Reintentar</button>{/snippet}
+      </Empty>
     {:else if visibles.length === 0}
       <Empty icono="recibo" titulo="Nada por aquí" mensaje="No hay liquidaciones en esta categoría. Genera la semana o los anticipos." />
     {:else}
-      <ul class="mt-4 grid items-start gap-5 min-[1500px]:grid-cols-2">
+      <ul class="mt-4 grid items-start gap-5 ancho:grid-cols-2">
         {#each visibles as l (l.id)}
           <TarjetaLiquidacion
             liquidacion={l}
             cuenta={cuentaDe(l.agency_id)}
-            confirmando={confirmando === l.id}
-            {ejecutando}
-            {errorAccion}
             abierta={abierta === l.id}
             {items}
-            onconfirmar={() => confirmar(l)}
-            oncancelar={() => (confirmando = null)}
-            onejecutar={() => ejecutar(l)}
+            onejecutar={() => confirmar(l)}
             onitems={() => alternarItems(l)}
           />
         {/each}
       </ul>
     {/if}
 
-    <AnticiposAgencias
-      agencias={cargando ? [] : verificadas}
-      {cuentaDe}
-      onalternar={alternarBloqueo}
-    />
+    {#if !cargando && !error}
+      <AnticiposAgencias agencias={verificadas} {cuentaDe} onalternar={alternarBloqueo} />
+    {/if}
   </Pagina>
-</div>
+</main>
+
+{#if porConfirmar}
+  <ConfirmarDispersion
+    liquidacion={porConfirmar}
+    cuenta={cuentaDe(porConfirmar.agency_id)}
+    {ejecutando}
+    error={errorAccion}
+    oncancelar={() => (confirmando = null)}
+    onconfirmar={() => ejecutar(porConfirmar)}
+  />
+{/if}

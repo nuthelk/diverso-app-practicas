@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { avisoAnticiposGenerados, avisoSemanaGenerada, vigenciaInicial } from '$lib/features/admin/model/admin';
+import {
+  avisoAnticiposGenerados,
+  avisoSemanaGenerada,
+  consecuenciaAccion,
+  etiquetaEnviar,
+  vigenciaInicial,
+} from '$lib/features/admin/model/admin';
 import { agencia, HOY } from '$tests/fixtures';
 
 describe('vigenciaInicial', () => {
@@ -50,6 +56,50 @@ describe('avisoAnticiposGenerados', () => {
   it('resume cuántas liquidaciones y reservas se generaron', () => {
     expect(avisoAnticiposGenerados({ liquidaciones: 2, items: 5 })).toBe(
       'Anticipos generados: 2 liquidaciones con 5 reservas.',
+    );
+  });
+});
+
+describe('etiquetaEnviar', () => {
+  it('nombra la acción tal como ocurre, sin jerga', () => {
+    expect(etiquetaEnviar(agencia({ estado_verificacion: 'pendiente' }), 'rechazar')).toBe('Rechazar agencia');
+    expect(etiquetaEnviar(agencia({ estado_verificacion: 'verificado' }), 'rechazar')).toBe('Quitar verificación');
+    expect(etiquetaEnviar(agencia(), 'verificar')).toBe('Verificar agencia');
+    expect(etiquetaEnviar(agencia(), 'vigencia')).toBe('Guardar vigencia');
+  });
+});
+
+describe('consecuenciaAccion', () => {
+  it('quitar la verificación avisa que deja de vender y que verá el motivo', () => {
+    expect(consecuenciaAccion(agencia({ estado_verificacion: 'verificado' }), 'rechazar', '')).toBe(
+      'La agencia dejará de vender: sus planes dejan de mostrarse y de recibir reservas. Verá el motivo en su panel.',
+    );
+  });
+
+  it('rechazar una agencia en verificación avisa que seguirá sin publicar y que verá el motivo', () => {
+    expect(consecuenciaAccion(agencia({ estado_verificacion: 'pendiente' }), 'rechazar', '')).toBe(
+      'La agencia seguirá sin poder publicar planes. Verá el motivo en su panel.',
+    );
+  });
+
+  it('verificar dice hasta cuándo podrá vender, y si venía rechazada, que se quita el rechazo', () => {
+    expect(consecuenciaAccion(agencia({ estado_verificacion: 'pendiente' }), 'verificar', '2027-03-31')).toBe(
+      'La agencia podrá publicar planes y vender hasta el 31 de marzo de 2027.',
+    );
+    expect(consecuenciaAccion(agencia({ estado_verificacion: 'rechazado' }), 'verificar', '2027-03-31')).toBe(
+      'Se quita el rechazo: la agencia podrá publicar planes y vender hasta el 31 de marzo de 2027.',
+    );
+  });
+
+  it('sin fecha elegida no inventa una', () => {
+    expect(consecuenciaAccion(agencia({ estado_verificacion: 'pendiente' }), 'verificar', '')).toBe(
+      'La agencia podrá publicar planes y vender mientras el RNT esté vigente.',
+    );
+  });
+
+  it('renovar la vigencia solo cambia la fecha: la agencia sigue verificada', () => {
+    expect(consecuenciaAccion(agencia(), 'vigencia', '2028-03-31')).toBe(
+      'La agencia seguirá vendiendo hasta el 31 de marzo de 2028.',
     );
   });
 });

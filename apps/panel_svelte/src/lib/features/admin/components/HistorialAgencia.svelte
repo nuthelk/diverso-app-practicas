@@ -12,9 +12,9 @@
   };
 </script>
 
-<ol class="mt-4 space-y-3 border-l-2 border-dashed border-contorno pl-4">
+<ol class="space-y-3 border-t border-linea px-5 py-4 text-detalle">
   {#each historial as h (h.id)}
-    <li class="text-[15px]">
+    <li>
       <div class="font-bold">{ETIQUETA_ACCION[h.accion]}</div>
       <div class="text-tinta-2">
         {new Date(h.created_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -24,6 +24,6 @@
       </div>
     </li>
   {:else}
-    <li class="text-[15px] text-tinta-2">Sin registros todavía.</li>
+    <li class="text-tinta-2">Sin registros todavía.</li>
   {/each}
 </ol>

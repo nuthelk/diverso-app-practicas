@@ -118,17 +118,14 @@
   }
 </script>
 
-<div class="min-h-screen">
-  <AdminCabecera href="#/admin/dispersiones" texto="Dispersiones de prueba" />
+<AdminCabecera activa="agencias" />
 
+<main id="principal" tabindex="-1" class="outline-none">
   <Pagina>
     <PageHeader titulo="Verificación de agencias">
       {#snippet contexto()}
-        <span class="block max-w-[680px]">
-          Contrasta el RNT en el registro oficial y la matrícula en la Cámara de Comercio antes de
-          aprobar. Una agencia solo vende mientras su RNT esté vigente; si cambia su RNT o su matrícula
-          vuelve automáticamente a esta cola.
-        </span>
+        Contrasta el RNT en el registro oficial y la matrícula en la Cámara de Comercio antes de aprobar. Una agencia solo
+        vende mientras su RNT esté vigente; si cambia su RNT o su matrícula vuelve automáticamente a esta cola.
       {/snippet}
     </PageHeader>
 
@@ -136,10 +133,12 @@
 
     {#if cargando}
       <div class="mt-6 space-y-3" role="status" aria-label="Cargando">
-        {#each Array(4) as _}<Skeleton clase="h-[140px]" />{/each}
+        {#each Array(4) as _}<Skeleton clase="h-36 rounded-hoja-chica" />{/each}
       </div>
     {:else if error}
-      <Empty icono="sinConexion" titulo="No pudimos cargar las agencias" mensaje={error} />
+      <Empty icono="sinConexion" titulo="No pudimos cargar las agencias" mensaje={error}>
+        {#snippet accion()}<button class="btn btn-secundario" onclick={cargar}>Reintentar</button>{/snippet}
+      </Empty>
     {:else if visibles.length === 0}
       <Empty
         icono="check"
@@ -149,7 +148,7 @@
           : 'No hay agencias en esta categoría.'}
       />
     {:else}
-      <ul class="mt-6 grid items-start gap-5 min-[1500px]:grid-cols-2">
+      <ul class="mt-6 grid items-start gap-5 ancho:grid-cols-2">
         {#each visibles as a (a.id)}
           <TarjetaAgencia
             agencia={a}
@@ -170,4 +169,4 @@
       </ul>
     {/if}
   </Pagina>
-</div>
+</main>

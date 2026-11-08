@@ -1,4 +1,5 @@
 import { estadoVigencia, vigenciaSugerida, type Agency } from '$lib/features/agencias/model/agencia';
+import { fechaTexto } from '$lib/shared/lib/format';
 import { periodoTexto } from '$lib/features/liquidaciones/model/liquidaciones';
 
 export type TipoAccion = 'verificar' | 'rechazar' | 'vigencia';
@@ -26,4 +27,24 @@ export function avisoAnticiposGenerados(r: { liquidaciones: number; items: numbe
   return r.liquidaciones === 0
     ? 'No había anticipos nuevos por generar.'
     : `Anticipos generados: ${r.liquidaciones} liquidaciones con ${r.items} reservas.`;
+}
+
+/** Lo que dice el botón que envía el formulario: la acción tal como ocurre, no «Confirmar» a secas. */
+export function etiquetaEnviar(a: Agency, tipo: TipoAccion): string {
+  if (tipo === 'verificar') return 'Verificar agencia';
+  if (tipo === 'vigencia') return 'Guardar vigencia';
+  return a.estado_verificacion === 'verificado' ? 'Quitar verificación' : 'Rechazar agencia';
+}
+
+/** Qué cambia para la agencia al enviar el formulario, a la vista antes de confirmar. */
+export function consecuenciaAccion(a: Agency, tipo: TipoAccion, fechaVigencia: string): string {
+  const hasta = fechaVigencia ? `hasta el ${fechaTexto(fechaVigencia)}` : 'mientras el RNT esté vigente';
+  if (tipo === 'vigencia') return `La agencia seguirá vendiendo ${hasta}.`;
+  if (tipo === 'verificar') {
+    const rechazada = a.estado_verificacion === 'rechazado' ? 'Se quita el rechazo: la' : 'La';
+    return `${rechazada} agencia podrá publicar planes y vender ${hasta}.`;
+  }
+  return a.estado_verificacion === 'verificado'
+    ? 'La agencia dejará de vender: sus planes dejan de mostrarse y de recibir reservas. Verá el motivo en su panel.'
+    : 'La agencia seguirá sin poder publicar planes. Verá el motivo en su panel.';
 }

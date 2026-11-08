@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
+  import TablaDatos, { type Columna } from '$lib/shared/ui/TablaDatos.svelte';
   import { textoCuenta, type CuentaResumen } from '$lib/features/liquidaciones/model/liquidaciones';
   import type { Agency } from '$lib/features/agencias/model/agencia';
 
@@ -11,29 +13,37 @@
     cuentaDe: (agencyId: string) => CuentaResumen | undefined;
     onalternar: (agencia: Agency) => void;
   } = $props();
+
+  const COLUMNAS: Columna[] = [
+    { clave: 'agencia', titulo: 'Agencia', principal: true },
+    { clave: 'cuenta', titulo: 'Cuenta para dispersiones' },
+    { clave: 'anticipos', titulo: 'Anticipos' },
+  ];
 </script>
 
-<h2 class="mt-12 text-[28px] leading-[1.15]">Anticipos por agencia</h2>
-<p class="mt-1.5 text-[16px] text-tinta-2">
-  Una agencia bloqueada deja de recibir anticipos nuevos; sus liquidaciones semanales siguen igual.
-</p>
-{#if agencias.length > 0}
-  <ul class="tarjeta mt-3 divide-y divide-linea overflow-hidden">
-    {#each agencias as a (a.id)}
-      <li class="flex flex-wrap items-center gap-3 px-5 py-3.5">
-        <div class="min-w-0 flex-1">
-          <div class="font-titulo truncate text-[19px] leading-tight font-bold max-sm:break-words max-sm:whitespace-normal">{a.nombre}</div>
-          <div class="text-[15px] text-tinta-2">
-            Anticipos: {a.anticipo_bloqueado ? 'bloqueados' : 'habilitados'} · {textoCuenta(cuentaDe(a.id))}
-          </div>
-        </div>
-        <button
-          class="btn {a.anticipo_bloqueado ? 'btn-secundario' : 'btn-peligro'} "
-          onclick={() => onalternar(a)}
-        >
-          {a.anticipo_bloqueado ? 'Desbloquear anticipo' : 'Bloquear anticipo'}
-        </button>
-      </li>
-    {/each}
-  </ul>
-{/if}
+<Tarjeta
+  titulo="Anticipos por agencia"
+  descripcion="Una agencia bloqueada deja de recibir anticipos nuevos; sus liquidaciones semanales siguen igual."
+  sinRelleno
+  clase="mt-10"
+>
+  <TablaDatos caption="Anticipos por agencia" columnas={COLUMNAS} filas={agencias} clave={(a) => a.id}>
+    {#snippet celda(a, c)}
+      {#if c.clave === 'agencia'}
+        {a.nombre}
+      {:else if c.clave === 'cuenta'}
+        {textoCuenta(cuentaDe(a.id))}
+      {:else}
+        <span class="inline-flex flex-wrap items-center gap-2">
+          <span class="pildora {a.anticipo_bloqueado ? 'pildora-alerta' : 'pildora-ok'}">
+            {a.anticipo_bloqueado ? 'Bloqueados' : 'Habilitados'}
+          </span>
+          <button class="btn btn-chico {a.anticipo_bloqueado ? 'btn-secundario' : 'btn-peligro'}" onclick={() => onalternar(a)}>
+            {a.anticipo_bloqueado ? 'Desbloquear anticipo' : 'Bloquear anticipo'}
+          </button>
+        </span>
+      {/if}
+    {/snippet}
+    {#snippet vacio()}Aún no hay agencias verificadas.{/snippet}
+  </TablaDatos>
+</Tarjeta>
