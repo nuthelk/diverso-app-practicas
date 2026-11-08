@@ -13,6 +13,6 @@
 </script>
 
 <div class={clase}>
-  <dt class="text-[14px] font-bold text-tinta-2">{etiqueta}</dt>
-  <dd class="cifra mt-0.5 text-[19px] leading-tight {TINTAS[tono]}">{@render children()}</dd>
+  <dt class="text-detalle font-bold text-tinta-2">{etiqueta}</dt>
+  <dd class="cifra mt-0.5 text-destacado {TINTAS[tono]}">{@render children()}</dd>
 </div>

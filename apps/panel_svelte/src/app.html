@@ -8,10 +8,22 @@
     <link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
     <title>Diverso — Panel de Agencias</title>
     <script>
-      // Tema antes del primer render para evitar destello: claro salvo que se haya elegido oscuro.
-      try {
-        if (localStorage.getItem('diverso-panel-theme') === 'dark') document.documentElement.classList.add('dark');
-      } catch (_) {}
+      // Tema antes del primer render para evitar destello. Misma regla que src/lib/shared/lib/tema.svelte.ts:
+      // lo elegido gana (claro/oscuro, y los viejos light/dark); si no, se sigue al sistema.
+      (function () {
+        var guardado = null;
+        try {
+          guardado = localStorage.getItem('diverso-panel-theme');
+        } catch (_) {}
+        var oscuro =
+          guardado === 'oscuro' ||
+          guardado === 'dark' ||
+          (guardado !== 'claro' &&
+            guardado !== 'light' &&
+            typeof matchMedia === 'function' &&
+            matchMedia('(prefers-color-scheme: dark)').matches);
+        if (oscuro) document.documentElement.classList.add('dark');
+      })();
     </script>
     %sveltekit.head%
   </head>

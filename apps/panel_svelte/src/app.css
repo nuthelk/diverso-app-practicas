@@ -4,14 +4,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Identidad «Bosque de niebla» (artboards 02 de design/panel-naturaleza). Este archivo es la ÚNICA fuente de los
- * tokens visuales: la paleta de abajo (claro y oscuro), las tipografías, los radios «hoja» y las clases compartidas.
- * Los componentes usan los tokens por su nombre (`bg-superficie`, `text-tinta-2`, `border-linea`…); no llevan colores sueltos.
+ * Identidad «Bosque de niebla», marco y base del artboard «Tablero operativo» (design/panel-profesional/02). Este archivo
+ * es la ÚNICA fuente de los tokens visuales: la paleta de abajo (claro y oscuro), la escala tipográfica de 7 pasos, los
+ * radios y las clases compartidas. Los componentes usan los tokens por su nombre (`bg-superficie`, `text-tinta-2`,
+ * `border-linea`, `text-detalle`, `rounded-campo`…); no llevan colores ni tamaños sueltos.
  *
  *   niebla / niebla-2 / superficie   fondo de página, zonas hundidas, tarjetas
  *   linea / contorno                 bordes decorativos / borde de controles (≥ 3:1)
  *   tinta / tinta-2 / tinta-3        texto principal, secundario, terciario (≥ 4,5:1)
- *   bosque / bosque-2 / sobre-*      el monte oscuro (riel, barra del celular, tarjeta de dinero) y su texto
+ *   bosque / bosque-2 / sobre-*      el monte oscuro (barra superior, tarjeta de dinero) y su texto
  *   helecho / sobre-helecho          acción principal, enlaces, barras
  *   musgo / relleno                  curvas de nivel y relleno de cupos reservados
  *   heliconia / sobre-heliconia / heliconia-bg   único acento cálido: hoy, urgente, hito activo, errores
@@ -20,17 +21,36 @@
  *   foco / foco-bosque               anillo de foco sobre claro / sobre el monte
  */
 @theme {
+  /* Interfaz, títulos y cifras: una sola familia. */
   --font-sans: "Atkinson Hyperlegible Next", Calibri, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  /* Títulos, nombres de plan y cifras grandes (los precios llevan cifras de caja alta). */
+  /* Serif de apoyo (Newsreader): el marco y la base ya no la usan; solo quedan en ella las pantallas por migrar. */
   --font-titulo: "Newsreader", Constantia, "Palatino Linotype", Cambria, Georgia, serif;
 
-  /* Radios «hoja»: dos esquinas casi rectas y dos amplias (nunca una tarjeta redonda uniforme). Botones y chips: píldora. */
+  /* Escala tipográfica de 7 pasos (`text-detalle`…) con su interlineado. */
+  --text-nota: 12px;
+  --text-nota--line-height: 1.5;
+  --text-detalle: 14px;
+  --text-detalle--line-height: 1.45;
+  --text-cuerpo: 16px;
+  --text-cuerpo--line-height: 1.5;
+  --text-destacado: 18px;
+  --text-destacado--line-height: 1.45;
+  --text-seccion: 22px;
+  --text-seccion--line-height: 1.25;
+  --text-pagina: 28px;
+  --text-pagina--line-height: 1.15;
+  --text-cifra-grande: 36px;
+  --text-cifra-grande--line-height: 1.1;
+
+  /* Radios: «hoja» (dos esquinas casi rectas y dos amplias) para tarjetas y menús; píldora para botones y chips; campo para campos y ítems. */
   --radius-hoja: 6px 20px 6px 20px;
   --radius-hoja-chica: 4px 14px 4px 14px;
   --radius-hoja-grande: 8px 30px 8px 30px;
   --radius-brote: 50% 50% 50% 8px;
+  --radius-pildora: 999px;
+  --radius-campo: 12px;
 
-  /* Ancho desde el que el Resumen pone la semana y «Quiénes van» lado a lado y la cabecera muestra «Modo de prueba». */
+  /* Ancho desde el que el Resumen pone la semana y «Quiénes van» lado a lado. */
   --breakpoint-ancho: 86rem;
 }
 
@@ -125,7 +145,7 @@ html {
 body {
   background: var(--niebla);
   color: var(--tinta);
-  font-size: 17px;
+  font-size: var(--text-cuerpo);
   line-height: 1.5;
   font-variant-numeric: lining-nums;
 }
@@ -135,8 +155,9 @@ body {
   h2,
   h3,
   h4 {
-    font-family: var(--font-titulo);
+    font-family: var(--font-sans);
     font-weight: 700;
+    line-height: 1.2;
     font-variant-numeric: lining-nums;
   }
 }
@@ -196,12 +217,12 @@ body {
   width: 100%;
   min-width: 0;
   min-height: 44px;
-  border-radius: 12px;
+  border-radius: var(--radius-campo);
   border: 1px solid var(--contorno);
   background: var(--superficie);
   color: var(--tinta);
   padding: 9px 14px;
-  font-size: 16px;
+  font-size: var(--text-cuerpo);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -219,7 +240,7 @@ body {
 .etiqueta-campo {
   display: block;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: var(--text-detalle);
   font-weight: 700;
   color: var(--tinta-2);
 }
@@ -230,7 +251,7 @@ body {
   flex-shrink: 0;
   width: 42px;
   height: 24px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   background: var(--contorno);
   position: relative;
   cursor: pointer;
@@ -243,7 +264,7 @@ body {
   left: 3px;
   width: 18px;
   height: 18px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   background: var(--superficie);
   transition: left 0.2s;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
@@ -262,14 +283,15 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 44px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   padding: 9px 20px;
-  font-size: 15px;
+  font-size: var(--text-cuerpo);
   font-weight: 700;
   transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s, filter 0.15s;
   cursor: pointer;
 }
-.btn:disabled {
+.btn:disabled,
+.btn[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -295,6 +317,14 @@ body {
 .btn-peligro:not(:disabled):hover {
   background: var(--heliconia-bg);
 }
+/* Acción urgente o destructiva ya decidida (renovar el RNT, eliminar): relleno del acento cálido. */
+.btn-urgente {
+  background: var(--heliconia);
+  color: var(--sobre-heliconia);
+}
+.btn-urgente:not(:disabled):hover {
+  filter: brightness(1.08);
+}
 /* Acción discreta de una fila (Editar, Fechas y cupos…): sin borde, tinta secundaria. */
 .btn-texto {
   padding: 7px 12px;
@@ -305,6 +335,12 @@ body {
   background: var(--niebla-2);
   color: var(--tinta);
 }
+/* Botón de una fila o de un aviso: 40 px en vez de 44. */
+.btn-chico {
+  min-height: 40px;
+  padding: 6px 16px;
+  font-size: var(--text-detalle);
+}
 /* Botón redondo con solo un ícono (44 px: cabe un pulgar). */
 .boton-icono {
   display: inline-flex;
@@ -313,7 +349,7 @@ body {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   border: 1px solid var(--contorno);
   background: var(--superficie);
   color: var(--tinta);
@@ -331,16 +367,16 @@ body {
   text-underline-offset: 4px;
 }
 
-/* Filtro en forma de píldora (Ventas, Admin); `aria-pressed` marca el elegido. */
+/* Filtro en forma de píldora (Ventas, Admin, salidas del Resumen); `aria-pressed` marca el elegido. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-height: 40px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   border: 1px solid var(--contorno);
   padding: 6px 16px;
-  font-size: 14px;
+  font-size: var(--text-detalle);
   font-weight: 700;
   white-space: nowrap;
   color: var(--tinta-2);
@@ -356,52 +392,47 @@ body {
   color: var(--sobre-helecho);
 }
 
-/* Título de sección del Resumen (el h2 ya trae la tipografía de títulos). */
+/* Título de sección (el h2 ya trae la familia y el peso de los títulos). */
 .titulo-seccion {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  font-size: 24px;
-  line-height: 1.15;
-}
-@media (min-width: 64rem) {
-  .titulo-seccion {
-    font-size: 26px;
-  }
+  font-size: var(--text-seccion);
+  line-height: 1.25;
 }
 
 /* Etiqueta pequeña en mayúsculas. */
 .etiqueta-seccion {
-  font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-nota);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--tinta-2);
 }
 
-/* Precios, fechas, horas y cifras grandes: Newsreader con cifras de caja alta (Atkinson dibuja el cero tachado). */
+/* Precios, fechas, horas y cifras: la misma familia de la interfaz, con cifras de caja alta y de ancho fijo. */
 .cifra {
-  font-family: var(--font-titulo);
   font-weight: 600;
   font-variant-numeric: lining-nums tabular-nums;
 }
 
-/* Tabla de conciliación: cabecera hundida en la niebla, filas con línea fina; fechas y cifras en la tipografía de títulos. */
+/* Tabla: cabecera hundida en la niebla con líneas finas, filas con línea fina; cifras alineadas a la derecha. */
 .tabla {
   width: 100%;
-  font-size: 15px;
+  font-size: var(--text-cuerpo);
   border-collapse: collapse;
 }
 .tabla th {
-  padding: 12px 12px;
+  padding: 10px 12px;
   text-align: left;
-  font-size: 13px;
+  font-size: var(--text-nota);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
   color: var(--tinta-2);
   background: var(--niebla-2);
+  border-block: 1px solid var(--linea);
 }
 .tabla th:first-child,
 .tabla td:first-child {
@@ -412,20 +443,130 @@ body {
   padding-right: 20px;
 }
 .tabla td {
-  padding: 13px 12px;
+  padding: 10px 12px;
   border-top: 1px solid var(--linea);
+  vertical-align: middle;
+}
+.tabla tbody tr:first-child td {
+  border-top: 0;
 }
 .tabla tbody tr:hover {
   background: color-mix(in srgb, var(--niebla-2) 60%, transparent);
 }
 .tabla td.num,
 .tabla td.fecha {
-  font-family: var(--font-titulo);
-  font-size: 17px;
   font-variant-numeric: lining-nums tabular-nums;
 }
 .tabla .num {
   text-align: right;
+  white-space: nowrap;
+}
+.tabla tfoot th,
+.tabla tfoot td {
+  background: var(--niebla-2);
+  border-top: 1px solid var(--linea);
+  font-size: var(--text-detalle);
+  font-weight: 700;
+  color: var(--tinta);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/*
+ * `TablaDatos`: con poco ancho la cabecera se oculta y cada fila es una tarjeta: la celda principal arriba y las demás
+ * como «título: valor» (el título sale de `data-th`).
+ */
+@media (max-width: 820px) {
+  .tabla-datos .tabla,
+  .tabla-datos .tabla tbody,
+  .tabla-datos .tabla tfoot,
+  .tabla-datos .tabla tr {
+    display: block;
+  }
+  .tabla-datos .tabla thead {
+    display: none;
+  }
+  .tabla-datos .tabla tbody tr {
+    padding: 12px 16px;
+    border-top: 1px solid var(--linea);
+  }
+  .tabla-datos .tabla tbody tr:first-child {
+    border-top: 0;
+  }
+  .tabla-datos .tabla td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 3px 0;
+    border: 0;
+    text-align: right;
+  }
+  .tabla-datos .tabla td::before {
+    content: attr(data-th);
+    flex: none;
+    text-align: left;
+    font-size: var(--text-detalle);
+    color: var(--tinta-2);
+  }
+  .tabla-datos .tabla td[data-principal] {
+    display: block;
+    padding-bottom: 4px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .tabla-datos .tabla td[data-principal]::before {
+    content: none;
+  }
+  .tabla-datos .tabla tfoot tr {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--niebla-2);
+    border-top: 1px solid var(--linea);
+  }
+  .tabla-datos .tabla tfoot th,
+  .tabla-datos .tabla tfoot td {
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .tabla-datos .tabla tfoot td::before {
+    content: none;
+  }
+}
+
+/*
+ * Franja de cifras (`FranjaMetricas`): las `Metrica` de dentro pierden su tarjeta y quedan separadas por líneas finas.
+ * Cada celda dibuja su borde izquierdo y superior; la franja los recorta por fuera con `overflow: hidden`.
+ */
+.franja {
+  display: grid;
+  grid-template-columns: repeat(var(--franja-columnas, 5), minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border-radius: var(--radius-hoja-chica);
+}
+.franja > .tarjeta {
+  margin: -1px 0 0 -1px;
+  border-width: 1px 0 0 1px;
+  border-radius: 0;
+}
+@media (max-width: 1180px) {
+  .franja {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .franja {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .franja > .tarjeta:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Píldoras de estado: fondo tintado y tinta que llega a AA en claro, oscuro y sobre el monte. */
@@ -433,9 +574,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   padding: 1px 10px;
-  font-size: 12px;
+  font-size: var(--text-nota);
   line-height: 18px;
   font-weight: 700;
   white-space: nowrap;
@@ -456,6 +597,11 @@ body {
   background: var(--niebla-2);
   color: var(--tinta-2);
 }
+/* «Hoy»: el único acento cálido sobre una fecha. */
+.pildora-hoy {
+  background: var(--heliconia);
+  color: var(--sobre-heliconia);
+}
 .monte .pildora {
   background: color-mix(in srgb, var(--sobre-bosque) 14%, transparent);
   color: var(--sobre-bosque);
@@ -466,11 +612,11 @@ body {
   position: absolute;
   left: 16px;
   top: -64px;
-  z-index: 60;
-  border-radius: 999px;
+  z-index: 90;
+  border-radius: var(--radius-pildora);
   background: var(--helecho);
   padding: 10px 18px;
-  font-size: 15px;
+  font-size: var(--text-cuerpo);
   font-weight: 700;
   color: var(--sobre-helecho);
 }
@@ -479,7 +625,7 @@ body {
 }
 
 .tarjeta {
-  border-radius: 6px 20px 6px 20px;
+  border-radius: var(--radius-hoja-chica);
   border: 1px solid var(--linea);
   background: var(--superficie);
 }
@@ -489,12 +635,12 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pildora);
   border: 1px dashed currentColor;
   background: var(--prueba-bg);
   color: var(--prueba-ink);
   padding: 6px 14px;
-  font-size: 14px;
+  font-size: var(--text-detalle);
   font-weight: 700;
 }
 }

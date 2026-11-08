@@ -22,7 +22,7 @@
 </script>
 
 <div
-  class="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-[8px_24px_8px_24px] border px-4 py-3 text-[15px] leading-[1.45] {TONOS_AVISO[tono]}"
+  class="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-hoja border px-4 py-3 text-cuerpo {TONOS_AVISO[tono]}"
   {role}
 >
   <span class="grid size-9 shrink-0 place-items-center rounded-brote {BROTES_AVISO[tono]}">

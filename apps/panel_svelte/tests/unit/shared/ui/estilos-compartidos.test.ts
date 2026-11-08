@@ -7,7 +7,7 @@ import Select from '$lib/shared/ui/Select.svelte';
 // especificidad: redeclarar `.campo` o `.btn` ahí rompe en silencio las utilidades que se le ponen a cada uso.
 const fuentes = import.meta.glob('/src/**/*.svelte', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
-const COMPARTIDAS = ['campo', 'etiqueta-campo', 'etiqueta', 'switch', 'btn', 'tarjeta', 'chip', 'tabla', 'pildora'];
+const COMPARTIDAS = ['campo', 'etiqueta-campo', 'etiqueta', 'switch', 'btn', 'tarjeta', 'chip', 'tabla', 'tabla-datos', 'franja', 'pildora'];
 
 const estilosDe = (fuente: string) => [...fuente.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
 

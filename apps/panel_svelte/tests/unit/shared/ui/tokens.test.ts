@@ -83,11 +83,38 @@ describe('tokens de app.css', () => {
 });
 
 describe('tipografías', () => {
-  it('títulos en Newsreader y texto en Atkinson Hyperlegible Next, con las pilas de respaldo del artboard', () => {
+  it('interfaz, títulos y cifras en Atkinson Hyperlegible Next; la serif Newsreader queda definida solo para lo que falta migrar', () => {
     expect(css).toMatch(/--font-sans:\s*"Atkinson Hyperlegible Next", Calibri/);
     expect(css).toMatch(/--font-titulo:\s*"Newsreader", Constantia/);
-    expect(css).toMatch(/h1,\s*h2,\s*h3,\s*h4 \{\s*font-family: var\(--font-titulo\)/);
+    expect(css).toMatch(/h1,\s*h2,\s*h3,\s*h4 \{\s*font-family: var\(--font-sans\)/);
     expect(css).toContain('lining-nums');
+  });
+
+  it('la escala es de 7 pasos (12/14/16/18/22/28/36 px), cada uno con su interlineado', () => {
+    const escala = Object.fromEntries([...css.matchAll(/--text-([\w-]+):\s*(\d+)px;/g)].map((m) => [m[1], Number(m[2])]));
+    expect(escala).toEqual({ nota: 12, detalle: 14, cuerpo: 16, destacado: 18, seccion: 22, pagina: 28, 'cifra-grande': 36 });
+    for (const paso of Object.keys(escala)) expect(css, `--text-${paso}--line-height`).toMatch(new RegExp(String.raw`--text-${paso}--line-height:\s*[\d.]+;`));
+  });
+
+  it('el cuerpo usa el paso «cuerpo» y las clases compartidas no traen tamaños en px sueltos', () => {
+    expect(css).toMatch(/body \{[^}]*font-size: var\(--text-cuerpo\)/);
+    const componentes = css.slice(css.indexOf('@layer components'));
+    expect(componentes.match(/font-size:\s*\d+(\.\d+)?px/g) ?? []).toEqual([]);
+  });
+
+  it('los radios del artboard son tokens: hoja, hoja chica, hoja grande, brote, píldora y campo', () => {
+    for (const [nombre, valor] of [
+      ['hoja', '6px 20px 6px 20px'],
+      ['hoja-chica', '4px 14px 4px 14px'],
+      ['hoja-grande', '8px 30px 8px 30px'],
+      ['brote', '50% 50% 50% 8px'],
+      ['pildora', '999px'],
+      ['campo', '12px'],
+    ]) {
+      expect(css, `--radius-${nombre}`).toContain(`--radius-${nombre}: ${valor};`);
+    }
+    const componentes = css.slice(css.indexOf('@layer components'));
+    expect(componentes.match(/border-radius:\s*\d+px/g) ?? []).toEqual([]);
   });
 
   it('autoalojadas: solo woff2 de @fontsource, latin y latin-ext, con font-display: swap', () => {

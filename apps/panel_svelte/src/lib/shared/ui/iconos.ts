@@ -25,6 +25,7 @@ export const ICONOS = {
   luna: 'M20 14.5A8.5 8.5 0 019.5 4 8.5 8.5 0 1020 14.5z',
   sol: 'M8 12a4 4 0 108 0 4 4 0 10-8 0M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4',
   salir: 'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9',
+  monitor: 'M3 5h18v11H3zM8 20h8M12 16v4',
 } as const;
 
 export type NombreIcono = keyof typeof ICONOS;

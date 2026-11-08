@@ -56,11 +56,11 @@ describe('MarcaTile y Avatar con la forma «brote» del bosque', () => {
     expect(tile.style.width).toBe('40px');
   });
 
-  it('Avatar: iniciales en la serif, helecho de fondo y esquina brote', () => {
+  it('Avatar: iniciales en la sans de la interfaz, helecho de fondo y esquina brote', () => {
     const { container } = render(Avatar, { iniciales: 'Río y Selva Colombia' });
     const av = container.firstElementChild as HTMLElement;
     expect(av.textContent).toBe('RY');
-    expect(av.className).toContain('font-titulo');
+    expect(av.className).not.toContain('font-titulo');
     expect(av.className).toContain('bg-helecho');
     expect(av.className).toContain('rounded-brote');
   });
