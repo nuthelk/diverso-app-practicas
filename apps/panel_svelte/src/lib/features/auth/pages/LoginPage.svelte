@@ -1,30 +1,22 @@
 <script lang="ts">
   import Logo from '$lib/shared/ui/Logo.svelte';
-  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
-  import Curvas from '$lib/shared/ui/Curvas.svelte';
-  import Helecho from '$lib/shared/ui/Helecho.svelte';
-  import Heliconia from '$lib/shared/ui/Heliconia.svelte';
   import Icono from '$lib/shared/ui/Icono.svelte';
+  import Campo from '$lib/shared/ui/Campo.svelte';
+  import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import { ICONOS } from '$lib/shared/ui/iconos';
   import { auth, signIn } from '../model/auth.svelte';
   import { goto } from '$app/navigation';
-  import { mensajeError } from '$lib/shared/api/errores';
+  import CuentasDemo from './CuentasDemo.svelte';
 
   let email = $state('');
   let password = $state('');
   let cargando = $state(false);
   let error = $state('');
 
-  const demos = [
-    { etiqueta: 'Agencia verificada', email: 'graffiti@demo.com' },
-    { etiqueta: 'En verificación', email: 'patrimonio@demo.com' },
-    { etiqueta: 'Admin', email: 'admin@demo.com' },
-  ];
-
   const BENEFICIOS = [
     { icono: ICONOS.escudo, texto: 'Sello «Verificada RNT» que genera confianza' },
     { icono: ICONOS.calendario, texto: 'Cupos por fecha en tiempo real, sin sobreventa' },
-    { icono: ICONOS.edificio, texto: 'Conciliación clara: comisión 12% y saldo a dispersar' },
+    { icono: ICONOS.edificio, texto: 'Conciliación clara de tu comisión y del saldo a dispersar' },
   ];
 
   async function entrar(e: SubmitEvent) {
@@ -34,8 +26,8 @@
     try {
       await signIn(email.trim(), password);
       goto('#/starter');
-    } catch (e) {
-      error = 'Credenciales inválidas o error de conexión.';
+    } catch {
+      error = 'Correo o contraseña incorrectos, o no hay conexión. Intenta de nuevo.';
     } finally {
       cargando = false;
     }
@@ -47,29 +39,23 @@
 </script>
 
 <div class="grid min-h-screen lg:grid-cols-[5fr_6fr]">
-  <!-- Marca: el monte oscuro del riel, con curvas de nivel, helecho y el colibrí -->
-  <aside class="monte relative hidden overflow-hidden bg-bosque p-12 text-sobre-bosque lg:flex lg:flex-col">
-    <Curvas forma="alto" clase="inset-0 size-full text-sobre-bosque-2 opacity-[0.17]" />
-    <Helecho clase="-bottom-10 left-8 h-[380px] w-[253px] text-sobre-bosque-2 opacity-30" />
-    <Heliconia clase="top-0 right-14 h-[140px] w-[88px] text-heliconia opacity-90" />
-
-    <div class="relative flex items-center gap-3">
-      <Logo size={40} />
-      <span class="font-titulo text-[28px] leading-none font-bold tracking-[0.01em]">Diverso</span>
+  <!-- Marca: el monte oscuro del marco, con el logo y lo que ofrece el panel -->
+  <aside class="monte hidden bg-bosque p-12 text-sobre-bosque lg:flex lg:flex-col">
+    <div class="flex items-center gap-3">
+      <Logo size={36} />
+      <span class="text-seccion font-bold">Diverso</span>
     </div>
 
-    <div class="relative mt-auto">
-      <h1 class="text-[46px] leading-[1.06] tracking-[-0.003em]">
-        Vende Antioquia<br />al viajero correcto
-      </h1>
-      <p class="mt-5 max-w-md text-[17px] leading-relaxed text-sobre-bosque-2">
-        El marketplace donde las agencias verificadas publican experiencias y los viajeros del
-        Valle de Aburrá reservan con confianza.
+    <div class="mt-auto">
+      <p class="text-cifra-grande font-bold text-balance">Vende Antioquia al viajero correcto</p>
+      <p class="mt-4 max-w-md text-destacado text-sobre-bosque-2">
+        El marketplace donde las agencias verificadas publican experiencias y los viajeros del Valle de Aburrá reservan con
+        confianza.
       </p>
-      <ul class="mt-9 space-y-4 text-[16px] font-semibold">
+      <ul class="mt-8 space-y-4 text-cuerpo font-semibold">
         {#each BENEFICIOS as b}
           <li class="flex items-center gap-3.5">
-            <span class="grid size-10 shrink-0 place-items-center rounded-brote border-[1.5px] border-sobre-bosque-2 bg-bosque-2">
+            <span class="grid size-10 shrink-0 place-items-center rounded-campo bg-bosque-2">
               <Icono trazo={b.icono} clase="size-5" />
             </span>
             {b.texto}
@@ -78,54 +64,59 @@
       </ul>
     </div>
 
-    <div class="relative mt-10 text-sm text-sobre-bosque-2">© Diverso · Turismo de Antioquia</div>
+    <p class="mt-10 text-detalle text-sobre-bosque-2">© Diverso · Turismo de Antioquia</p>
   </aside>
 
-  <!-- Formulario -->
-  <div class="relative grid place-items-center overflow-hidden bg-niebla px-5 py-14 sm:px-6">
-    <Curvas clase="-top-20 -right-24 h-[320px] w-[640px] max-w-none text-musgo opacity-30" />
-    <div class="tarjeta aparecer relative w-full max-w-[420px] rounded-hoja-grande p-8 sm:p-9">
-      <div class="flex items-center gap-3">
-        <MarcaTile tam={52} />
-        <h2 class="text-[26px] leading-[1.1]">Diverso · Agencias</h2>
+  <main class="grid place-items-center bg-niebla px-5 py-12 sm:px-6">
+    <div class="aparecer w-full max-w-md">
+      <div class="mb-6 flex items-center gap-2.5 text-helecho lg:hidden">
+        <Logo size={32} />
+        <span class="text-destacado font-bold text-tinta">Diverso</span>
       </div>
-      <p class="mt-3 text-[16px] text-tinta-2">Publica planes, gestiona cupos y concilia tus pagos.</p>
 
-      <form class="mt-6 space-y-4" onsubmit={entrar}>
-        <label class="block">
-          <span class="etiqueta-campo">Correo de la agencia</span>
-          <input type="email" required bind:value={email} placeholder="tucorreo@agencia.com" class="campo" />
-        </label>
-        <label class="block">
-          <span class="etiqueta-campo">Contraseña</span>
-          <input type="password" required bind:value={password} placeholder="••••••••" class="campo" />
-        </label>
+      <div class="tarjeta p-6 sm:p-8">
+        <h1 class="text-pagina">Entra a tu panel</h1>
+        <p class="mt-2 text-cuerpo text-tinta-2">Publica planes, gestiona cupos y concilia tus pagos.</p>
 
-        {#if error}
-          <p class="text-center text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
-        {/if}
+        <form class="mt-6 space-y-4" onsubmit={entrar}>
+          <Campo etiqueta="Correo de la agencia">
+            {#snippet control(a)}
+              <input
+                {...a}
+                type="email"
+                required
+                bind:value={email}
+                placeholder="tucorreo@agencia.com"
+                autocomplete="username"
+                class="campo"
+              />
+            {/snippet}
+          </Campo>
+          <Campo etiqueta="Contraseña">
+            {#snippet control(a)}
+              <input {...a} type="password" required bind:value={password} autocomplete="current-password" class="campo" />
+            {/snippet}
+          </Campo>
 
-        <button type="submit" disabled={cargando} class="btn btn-primario w-full">
-          {cargando ? 'Entrando…' : 'Entrar'}
-        </button>
-      </form>
+          {#if error}
+            <AlertaError>{error}</AlertaError>
+          {/if}
 
-      <div class="etiqueta-seccion mt-7 border-t border-dashed border-linea pt-5">CUENTAS DEMO · CONTRASEÑA <span class="normal-case">demo1234</span></div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        {#each demos as d}
-          <button
-            type="button"
-            class="chip"
-            onclick={() => {
-              email = d.email;
-              password = 'demo1234';
+          <button type="submit" disabled={cargando} class="btn btn-primario w-full">
+            {cargando ? 'Entrando…' : 'Entrar'}
+          </button>
+        </form>
+
+        {#if import.meta.env.DEV}
+          <CuentasDemo
+            elegir={(correo, clave) => {
+              email = correo;
+              password = clave;
               error = '';
             }}
-          >
-            {d.etiqueta}
-          </button>
-        {/each}
+          />
+        {/if}
       </div>
     </div>
-  </div>
+  </main>
 </div>
