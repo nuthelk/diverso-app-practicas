@@ -1,12 +1,12 @@
 # Panel de agencias profesional (apps/panel_svelte)
 
 Pulido visual y de experiencia de todo el panel, menú de cuenta único con tema Sistema/Claro/Oscuro y filtro por fecha en el Resumen.
-Rama `refactor/arquitectura-panel-svelte` (worktree `.worktrees/panel-svelte`); los artboards viven en `apps/panel_svelte/design/` de la carpeta principal porque el canvas lee esa carpeta.
+Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat/arquitectura-viajero` @ d424c8b, con la identidad «Bosque de niebla»); los artboards viven en `apps/panel_svelte/design/` de la carpeta principal porque el canvas lee esa carpeta.
 
 ## Specs
 
 - S1 Pedido: «bueno con el nuevo diseño que tenemos quiero que sea un poco mas profesional y que tenga muy buena experiencia de usuario ademas hay opciones como el cambio de modo claro a oscuro que se repite dos veces innecesariamente»
-- S2 Dirección: «Direcciones en el canvas primero (Recomendado)» — «Diseño 3 versiones del Shell + Resumen como artboards que ves en el navegador, todas con el azul Diverso. Elegís una y la aplico a todo el panel. Evita rehacer trabajo si no te convence.»
+- S2 Dirección: «Direcciones en el canvas primero (Recomendado)» — «Diseño 3 versiones del Shell + Resumen como artboards que ves en el navegador, todas con el azul Diverso. Elegís una y la aplico a todo el panel. Evita rehacer trabajo si no te convence.» El texto de la opción decía «azul Diverso» porque salió del código viejo; por S1 («con el nuevo diseño que tenemos») las direcciones evolucionan la identidad actual «Bosque de niebla» (ver L6).
 - S3 Tema: «Sistema / Claro / Oscuro en el menú de cuenta (Recomendado)» — «Un solo lugar, igual que la app del viajero; arranca siguiendo el tema del sistema operativo.»
 - S4 Login demo: «Solo en desarrollo (Recomendado)» — «Se muestran con npm run dev y no en el build publicado.»
 - S5 Alcance: «si todo por etapas» sobre «Todo el panel por etapas (Recomendado)» — «Primero la base (componentes y Shell), después las pantallas por grupos, un commit por etapa. Incluye admin, login y legales.»
@@ -33,3 +33,4 @@ Rama `refactor/arquitectura-panel-svelte` (worktree `.worktrees/panel-svelte`); 
 - L3 (evidencia, explorador): el tema se cambia en un solo lugar del código (`Shell.svelte:48`), pero el snippet `pieMenu` (Términos, Modo oscuro, Cerrar sesión) se dibuja en la barra lateral y en el menú móvil; en móvil con el menú abierto las 5 secciones salen en el menú y en la barra inferior; en el Resumen el nombre y el estado de la agencia aparecen 2–3 veces. Sistema visual sin componentes compartidos: ~19 tamaños de letra a mano, 6 radios, `.tarjeta`/`.btn`/`.campo` copiados con variantes, emojis en botones y vacíos, `text-slate-400` con contraste bajo. UX: Publicar sin confirmación, «Volver» de Legal con `history.back()` en pestaña nueva, Select de Cuenta sin etiqueta asociada, `alertdialog` sin manejo de foco, credenciales demo en el login, `+error` con mensaje crudo y enlace a `#/dashboard` sin sesión.
 - L4 (contexto): `odd/tasks/rediseno-panel-agencias.md` (carpeta principal, rama de viajero) tiene T3–T7 pendientes del rediseño pantalla por pantalla; esta feature las cubre sobre la estructura nueva. No se toca ese archivo desde aquí.
 - L5 (datos): `VentaRow.fecha` es la fecha del viaje (ver rediseño L3) y `plan_dates.fecha` la de cada salida: «actividad» de un día = salidas con reservas o ventas de viajes ese día.
+- L6 (parent): el worktree estaba en `refactor/arquitectura-panel-svelte`, ya fusionada (e9a0a4a) en `feat/arquitectura-viajero`, que después recibió los diseños «Claro aireado» (9e17713, 4f7704b) y «Bosque de niebla» (6395842, b88c1e2, fbc3720, d424c8b). «El nuevo diseño que tenemos» es «Bosque de niebla»; L3 se hizo sobre el código viejo y se rehace. Trabajo en la rama nueva `feat/panel-profesional` desde d424c8b. Los artboards de `design/panel-naturaleza` que cita `app.css` ya no están en disco.
