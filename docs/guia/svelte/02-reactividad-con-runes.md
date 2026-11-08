@@ -73,7 +73,8 @@ variable directamente. `apps/panel_svelte/src/lib/features/planes/pages/PlanForm
   let d = $state<PlanDraft>(draftVacio());
   let cargando = $state(!!planId);
   let guardando = $state(false);
-  let error = $state('');
+  /** No se pudo abrir el plan a editar: no se muestra el formulario (guardarlo vacío crearía otro plan). */
+  let errorCarga = $state('');
 ```
 
 ### Profundo: los objetos y arreglos son *proxies*
@@ -110,7 +111,7 @@ proxies. Para el código del panel es transparente (`p.titulo`, `.map`, `.filter
 `$state` vale dentro de `.svelte` y de archivos `.svelte.ts` (sección 6). **No** se puede exportar
 un `$state` que se reasigna: el compilador lo rechaza con `state_invalid_export` («Cannot export
 state from a module if it is reassigned. Either export a function returning the state value or only
-mutate the state value's properties»). Por eso `auth` y `toast` son **objetos** que se
+mutate the state value's properties»). Por eso `auth`, `toast`, `tema` y `pendiente` (de `confirmar`) son **objetos** que se
 mutan por propiedad.
 
 ---
@@ -136,7 +137,7 @@ Dos formas más del panel. En `apps/panel_svelte/src/lib/shared/ui/Select.svelte
 sale del `valor` actual y de la lista de opciones:
 
 ```svelte
-  const etiqueta = $derived(opciones.find((o) => o.valor === valor)?.etiqueta ?? valor);
+  const etiquetaActual = $derived(opciones.find((o) => o.valor === valor)?.etiqueta ?? valor);
 ```
 
 Y para lógica con varios `if`, `$derived.by(() => { … })`
@@ -246,6 +247,8 @@ Los cuatro usos del panel:
   });
 ```
 
+El mismo layout tiene un segundo efecto, el del tema: `$effect(() => untrack(iniciarTema))` (sección 6).
+
 **2. Recargar al navegar, declarando una dependencia a propósito**
 (`apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`). `path` es un
 `$derived(rutaActual(page.url))`; `void path;` no hace nada con el valor: solo **lo lee** para que el
@@ -291,9 +294,9 @@ correcto. Casos reales del panel donde **se evitó**:
 | Necesidad | No uses `$effect`; usa | Dónde está en el panel |
 |---|---|---|
 | Un valor que se calcula de otros (`erroresPolitica` desde `d`) | `$derived` | `PlanFormPage.svelte` |
-| Reaccionar a un clic o a un envío | El *handler* del evento | `alternarTema` en `Shell.svelte`, `guardar` en `PlanFormPage.svelte` |
+| Reaccionar a un clic o a un envío | El *handler* del evento | `elegirTema` (lo llama el selector de `MenuCuenta.svelte`), `guardar` en `PlanFormPage.svelte` |
 | Copiar un dato a otra variable «para mantenerla sincronizada» | `$derived`, o un solo dueño del dato (`bind:`) | `aviso = $derived(…)` en `Shell.svelte` |
-| Compartir estado entre pantallas | Un módulo `.svelte.ts` | `auth`, `toast` y `page` de SvelteKit (sección 6) |
+| Compartir estado entre pantallas | Un módulo `.svelte.ts` | `auth`, `toast`, `tema`, `confirmar` y `page` de SvelteKit (sección 6) |
 
 Un efecto es para **sincronizar con algo de fuera de Svelte**: la red, el navegador, otra
 librería. Si tu efecto solo escribe en otros `$state` a partir de otros `$state`, casi seguro es un
@@ -352,6 +355,71 @@ Cómo se usan:
 - Es un **singleton global**. En una SPA es lo que quieres; en las pruebas hay que sustituirlo con
   `vi.mock` (capítulo 4) o reiniciarlo.
 
+### Un ejemplo completo: `confirmar()`
+
+Hasta aquí el módulo guarda un dato. `apps/panel_svelte/src/lib/shared/lib/confirmar.svelte.ts` guarda
+además **una promesa a medio resolver**: cualquier pantalla pregunta con `await confirmar({…})` y recibe
+`true` o `false`, sin montar un diálogo ni pasar *callbacks*. Es el estado compartido de esta sección con
+dos funciones, una que abre la pregunta y otra que la cierra:
+
+```ts
+export const pendiente = $state<{ pregunta: Pregunta | null }>({ pregunta: null });
+
+let resolver: ((respuesta: boolean) => void) | null = null;
+
+export function confirmar(pregunta: Pregunta): Promise<boolean> {
+  resolver?.(false); // otra pregunta sin responder: se da por cancelada
+  return new Promise((resolve) => {
+    resolver = resolve;
+    pendiente.pregunta = pregunta;
+  });
+}
+
+export function responder(respuesta: boolean): void {
+  const resolve = resolver;
+  resolver = null;
+  pendiente.pregunta = null;
+  resolve?.(respuesta);
+}
+```
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| `confirmar(pregunta)` | `shared/lib/confirmar.svelte.ts` | Guarda la función `resolve` de la promesa y escribe `pendiente.pregunta`; devuelve la promesa |
+| `DialogoConfirmar` | `shared/ui/DialogoConfirmar.svelte`, montado una vez en `routes/+layout.svelte` | **Lee** `pendiente.pregunta`: si hay una, dibuja un `Dialogo` con rol `alertdialog` |
+| `responder(respuesta)` | `shared/lib/confirmar.svelte.ts` | Lo llaman los botones, Escape y el clic en el fondo (`false`); vacía la pregunta y resuelve la promesa |
+
+El dato reactivo (`pendiente`) lo lee el componente; el que no es reactivo (`resolver`) es una variable
+normal del módulo, porque nadie necesita enterarse de que cambió. Quien pregunta ni sabe que existe un
+diálogo. `apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte`, al publicar o despublicar:
+
+```ts
+    const seguir = await confirmar(
+    // …
+    if (!seguir) return;
+```
+
+Dos reglas salen del propio código: **solo hay una pregunta a la vez** (una segunda cancela la primera
+con `resolver?.(false)`, y el `{#key}` de `DialogoConfirmar` rehace el diálogo, capítulo 1, sección 5), y
+con `peligro: true` el botón es el urgente y el foco empieza en «Cancelar». La prueba
+(`tests/unit/shared/ui/Confirmar.test.ts`) monta `DialogoConfirmar`, llama a `confirmar` y comprueba la
+respuesta; las pruebas de página usan el `responder` real para contestar.
+
+### Otro ejemplo: el tema
+
+`apps/panel_svelte/src/lib/shared/lib/tema.svelte.ts` guarda lo que **eligió** la persona y lo que se
+**muestra**:
+
+```ts
+export const tema = $state<{ preferencia: Preferencia; oscuro: boolean }>({ preferencia: 'sistema', oscuro: false });
+```
+
+`elegirTema` lo escribe y lo guarda en `localStorage`; `iniciarTema` lo lee al arrancar y sigue los
+cambios del sistema operativo mientras la preferencia sea «sistema». El layout raíz lo arranca con
+`$effect(() => untrack(iniciarTema))`: `untrack` evita que el efecto se repita cada vez que alguien elige
+un tema, porque `iniciarTema` lee `tema` al aplicarlo (capítulo 3, sección 8). El único control es el
+selector del menú de cuenta.
+
 ### La ruta actual también es estado compartido: `page`
 
 Con el router por hash ya no hay un módulo del panel que guarde la ruta: la guarda **SvelteKit**, y la
@@ -395,7 +463,7 @@ El panel tiene exactamente un caso, en `PlanFormPage.svelte`:
   let cargando = $state(!!planId);
 ```
 
-`svelte-check` lo imprime como el único aviso (warning) del proyecto (línea 20):
+`svelte-check` lo imprime como el único aviso (warning) del proyecto (línea 28):
 
 ```
 This reference only captures the initial value of `planId`. Did you mean to reference it inside a derived instead?
@@ -535,9 +603,10 @@ instancia. Si una pantalla guarda estado inicial al montar, hay que reiniciarla 
 | Que el hijo edite una prop | `$bindable()` + `bind:` | `SeccionIncluye.svelte` |
 | Que el hijo avise | Prop-callback `on…` | `onactualizado`, `onelegir` |
 | Sincronizar con el exterior | `$effect(fn)` | `routes/+layout.svelte`, `Shell.svelte` |
-| Compartir entre pantallas | Objeto `$state` exportado de `*.svelte.ts` | `auth`, `toast` |
+| Compartir entre pantallas | Objeto `$state` exportado de `*.svelte.ts` | `auth`, `toast`, `tema` |
+| Preguntar y esperar la respuesta | Una promesa guardada en un módulo `.svelte.ts` | `confirmar()` (sección 6) |
 | Saber en qué ruta estoy | `page` de `$app/state` | `rutaActual(page.url)` en `Shell.svelte` |
-| Reiniciar un componente | `{#key expr}` | (hoy no se usa: cada ruta es su archivo, 7.3) |
+| Reiniciar un componente | `{#key expr}` | `DialogoConfirmar.svelte` (las rutas no lo necesitan: cada una es su archivo, 7.3) |
 
 ---
 

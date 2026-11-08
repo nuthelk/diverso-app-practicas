@@ -66,7 +66,7 @@ Cosas que ya puedes notar:
 > compilador ve la plantilla y el `<style>` juntos: marca con un hash los elementos del archivo y
 > reescribe cada selector. Además `vitePreprocess()` (en `svelte.config.js`) solo procesa lo que está
 > escrito dentro del `<style>`: no existe un `<style src="…">` que traiga el CSS de otro archivo. El
-> costo es menor de lo que parece: de los 78 archivos `.svelte` de `src/` **ninguno** tiene hoy
+> costo es menor de lo que parece: de los 92 archivos `.svelte` de `src/` **ninguno** tiene hoy
 > `<style>` (compruébalo con `grep -rl '<style' src --include=*.svelte`, que no imprime nada): el
 > estilo compartido vive en `app.css` y el resto son clases de Tailwind en la plantilla (capítulo 4,
 > sección 3 y capítulo 1, sección 2). Lo que no es
@@ -76,16 +76,21 @@ Cosas que ya puedes notar:
 ### `<script module>`: código que corre una vez por archivo
 
 Un segundo bloque `<script module>` se ejecuta **una vez cuando se carga el módulo**, no por cada
-instancia, y sus `export` salen del archivo. `apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte`
-lo usa para derivar tablas de búsqueda a partir de `CATEGORIAS`:
+instancia. `apps/panel_svelte/src/lib/shared/ui/Dialogo.svelte` lo usa para llevar la cuenta de los
+diálogos abiertos: una sola lista para todas las instancias, de modo que solo el de arriba atiende
+Escape y Tab (una confirmación abierta sobre un formulario):
 
 ```svelte
 <script module lang="ts">
-  import { CATEGORIAS } from '../model/plan';
-  export const CATEGORIA_LABELS = Object.fromEntries(CATEGORIAS.map((c) => [c.valor, c.label]));
-  export const CATEGORIA_EMOJIS = CATEGORIAS;
+  /** Diálogos abiertos, el último arriba: solo el de arriba atiende Escape y Tab (una confirmación sobre un formulario). */
+  const abiertos: HTMLElement[] = [];
+  // …
 </script>
 ```
+
+Un `<script module>` también puede **exportar** (un tipo o una constante): `TablaDatos.svelte` exporta de
+ahí su interfaz `Columna`, y quien la usa la importa junto al componente
+(`import TablaDatos, { type Columna } from '$lib/shared/ui/TablaDatos.svelte'`).
 
 Equivale a declarar una constante **fuera** de la función del componente en React. (La forma vieja,
 `<script context="module">`, está obsoleta: el compilador avisa con `script_context_deprecated`.)
@@ -124,7 +129,7 @@ Compilado con `svelte/compiler`, el CSS queda así (el sufijo `svelte-…` cambi
 ```
 
 `:global(.dark)` le dice al compilador «esta parte del selector **no** la toques»: la clase `dark`
-vive en `<html>` (la fija `app.html` y la alterna `alternarTema` de `Shell.svelte`), fuera del
+vive en `<html>` (la pone el script de `app.html` y la mantiene `tema.svelte.ts` según lo que elija la persona en el menú de cuenta), fuera del
 componente. Sin `:global`, el selector nunca coincidiría.
 
 ### El caso inverso: estilar elementos de componentes hijos
@@ -185,23 +190,28 @@ el aspecto de los campos de sus hijos» sin que el CSS se escape al resto de la 
 | Condicional | `{#if}` `{:else if}` `{:else}` `{/if}` | ver abajo |
 
 No hay `&&` ni ternarios de JSX: los condicionales de **bloque** son `{#if}`.
-`apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte` los encadena para los tres estados
-típicos de una pantalla que carga datos:
+`apps/panel_svelte/src/lib/features/planes/pages/PlanesPage.svelte` los encadena para los estados
+típicos de una pantalla que carga datos (esqueleto mientras carga y, ya cargada, error, vacío o lista):
 
 ```svelte
 {#if cargando}
-  <!-- … -->
-{:else if error}
-  <Empty icono="sinConexion" titulo="Sin conexión" mensaje={error} />
-{:else if planes.length === 0}
-  <!-- … -->
+  <EsqueletoPagina filas={3} clase="h-44" />
 {:else}
-  <!-- … -->
+  <Pagina>
+    <!-- … -->
+    {#if error}
+      <!-- … -->
+    {:else if planes.length === 0}
+      <!-- … -->
+    {:else}
+      <!-- … -->
+    {/if}
+  </Pagina>
 {/if}
 ```
 
 Dentro de una expresión sí puedes usar ternarios normales de JavaScript
-(`{publicado ? 'Despublicar' : 'Publicar'}`, en la misma página).
+(`{titulo ? 'overflow-hidden' : ''}` dentro del atributo `class` de `Tarjeta.svelte`).
 
 ---
 
@@ -218,7 +228,7 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 
 - **Con clave** (`(p.id)`): Svelte conserva el DOM y el estado de cada fila aunque cambie el orden
   o se borre una del medio. Úsala siempre que las filas tengan identidad (planes, fechas, opciones).
-- **Sin clave** (`{#each Array(3) as _}`, en la misma página): se reutiliza por posición. Vale para
+- **Sin clave** (`{#each Array(3) as _}`, en `AdminDispersionesPage.svelte`): se reutiliza por posición. Vale para
   listas de relleno, como los esqueletos de carga.
 - **`{:else}`**: lo que se muestra si la lista está vacía. `FechasModal.svelte`:
 
@@ -226,7 +236,7 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 {#each fechas as f (f.id)}
   <!-- … -->
 {:else}
-  <li class="py-6 text-center text-[13px] text-tinta-2">Sin fechas todavía — agrega la primera.</li>
+  <li class="py-6 text-center text-tinta-2">Sin fechas todavía — agrega la primera.</li>
 {/each}
 ```
 
@@ -235,15 +245,16 @@ lo mismo que `key`: dice qué elemento es cuál cuando la lista cambia. `PlanesP
 ## 5. `{#key}` y `{@const}`
 
 **`{#key expresión}`** destruye y vuelve a crear su contenido cada vez que el valor de la expresión
-cambia. Es el `key` de React aplicado a un componente suelto. **El panel no lo usa hoy**: lo necesitó
-el router anterior, y con SvelteKit el mismo efecto sale de las carpetas de rutas (cada archivo
-`+page.svelte` es su propio componente). El [capítulo 2](02-reactividad-con-runes.md#73-por-qué-cada-ruta-es-su-propia-instancia)
-cuenta la historia. Su forma, en un ejemplo **ilustrativo (no está en el repo)**:
+cambia. Es el `key` de React aplicado a un componente suelto. El panel lo usa donde un estado nuevo
+tiene que empezar de cero: `DialogoConfirmar.svelte` rehace el diálogo si una pregunta nueva reemplaza a
+otra sin responder, y `ResumenPage.svelte` vuelve a montar las salidas al cambiar de período. Para las
+rutas no hace falta: con SvelteKit el mismo efecto sale de las carpetas (cada archivo `+page.svelte` es
+su propio componente) y el [capítulo 2](02-reactividad-con-runes.md#73-por-qué-cada-ruta-es-su-propia-instancia)
+cuenta la historia. `apps/panel_svelte/src/lib/shared/ui/DialogoConfirmar.svelte`:
 
 ```svelte
-{#key planId}
-  <PlanFormPage {planId} />
-{/key}
+{#key pendiente.pregunta}
+  {#if pendiente.pregunta}
 ```
 
 **`{@const nombre = expresión}`** declara una constante local **dentro de un bloque**
@@ -335,25 +346,40 @@ botón de acción y elige la que exista:
   {/if}
 ```
 
-(`PlanesPage.svelte` le pasa el enlace «+ Nuevo plan» como contenido hijo.)
+(`PlanesPage.svelte` le pasa el enlace «Nuevo plan» como contenido hijo cuando todavía no hay planes.)
 
-### Snippets locales: componentes sin archivo
+### Snippets declarados dentro de la etiqueta del componente
 
-`{#snippet nombre()}…{/snippet}` define un trozo de plantilla **dentro del mismo archivo** para
-reutilizarlo con `{@render nombre()}`. Es lo que en React harías con una función auxiliar que
-devuelve JSX. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte` define la navegación una vez y la pinta en
-la barra lateral de escritorio **y** en el menú desplegable móvil:
+`{#snippet nombre()}…{/snippet}` define un trozo de plantilla. Escrito **dentro de la etiqueta de un
+componente**, se convierte solo en la prop con ese nombre: es la *render prop* de React sin pasar una
+función a mano. `apps/panel_svelte/src/lib/features/liquidaciones/components/ItemsLiquidacion.svelte`
+le da a `TablaDatos` el snippet `celda`, que dibuja cada celda:
 
 ```svelte
-{#snippet enlacesSecciones()}
-  {#each SECCIONES as s}
+<TablaDatos caption="Reservas de la liquidación" columnas={COLUMNAS} filas={items} clave={(it) => it.id}>
+  {#snippet celda(it: LiquidacionItem, c: Columna)}
+    {#if c.clave === 'reserva'}
+```
+
+Del otro lado, `apps/panel_svelte/src/lib/shared/ui/TablaDatos.svelte` declara la prop con el tipo
+`Snippet<[T, Columna]>` (los parámetros que recibe) y la pinta por cada celda con `{@render celda(fila, c)}`:
+
+```svelte
+    celda?: Snippet<[T, Columna]>;
 ```
 
 ```svelte
-    <nav class="flex flex-col gap-0.5" aria-labelledby="gestion">
-      {@render enlacesSecciones()}
-    </nav>
+              {#if celda}{@render celda(fila, c)}{:else}{(fila as Record<string, unknown>)[c.clave]}{/if}
 ```
+
+`Campo.svelte` hace lo mismo con `control: Snippet<[AtributosCampo]>`: le entrega al control el `id` y los
+`aria-*` que lo unen con su etiqueta, su ayuda y su error (`{#snippet control(a)}` con `<input {...a} />`,
+en `LoginPage.svelte`).
+
+El uso inverso, definir un snippet para pintarlo varias veces **en el mismo archivo** con
+`{@render nombre()}` (la función auxiliar que devuelve JSX en React), existe, pero hoy ningún snippet
+del panel se pinta en el archivo que lo declara: todos viajan a un componente (`celda`, `control`, `pie`,
+`avatar`, `contexto`…).
 
 Los `+layout.svelte` de SvelteKit son la otra mitad de `children`: reciben la página como
 `children: Snippet` y la pintan dentro de su marco. `routes/(panel)/+layout.svelte` se la pasa al
@@ -376,14 +402,15 @@ const children = createRawSnippet(() => ({ render: () => '<p>contenido de la pá
 Un evento es un **atributo en minúscula** cuyo valor es una función: `onclick`, `oninput`,
 `onsubmit`, `onkeydown`. Sin `on:click` (la forma de Svelte 4; el compilador avisa con
 `event_directive_deprecated`) y sin camelCase de React (`onClick`).
-`apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:
+`apps/panel_svelte/src/lib/features/auth/components/MenuCuenta.svelte` (el menú de cuenta) abre y cierra
+con un clic y escucha además los eventos de `window` con `<svelte:window>`:
 
 ```svelte
-    onclick={alternarTema}
+    onclick={() => (abierto ? cerrar() : abrir())}
 ```
 
 ```svelte
-    onclick={() => signOut()}
+<svelte:window onkeydown={alTeclear} onclick={alHacerClic} />
 ```
 
 Los modificadores de Svelte 4 (`on:submit|preventDefault`) ya no existen en esta sintaxis: se hace a
@@ -395,7 +422,7 @@ mano, como en React. `apps/panel_svelte/src/lib/features/planes/pages/PlanFormPa
 ```
 
 ```svelte
-    <form id="form-plan" class="mt-5 space-y-4" onsubmit={guardar}>
+    <form id="form-plan" bind:this={formEl} class="mt-5 space-y-4" onsubmit={guardar}>
 ```
 
 ### Callbacks entre componentes
@@ -464,18 +491,28 @@ que una plantilla de texto. `apps/panel_svelte/src/lib/shared/ui/Select.svelte` 
 viaja como prop `clase` del componente `Icono`, que la pone en su `class`):
 
 ```svelte
-      clase="size-4 text-tinta-2 transition-transform {abierto ? 'rotate-180' : ''}"
+    <Icono trazo={ICONOS.chevron} clase="size-4 text-tinta-2 transition-transform {abierto ? 'rotate-180' : ''}" />
 ```
 
-`style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/lib/features/agencias/components/Shell.svelte`:
+`style` es una **cadena CSS**, no un objeto. `apps/panel_svelte/src/lib/shared/ui/Segmentado.svelte`
+(el selector Sistema / Claro / Oscuro reparte las columnas según cuántas opciones recibe):
 
 ```svelte
-      style="grid-template-columns: repeat({SECCIONES.length}, minmax(0, 1fr))"
+  style="grid-template-columns: repeat({opciones.length}, minmax(0, 1fr))"
 ```
 
 Svelte 5 además acepta objetos y arreglos en `class` (al estilo `clsx`; el tipo `ClassValue` está en
-`svelte/elements`) y las directivas `class:nombre={cond}` y `style:prop={valor}`. **El panel no las
-usa**: todo son cadenas con ternarios. Si lees otro código Svelte que sí las use, ya sabes qué son.
+`svelte/elements`) y las directivas `class:nombre={cond}` y `style:prop={valor}`. **El panel las usa
+poco**, donde una sola clase o una variable CSS depende de un dato: `class:num` en `TablaDatos.svelte` y
+`style:--franja-columnas` en `FranjaMetricas.svelte`. El resto son cadenas con ternarios.
+
+```svelte
+          <th scope="col" class:num={c.num}>{c.titulo}</th>
+```
+
+```svelte
+<dl class="franja" style:--franja-columnas={columnas}>{@render children()}</dl>
+```
 
 ---
 

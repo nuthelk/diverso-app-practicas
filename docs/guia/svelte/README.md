@@ -34,7 +34,7 @@ sistema, el [README principal](../../../README.md).
 4. Los datos vienen de **Supabase** a través de un archivo `api/<f>.api.ts` por funcionalidad; las
    reglas se prueban como **funciones puras** y las pantallas con Vitest + Testing Library. Las
    pruebas viven en `tests/unit/`, espejo de `src/`: `src/` queda solo con código.
-5. Hoy: **512 pruebas en 34 archivos**; `npm run build` y `npm run check` son parte de cada
+5. Hoy: **998 pruebas en 72 archivos**; `npm run build` y `npm run check` son parte de cada
    verificación.
 
 ## Cómo está organizada la guía
@@ -43,7 +43,7 @@ sistema, el [README principal](../../../README.md).
 |---|---|---|
 | [1. Svelte para quien sabe React](01-svelte-para-quien-sabe-react.md) | Componentes, JSX, props, `children` | Leer cualquier archivo `.svelte` del panel |
 | [2. Reactividad con *runes*](02-reactividad-con-runes.md) | `useState`, `useMemo`, `useEffect`, Context | Usar `$state`, `$derived`, `$effect`, `$props`; evitar las trampas reales del repo |
-| [3. Arquitectura del panel](03-arquitectura-del-panel.md) | Carpetas por tipo de archivo, React Router | Saber dónde vive cada cosa, cómo viaja un dato, cómo funcionan las rutas de SvelteKit y cómo agregar una pantalla |
+| [3. Arquitectura del panel](03-arquitectura-del-panel.md) | Carpetas por tipo de archivo, React Router | Saber dónde vive cada cosa, cómo viaja un dato, cómo funcionan las rutas de SvelteKit, qué pieza visual usar y cómo agregar una pantalla |
 | [4. Pruebas y herramientas](04-pruebas-y-herramientas.md) | Jest, Webpack/Vite, ESLint | Probar, analizar y compilar con confianza |
 
 ## Cómo correr el panel
@@ -65,14 +65,15 @@ npm run dev          # desarrollo: http://localhost:5173
   Mira la URL que imprime la consola.
 - **Cuenta para entrar:** `graffiti@demo.com` (agencia verificada), `patrimonio@demo.com`
   (en verificación) o `admin@demo.com`; contraseña `demo1234`
-  ([Cuentas demo](../../../README.md#cuentas-demo-contraseña-demo1234)).
+  ([Cuentas demo](../../../README.md#cuentas-demo-contraseña-demo1234)). Con `npm run dev` el login
+  las ofrece como botones; el build publicado no las incluye (`import.meta.env.DEV` en `LoginPage.svelte`).
 - **Backend.** Sin variables de entorno, el panel apunta a `http://127.0.0.1:54331` (el Supabase
   local). `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY` lo cambian.
 
 Las tres comprobaciones del día a día (capítulo 4, sección 10):
 
 ```bash
-npm test             # Vitest: 34 archivos, 512 pruebas
+npm test             # Vitest: 72 archivos, 998 pruebas
 npm run build        # SvelteKit + Vite: genera dist/ y termina con ✓ built
 npm run check        # tipos y avisos de Svelte: 12 errores y 1 aviso conocidos (capítulo 4, sección 8)
 ```
@@ -102,7 +103,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 **Objetivo.** Tener el panel andando y saber qué carpeta contiene qué.
 
 **Lee.**
-- Capítulo 3, secciones 1 y 2 (mapa de carpetas y qué va dónde).
+- Capítulo 3, secciones 1 y 2 (mapa de carpetas, qué va dónde y el sistema visual).
 - `app.html` (qué carga) y `routes/+layout.svelte` (qué rodea a todas las páginas).
 - `routes/(panel)/+layout.svelte` y un `+page.svelte` delgado, como `routes/login/+page.svelte`.
 
@@ -111,17 +112,21 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 2. Recorre Resumen, Planes, Ventas, Liquidaciones y Cuenta. Mira cómo cambia el `#/…` de la barra
    de direcciones. Para cada una apunta: la carpeta de `routes/(panel)/…` con su `+page.svelte` y el
    archivo `lib/features/<funcionalidad>/pages/…Page.svelte` que dibuja la pantalla.
-3. Abre `#/login` y `#/planes/nuevo` y compara qué rodea a cada página (con menú lateral o sin él).
-   Busca qué carpeta lo decide.
+3. Abre `#/login` y `#/planes/nuevo` y compara qué rodea a cada página (con la barra de secciones o
+   sin ella). Busca qué carpeta lo decide.
 4. Abre `lib/features/planes/` y ubica cada archivo en `pages/`, `components/`, `api/` o `model/`.
    Después busca su prueba en `tests/unit/features/planes/`: es la misma ruta, sin el `lib/`.
+5. Abre el menú de cuenta (arriba a la derecha) y elige Sistema, Claro y Oscuro. Busca en qué archivo
+   está ese control (`features/auth/components/MenuCuenta.svelte`) y en cuál se guarda la elección
+   (`shared/lib/tema.svelte.ts`). Hay **un solo** control de tema en todo el panel.
 
 **Ya lo entendí si…**
-- [ ] Dices, sin mirar, qué archivo dibuja el título «Mis planes».
+- [ ] Dices, sin mirar, qué archivo dibuja el título «Planes».
 - [ ] Explicas quién monta la app (no hay `main.ts`) y de qué marcador de `app.html` cuelga.
 - [ ] Distingues `routes/`, `lib/features/` y `lib/shared/` y dices en cuál pondrías un componente `Boton`.
 - [ ] Sabes a qué carpeta apunta `$lib`.
 - [ ] Dices en qué carpeta de una funcionalidad iría un tipo nuevo, una consulta, un botón y una pantalla.
+- [ ] Dices en qué archivo cambiarías el tamaño del texto de los títulos o el color de la acción principal, y por qué es uno solo.
 
 ---
 
@@ -193,7 +198,9 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 **Lee.**
 - Capítulo 2, secciones 5 a 7.
 - `routes/+layout.svelte` y el `<script>` de `lib/features/agencias/components/Shell.svelte`.
-- `lib/features/auth/model/auth.svelte.ts`, `lib/shared/lib/toast.svelte.ts` y `lib/shared/lib/ruta.ts`.
+- `lib/features/auth/model/auth.svelte.ts`, `lib/shared/lib/toast.svelte.ts`, `lib/shared/lib/confirmar.svelte.ts`,
+  `lib/shared/lib/tema.svelte.ts` y `lib/shared/lib/ruta.ts`.
+- `lib/shared/ui/DialogoConfirmar.svelte` y cómo lo usa `lib/features/planes/pages/PlanesPage.svelte` (`alternarPublicacion`).
 - `routes/(panel)/planes/editar/[[id]]/+page.svelte` y `routes/(panel)/planes/nuevo/+page.svelte`.
 
 **Ejercicio.**
@@ -216,6 +223,9 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 4. Piensa (sin código): si pasas de `#/planes/editar/a` a `#/planes/editar/b` antes de que `a`
    termine de cargar, ¿qué impide que su respuesta pise a `b`? (Capítulo 2, primera pregunta abierta
    de la sección 7.3.)
+5. **Sigue `confirmar()`.** En Planes pulsa «Publicar» y mira el diálogo. Encuentra dónde se escribe
+   `pendiente.pregunta`, quién lo lee para dibujar el diálogo y qué función resuelve la promesa que
+   espera `PlanesPage.svelte` (capítulo 2, sección 6).
 
 **Ya lo entendí si…**
 - [ ] Explicas por qué `erroresPolitica` es un `$derived` y no un `$effect` que escribe un `$state`.
@@ -224,6 +234,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 - [ ] Explicas, con tus palabras, por qué «misma posición + mismo componente» conserva la instancia, y
       por qué `planes/nuevo` y `planes/editar/[[id]]` son dos archivos de ruta.
 - [ ] Dices por qué `state_referenced_locally` en `planId` es aceptable hoy y cuándo dejaría de serlo.
+- [ ] Explicas cómo `await confirmar({…})` devuelve `true` o `false` si el estado vive en un módulo y el diálogo en otro componente.
 
 ---
 
@@ -240,8 +251,8 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 
 **Ejercicio.**
 1. Con el código abierto, completa una tabla con cada flecha de «Publicar un plan»: *archivo y
-   función* por paso. Empieza en el `onclick` del botón de `PlanesPage.svelte` y termina en el aviso
-   que ve la persona y en la recarga de la lista.
+   función* por paso. Empieza en el `onclick` del botón de `PlanesPage.svelte`, pasa por la
+   confirmación (`confirmar`) y termina en el aviso que ve la persona y en la recarga de la lista.
 2. Predice, sin ejecutar: si `publicarPlan` lanzara un error con el mensaje `FECHA_CON_RESERVAS`,
    ¿qué texto sale y dónde? (Mira `errores.ts`.)
 3. Comprueba cómo se agrega una ruta: crea `routes/(panel)/prueba/+page.svelte` con
@@ -279,7 +290,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 **Lee.**
 - Capítulo 4 completo.
 - `vite.config.ts`, `vitest.config.ts`, `svelte.config.js` y `tsconfig.json` (dónde nace el alias `$tests`).
-- `tests/unit/shared/ui/StatusPill.test.ts`, `tests/unit/features/planes/pages/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
+- `tests/unit/shared/ui/StatusPill.test.ts`, `tests/unit/shared/ui/Confirmar.test.ts`, `tests/unit/features/planes/pages/PlanFormPage.test.ts` (hasta `llenarBasicos`) y
   `tests/unit/features/planes/api/planes.api.test.ts`.
 - `tests/supabase-falso.ts`, `tests/fixtures.ts` y `tests/pagina-falsa.svelte.ts`.
 
@@ -337,6 +348,8 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 | **`bind:`** | Enlace de doble vía entre una variable y un campo o una prop | Input controlado |
 | **Alcance de estilos** | El `<style>` de un componente solo afecta a sus elementos; `:global()` lo evita | CSS Modules |
 | **`.svelte.ts`** | Módulo donde los *runes* funcionan fuera de un componente | Un store o un Context |
+| **`confirmar()`** | Función de `shared/lib/confirmar.svelte.ts`: `await confirmar({…})` abre un diálogo y responde `true` o `false`; lo dibuja `DialogoConfirmar` | Un `window.confirm` propio, con foco y texto a medida |
+| **Token de diseño** | Color, tamaño de letra o radio con nombre, declarado una vez en `src/app.css` (`bg-superficie`, `text-detalle`, `rounded-campo`) | Un tema de Tailwind / un objeto de *design tokens* |
 | **Funcionalidad (*feature*)** | Carpeta con las pantallas (`pages/`), componentes (`components/`), datos (`api/`) y lógica pura (`model/`) de un tema | La carpeta `features/<f>/` de `apps/viajero` |
 | **`*.api.ts`** | Archivo de `api/` que habla con Supabase para una funcionalidad | Un *service* / *repository* |
 | **`tests/unit/`** | Las pruebas, en la misma ruta que el archivo que prueban (sin el `lib/`); `src/` queda solo con código | Jest con `__tests__/` aparte |

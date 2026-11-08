@@ -19,7 +19,7 @@ MVP definido en los Anexos 4–6 del proyecto de Ingeniería de Software
 | Lado | App | Funciones |
 |---|---|---|
 | Viajero (B2C) | `apps/viajero` (Flutter móvil/web) | Catálogo con buscador y filtros, comparador por número de viajeros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + **pago con Wompi en modo prueba** (Web Checkout: tarjeta, PSE, Nequi, Daviplata y Bancolombia) con confirmación verificada en el servidor, mis reservas con **cancelación y reembolso de prueba según la ventana de cada plan** (24, 48 o 72 h), reseñas verificadas (solo quien viajó) |
-| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, dashboard de ventas y cupos, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
+| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
 | Admin | ídem panel (rol admin) | Verificar con vigencia del RNT, rechazar con motivo, renovar vigencia, retirar verificación e historial auditable, **Admin dispersiones** (generar liquidaciones y anticipos, ejecutar la dispersión de prueba, bloquear o desbloquear el anticipo de una agencia) |
 
 **Dispersión a agencias (modo prueba):** cada lunes (hora de Bogotá) se liquida a cada
@@ -50,8 +50,8 @@ tools/iconos          → generador de los íconos de la app y de las webs (Pill
   flujos de la app: entrar, catálogo, reservar y pagar, cancelar). **Guía del panel y de
   Svelte 5:** [`docs/guia/svelte/`](docs/guia/svelte/README.md) (Svelte desde React, runes,
   SvelteKit estático con rutas por carpetas, la arquitectura por funcionalidad de
-  `apps/panel_svelte` —cada una con `pages/`, `components/`, `api/` y `model/`— y sus pruebas en
-  `tests/unit/`).
+  `apps/panel_svelte` —cada una con `pages/`, `components/`, `api/` y `model/`—, su sistema visual
+  (tokens en `app.css` y componentes de `shared/ui`) y sus pruebas en `tests/unit/`).
 - **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
   `BookingApi`, `CatalogApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
   y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
@@ -375,7 +375,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0016 (nombre corto sin correos ni teléfonos) | ver «Pruebas SQL» | 15 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 604 (42 archivos) |
+| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 998 (72 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 140 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 517 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 

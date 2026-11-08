@@ -17,7 +17,7 @@ para empezar a tocar código.
 ## Contenido
 
 1. [El mapa de carpetas](#1-el-mapa-de-carpetas)
-2. [Qué va dónde y por qué](#2-qué-va-dónde-y-por-qué)
+2. [Qué va dónde y por qué](#2-qué-va-dónde-y-por-qué), con [El sistema visual](#el-sistema-visual)
 3. [Reglas de importación y alias](#3-reglas-de-importación-y-alias)
 4. [Cómo viaja un dato: página → `*.api.ts` → Supabase](#4-cómo-viaja-un-dato-página--apits--supabase)
 5. [SvelteKit estático y el router por hash](#5-sveltekit-estático-y-el-router-por-hash)
@@ -43,37 +43,39 @@ apps/panel_svelte/
 |   |-- fixtures.ts  supabase-falso.ts  pagina-falsa.svelte.ts   ayudas de las pruebas
 |   `-- unit/             las pruebas: espejo de src/ (sección 2)
 `-- src/
-    |-- app.html          la plantilla HTML base: fija el tema (claro/oscuro) antes de pintar
+    |-- app.html          la plantilla HTML base: aplica el tema (Sistema/Claro/Oscuro) antes de pintar
     |-- app.d.ts          tipos globales de SvelteKit (aquí solo la forma del error)
-    |-- app.css           Tailwind: colores, tema claro/oscuro y las clases compartidas (.tarjeta, .btn, .campo…)
+    |-- app.css           Tailwind y la ÚNICA fuente de tokens: paleta clara/oscura, escala de 7 pasos, radios y clases compartidas
+    |-- fuentes.css       las caras de Atkinson Hyperlegible Next (la única tipografía)
     |-- hooks.client.ts   qué mostrar cuando un error no se atrapó (handleError)
     |-- params/
     |   `-- doc.ts        matcher del parámetro [doc=doc]: solo documentos legales que existen
     |-- routes/           el enrutamiento por carpetas: una carpeta = una URL
-    |   |-- +layout.svelte    raíz: guard de sesión y Toast
+    |   |-- +layout.svelte    raíz: guard de sesión, tema, Toast y confirmaciones
     |   |-- +error.svelte     la página de error (404 incluido)
     |   |-- +page.svelte      «/» → manda a /starter
-    |   |-- login/  starter/  consentimiento/   páginas sin menú lateral
-    |   |-- admin/  admin/dispersiones/     rol admin, sin menú lateral
+    |   |-- login/  starter/  consentimiento/   páginas sin el marco del panel
+    |   |-- admin/  admin/dispersiones/     rol admin, con su propia barra (AdminCabecera)
     |   |-- legal/[[doc=doc]]/              documentos legales (parámetro opcional)
-    |   `-- (panel)/          grupo de rutas: no cuenta en la URL, aporta el marco con menú
+    |   `-- (panel)/          grupo de rutas: no cuenta en la URL, aporta el marco con la barra de secciones
     |       |-- +layout.svelte    el Shell
     |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/
     `-- lib/              el código reutilizable (alias $lib)
         |-- features/<funcionalidad>/     cada una con pages/ components/ api/ model/
         |   |-- admin/            verificación de agencias y dispersiones (rol admin)
         |   |-- agencias/         onboarding, logo, verificación RNT y el Shell
-        |   |-- auth/             login, starter, estado de sesión y guard
+        |   |-- auth/             login, starter, estado de sesión, guard y el menú de cuenta
         |   |-- legal/            documentos y consentimiento (Ley 1581)
         |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
         |   |-- planes/           lista de planes, formulario, fechas y cupos
-        |   |-- resumen/          el dashboard
+        |   |-- resumen/          el Resumen («Tablero operativo»)
         |   `-- ventas/           ventas y conciliación
         `-- shared/
             |-- api/              supabase.ts (el cliente) y errores.ts
-            |-- lib/              format.ts, pantalla.ts, ruta.ts, toast.svelte.ts
-            `-- ui/               Aviso, Avatar, Dato, Empty, EsqueletoPagina, Icono, Logo, MarcaTile, Metrica,
-                                  PageHeader, Pagina, Select, Skeleton, Spinner, StatusPill, Tarjeta, Toast
+            |-- lib/              confirmar.svelte.ts, format.ts, ruta.ts, tema.svelte.ts, toast.svelte.ts
+            `-- ui/               AlertaError, Avatar, Aviso, Campo, Chips, Dialogo, DialogoConfirmar, Empty,
+                                  EsqueletoPagina, FranjaMetricas, Icono, Logo, Metrica, PageHeader, Pagina,
+                                  Segmentado, Select, Skeleton, Spinner, StatusPill, TablaDatos, Tarjeta, Toast
                                   (y iconos.ts, tonos.ts)
 ```
 
@@ -121,7 +123,7 @@ Y una ruta, por ejemplo `src/routes/(panel)/planes/`, es solo carpetas con archi
 **Primero por funcionalidad, y dentro de ella por rol.** Todo lo que cambia cuando tocas «planes»
 está en `lib/features/planes/`, y dentro cada archivo cae en `pages/`, `components/`, `api/` o
 `model/` según lo que **hace**. Se lee igual en las ocho funcionalidades. Cada una crea solo las
-carpetas que necesita: `auth` y `resumen` tienen `pages/` y `model/`; `ventas`, sin `components/`.
+carpetas que necesita: `auth` no tiene `api/` (su estado vive en `auth/model/auth.svelte.ts`); `ventas`, sin `components/`.
 Lo que se evita es la otra mezcla: un `pages/`, un `components/` y un `api/` **para toda la app**
 te obliga a abrir tres carpetas lejanas para un solo cambio; aquí las cuatro están juntas bajo
 `planes/`.
@@ -135,7 +137,7 @@ no toca las rutas.
 |---|---|---|
 | `routes/` | Un `+page.svelte` por URL, los `+layout.svelte` y `+error.svelte` | Lógica de negocio ni pantallas con contenido |
 | `lib/features/<f>/` | Páginas, componentes, acceso a datos y lógica **de una funcionalidad**, en `pages/`, `components/`, `api/` y `model/` | Archivos sueltos en la raíz de la funcionalidad; nada que otra capa necesite sin depender de la funcionalidad |
-| `lib/shared/` | Lo genérico y reutilizable: cliente de Supabase, traducción de errores, formato, `rutaActual`, toast, componentes de UI | Cualquier cosa que nombre una funcionalidad o importe de `$app/*` |
+| `lib/shared/` | Lo genérico y reutilizable: cliente de Supabase, traducción de errores, formato, `rutaActual`, toast, tema, `confirmar`, componentes de UI | Cualquier cosa que nombre una funcionalidad o importe de `$app/*` |
 | `params/` | Validadores de parámetros de ruta (*matchers*) | Nada más |
 | `tests/` | Las pruebas, en `tests/unit/` (espejo de `src/`), y sus ayudas en la raíz: datos de ejemplo, Supabase falso, `$app/state` falso | Código de producción |
 | `static/` | Archivos que se copian tal cual a `dist/` | Nada que Vite deba procesar |
@@ -201,28 +203,76 @@ tener la prueba junto al archivo:**
 
 La mecánica de las pruebas (qué se mockea y cómo) está en el [capítulo 4](04-pruebas-y-herramientas.md#4-vitest-y-testing-library).
 
-### Las piezas visuales compartidas
+### El sistema visual
 
-Todas las pantallas comparten el mismo lenguaje visual (tarjetas aireadas, píldoras, bordes finos,
-etiquetas tenues). Para que no se copie en cada página, cada patrón vive en **un solo sitio**: o en
-`src/app.css` (clases) o en `src/lib/shared/ui/` (componentes).
+Todas las pantallas comparten el mismo lenguaje visual (el tablero: barra superior oscura, tarjetas, píldoras,
+bordes finos). Para que no se copie en cada página, **cada decisión vive en un solo sitio**: los *tokens*
+(colores, tamaños de letra, radios) y las clases compartidas en `src/app.css`, y los componentes en
+`src/lib/shared/ui/`. Una página no lleva colores, tamaños ni radios sueltos: usa el token por su nombre.
 
-| Pieza | Qué resuelve | Se usa en |
+**Los tokens, en `app.css`** (única fuente; `tests/unit/shared/ui/tokens.test.ts` fija sus valores):
+
+| Token | Dónde | Cómo se usa |
 |---|---|---|
-| `app.css` | Los colores y, en `@layer components`, las clases repetidas: `.tarjeta`, `.btn` (`btn-primario`, `btn-secundario`, `btn-peligro`, `btn-texto`), `.campo`, `.etiqueta-campo`, `.chip`, `.tabla`, `.pildora-*`, `.switch`, `.boton-icono`, `.enlace`, `.etiqueta-seccion` | todas las pantallas |
-| `Pagina` | Contenedor de una pantalla: mismo aire a los lados y arriba. Sin `ancho` llena todo el espacio (tope `ANCHO_DATOS` = 1920 px): es lo de Resumen, Planes, Ventas, Liquidaciones y Admin. Los formularios y textos de lectura pasan un `ancho` menor (`<Pagina ancho={820}>`) para que las líneas se lean cómodas | las páginas con menú y las de administración |
-| `PageHeader` | Cabecera: título (h1), una línea de contexto y la acción principal a la derecha | Resumen, Planes, Ventas, Liquidaciones, Cuenta, Admin, Onboarding, formulario de plan |
-| `Tarjeta` | Tarjeta con título (h2), descripción y acción opcionales | Ventas, Liquidaciones, detalle de liquidación, formulario de plan |
-| `Aviso` | Franja de aviso con ícono según el tono (`info`, `alerta`, `error`) | Resumen, documentos legales, aviso de modo de prueba |
-| `Metrica` | Una cifra con su etiqueta, con la tinta del lado de la plata en que está | Ventas, Liquidaciones, detalle de liquidación |
-| `Dato` | Un dato de las tarjetas de lista del celular: su etiqueta y, debajo, el valor en la tipografía de cifras. `pantallaCelular()` (`shared/lib/pantalla.ts`, por debajo de `sm`) hace que Ventas y Liquidaciones cambien la tabla por una lista de tarjetas con los mismos datos | Ventas, Liquidaciones |
-| `Icono` + `iconos.ts` | Ícono de línea decorativo; los trazos viven en un solo archivo | casi todas |
-| `MarcaTile` | El colibrí sobre el azul de la marca | marco, login, starter, legal, error |
-| `Spinner`, `Skeleton`, `EsqueletoPagina`, `Empty` | Estados de carga y de vacío | las pantallas que piden datos |
+| Paleta «Bosque de niebla», clara y oscura | `:root` y `.dark`; `@theme inline` la convierte en utilidades | `bg-superficie`, `text-tinta-2`, `border-linea`, `text-helecho`: el mismo nombre en los dos temas |
+| Escala tipográfica de **7 pasos** | `@theme`: `nota` 12, `detalle` 14, `cuerpo` 16, `destacado` 18, `seccion` 22, `pagina` 28 y `cifra-grande` 36 px, cada uno con su interlineado | `text-detalle`, `text-pagina`… en lugar de `text-[13.5px]` |
+| Radios | `@theme`: `hoja`, `hoja-chica`, `hoja-grande`, `brote`, `pildora` y `campo` | `rounded-hoja` (tarjetas y menús), `rounded-pildora` (botones y chips), `rounded-campo` (campos) |
+| Tipografía | `--font-sans`: Atkinson Hyperlegible Next, para interfaz, títulos y cifras (las caras están en `src/fuentes.css`) | No hay una segunda familia: los precios y las horas llevan `.cifra` |
+| Clases de componente | `@layer components`: `.tarjeta`, `.btn` (`btn-primario`, `btn-secundario`, `btn-peligro`, `btn-urgente`, `btn-texto`, `btn-chico`), `.campo`, `.etiqueta-campo`, `.chip`, `.tabla`, `.franja`, `.pildora-*`, `.switch`, `.boton-icono`, `.enlace`, `.etiqueta-seccion`, `.cifra`, `.prueba` | El patrón que se repite en muchas pantallas |
 
-La regla: si un patrón aparece en dos pantallas, se mueve a una de estas piezas; si es un color o un
-borde que cambia con el tema, se usa el token de `app.css` (`text-tinta-2`, `border-linea`,
-`text-helecho`…) en vez de repetir `dark:…` en cada página.
+La escala, tal como está declarada:
+
+```css
+  /* Escala tipográfica de 7 pasos (`text-detalle`…) con su interlineado. */
+  --text-nota: 12px;
+  --text-nota--line-height: 1.5;
+  --text-detalle: 14px;
+  --text-detalle--line-height: 1.45;
+```
+
+**Los componentes, en `shared/ui/`: cuál usar**
+
+| Necesito… | Uso | Detalle |
+|---|---|---|
+| El contenedor de una pantalla y su título | `Pagina` + `PageHeader` | Sin `ancho`, `Pagina` llena el espacio (tope `ANCHO_DATOS` = 1920 px); formularios y lectura pasan uno menor (`<Pagina ancho={760}>` en el registro de la agencia). `PageHeader` lleva el h1, una línea de contexto y la acción principal |
+| Agrupar contenido | `Tarjeta` | Título (h2), descripción y acción opcionales; `sinRelleno` cuando dentro va una tabla |
+| Las cifras del período | `FranjaMetricas` + `Metrica` | Una franja de cifras (en pantallas angostas pasa a 3 y 2 columnas); la tinta de `Metrica` dice de qué lado de la plata está |
+| Una lista con columnas | `TablaDatos` | Tabla con ancho suficiente y una tarjeta por fila en pantallas angostas (≤ 820 px), sin ocultar datos. Recibe `columnas`, `filas`, `clave` y, si hace falta, el snippet `celda`, `vacio` o `pie` |
+| Filtrar una lista | `Chips` | Un chip por opción, `aria-pressed` en el elegido y, si se quiere, el conteo de cada una |
+| Elegir entre pocas opciones | `Segmentado` | Grupo de radios con flechas (hoy: Sistema / Claro / Oscuro); para muchas opciones, `Select` |
+| Un campo de formulario | `Campo` | Etiqueta, ayuda y error enlazados al control por `id` y `aria-*`; el control va en el snippet `control` |
+| Un error en línea | `AlertaError` | Se anuncia como alerta y lleva ícono, no solo color |
+| Una franja de aviso | `Aviso` | Ícono y color según el tono (`info`, `alerta`, `error`) |
+| Una ventana modal | `Dialogo` | Foco dentro, Tab que no sale, Escape y clic en el fondo piden cerrar, y el foco vuelve a quien lo abrió |
+| Preguntar antes de algo que no se deshace | `confirmar()` | `await confirmar({…})` devuelve `true` o `false`; lo dibuja `DialogoConfirmar` (capítulo 2, sección 6) |
+| Un aviso breve tras una acción | `avisar()` + `Toast` | Texto que se va solo a los 3,2 s |
+| Carga, vacío y estado | `Spinner`, `Skeleton`, `EsqueletoPagina`, `Empty`, `StatusPill` | Los estados de las pantallas que piden datos |
+| Ícono, marca y avatar | `Icono` + `iconos.ts`, `Logo`, `Avatar` | Los trazos de los íconos viven en un solo archivo |
+
+La regla: si un patrón aparece en dos pantallas, se mueve a una de estas piezas; si es un color, un
+tamaño o un radio, se usa el token de `app.css` (`text-tinta-2`, `text-detalle`, `rounded-campo`) en vez de
+repetir `dark:…` o un valor a medida en cada página.
+
+**Un solo control de tema.** El tema (Sistema / Claro / Oscuro) se elige en **un** lugar: el menú de
+cuenta, `src/lib/features/auth/components/MenuCuenta.svelte`, en la barra superior del panel y en la del
+admin. No hay botón de tema en la cabecera ni un ítem repetido. Arranca siguiendo al sistema operativo;
+el script de `app.html` lo aplica antes del primer render y `shared/lib/tema.svelte.ts` lo mantiene en
+vivo (sección 5 y capítulo 2, sección 6). `MenuCuenta` vive en `features/auth/` y no en `shared/ui/`
+porque conoce la sesión (`signOut`).
+
+> **Ya no existe** (si lo ves en el historial de git o en una guía vieja): la decoración de la versión anterior
+> (`Curvas`, `Helecho`, `Heliconia`, `Bruma` y `MarcaTile`, sustituidos por `Logo` y los tokens), la serif
+> Newsreader (ahora todo va en Atkinson Hyperlegible Next), `pantalla.ts` y `pantallaCelular()` (la tabla pasa
+> a tarjetas con CSS dentro de `TablaDatos`), `AvisoPrueba` (un solo «Modo de prueba», en el `Shell`) y las
+> piezas de la semana del Resumen (`AgendaSemana`, `HojaQuienesVan`, `DineroDelMes` y `semana.ts`), que
+> reemplazaron el selector de período y el calendario (`PeriodoSelector`, `CalendarioActividad`) y las
+> cifras del período (`CifrasDelPeriodo`).
+
+**Los diseños no son parte del build.** Los artboards con los que se eligió este lenguaje viven en
+`apps/panel_svelte/design/`: `system.md` y `system.html` (el espejo de `app.css` y de `shared/ui`) y
+`panel-profesional/` (las tres direcciones; se implementó la 02, «Tablero operativo»). Son una referencia
+visual: no están en `src/`, ni en el build, ni en las pruebas. En esta rama esa carpeta todavía no está
+versionada: vive en la carpeta principal del repo, que es la que lee el canvas de diseño.
 
 ---
 
@@ -327,7 +377,6 @@ El patrón se repite en `PlanesPage`, `VentasPage`, `LiquidacionesPage`…
 
 ```svelte
   async function cargar() {
-    cargando = true;
     error = '';
     try {
       const r = await misVentas();
@@ -340,16 +389,21 @@ El patrón se repite en `PlanesPage`, `VentasPage`, `LiquidacionesPage`…
   }
 ```
 
-y la plantilla pinta uno de tres estados (`{#if cargando}` esqueleto, `{:else if error}` aviso de
-fallo, `{:else}` contenido; ver el [capítulo 1](01-svelte-para-quien-sabe-react.md#3-plantilla-texto-atributos-y-condicionales)).
-Para una acción del usuario, el error va al *toast* en lugar de al estado:
+`cargando` empieza en `true`, así que solo la primera carga (y «Reintentar») muestra el esqueleto; recargar
+tras un cambio no parpadea. La plantilla pinta `{#if cargando}` el esqueleto y, ya cargada, `{#if error}` un
+`Empty` con «Reintentar», `{:else if planes.length === 0}` el vacío o `{:else}` la lista (ver el
+[capítulo 1](01-svelte-para-quien-sabe-react.md#3-plantilla-texto-atributos-y-condicionales)).
+Para una acción del usuario, el error va al *toast* en lugar de al estado; y si la acción no se deshace
+(publicar, despublicar), antes se pregunta con `confirmar` (capítulo 2, sección 6):
 
 ```svelte
   async function alternarPublicacion(p: Plan) {
     const publicado = p.estado === 'publicado';
+    // …
+    if (!seguir) return;
     try {
       await publicarPlan(p.id, !publicado);
-      avisar(publicado ? 'Plan pasado a borrador.' : 'Plan publicado en el catálogo 🎉');
+      avisar(publicado ? 'Plan pasado a borrador.' : 'Plan publicado: ya lo ven los viajeros.');
       await cargar();
     } catch (e) {
       avisar(mensajeError(e));
@@ -380,7 +434,7 @@ la tabla `ERRORES`, devuelve el mensaje original: nunca oculta un fallo desconoc
 
 | Regla | Dónde vive | Ejemplo |
 |---|---|---|
-| «Qué filas se piden» | `api/<f>.api.ts` | `misPlanes`, `ventas(agencyId, desde?)` |
+| «Qué filas se piden» | `api/<f>.api.ts` | `misPlanes`, `ventas(agencyId, desde?, hasta?)` |
 | «Qué significa el dato» (filtros, totales, validaciones) | `model/<f>.ts`, puro | `filtrarVentas`, `totalesVentas` |
 | «Qué se ve ahora» (cargando, filtro elegido) | `$state` en la página | `let filtro = $state<FiltroVentas>('todas')` |
 | «Qué se muestra, derivado» | `$derived` en la página | `const filtradas = $derived(filtrarVentas(ventas, filtro))` |
@@ -445,10 +499,22 @@ marcadores de Kit:
     <link rel="icon" type="image/png" href="%sveltekit.assets%/favicon.png" />
     <!-- … -->
     <script>
-      // Tema antes del primer render para evitar destello: claro salvo que se haya elegido oscuro.
-      try {
-        if (localStorage.getItem('diverso-panel-theme') === 'dark') document.documentElement.classList.add('dark');
-      } catch (_) {}
+      // Tema antes del primer render para evitar destello. Misma regla que src/lib/shared/lib/tema.svelte.ts:
+      // lo elegido gana (claro/oscuro, y los viejos light/dark); si no, se sigue al sistema.
+      (function () {
+        var guardado = null;
+        try {
+          guardado = localStorage.getItem('diverso-panel-theme');
+        } catch (_) {}
+        var oscuro =
+          guardado === 'oscuro' ||
+          guardado === 'dark' ||
+          (guardado !== 'claro' &&
+            guardado !== 'light' &&
+            typeof matchMedia === 'function' &&
+            matchMedia('(prefers-color-scheme: dark)').matches);
+        if (oscuro) document.documentElement.classList.add('dark');
+      })();
     </script>
     %sveltekit.head%
   </head>
@@ -457,6 +523,11 @@ marcadores de Kit:
   </body>
 </html>
 ```
+
+El script del tema y `tema.svelte.ts` aplican **la misma regla** (lo elegido gana; sin elección, el
+sistema operativo): el primero evita el destello antes de que cargue la app y el segundo mantiene el
+tema en vivo. `tests/unit/app/tema-inicial.test.ts` ejecuta ese mismo script sobre jsdom, así que no hay
+una copia de la regla que probar.
 
 `%sveltekit.assets%` es la ruta base de los archivos de `static/`, `%sveltekit.head%` recibe los `<link>` y `<script>`
 que Kit genera, y `%sveltekit.body%` es donde se monta la app. `data-sveltekit-preload-data="off"`
@@ -580,27 +651,34 @@ migrar: la página de error se dibuja **sin** `Shell`, `#/` lleva a `#/starter`,
 desconocido (`#/legal/nada`) cae en la página de error (antes lo resolvía `LegalPage` con su
 «Documento no encontrado»; esa rama sigue ahí para `#/legal` a secas, que llega con `doc = ''`).
 
-`apps/panel_svelte/src/routes/+error.svelte` distingue el 404 de un error inesperado con `page.status`:
+`apps/panel_svelte/src/routes/+error.svelte` distingue el 404 de un error inesperado con `page.status`, traduce el
+mensaje con `mensajeError` (y cambia el «Internal Error» de Kit por un texto en lenguaje simple) y ofrece una salida distinta con y sin sesión:
 
 ```svelte
 <script lang="ts">
   import { page } from '$app/state';
-  import MarcaTile from '$lib/shared/ui/MarcaTile.svelte';
-</script>
+  import { auth } from '$lib/features/auth/model/auth.svelte';
+  import { mensajeError } from '$lib/shared/api/errores';
+  import Logo from '$lib/shared/ui/Logo.svelte';
 
-<div class="grid min-h-screen place-items-center px-6 py-12">
-  <div class="aparecer flex max-w-sm flex-col items-center text-center">
-    <MarcaTile tam={48} />
-    <h1 class="mt-5 text-[20px] leading-snug font-extrabold tracking-tight">
-      {#if page.status === 404}
-        No encontramos esta sección.
+  const noExiste = $derived(page.status === 404);
+  const conSesion = $derived(!!auth.userId);
+  // …
+</script>
+```
+
+y en la plantilla, el título y la salida según haya sesión (sin sesión no se manda a `#/dashboard`):
+
+```svelte
+    <h1 class="mt-2 text-pagina text-balance">{noExiste ? 'No encontramos esta página' : 'Algo salió mal'}</h1>
+```
+
+```svelte
+      {#if conSesion}
+        <a class="btn btn-primario" href="#/dashboard">Ir al resumen</a>
       {:else}
-        {page.error?.message}
+        <a class="btn btn-primario" href="#/login">Iniciar sesión</a>
       {/if}
-    </h1>
-    <a class="btn btn-primario mt-6" href="#/dashboard">Volver al resumen</a>
-  </div>
-</div>
 ```
 
 ---
@@ -673,7 +751,7 @@ como `children` (el mismo snippet del [capítulo 1, sección 7](01-svelte-para-q
 El panel tiene dos capas:
 
 ```
-routes/+layout.svelte          guard de sesión + pantalla de carga + <Toast />
+routes/+layout.svelte          guard de sesión + tema + pantalla de carga + <Toast /> + <DialogoConfirmar />
   └─ routes/(panel)/+layout.svelte    <Shell>…</Shell>  (solo las páginas del grupo)
        └─ +page.svelte
 ```
@@ -696,15 +774,17 @@ Es completo y minúsculo (`apps/panel_svelte/src/routes/(panel)/+layout.svelte`)
 El `Shell` recibe la página como `children` y la pone en su `<main>`:
 
 ```svelte
-    <main id="principal" tabindex="-1" bind:this={principal} class="min-w-0 flex-1 pb-20 outline-none md:pb-0">
-      {@render children()}
-    </main>
+<main id="principal" tabindex="-1" bind:this={principal} class="min-w-0 outline-none max-lg:pb-[calc(84px+env(safe-area-inset-bottom))]">
+  {@render children()}
+</main>
 ```
 
 El layout de un grupo **se conserva entre páginas hermanas**: al pasar de Planes a Ventas el `Shell`
 sigue montado y solo cambia lo de dentro. Por eso el `Shell` observa la ruta (`void path;`, capítulo
-2, sección 5) para recargar el aviso de la agencia al navegar. `Shell` contiene además el menú
-(`SECCIONES`, de `model/navegacion.ts`), la tarjeta de la agencia, el cambio de tema y «Cerrar sesión».
+2, sección 5) para recargar el aviso de la agencia al navegar. `Shell` es la barra superior del tablero:
+la marca, las secciones (`SECCIONES`, de `model/navegacion.ts`; son las pestañas en pantallas anchas y, **la
+misma lista**, la barra inferior en el celular), un solo «Modo de prueba» y el menú de cuenta
+(`MenuCuenta`, con Términos, el tema y «Cerrar sesión»); no repite las secciones ni el estado de la agencia.
 
 ### El guard de sesión
 
@@ -733,17 +813,23 @@ carga **en lugar de las páginas**. `apps/panel_svelte/src/routes/+layout.svelte
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import { untrack, type Snippet } from 'svelte';
   import '../app.css';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { auth } from '$lib/features/auth/model/auth.svelte';
   import { redireccionSesion } from '$lib/features/auth/model/sesion';
   import { rutaActual } from '$lib/shared/lib/ruta';
+  import { iniciarTema } from '$lib/shared/lib/tema.svelte';
   import Toast from '$lib/shared/ui/Toast.svelte';
+  import DialogoConfirmar from '$lib/shared/ui/DialogoConfirmar.svelte';
   import Spinner from '$lib/shared/ui/Spinner.svelte';
 
   let { children }: { children: Snippet } = $props();
+
+  // El tema (Sistema / Claro / Oscuro) vale para todo el panel, también login y admin.
+  // `untrack`: iniciarTema lee el modelo del tema al aplicarlo y no debe reiniciarse cada vez que la persona elige uno.
+  $effect(() => untrack(iniciarTema));
 
   // Guards de sesión: la decisión vive en sesion.ts.
   $effect(() => {
@@ -762,11 +848,15 @@ carga **en lugar de las páginas**. `apps/panel_svelte/src/routes/+layout.svelte
 {/if}
 
 <Toast />
+<DialogoConfirmar />
 ```
 
-Fíjate en tres detalles: `import '../app.css'` es lo que carga Tailwind (antes lo hacía `main.ts`);
-la ruta se calcula con `rutaActual(page.url)` y el destino se navega con `'#' + destino`; y
-`<Toast />` queda **fuera** del `{#if}`, así que se ve siempre.
+Fíjate en cuatro detalles: `import '../app.css'` es lo que carga Tailwind (antes lo hacía `main.ts`);
+la ruta se calcula con `rutaActual(page.url)` y el destino se navega con `'#' + destino`;
+`<Toast />` y `<DialogoConfirmar />` quedan **fuera** del `{#if}`, así que se ven siempre; y el
+primer `$effect` arranca el tema para **todas** las rutas (login y admin incluidos). Va envuelto en
+`untrack` porque `iniciarTema` lee `tema` al aplicarlo: sin él, cada vez que alguien elige un tema el
+efecto se volvería a ejecutar y reiniciaría la lectura de `localStorage`.
 
 Dos consecuencias a tener presentes:
 
@@ -854,7 +944,7 @@ servidor: es una decisión de despliegue, no un cambio de carpetas. Hoy nada del
 | Componente genérico | `PascalCase.svelte` en `lib/shared/ui/` | `Select.svelte`, `Tarjeta.svelte` |
 | Lógica pura de la funcionalidad | `<funcionalidad>.ts` (nombre en minúscula) en `model/` | `model/ventas.ts`, `model/plan.ts` |
 | Acceso a datos | `<funcionalidad>.api.ts` en `api/` | `api/planes.api.ts` |
-| Estado reactivo en un módulo | `<nombre>.svelte.ts` en `model/` de la funcionalidad, o en `shared/lib/` si es genérico | `auth/model/auth.svelte.ts`, `shared/lib/toast.svelte.ts` |
+| Estado reactivo en un módulo | `<nombre>.svelte.ts` en `model/` de la funcionalidad, o en `shared/lib/` si es genérico | `auth/model/auth.svelte.ts`, `shared/lib/toast.svelte.ts`, `shared/lib/confirmar.svelte.ts`, `shared/lib/tema.svelte.ts` |
 | Matcher de parámetro | `src/params/<nombre>.ts` exporta `match` | `params/doc.ts` |
 | Pruebas | `<archivo>.test.ts` en `tests/unit/`, **misma ruta que el archivo** (los helpers, en la raíz de `tests/`) | `tests/unit/features/auth/model/sesion.test.ts`, `tests/unit/features/planes/api/planes.api.test.ts` |
 | Props-callback | `on` + verbo, en minúscula | `onactualizado`, `onelegir`, `oncerrar` |
@@ -882,7 +972,9 @@ repo**; es la receta. Las rutas de archivo son las que usarías.
 4. **Escribe la pantalla** `src/lib/features/reportes/pages/ReportesPage.svelte` con el patrón de la
    sección 4: `cargando`/`error`/datos, `$effect(() => { cargar(); })`, `mensajeError(e)` y los tres
    estados en la plantilla (`EsqueletoPagina` mientras carga, `Empty` si falla o no hay datos). Dibuja
-   el resultado con `Pagina` + `PageHeader` y las piezas compartidas de la sección 2. Importa relativo dentro de la funcionalidad (`../api/reportes.api`,
+   el resultado con `Pagina` + `PageHeader` y las piezas compartidas de la sección 2 (`TablaDatos` para
+   la lista, `Chips` para filtrar, `Campo` para un formulario, `confirmar()` antes de algo que no se
+   deshace). Importa relativo dentro de la funcionalidad (`../api/reportes.api`,
    `../model/reportes`) y con `$lib/` lo demás.
 5. **Parte la pantalla** si crece: lo repetido o con estado propio va a
    `src/lib/features/reportes/components/` (como `plan-form/`). Un componente que edita un dato del

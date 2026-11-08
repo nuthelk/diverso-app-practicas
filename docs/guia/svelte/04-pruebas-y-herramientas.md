@@ -118,44 +118,62 @@ configura en CSS, y el plugin `tailwindcss()` de Vite (arriba) hace el resto. El
 
 ```css
 @import "tailwindcss";
+@import "./fuentes.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
+```
 
+```css
 @theme {
+  /* Interfaz, títulos y cifras: una sola familia. */
   --font-sans: "Atkinson Hyperlegible Next", Calibri, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --font-titulo: "Newsreader", Constantia, "Palatino Linotype", Cambria, Georgia, serif;
+  /* … la escala tipográfica de 7 pasos (`--text-detalle: 14px;`…) … */
   --radius-hoja: 6px 20px 6px 20px;
+  --radius-campo: 12px;
 }
 
 :root {
-  --niebla: #edf0ea;      /* fondo de página */
-  --superficie: #f9fbf7;  /* tarjetas */
-  --tinta: #17261e;       /* texto */
-  --helecho: #3a6b43;     /* acción principal */
+  --niebla: #edf0ea;
+  --superficie: #f9fbf7;
+  --tinta: #17261e;
+  --helecho: #3a6b43;
+  /* … */
 }
-.dark { --niebla: #0e1612; --superficie: #18261f; --tinta: #e6efe8; --helecho: #8fcb93; }
+.dark {
+  --niebla: #0e1612;
+  --superficie: #18261f;
+  --tinta: #e6efe8;
+  --helecho: #8fcb93;
+  /* … */
+}
 ```
 
 | Pieza | Qué hace |
 |---|---|
 | `@import "tailwindcss"` | Carga Tailwind |
-| `@theme { --font-titulo: … }` | Crea las tipografías (`font-titulo`) y los radios (`rounded-hoja`) |
+| `@import "./fuentes.css"` | Las caras de Atkinson Hyperlegible Next, autoalojadas con `@fontsource` (woff2, `latin` y `latin-ext`) |
+| `@theme { --text-detalle: 14px; … }` | Crea las utilidades de tamaño de letra (`text-detalle`), de radio (`rounded-hoja`, `rounded-campo`) y de fuente (`font-sans`); es la escala de 7 pasos (capítulo 3, «El sistema visual») |
 | `@theme inline { --color-helecho: var(--helecho) }` | Convierte cada token de color en utilidades: `bg-helecho`, `text-tinta`, `bg-superficie` |
 | `@custom-variant dark (…)` | Define `dark:` como «un ancestro tiene la clase `dark`», no como «el sistema está en modo oscuro» |
 
-**Modo oscuro por clase.** `src/app.html` arranca en **claro**: un pequeño script, antes del primer
-render, añade la clase `dark` a `<html>` solo si en `localStorage` hay `diverso-panel-theme = dark`; el
-botón de `Shell.svelte` la alterna y guarda la elección. Por eso en los componentes se escribe
-`bg-superficie text-tinta`: los colores que cambian con el tema (`--tinta`, `--linea`, `--helecho`…)
-se declaran una vez en `app.css` (en `:root` y en `.dark`) y se usan como utilidades: `text-tinta-2`,
-`border-linea`, `text-helecho`. Las cifras (precios, fechas, horas) llevan la clase `.cifra`, que las pone en `font-titulo`.
+**Modo oscuro por clase.** La persona elige Sistema (el valor por defecto), Claro u Oscuro en el menú de
+cuenta, y la elección se guarda en `localStorage` con la clave `diverso-panel-theme`. Un pequeño script de
+`src/app.html`, antes del primer render, añade la clase `dark` a `<html>` si lo elegido es oscuro o, sin
+elección, si el sistema operativo lo pide; `src/lib/shared/lib/tema.svelte.ts` mantiene esa clase en vivo
+(capítulo 2, sección 6). Por eso en los componentes se escribe `bg-superficie text-tinta`: los colores que
+cambian con el tema (`--tinta`, `--linea`, `--helecho`…) se declaran una vez en `app.css` (en `:root` y en
+`.dark`) y se usan como utilidades: `text-tinta-2`, `border-linea`, `text-helecho`. Las cifras (precios,
+fechas, horas) llevan la clase `.cifra`: la misma familia que el resto, con cifras de ancho fijo.
 
 Dos reglas prácticas:
 
 - **Las clases tienen que aparecer completas en el código.** Tailwind busca los nombres de clase en
   el texto de los archivos; `bg-${color}-600` no se encuentra. Por eso `shared/ui/tonos.ts`
   guarda **cadenas enteras** en un objeto (`TONOS_AVISO`) y `Aviso.svelte` elige una.
-- **Valores a medida** con corchetes: `text-[13.5px]`, `w-[236px]`, `max-w-[820px]`.
+- **Valores a medida** con corchetes solo para medidas de maquetación (`h-[68px]` en la barra inferior del
+  `Shell`). El tamaño de letra y el radio salen de la escala y de los tokens (`text-detalle`, `rounded-campo`):
+  `tokens.test.ts` falla si las clases compartidas de `app.css` traen un `font-size` o un `border-radius`
+  en `px` sueltos.
 
 El `<style>` de Svelte (capítulo 1, sección 2) no se usa en el panel: lo que las utilidades no expresan
 bien (el interruptor `.switch`, el anillo de foco de `.campo`, `.tarjeta`, `.tabla`) vive en `app.css`,
@@ -188,7 +206,7 @@ export default defineConfig({
 - **`svelteTesting()`** (de `@testing-library/svelte/vite`) se encarga de tres cosas: que Svelte se
   cargue en su versión de navegador, que el DOM se **limpie solo** tras cada prueba y que las
   dependencias de Testing Library se procesen como el resto. Sin él habría que desmontar a mano.
-- **Las pruebas están en `tests/unit/`, espejo de `src/`**, y hoy son **34 archivos y 512 pruebas**
+- **Las pruebas están en `tests/unit/`, espejo de `src/`**, y hoy son **72 archivos y 998 pruebas**
   (se explica abajo).
 - Vitest compila los componentes en **modo desarrollo**: los avisos de Svelte (como
   `ownership_invalid_mutation`, capítulo 2) salen en la consola de las pruebas.
@@ -417,6 +435,8 @@ función se prueba como función.
 | Un componente | `render(Componente, props)` y consultas por rol o etiqueta | `StatusPill.test.ts`, `LogoAgencia.test.ts` |
 | Una página | Mock del `*.api.ts` + `render` + eventos | `PlanFormPage.test.ts`, `VentasPage.test.ts` |
 | Un marco con estado compartido | Mock de `auth` y `$app/state` falso (`irA`) | `Shell.test.ts` |
+| Estado compartido con promesa (`confirmar`) | Montas `DialogoConfirmar`, llamas a `confirmar` y compruebas lo que resuelve; en las páginas se contesta con el `responder` real | `Confirmar.test.ts`, `PlanesPage.test.ts` |
+| Tokens y tema | Lees `app.css` (o ejecutas el script de `app.html`) y comparas con lo que fija el diseño | `tokens.test.ts`, `tema.test.ts`, `tema-inicial.test.ts` |
 | Una página de ruta (`+page.svelte`) | No se prueba una por una: es un adaptador de tres líneas. `arbol.test.ts` lee todas y comprueba qué pantalla de `lib/` dibuja cada una; la pantalla se prueba aparte | `arbol.test.ts` |
 
 Todas viven en `tests/unit/`, en la ruta espejo del archivo que prueban. Una prueba de lógica pura es
@@ -434,7 +454,8 @@ SQL (`supabase/tests/0005_endurecimiento_pagos.sql` y otras), `legal.test.ts` co
 documentos con `documento_legal.dart` y las migraciones, y `Logo.test.ts` compara el PNG del panel con
 el de Flutter. Usan `node:fs` y `process` (rutas desde `apps/panel_svelte`, el directorio donde corre
 `npm test`, no desde la carpeta de la prueba), y eso explica los errores conocidos de la sección
-siguiente.
+siguiente. (`tokens.test.ts` también lee `src/app.css` y `src/fuentes.css` con `node:fs`, pero
+lleva un `@ts-expect-error` en el import y no suma ningún error a `svelte-check`.)
 
 ---
 
@@ -514,7 +535,7 @@ Las tres son baratas (segundos) y se solapan poco: por eso van **juntas** y **ca
 Desde `apps/panel_svelte`:
 
 ```bash
-npm test             # 34 archivos, 512 pruebas, todas verdes
+npm test             # 72 archivos, 998 pruebas, todas verdes
 npm run build        # termina con ✓ built
 npm run check        # 12 errores y 1 aviso: los de la sección 8, ninguno nuevo
 ```
