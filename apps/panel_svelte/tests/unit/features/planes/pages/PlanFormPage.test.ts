@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen, within } from '@testing-library/svelte';
 import { agencia, plan, texto } from '$tests/fixtures';
 
 vi.mock('$app/navigation', () => ({ goto: vi.fn() }));
@@ -226,5 +226,141 @@ describe('PlanForm · política de cancelación', () => {
     const d = actualizarMock.mock.calls[0][0];
     expect(d.horasReembolsoParcial ?? null).toBeNull();
     expect(d.porcentajeReembolsoParcial ?? null).toBeNull();
+  });
+});
+
+describe('PlanForm · resumen de errores', () => {
+  const resumen = () => screen.queryByRole('group', { name: 'Revisa estos puntos para poder guardar' });
+
+  it('antes de intentar guardar no hay resumen de errores', () => {
+    render(PlanFormPage);
+    expect(resumen()).toBeNull();
+  });
+
+  it('al fallar la validación lista cada punto, lleva el foco al resumen y no guarda', async () => {
+    const { container } = render(PlanFormPage);
+    await fireEvent.input(screen.getByLabelText(PARCIAL_H), { target: { value: '48' } });
+    await fireEvent.input(screen.getByLabelText(PARCIAL_PCT), { target: { value: '50' } });
+    await fireEvent.submit(container.querySelector('form')!);
+
+    const grupo = await vi.waitFor(() => resumen()!);
+    expect(grupo).toBeTruthy();
+    await vi.waitFor(() => expect(document.activeElement).toBe(grupo));
+    const items = within(grupo).getAllByRole('button').map((b) => texto(b));
+    expect(items).toEqual([
+      'El precio debe ser mayor a 0.',
+      'La ventana parcial debe ser menor que la de cancelación gratuita.',
+    ]);
+    expect(crearMock).not.toHaveBeenCalled();
+  });
+
+  it('cada punto del resumen lleva el foco a su campo', async () => {
+    const { container } = render(PlanFormPage);
+    await fireEvent.input(screen.getByLabelText(PARCIAL_H), { target: { value: '48' } });
+    await fireEvent.input(screen.getByLabelText(PARCIAL_PCT), { target: { value: '50' } });
+    await fireEvent.submit(container.querySelector('form')!);
+    const grupo = await vi.waitFor(() => resumen()!);
+
+    await fireEvent.click(within(grupo).getByRole('button', { name: 'El precio debe ser mayor a 0.' }));
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Precio final/));
+
+    await fireEvent.click(within(grupo).getByRole('button', { name: /^La ventana parcial/ }));
+    expect(document.activeElement).toBe(screen.getByLabelText(PARCIAL_H));
+  });
+
+  it('el campo con error también lo muestra junto a sí, lo marca inválido y lo conecta con su mensaje', async () => {
+    const { container } = render(PlanFormPage);
+    await fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => expect(resumen()).toBeTruthy());
+    const precio = screen.getByLabelText(/^Precio final/);
+    expect(precio.getAttribute('aria-invalid')).toBe('true');
+    const mensaje = document.getElementById(precio.getAttribute('aria-describedby')!.split(' ').at(-1)!)!;
+    expect(texto(mensaje)).toBe('El precio debe ser mayor a 0.');
+    expect(mensaje.getAttribute('role')).toBe('alert');
+  });
+
+  it('el resumen se vacía solo cuando se corrigen los puntos', async () => {
+    const { container } = render(PlanFormPage);
+    await fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => expect(resumen()).toBeTruthy());
+    await fireEvent.input(screen.getByLabelText(/^Precio final/), { target: { value: '150000' } });
+    await vi.waitFor(() => expect(resumen()).toBeNull());
+  });
+
+  it('un error del servidor al guardar se ve arriba, en el resumen, y conserva lo escrito', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    crearMock.mockRejectedValue(new Error('Failed to fetch'));
+    const { container } = render(PlanFormPage);
+    await llenarBasicos(container);
+    await fireEvent.submit(container.querySelector('form')!);
+    const grupo = await screen.findByRole('group', { name: 'No pudimos guardar el plan' });
+    expect(texto(grupo)).toContain('No hay conexión con el servidor');
+    expect(texto(grupo)).toContain('Lo que escribiste sigue aquí');
+    await vi.waitFor(() => expect(document.activeElement).toBe(grupo));
+    expect((screen.getByLabelText(/^Precio final/) as HTMLInputElement).value).toBe('150000');
+    expect(goto).not.toHaveBeenCalled();
+  });
+});
+
+describe('PlanForm · lenguaje y accesibilidad de los campos', () => {
+  it('el precio se explica en lenguaje llano, sin remitir al «Anexo 4»', () => {
+    const { container } = render(PlanFormPage);
+    const t = texto(container);
+    expect(t).not.toContain('Anexo');
+    const precio = screen.getByLabelText(/^Precio final/);
+    const ayuda = document.getElementById(precio.getAttribute('aria-describedby')!)!;
+    expect(texto(ayuda)).toBe('Es el precio final: lo que ve el viajero es lo que paga, sin cargos ocultos.');
+  });
+
+  it('las categorías se eligen por su nombre, sin emojis, y el selector tiene nombre accesible', async () => {
+    render(PlanFormPage);
+    const boton = screen.getByRole('button', { name: /^Categoría/ });
+    expect(texto(boton)).toContain('Aventura');
+    await fireEvent.click(boton);
+    const opciones = screen.getAllByRole('option').map((o) => texto(o));
+    expect(opciones).toEqual(['Aventura', 'Naturaleza', 'Cultura', 'Gastronomía', 'Relax', 'Urbano']);
+  });
+
+  it('la duración tiene cantidad y unidad con nombre accesible', () => {
+    render(PlanFormPage);
+    expect(screen.getByLabelText('Cantidad de la duración')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Unidad de la duración/ })).toBeTruthy();
+  });
+
+  it('los pasos del itinerario tienen nombre accesible', async () => {
+    render(PlanFormPage);
+    await fireEvent.click(screen.getByRole('button', { name: 'Agregar paso' }));
+    expect(screen.getByLabelText('Hora del paso 1')).toBeTruthy();
+    expect(screen.getByLabelText('Actividad del paso 1')).toBeTruthy();
+  });
+
+  it('un plan nuevo avisa que se guarda como borrador y volver dice a dónde', () => {
+    render(PlanFormPage);
+    expect(texto(document.body)).toContain('Se guarda como borrador');
+    expect(screen.getByRole('link', { name: 'Volver a planes' }).getAttribute('href')).toBe('#/planes');
+  });
+
+  it('mientras carga el plan a editar muestra marcadores de carga', () => {
+    miAgenciaMock.mockReturnValue(new Promise(() => {}));
+    render(PlanFormPage, { planId: 'p-1' });
+    expect(screen.getByRole('status', { name: 'Cargando' })).toBeTruthy();
+  });
+
+  it('si el plan a editar no se puede cargar no abre un formulario vacío que crearía otro plan', async () => {
+    miAgenciaMock.mockRejectedValue(new Error('Failed to fetch'));
+    const { container } = render(PlanFormPage, { planId: 'p-1' });
+    await screen.findByText('No pudimos abrir el plan');
+    expect(texto(container)).toContain('No hay conexión con el servidor');
+    expect(container.querySelector('form')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Volver a planes' }).getAttribute('href')).toBe('#/planes');
+  });
+
+  it('si el plan a editar ya no existe lo dice en vez de abrir un formulario vacío', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    misPlanesMock.mockResolvedValue([]);
+    const { container } = render(PlanFormPage, { planId: 'p-9' });
+    await screen.findByText('No pudimos abrir el plan');
+    expect(texto(container)).toContain('No encontramos este plan');
+    expect(container.querySelector('form')).toBeNull();
   });
 });

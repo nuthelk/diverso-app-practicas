@@ -1,12 +1,16 @@
 <script lang="ts">
+  import { tick } from 'svelte';
+  import EsqueletoPagina from '$lib/shared/ui/EsqueletoPagina.svelte';
+  import Empty from '$lib/shared/ui/Empty.svelte';
+  import Icono from '$lib/shared/ui/Icono.svelte';
+  import { ICONOS } from '$lib/shared/ui/iconos';
   import Pagina from '$lib/shared/ui/Pagina.svelte';
-  import Spinner from '$lib/shared/ui/Spinner.svelte';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
   import { mensajeError } from '$lib/shared/api/errores';
   import { goto } from '$app/navigation';
   import { avisar } from '$lib/shared/lib/toast.svelte';
   import { misPlanes, crearPlan, actualizarPlan } from '../api/planes.api';
-  import { draftDesdePlan, draftVacio, type PlanDraft } from '../model/plan';
+  import { draftDesdePlan, draftVacio, errorPrecio, type PlanDraft } from '../model/plan';
   import { parsearDuracion, type Unidad } from '../model/duracion';
   import { textoPoliticaCompleto, validarPolitica } from '../model/politica';
   import EncabezadoPlan from '../components/plan-form/EncabezadoPlan.svelte';
@@ -18,11 +22,18 @@
 
   let { planId }: { planId?: string } = $props();
 
+  const uid = $props.id();
+
   let d = $state<PlanDraft>(draftVacio());
   let cargando = $state(!!planId);
   let guardando = $state(false);
-  let error = $state('');
+  /** No se pudo abrir el plan a editar: no se muestra el formulario (guardarlo vacío crearía otro plan). */
+  let errorCarga = $state('');
+  /** El servidor rechazó el guardado; lo escrito sigue en el formulario. */
+  let errorServidor = $state('');
   let intentado = $state(false);
+  let resumenEl = $state<HTMLElement | null>(null);
+  let formEl = $state<HTMLFormElement | null>(null);
 
   // Duración estructurada: cantidad + unidad → compone duracionTexto (lo hace SeccionEsencial).
   let duracionCantidad = $state<number | null>(1);
@@ -38,9 +49,11 @@
         if (p) {
           d = draftDesdePlan(p);
           ({ cantidad: duracionCantidad, unidad: duracionUnidad } = parsearDuracion(p.duracion_texto));
+        } else {
+          errorCarga = 'No encontramos este plan. Puede que se haya eliminado.';
         }
       } catch (e) {
-        error = mensajeError(e);
+        errorCarga = mensajeError(e);
       } finally {
         cargando = false;
       }
@@ -54,19 +67,35 @@
     politicaValida ? textoPoliticaCompleto(d) : 'Completa la política de cancelación para ver el texto que leerá el viajero.',
   );
 
+  const errorDePrecio = $derived(intentado ? errorPrecio(d.precioCop) : undefined);
+
+  /** Los puntos por corregir, en el orden del formulario; `campo` es el `data-campo` del control. */
+  const pendientes = $derived.by(() => {
+    if (!intentado) return [];
+    const lista: { campo: string; mensaje: string }[] = [];
+    if (errorDePrecio) lista.push({ campo: 'precio', mensaje: errorDePrecio });
+    for (const [campo, mensaje] of Object.entries(erroresPolitica)) lista.push({ campo, mensaje });
+    return lista;
+  });
+
+  async function mostrarResumen() {
+    await tick();
+    resumenEl?.focus();
+  }
+
+  function irAlCampo(campo: string) {
+    formEl?.querySelector<HTMLElement>(`[data-campo="${campo}"]`)?.focus();
+  }
+
   async function guardar(e: SubmitEvent) {
     e.preventDefault();
     intentado = true;
-    if (d.precioCop <= 0) {
-      error = 'El precio debe ser mayor a 0.';
-      return;
-    }
-    if (!politicaValida) {
-      error = Object.values(erroresPolitica)[0] ?? 'Revisa la política de cancelación.';
+    errorServidor = '';
+    if (errorPrecio(d.precioCop) || !politicaValida) {
+      mostrarResumen();
       return;
     }
     guardando = true;
-    error = '';
     try {
       const agencia = await miAgencia();
       if (!agencia) throw new Error('No se encontró tu agencia.');
@@ -79,7 +108,8 @@
       }
       goto('#/planes');
     } catch (e) {
-      error = mensajeError(e);
+      errorServidor = mensajeError(e);
+      mostrarResumen();
     } finally {
       guardando = false;
     }
@@ -87,26 +117,55 @@
 </script>
 
 {#if cargando}
-  <div class="grid min-h-[60vh] place-items-center" role="status" aria-label="Cargando">
-    <Spinner />
-  </div>
+  <EsqueletoPagina ancho={820} filas={4} clase="h-40" />
+{:else if errorCarga}
+  <Pagina ancho={820}>
+    <div class="tarjeta">
+      <Empty icono="alerta" titulo="No pudimos abrir el plan" mensaje={errorCarga}>
+        <a href="#/planes" class="btn btn-secundario">Volver a planes</a>
+      </Empty>
+    </div>
+  </Pagina>
 {:else}
   <Pagina ancho={820}>
     <EncabezadoPlan {planId} {guardando} />
 
-    <form id="form-plan" class="mt-5 space-y-4" onsubmit={guardar}>
-      <SeccionEsencial bind:d bind:duracionCantidad bind:duracionUnidad />
+    {#if pendientes.length > 0 || errorServidor}
+      <div
+        bind:this={resumenEl}
+        role="group"
+        aria-labelledby="{uid}-resumen"
+        tabindex="-1"
+        class="mt-5 rounded-hoja-chica border border-heliconia bg-heliconia-bg p-4 text-tinta"
+      >
+        <h2 id="{uid}-resumen" class="flex items-center gap-2 text-destacado text-heliconia">
+          <Icono trazo={ICONOS.alerta} clase="size-5" />
+          {errorServidor && pendientes.length === 0 ? 'No pudimos guardar el plan' : 'Revisa estos puntos para poder guardar'}
+        </h2>
+        {#if errorServidor}
+          <p class="mt-2">{errorServidor}</p>
+          <p class="mt-1 text-detalle text-tinta-2">Lo que escribiste sigue aquí; puedes intentarlo de nuevo.</p>
+        {/if}
+        {#if pendientes.length > 0}
+          <ul class="mt-2 grid gap-1">
+            {#each pendientes as p (p.campo)}
+              <li>
+                <button type="button" class="py-1 text-left font-semibold underline underline-offset-4" onclick={() => irAlCampo(p.campo)}>
+                  {p.mensaje}
+                </button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </div>
+    {/if}
+
+    <form id="form-plan" bind:this={formEl} class="mt-5 space-y-4" onsubmit={guardar}>
+      <SeccionEsencial bind:d bind:duracionCantidad bind:duracionUnidad errorPrecio={errorDePrecio} />
       <SeccionDescripcion bind:d />
       <SeccionIncluye bind:d />
       <SeccionItinerario bind:d />
       <SeccionEncuentro bind:d errores={erroresPolitica} {intentado} {textoVistaPrevia} />
-
-      {#if error}
-        <p class="text-[15px] font-semibold text-heliconia" role="alert">{error}</p>
-      {/if}
-      <p class="pb-4 text-[14px] text-tinta-2">
-        * El precio es final: lo que ve el viajero es lo que paga, sin cargos ocultos (Anexo 4).
-      </p>
     </form>
   </Pagina>
 {/if}

@@ -57,6 +57,11 @@ export const CATEGORIAS = [
 
 export type CategoriaValor = (typeof CATEGORIAS)[number]['valor'];
 
+/** El nombre de una categoría para mostrarlo («naturaleza» → «Naturaleza»); un valor desconocido se muestra tal cual. */
+export function etiquetaCategoria(valor: string): string {
+  return CATEGORIAS.find((c) => c.valor === valor)?.label ?? valor;
+}
+
 export interface ItinerarioPaso {
   hora: string;
   actividad: string;
@@ -222,8 +227,13 @@ export function fechasFuturas(plan: Plan, ahora = new Date()): PlanDate[] {
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
 
-/** «3 planes · 2 publicados»: la línea de contexto bajo el título de «Mis planes». */
+/** «3 planes · 2 publicados»: la línea de contexto bajo el título de «Planes». */
 export function resumenPlanes(planes: Pick<Plan, 'estado'>[]): string {
   const publicados = planes.filter((p) => p.estado === 'publicado').length;
   return `${planes.length} ${plural(planes.length, 'plan', 'planes')} · ${publicados} ${plural(publicados, 'publicado', 'publicados')}`;
+}
+
+/** El motivo por el que el precio no sirve (un precio vacío o 0 no se guarda), o undefined si es válido. */
+export function errorPrecio(precio: number | null | undefined): string | undefined {
+  return precio != null && precio > 0 ? undefined : 'El precio debe ser mayor a 0.';
 }

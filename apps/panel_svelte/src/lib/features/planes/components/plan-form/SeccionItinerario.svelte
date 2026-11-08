@@ -14,18 +14,20 @@
         <input
           value={paso.hora}
           oninput={(e) => (d.itinerario[i] = { hora: e.currentTarget.value, actividad: paso.actividad })}
-          class="campo cifra w-[96px] shrink-0 text-center text-[17px]"
+          class="campo cifra w-24 shrink-0 text-center"
           placeholder="07:00"
+          aria-label="Hora del paso {i + 1}"
         />
         <input
           value={paso.actividad}
           oninput={(e) => (d.itinerario[i] = { hora: paso.hora, actividad: e.currentTarget.value })}
           class="campo"
           placeholder="Actividad"
+          aria-label="Actividad del paso {i + 1}"
         />
         <button
           type="button"
-          class="grid size-11 shrink-0 place-items-center rounded-full text-tinta-2 transition-colors hover:bg-heliconia-bg hover:text-heliconia"
+          class="grid size-11 shrink-0 place-items-center rounded-pildora text-tinta-2 transition-colors hover:bg-heliconia-bg hover:text-heliconia"
           aria-label="Quitar paso {i + 1}"
           onclick={() => (d.itinerario = d.itinerario.filter((_, j) => j !== i))}
         >

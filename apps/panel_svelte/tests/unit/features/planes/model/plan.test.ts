@@ -6,6 +6,8 @@ import {
   draftDesdePlan,
   draftToRow,
   draftVacio,
+  errorPrecio,
+  etiquetaCategoria,
   fechasFuturas,
   resumenPlanes,
   salidaDe,
@@ -228,7 +230,7 @@ describe('agregarFoto', () => {
   );
 });
 
-describe('resumenPlanes (línea de contexto de «Mis planes»)', () => {
+describe('resumenPlanes (línea de contexto de «Planes»)', () => {
   const conEstado = (estado: 'publicado' | 'borrador') => ({ ...plan('X', []), estado });
 
   it('cuenta los planes y cuántos están publicados', () => {
@@ -239,5 +241,25 @@ describe('resumenPlanes (línea de contexto de «Mis planes»)', () => {
   it('singular con uno, plural con cero', () => {
     expect(resumenPlanes([conEstado('publicado')])).toBe('1 plan · 1 publicado');
     expect(resumenPlanes([conEstado('borrador'), conEstado('borrador')])).toBe('2 planes · 0 publicados');
+  });
+});
+
+describe('etiquetaCategoria (la categoría como texto, sin emoji)', () => {
+  it.each(CATEGORIAS.map((c) => [c.valor, c.label]))('«%s» se muestra como «%s»', (valor, label) => {
+    expect(etiquetaCategoria(valor)).toBe(label);
+  });
+
+  it('un valor que no está en la lista se muestra tal cual', () => {
+    expect(etiquetaCategoria('buceo')).toBe('buceo');
+  });
+});
+
+describe('errorPrecio', () => {
+  it('un precio mayor a 0 no tiene error', () => {
+    expect(errorPrecio(150000)).toBeUndefined();
+  });
+
+  it.each([0, -5, null, undefined, NaN])('%s no es un precio válido', (v) => {
+    expect(errorPrecio(v as number)).toBe('El precio debe ser mayor a 0.');
   });
 });

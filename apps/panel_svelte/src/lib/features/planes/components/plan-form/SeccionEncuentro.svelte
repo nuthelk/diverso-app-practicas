@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Campo from '$lib/shared/ui/Campo.svelte';
   import type { PlanDraft } from '../../model/plan';
   import type { ErroresPolitica } from '../../model/politica';
   import FotosPlan from './FotosPlan.svelte';
@@ -20,21 +21,17 @@
 
 <Seccion titulo="Encuentro, cancelación y fotos">
   <div class="space-y-3">
-    <div class="grid items-end gap-3 min-[640px]:grid-cols-[1fr_180px]">
-      <label class="block">
-        <span class="etiqueta-campo">Punto de encuentro</span>
-        <input bind:value={d.puntoEncuentro} class="campo" />
-      </label>
-      <label class="block">
-        <span class="etiqueta-campo">Hora de salida (hora de Colombia) *</span>
-        <input
-          type="time"
-          required
-          bind:value={d.horaSalida}
-          class="campo cifra text-[18px]"
-          aria-invalid={intentado && !!errores.horaSalida}
-        />
-      </label>
+    <div class="grid items-start gap-3 min-[640px]:grid-cols-[1fr_180px]">
+      <Campo etiqueta="Punto de encuentro">
+        {#snippet control(atributos)}
+          <input {...atributos} bind:value={d.puntoEncuentro} class="campo" />
+        {/snippet}
+      </Campo>
+      <Campo etiqueta="Hora de salida (hora de Colombia) *" error={intentado ? errores.horaSalida : undefined}>
+        {#snippet control(atributos)}
+          <input {...atributos} data-campo="horaSalida" type="time" required bind:value={d.horaSalida} class="campo cifra" />
+        {/snippet}
+      </Campo>
     </div>
     <PoliticaCancelacion bind:d {errores} {intentado} {textoVistaPrevia} />
     <FotosPlan bind:fotos={d.fotos} />

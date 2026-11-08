@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Campo from '$lib/shared/ui/Campo.svelte';
   import type { PlanDraft } from '../../model/plan';
   import type { ErroresPolitica } from '../../model/politica';
 
@@ -16,81 +17,65 @@
   } = $props();
 </script>
 
-<div
-  class="space-y-3 rounded-hoja-chica border border-linea bg-niebla p-4"
-  role="group"
-  aria-label="Política de cancelación"
->
-  <h3 class="text-[19px] leading-tight">Política de cancelación y reembolsos</h3>
-  <p class="text-[15px] leading-relaxed text-tinta-2">
+<div class="space-y-3 rounded-hoja-chica border border-linea bg-niebla p-4" role="group" aria-label="Política de cancelación">
+  <h3 class="text-destacado">Política de cancelación y reembolsos</h3>
+  <p class="text-tinta-2">
     Las horas se cuentan hacia atrás desde la fecha del plan y su hora de salida. Con estos
     números se calcula el reembolso al cancelar y se escribe el texto que ve el viajero.
   </p>
   <div class="grid gap-3 min-[640px]:grid-cols-3">
-    <label class="block">
-      <span class="etiqueta-campo">Cancelación gratuita hasta (horas antes) *</span>
-      <input
-        type="number"
-        min="1"
-        step="1"
-        required
-        bind:value={d.horasCancelacionGratuita}
-        class="campo"
-        aria-invalid={intentado && !!errores.horasGratis}
-      />
-      {#if intentado && errores.horasGratis}
-        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.horasGratis}</span>
-      {/if}
-    </label>
-    <label class="block">
-      <span class="etiqueta-campo">Reembolso parcial hasta (horas antes)</span>
-      <input
-        type="number"
-        min="0"
-        step="1"
-        bind:value={d.horasReembolsoParcial}
-        class="campo"
-        placeholder="Opcional"
-        aria-invalid={intentado && !!errores.horasParcial}
-      />
-      {#if intentado && errores.horasParcial}
-        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.horasParcial}</span>
-      {/if}
-    </label>
-    <label class="block">
-      <span class="etiqueta-campo">Porcentaje de reembolso parcial (1–99)</span>
-      <input
-        type="number"
-        min="1"
-        max="99"
-        step="1"
-        bind:value={d.porcentajeReembolsoParcial}
-        class="campo"
-        placeholder="Opcional"
-        aria-invalid={intentado && !!errores.porcentajeParcial}
-      />
-      {#if intentado && errores.porcentajeParcial}
-        <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.porcentajeParcial}</span>
-      {/if}
-    </label>
+    <Campo etiqueta="Cancelación gratuita hasta (horas antes) *" error={intentado ? errores.horasGratis : undefined}>
+      {#snippet control(atributos)}
+        <input {...atributos} data-campo="horasGratis" type="number" min="1" step="1" required bind:value={d.horasCancelacionGratuita} class="campo" />
+      {/snippet}
+    </Campo>
+    <Campo etiqueta="Reembolso parcial hasta (horas antes)" error={intentado ? errores.horasParcial : undefined}>
+      {#snippet control(atributos)}
+        <input
+          {...atributos}
+          data-campo="horasParcial"
+          type="number"
+          min="0"
+          step="1"
+          bind:value={d.horasReembolsoParcial}
+          class="campo"
+          placeholder="Opcional"
+        />
+      {/snippet}
+    </Campo>
+    <Campo etiqueta="Porcentaje de reembolso parcial (1–99)" error={intentado ? errores.porcentajeParcial : undefined}>
+      {#snippet control(atributos)}
+        <input
+          {...atributos}
+          data-campo="porcentajeParcial"
+          type="number"
+          min="1"
+          max="99"
+          step="1"
+          bind:value={d.porcentajeReembolsoParcial}
+          class="campo"
+          placeholder="Opcional"
+        />
+      {/snippet}
+    </Campo>
   </div>
-  <label class="block">
-    <span class="etiqueta-campo">Notas de la política (opcional)</span>
-    <textarea
-      rows="2"
-      bind:value={d.politicaNotas}
-      class="campo resize-none"
-      placeholder="Ej.: Avisar restricciones alimentarias."
-      aria-invalid={intentado && !!errores.notas}
-    ></textarea>
-    <span class="mt-1 block text-[14px] text-tinta-2">
-      Frases que no cambian el reembolso: se muestran al viajero después de la política.
-    </span>
-    {#if intentado && errores.notas}
-      <span class="mt-1 block text-[14px] text-heliconia" role="alert">{errores.notas}</span>
-    {/if}
-  </label>
-  <p class="text-[15px] leading-relaxed" data-testid="politica-texto">
+  <Campo
+    etiqueta="Notas de la política (opcional)"
+    ayuda="Frases que no cambian el reembolso: se muestran al viajero después de la política."
+    error={intentado ? errores.notas : undefined}
+  >
+    {#snippet control(atributos)}
+      <textarea
+        {...atributos}
+        data-campo="notas"
+        rows="2"
+        bind:value={d.politicaNotas}
+        class="campo resize-none"
+        placeholder="Ej.: Avisar restricciones alimentarias."
+      ></textarea>
+    {/snippet}
+  </Campo>
+  <p data-testid="politica-texto">
     <span class="font-semibold">Lo que verá el viajero:</span>
     {textoVistaPrevia}
   </p>
