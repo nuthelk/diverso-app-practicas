@@ -4,7 +4,9 @@
   import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
   import Select from '$lib/shared/ui/Select.svelte';
-  import AvisoPrueba from '../components/AvisoPrueba.svelte';
+  import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
+  import Campo from '$lib/shared/ui/Campo.svelte';
+  import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import { miAgencia } from '$lib/features/agencias/api/agencias.api';
   import { miCuentaDispersion, guardarCuentaDispersion } from '../api/liquidaciones.api';
   import { mensajeError } from '$lib/shared/api/errores';
@@ -57,6 +59,8 @@
   });
 
   const errores = $derived<ErroresCuenta>(validarCuenta(c));
+  /** Un error se muestra solo después del primer intento de guardar. */
+  const mostrar = (mensaje?: string) => (intentado ? mensaje : undefined);
 
   async function guardar(e: SubmitEvent) {
     e.preventDefault();
@@ -92,81 +96,89 @@
         verla; en las listas solo se muestran los 4 últimos dígitos.
       {/snippet}
     </PageHeader>
-    <div class="mt-4"><AvisoPrueba>Guardar tu cuenta no mueve dinero: las dispersiones son registros de prueba.</AvisoPrueba></div>
 
-    <form class="tarjeta mt-5 space-y-4 rounded-hoja-grande p-6 sm:p-8" onsubmit={guardar} novalidate>
-      <label class="block">
-        <span class="etiqueta-campo">Banco *</span>
-        <input
-          class="campo"
-          list="bancos-sugeridos"
-          bind:value={c.banco}
-          aria-invalid={intentado && !!errores.banco}
-          autocomplete="off"
-        />
-        <datalist id="bancos-sugeridos">
-          {#each BANCOS as b}<option value={b}></option>{/each}
-        </datalist>
-        {#if intentado && errores.banco}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.banco}</span>{/if}
-      </label>
+    <p class="mt-4 text-detalle text-tinta-2">Todos los campos son obligatorios.</p>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div>
-          <span class="etiqueta-campo">Tipo de cuenta *</span>
-          <Select
-            opciones={TIPOS_CUENTA.map((t) => ({ valor: t.valor, etiqueta: t.etiqueta }))}
-            valor={c.tipo_cuenta}
-            onchange={(v) => (c.tipo_cuenta = v as TipoCuenta)}
-          />
+    <Tarjeta etiqueta="Datos de la cuenta" clase="mt-3">
+      <form class="space-y-4" onsubmit={guardar} novalidate>
+        <Campo etiqueta="Banco" error={mostrar(errores.banco)}>
+          {#snippet control(atributos)}
+            <input
+              class="campo"
+              list="bancos-sugeridos"
+              bind:value={c.banco}
+              aria-required="true"
+              autocomplete="off"
+              {...atributos}
+            />
+            <datalist id="bancos-sugeridos">
+              {#each BANCOS as b}<option value={b}></option>{/each}
+            </datalist>
+          {/snippet}
+        </Campo>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <span id="etiqueta-tipo-cuenta" class="etiqueta-campo">Tipo de cuenta</span>
+            <Select
+              etiquetadoPor="etiqueta-tipo-cuenta"
+              opciones={TIPOS_CUENTA.map((t) => ({ valor: t.valor, etiqueta: t.etiqueta }))}
+              valor={c.tipo_cuenta}
+              onchange={(v) => (c.tipo_cuenta = v as TipoCuenta)}
+            />
+          </div>
+          <Campo etiqueta="Número de cuenta" error={mostrar(errores.numero_cuenta)}>
+            {#snippet control(atributos)}
+              <input
+                class="campo tabular-nums"
+                inputmode="numeric"
+                autocomplete="off"
+                aria-required="true"
+                bind:value={c.numero_cuenta}
+                {...atributos}
+              />
+            {/snippet}
+          </Campo>
         </div>
-        <label class="block">
-          <span class="etiqueta-campo">Número de cuenta *</span>
-          <input
-            class="campo tabular-nums"
-            inputmode="numeric"
-            autocomplete="off"
-            bind:value={c.numero_cuenta}
-            aria-invalid={intentado && !!errores.numero_cuenta}
-          />
-          {#if intentado && errores.numero_cuenta}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.numero_cuenta}</span>{/if}
-        </label>
-      </div>
 
-      <label class="block">
-        <span class="etiqueta-campo">Titular *</span>
-        <input class="campo" bind:value={c.titular} aria-invalid={intentado && !!errores.titular} autocomplete="off" />
-        {#if intentado && errores.titular}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.titular}</span>{/if}
-      </label>
+        <Campo etiqueta="Titular" error={mostrar(errores.titular)}>
+          {#snippet control(atributos)}
+            <input class="campo" bind:value={c.titular} aria-required="true" autocomplete="off" {...atributos} />
+          {/snippet}
+        </Campo>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div>
-          <span class="etiqueta-campo">Tipo de documento *</span>
-          <Select
-            opciones={TIPOS_DOCUMENTO.map((t) => ({ valor: t.valor, etiqueta: t.etiqueta }))}
-            valor={c.tipo_documento}
-            onchange={(v) => (c.tipo_documento = v as TipoDocumento)}
-          />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <span id="etiqueta-tipo-documento" class="etiqueta-campo">Tipo de documento</span>
+            <Select
+              etiquetadoPor="etiqueta-tipo-documento"
+              opciones={TIPOS_DOCUMENTO.map((t) => ({ valor: t.valor, etiqueta: t.etiqueta }))}
+              valor={c.tipo_documento}
+              onchange={(v) => (c.tipo_documento = v as TipoDocumento)}
+            />
+          </div>
+          <Campo etiqueta="Número de documento" error={mostrar(errores.numero_documento)}>
+            {#snippet control(atributos)}
+              <input
+                class="campo tabular-nums"
+                autocomplete="off"
+                aria-required="true"
+                bind:value={c.numero_documento}
+                {...atributos}
+              />
+            {/snippet}
+          </Campo>
         </div>
-        <label class="block">
-          <span class="etiqueta-campo">Número de documento *</span>
-          <input
-            class="campo tabular-nums"
-            autocomplete="off"
-            bind:value={c.numero_documento}
-            aria-invalid={intentado && !!errores.numero_documento}
-          />
-          {#if intentado && errores.numero_documento}<span class="mt-1 block text-[14px] font-semibold text-heliconia" role="alert">{errores.numero_documento}</span>{/if}
-        </label>
-      </div>
 
-      {#if error}<p class="text-[15px] font-semibold text-heliconia" role="alert">{error}</p>{/if}
+        {#if error}<AlertaError>{error}</AlertaError>{/if}
 
-      <div class="flex justify-end gap-2 pt-1">
-        <a class="btn btn-secundario" href="#/liquidaciones">Cancelar</a>
-        <button type="submit" class="btn btn-primario" disabled={guardando}>
-          {guardando ? 'Guardando…' : existe ? 'Actualizar cuenta' : 'Guardar cuenta'}
-        </button>
-      </div>
-    </form>
+        <div class="flex justify-end gap-2 pt-1">
+          <a class="btn btn-secundario" href="#/liquidaciones">Cancelar</a>
+          <button type="submit" class="btn btn-primario" disabled={guardando}>
+            {guardando ? 'Guardando…' : existe ? 'Actualizar cuenta' : 'Guardar cuenta'}
+          </button>
+        </div>
+      </form>
+    </Tarjeta>
   </Pagina>
 {/if}

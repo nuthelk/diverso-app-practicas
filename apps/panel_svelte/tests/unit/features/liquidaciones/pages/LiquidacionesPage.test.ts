@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
-import { agencia, cuentaResumen, itemLiquidacion, liquidacion, simularPantalla, texto } from '$tests/fixtures';
+import { agencia, cuentaResumen, itemLiquidacion, liquidacion, texto } from '$tests/fixtures';
 
 vi.mock('$lib/features/agencias/api/agencias.api', () => ({
   miAgencia: vi.fn(),
@@ -30,7 +30,6 @@ const detalleMock = vi.mocked(liquidacionDetalle);
 
 afterEach(() => {
   vi.resetAllMocks();
-  vi.unstubAllGlobals();
 });
 
 /** Texto de cada celda de una fila de la tabla. */
@@ -76,15 +75,16 @@ describe('Liquidaciones', () => {
     ]);
     const cabecera = [...container.querySelectorAll('th')].map((th) => texto(th));
     expect(cabecera).toEqual([
-      'PERIODO', 'TIPO', 'BRUTO', 'COMISIÓN', 'NETO', 'ANTICIPOS DESCONTADOS', 'A PAGAR', 'ESTADO',
+      'Periodo', 'Tipo', 'Bruto', 'Comisión', 'Neto', 'Anticipos ya entregados', 'A pagar', 'Estado',
     ]);
   });
 
-  it('avisa que es una dispersión de prueba y enlaza la conciliación con Ventas', async () => {
+  it('no repite el aviso de «Modo de prueba» del marco y enlaza la conciliación con Ventas', async () => {
     preparar();
     const { container } = render(LiquidacionesPage);
     await screen.findByText('2 feb – 8 feb 2026');
-    expect(texto(container)).toContain('Dispersión de prueba — no se mueve dinero real');
+    expect(texto(container)).not.toContain('Dispersión de prueba');
+    expect(texto(container)).not.toContain('Modo de prueba');
     const ventas = screen.getByRole('link', { name: 'Ventas' });
     expect(ventas.getAttribute('href')).toBe('#/ventas');
   });
@@ -96,13 +96,26 @@ describe('Liquidaciones', () => {
     expect(enlace.getAttribute('href')).toBe('#/liquidaciones/liq-s');
   });
 
-  it('resume lo pendiente y lo dispersado en prueba', async () => {
+  it('resume lo pendiente y lo dispersado en prueba en una franja de cifras', async () => {
     preparar();
     const { container } = render(LiquidacionesPage);
     await screen.findByText('2 feb – 8 feb 2026');
     const t = texto(container);
     expect(t).toContain('Pendiente de dispersar $ 272.800');
     expect(t).toContain('Dispersado (prueba) $ 79.200');
+    expect(container.querySelector('dl.franja')).toBeTruthy();
+  });
+
+  it('cada celda lleva su título y el periodo es la principal: en celular la fila pasa a tarjeta sin perder datos', async () => {
+    preparar();
+    render(LiquidacionesPage);
+    await screen.findByText('2 feb – 8 feb 2026');
+    const celdasFila = [...screen.getAllByRole('row')[1].querySelectorAll('td')];
+    expect(celdasFila.map((td) => td.getAttribute('data-th'))).toEqual([
+      'Periodo', 'Tipo', 'Bruto', 'Comisión', 'Neto', 'Anticipos ya entregados', 'A pagar', 'Estado',
+    ]);
+    expect(celdasFila.map((td) => td.hasAttribute('data-principal'))).toEqual([true, false, false, false, false, false, false, false]);
+    expect(celdasFila[0].querySelector('a')!.getAttribute('href')).toBe('#/liquidaciones/liq-s');
   });
 
   it('muestra la cuenta solo con los 4 últimos dígitos', async () => {
@@ -199,24 +212,53 @@ describe('LiquidacionDetalle', () => {
     ],
   };
 
-  it('muestra totales, notice de prueba y los items con su concepto', async () => {
+  it('muestra las cifras de la liquidación y los items con su concepto', async () => {
     detalleMock.mockResolvedValue(detalle);
     const { container } = render(LiquidacionDetallePage, { id: 'liq-s' });
     await screen.findByText('DV-AAAA');
     const t = texto(container);
     expect(detalleMock).toHaveBeenCalledWith('liq-s');
     expect(t).toContain('Liquidación semanal · 2 feb – 8 feb 2026');
-    expect(t).toContain('Dispersión de prueba — no se mueve dinero real');
+    expect(t).not.toContain('Dispersión de prueba');
+    expect(t).not.toContain('Modo de prueba');
+    expect(container.querySelector('dl.franja')).toBeTruthy();
     expect(t).toContain('Bruto $ 400.000');
     expect(t).toContain('Comisión $ 48.000');
     expect(t).toContain('Neto $ 352.000');
-    expect(t).toContain('Anticipos descontados $ 79.200');
+    expect(t).toContain('Anticipos ya entregados $ 79.200');
     expect(t).toContain('A pagar $ 272.800');
+    expect(t).not.toContain('descontados');
 
     const filas = screen.getAllByRole('row').slice(1);
     const [a, b] = filas.map(celdas);
     expect([a[0], a[1], ...a.slice(3)]).toEqual(['DV-AAAA', 'Guatapé', 'Servicio', '$ 100.000', '$ 12.000', '$ 88.000']);
     expect([b[0], b[1], ...b.slice(3)]).toEqual(['DV-BBBB', 'Jardín', 'Ajuste por reembolso', '-$ 24.000', '-$ 2.880', '-$ 21.120']);
+  });
+
+  it('explica en una línea cada concepto especial, y solo los que aparecen en la liquidación', async () => {
+    detalleMock.mockResolvedValue(detalle);
+    const a = render(LiquidacionDetallePage, { id: 'liq-s' });
+    await screen.findByText('DV-AAAA');
+    const t = texto(a.container);
+    expect(t).toContain('Ajuste por reembolso: devuelve un anticipo que el reembolso dejó sin respaldo.');
+    expect(t).not.toContain('Retención por cancelación:');
+    expect(t).not.toContain('Saldo de liquidación anterior:');
+    expect(t).not.toContain('Bruto − comisión = neto');
+    a.unmount();
+
+    detalleMock.mockResolvedValue({
+      ...semanal,
+      liquidacion_items: [
+        itemLiquidacion({ id: 'r1', tipo: 'retencion' }),
+        itemLiquidacion({ id: 's1', booking_id: null as unknown as string, tipo: 'saldo_anterior', bookings: null }),
+      ],
+    });
+    const b = render(LiquidacionDetallePage, { id: 'liq-s' });
+    await screen.findByText('DV-AAAA');
+    const u = texto(b.container);
+    expect(u).toContain('Retención por cancelación: lo que no se reembolsó al viajero por la cancelación, menos la comisión.');
+    expect(u).toContain('Saldo de liquidación anterior: absorbe una liquidación que quedó en cero o negativa.');
+    expect(u).not.toContain('Ajuste por reembolso:');
   });
 
   it('una liquidación ya ejecutada muestra su referencia', async () => {
@@ -313,56 +355,22 @@ describe('LiquidacionDetalle', () => {
   });
 });
 
-describe('Liquidaciones · celular (lista de tarjetas)', () => {
-  const datos = (li: Element) =>
-    Object.fromEntries([...li.querySelectorAll('dl > div')].map((d) => [texto(d.querySelector('dt')), texto(d.querySelector('dd'))]));
-
-  it('en pantalla ancha sigue la tabla', async () => {
-    simularPantalla(false);
-    preparar();
-    const { container } = render(LiquidacionesPage);
-    await screen.findByText('2 feb – 8 feb 2026');
-    expect(container.querySelector('table')).toBeTruthy();
-    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
+describe('Detalle · reservas de la liquidación', () => {
+  it('las reservas van en una tabla con cabeceras en español corriente y cada celda con su título (en celular, tarjeta)', async () => {
+    detalleMock.mockResolvedValue({ ...semanal, liquidacion_items: [itemLiquidacion({ id: 'a' })] });
+    const { container } = render(LiquidacionDetallePage, { id: 'liq-s' });
+    await screen.findByText('DV-AAAA');
+    expect([...container.querySelectorAll('th')].map((th) => texto(th))).toEqual([
+      'Reserva', 'Plan', 'Fecha', 'Concepto', 'Bruto', 'Comisión', 'Neto',
+    ]);
+    const celdasFila = [...screen.getAllByRole('row')[1].querySelectorAll('td')];
+    expect(celdasFila.map((td) => td.getAttribute('data-th'))).toEqual([
+      'Reserva', 'Plan', 'Fecha', 'Concepto', 'Bruto', 'Comisión', 'Neto',
+    ]);
+    expect(celdasFila[0].hasAttribute('data-principal')).toBe(true);
   });
 
-  it('por debajo de sm cada liquidación es una tarjeta con periodo, tipo, estado, referencia y todas las cifras', async () => {
-    simularPantalla(true);
-    preparar();
-    const { container } = render(LiquidacionesPage);
-    await screen.findByText('2 feb – 8 feb 2026');
-    expect(container.querySelector('table')).toBeNull();
-    const [a, b] = [...container.querySelectorAll('[data-lista-tarjetas] > li')];
-
-    expect(texto(a)).toContain('2 feb – 8 feb 2026');
-    expect(texto(a)).toContain('Semanal');
-    expect(texto(a)).toContain('Pendiente');
-    expect(a.querySelector('a')!.getAttribute('href')).toBe('#/liquidaciones/liq-s');
-    expect(datos(a)).toEqual({
-      Bruto: '$ 400.000',
-      Comisión: '- $ 48.000',
-      Neto: '$ 352.000',
-      'Anticipos descontados': '$ 79.200',
-      'A pagar': '$ 272.800',
-    });
-
-    expect(texto(b)).toContain('Anticipo');
-    expect(texto(b)).toContain('Pagada (prueba)');
-    expect(texto(b)).toContain('PRUEBA-20260203-ABC123DEF4');
-    expect(datos(b)['A pagar']).toBe('$ 79.200');
-  });
-
-  it('sin liquidaciones muestra el vacío de siempre', async () => {
-    simularPantalla(true);
-    preparar();
-    misLiquidacionesMock.mockResolvedValue([]);
-    const { container } = render(LiquidacionesPage);
-    expect(await screen.findByText('Aún no hay liquidaciones')).toBeTruthy();
-    expect(container.querySelector('[data-lista-tarjetas]')).toBeNull();
-  });
-
-  it('el detalle también pasa sus reservas a tarjetas, con el ajuste en tinta de urgencia', async () => {
-    simularPantalla(true);
+  it('un ajuste o un neto negativo se marca en la tinta de urgencia', async () => {
     detalleMock.mockResolvedValue({
       ...semanal,
       liquidacion_items: [
@@ -377,14 +385,16 @@ describe('Liquidaciones · celular (lista de tarjetas)', () => {
         }),
       ],
     });
-    const { container } = render(LiquidacionDetallePage, { id: 'liq-s' });
+    render(LiquidacionDetallePage, { id: 'liq-s' });
     await screen.findByText('DV-AAAA');
-    expect(container.querySelector('table')).toBeNull();
-    const [a, b] = [...container.querySelectorAll('[data-lista-tarjetas] > li')];
-    expect(texto(a)).toContain('Guatapé');
-    expect(datos(a)).toEqual({ Bruto: '$ 100.000', Comisión: '$ 12.000', Neto: '$ 88.000' });
-    expect(texto(b)).toContain('Ajuste por reembolso');
+    const [a, b] = screen.getAllByRole('row').slice(1);
+    expect(a.innerHTML).not.toContain('text-heliconia');
     expect(b.innerHTML).toContain('text-heliconia');
-    expect(datos(b)).toEqual({ Bruto: '-$ 24.000', Comisión: '-$ 2.880', Neto: '-$ 21.120' });
+  });
+
+  it('sin reservas lo dice con palabras corrientes', async () => {
+    detalleMock.mockResolvedValue({ ...semanal, liquidacion_items: [] });
+    render(LiquidacionDetallePage, { id: 'liq-s' });
+    expect(await screen.findByText('Sin reservas')).toBeTruthy();
   });
 });

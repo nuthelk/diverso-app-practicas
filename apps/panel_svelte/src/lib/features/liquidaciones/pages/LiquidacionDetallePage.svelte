@@ -3,15 +3,22 @@
   import Pagina from '$lib/shared/ui/Pagina.svelte';
   import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
+  import FranjaMetricas from '$lib/shared/ui/FranjaMetricas.svelte';
   import Metrica from '$lib/shared/ui/Metrica.svelte';
   import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import Empty from '$lib/shared/ui/Empty.svelte';
-  import AvisoPrueba from '../components/AvisoPrueba.svelte';
   import ItemsLiquidacion from '../components/ItemsLiquidacion.svelte';
   import { liquidacionDetalle } from '../api/liquidaciones.api';
   import { mensajeError } from '$lib/shared/api/errores';
   import { cop } from '$lib/shared/lib/format';
-  import { etiquetaTipoLiquidacion, notaEstado, periodoTexto, type LiquidacionDetalle } from '../model/liquidaciones';
+  import {
+    ayudaTipoItem,
+    etiquetaTipoItem,
+    etiquetaTipoLiquidacion,
+    notaEstado,
+    periodoTexto,
+    type LiquidacionDetalle,
+  } from '../model/liquidaciones';
 
   let { id }: { id: string } = $props();
 
@@ -29,15 +36,13 @@
       .finally(() => (cargando = false));
   });
 
-  const metricas = $derived<[string, number][]>(
+  /** Los conceptos especiales que aparecen en esta liquidación, cada uno con su frase de ayuda. */
+  const ayudas = $derived(
     liq
-      ? [
-          ['Bruto', liq.monto_bruto],
-          ['Comisión', liq.comision],
-          ['Neto', liq.monto_neto],
-          ['Anticipos descontados', liq.anticipos_descontados],
-          ['A pagar', liq.monto_a_pagar],
-        ]
+      ? [...new Set(liq.liquidacion_items.map((it) => it.tipo))].flatMap((tipo) => {
+          const ayuda = ayudaTipoItem(tipo);
+          return ayuda ? [{ tipo, ayuda }] : [];
+        })
       : [],
   );
 </script>
@@ -62,10 +67,8 @@
       {/snippet}
     </PageHeader>
 
-    <div class="mt-4"><AvisoPrueba /></div>
-
     {#if notaEstado(liq)}
-      <p class="mt-3 rounded-hoja-chica bg-niebla-2 px-4 py-3 text-[15px] text-tinta-2" role="status">
+      <p class="mt-4 rounded-hoja-chica bg-niebla-2 px-4 py-3 text-cuerpo text-tinta-2" role="status">
         {notaEstado(liq)}
         {#if liq.compensada_en}
           <a class="enlace" href={'#/liquidaciones/' + liq.compensada_en}>Ver la liquidación que la absorbió</a>
@@ -73,24 +76,30 @@
       </p>
     {/if}
 
-    <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {#each metricas as [etiqueta, valor]}
-        <Metrica {etiqueta} valor={cop(valor)} tono={etiqueta === 'A pagar' ? 'ok' : 'neutro'} clase={etiqueta === 'A pagar' ? 'col-span-2 sm:col-span-1' : ''} />
-      {/each}
-    </dl>
+    <div class="mt-6">
+      <FranjaMetricas columnas={5}>
+        <Metrica etiqueta="Bruto" valor={cop(liq.monto_bruto)} />
+        <Metrica etiqueta="Comisión" valor={cop(liq.comision)} tono="alerta" />
+        <Metrica etiqueta="Neto" valor={cop(liq.monto_neto)} sub="Bruto menos comisión" />
+        <Metrica etiqueta="Anticipos ya entregados" valor={cop(liq.anticipos_descontados)} />
+        <Metrica etiqueta="A pagar" valor={cop(liq.monto_a_pagar)} sub="Neto menos anticipos" principal />
+      </FranjaMetricas>
+    </div>
 
-    <h2 class="etiqueta-seccion mt-8 mb-2.5">DETALLE POR RESERVA</h2>
-    <Tarjeta sinRelleno clase="overflow-hidden">
+    <Tarjeta titulo="Detalle por reserva" sinRelleno clase="mt-6">
       {#if liq.liquidacion_items.length === 0}
-        <Empty icono="recibo" titulo="Sin items" mensaje="Esta liquidación no tiene reservas asociadas." />
+        <Empty icono="recibo" titulo="Sin reservas" mensaje="Esta liquidación no tiene reservas asociadas." />
       {:else}
         <ItemsLiquidacion items={liq.liquidacion_items} />
       {/if}
     </Tarjeta>
-    <p class="mt-4 max-w-[78ch] text-[14.5px] leading-relaxed text-tinta-2">
-      Bruto − comisión = neto. A pagar = neto − anticipos descontados. La retención por cancelación es lo
-      que no se reembolsó al viajero (menos la comisión). Los ajustes devuelven un anticipo que el
-      reembolso dejó sin respaldo, y el saldo anterior absorbe una liquidación que quedó en cero o negativa.
-    </p>
+
+    {#if ayudas.length > 0}
+      <ul class="mt-4 max-w-[78ch] space-y-1 text-detalle text-tinta-2">
+        {#each ayudas as { tipo, ayuda } (tipo)}
+          <li><strong class="font-bold text-tinta">{etiquetaTipoItem(tipo)}:</strong> {ayuda}</li>
+        {/each}
+      </ul>
+    {/if}
   </Pagina>
 {/if}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   AVISO_PRUEBA,
+  ayudaTipoItem,
   enmascararCuenta,
   etiquetaEstadoLiquidacion,
   etiquetaTipoItem,
@@ -49,6 +50,20 @@ describe('textos', () => {
 
   it('un estado desconocido se muestra tal cual', () => {
     expect(etiquetaEstadoLiquidacion('otro')).toBe('otro');
+  });
+});
+
+describe('ayudaTipoItem', () => {
+  it('explica en una frase los conceptos que no son un servicio normal', () => {
+    expect(ayudaTipoItem('retencion')).toBe('lo que no se reembolsó al viajero por la cancelación, menos la comisión.');
+    expect(ayudaTipoItem('ajuste')).toBe('devuelve un anticipo que el reembolso dejó sin respaldo.');
+    expect(ayudaTipoItem('saldo_anterior')).toBe('absorbe una liquidación que quedó en cero o negativa.');
+  });
+
+  it('un servicio, un anticipo o un tipo desconocido no necesitan explicación', () => {
+    expect(ayudaTipoItem('servicio')).toBeNull();
+    expect(ayudaTipoItem('anticipo')).toBeNull();
+    expect(ayudaTipoItem('otro')).toBeNull();
   });
 });
 

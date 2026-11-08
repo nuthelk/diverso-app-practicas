@@ -167,6 +167,17 @@ export function etiquetaTipoItem(t: string): string {
             : t;
 }
 
+const AYUDA_TIPO_ITEM: Partial<Record<TipoItem, string>> = {
+  retencion: 'lo que no se reembolsó al viajero por la cancelación, menos la comisión.',
+  ajuste: 'devuelve un anticipo que el reembolso dejó sin respaldo.',
+  saldo_anterior: 'absorbe una liquidación que quedó en cero o negativa.',
+};
+
+/** Qué significa un concepto que no es un servicio normal, en una frase que sigue a su nombre (null si no necesita). */
+export function ayudaTipoItem(t: string): string | null {
+  return AYUDA_TIPO_ITEM[t as TipoItem] ?? null;
+}
+
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const aFecha = (iso: string) => new Date(iso + 'T12:00:00');
 

@@ -32,15 +32,54 @@ async function llenar() {
 }
 
 describe('Cuenta para dispersiones', () => {
-  it('muestra el formulario con el aviso de prueba y la privacidad de la cuenta', async () => {
+  it('muestra el formulario con la privacidad de la cuenta y sin repetir el aviso de «Modo de prueba» del marco', async () => {
     miAgenciaMock.mockResolvedValue(agencia());
     cuentaMock.mockResolvedValue(null);
     const { container } = render(CuentaDispersionPage);
     await screen.findByRole('heading', { name: 'Cuenta para dispersiones' });
     const t = texto(container);
-    expect(t).toContain('Dispersión de prueba — no se mueve dinero real');
+    expect(t).not.toContain('Dispersión de prueba');
+    expect(t).not.toContain('Modo de prueba');
     expect(t).toContain('solo se muestran los 4 últimos dígitos');
     expect(screen.getByRole('button', { name: 'Guardar cuenta' })).toBeTruthy();
+  });
+
+  it('una leyenda dice que todos los campos son obligatorios, en vez de un asterisco por etiqueta', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    cuentaMock.mockResolvedValue(null);
+    const { container } = render(CuentaDispersionPage);
+    await screen.findByRole('heading', { name: 'Cuenta para dispersiones' });
+    expect(texto(container)).toContain('Todos los campos son obligatorios.');
+    expect(texto(container)).not.toContain('*');
+    for (const nombre of [/^Banco/, /^Número de cuenta/, /^Titular/, /^Número de documento/]) {
+      expect(screen.getByLabelText(nombre).getAttribute('aria-required')).toBe('true');
+    }
+  });
+
+  it('los dos selectores tienen nombre accesible con su etiqueta visible y el valor elegido', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    cuentaMock.mockResolvedValue(null);
+    render(CuentaDispersionPage);
+    await screen.findByRole('heading', { name: 'Cuenta para dispersiones' });
+    expect(screen.getByRole('button', { name: 'Tipo de cuenta Ahorros' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Tipo de documento NIT' })).toBeTruthy();
+    expect(screen.getByText('Tipo de cuenta').tagName).toBe('SPAN');
+  });
+
+  it('cada error queda ligado a su campo (aria-invalid y aria-describedby) y se anuncia como alerta', async () => {
+    miAgenciaMock.mockResolvedValue(agencia());
+    cuentaMock.mockResolvedValue(null);
+    render(CuentaDispersionPage);
+    await screen.findByRole('heading', { name: 'Cuenta para dispersiones' });
+    const banco = screen.getByLabelText(/^Banco/);
+    expect(banco.getAttribute('aria-invalid')).toBeNull();
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Guardar cuenta' }));
+    expect(banco.getAttribute('aria-invalid')).toBe('true');
+    const error = document.getElementById(banco.getAttribute('aria-describedby')!)!;
+    expect(texto(error)).toContain('Indica el banco');
+    expect(error.getAttribute('role')).toBe('alert');
+    expect(screen.getAllByRole('alert')).toHaveLength(4);
   });
 
   it('con datos inválidos muestra los errores y no guarda', async () => {
