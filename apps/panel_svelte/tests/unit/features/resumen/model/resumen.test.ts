@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   avisosResumen,
-  desdeResumen,
-  dineroDelMes,
-  estadoCabecera,
-  lineaProximoPago,
+  cifrasDelPeriodo,
+  kpiProximoPago,
+  kpisDelPeriodo,
   proximoPago,
-  resumenDelMes,
   URL_RENOVAR_RNT,
 } from '$lib/features/resumen/model/resumen';
-import { aFecha, diaCorto, diaLargo, fechaConAnio, rangoTexto, sumarDias } from '$lib/features/resumen/model/fechas';
+import { aFecha, diaCorto, diaLargo, rangoTexto, sumarDias } from '$lib/features/resumen/model/fechas';
+import { periodoDeDia, periodoDeRango } from '$lib/features/resumen/model/periodo';
+import type { Salida } from '$lib/features/resumen/model/salidas';
 import { cop } from '$lib/shared/lib/format';
 import { agencia, enZona, fecha, HOY, liquidacion, plan, venta } from '$tests/fixtures';
 
@@ -29,10 +29,6 @@ describe('fechas en español', () => {
     expect(diaCorto('2026-12-20')).toBe('dom 20 dic');
   });
 
-  it('fechaConAnio: «31 mar 2027»', () => {
-    expect(fechaConAnio('2027-03-31')).toBe('31 mar 2027');
-  });
-
   it('rangoTexto: un mes o dos', () => {
     expect(rangoTexto('2026-11-02', '2026-11-08')).toBe('Del 2 al 8 de noviembre');
     expect(rangoTexto('2026-10-26', '2026-11-01')).toBe('Del 26 de octubre al 1 de noviembre');
@@ -44,90 +40,6 @@ describe('fechas en español', () => {
       expect(enZona(zona, () => sumarDias('2026-12-31', 1)), zona).toBe('2027-01-01');
       expect(enZona(zona, () => aFecha('2026-11-05').getDate()), zona).toBe(5);
     }
-  });
-});
-
-describe('resumenDelMes', () => {
-  const ventas = [
-    venta({ booking_id: 'a', fecha: '2026-10-30', monto_total: 200000, comision: 24000, saldo_agencia: 176000 }),
-    venta({
-      booking_id: 'b',
-      fecha: '2026-10-02',
-      booking_estado: 'completada',
-      monto_total: 100000,
-      comision: 12000,
-      saldo_agencia: 88000,
-    }),
-    venta({ booking_id: 'c', fecha: '2026-11-01' }), // otro mes
-    venta({ booking_id: 'd', fecha: '2026-10-30', booking_estado: 'pendiente_pago' }),
-    venta({ booking_id: 'e', fecha: '2026-10-30', booking_estado: 'cancelada' }),
-    venta({ booking_id: 'f', fecha: '2025-10-30' }), // mismo mes, otro año
-  ];
-
-  it('suma lo pagado de los viajes del mes en curso y nombra el mes', () => {
-    expect(resumenDelMes(ventas, HOY)).toEqual({
-      mes: 'octubre',
-      vendido: 300000,
-      comision: 36000,
-      aRecibir: 264000,
-      reservas: 2,
-    });
-  });
-
-  it('sin ventas todo es cero', () => {
-    expect(resumenDelMes([], HOY)).toEqual({ mes: 'octubre', vendido: 0, comision: 0, aRecibir: 0, reservas: 0 });
-  });
-
-  it('el mes es el de Bogotá, no el del navegador', () => {
-    // 31-oct 21:00 en Bogotá = 1-nov 02:00 UTC: en un navegador adelantado ya sería noviembre.
-    const ahora = new Date(Date.UTC(2026, 10, 1, 2, 0, 0));
-    for (const zona of ZONAS) {
-      expect(enZona(zona, () => resumenDelMes(ventas, ahora).mes), zona).toBe('octubre');
-    }
-  });
-});
-
-describe('dineroDelMes y lineaProximoPago', () => {
-  const ventas = [
-    venta({ booking_id: 'a', fecha: '2026-10-30', monto_total: 6981000, comision: 837720, saldo_agencia: 6143280 }),
-  ];
-
-  it('«te corresponde» y, en chico, lo vendido y la comisión de la agencia', () => {
-    expect(dineroDelMes(ventas, 12, HOY)).toEqual({
-      monto: cop(6143280),
-      desglose: `Vendiste ${cop(6981000)} en octubre · comisión del 12 % (${cop(837720)})`,
-    });
-  });
-
-  it('la comisión sale de la agencia, no de un 12 fijo', () => {
-    expect(dineroDelMes(ventas, 15, HOY).desglose).toContain('comisión del 15 %');
-  });
-
-  it('sin ventas dice por qué es cero', () => {
-    expect(dineroDelMes([], 12, HOY)).toEqual({
-      monto: cop(0),
-      desglose: 'Todavía no hay reservas pagadas en los viajes de octubre.',
-    });
-  });
-
-  it('próximo pago: día corto y monto, o una frase simple si no hay o no se pudo consultar', () => {
-    expect(lineaProximoPago({ fecha: '2026-11-09', monto: 2151600 }, true)).toEqual({
-      texto: 'Próximo pago: lun 9 nov ·',
-      monto: cop(2151600),
-    });
-    expect(lineaProximoPago(null, true)).toEqual({
-      texto: 'Próximo pago: no tienes pagos pendientes por ahora.',
-      monto: null,
-    });
-    expect(lineaProximoPago(null, false)).toEqual({ texto: 'No pudimos consultar tus pagos ahora.', monto: null });
-  });
-});
-
-describe('desdeResumen', () => {
-  it('pide los viajes desde el primer día del mes de Bogotá', () => {
-    expect(desdeResumen(HOY)).toBe('2026-10-01');
-    expect(desdeResumen(new Date(Date.UTC(2026, 10, 1, 2, 0, 0)))).toBe('2026-10-01'); // aún 31-oct en Bogotá
-    expect(desdeResumen(new Date(Date.UTC(2026, 10, 1, 6, 0, 0)))).toBe('2026-11-01');
   });
 });
 
@@ -282,15 +194,150 @@ describe('avisosResumen', () => {
   });
 });
 
-describe('estadoCabecera', () => {
-  it.each([
-    [{ estado_verificacion: 'rechazado' as const }, 'rechazado', ''],
-    [{ estado_verificacion: 'pendiente' as const }, 'en_verificacion', ''],
-    [{ rnt_vigente_hasta: '2027-03-31' }, 'vigente', 'hasta el 31 mar 2027'],
-    [{ rnt_vigente_hasta: '2026-11-14' }, 'por_vencer', 'hasta el 14 nov 2026'],
-    [{ rnt_vigente_hasta: '2026-01-01' }, 'vencido', 'venció el 1 ene 2026'],
-    [{ rnt_vigente_hasta: null }, 'sin_vigencia', ''],
-  ])('agencia %j', (parcial, estado, detalle) => {
-    expect(estadoCabecera(agencia(parcial), HOY)).toEqual({ estado, detalle });
+const salida = (parcial: Partial<Salida>): Salida => ({
+  id: 's',
+  planId: 'p',
+  fecha: '2026-11-05',
+  hora: '06:30',
+  titulo: 'Río Claro',
+  reservados: 0,
+  total: 24,
+  libres: 24,
+  porcentaje: 0,
+  yaSalio: false,
+  hoy: false,
+  pendientes: 0,
+  vendido: 0,
+  ...parcial,
+});
+
+describe('cifrasDelPeriodo', () => {
+  const periodo = periodoDeRango('2026-11-05', '2026-11-12');
+  const salidas = [
+    salida({ id: 'a', reservados: 5, total: 24, yaSalio: true }),
+    salida({ id: 'b', reservados: 7, total: 24 }),
+    salida({ id: 'c', reservados: 0, total: 12 }),
+  ];
+  const ventas = [
+    venta({ booking_id: '1', fecha: '2026-11-05', pax: 2, monto_total: 200000, comision: 24000, saldo_agencia: 176000 }),
+    venta({ booking_id: '2', fecha: '2026-11-12', booking_estado: 'completada', monto_total: 100000, comision: 12000, saldo_agencia: 88000 }),
+    venta({ booking_id: '3', fecha: '2026-11-06', pax: 3, booking_estado: 'pendiente_pago', monto_total: 330000 }),
+    venta({ booking_id: '4', fecha: '2026-11-06', pax: 1, booking_estado: 'pendiente_pago', monto_total: 110000 }),
+    venta({ booking_id: '5', fecha: '2026-11-06', booking_estado: 'cancelada' }),
+    venta({ booking_id: '6', fecha: '2026-11-13' }), // fuera del período
+    venta({ booking_id: '7', fecha: '2026-11-04' }), // fuera del período
+  ];
+
+  it('salidas, viajeros y ocupación salen de las salidas del período', () => {
+    expect(cifrasDelPeriodo(salidas, [], periodo)).toMatchObject({
+      salidas: 3,
+      yaSalieron: 1,
+      proximas: 2,
+      viajeros: 12,
+      cupos: 60,
+      ocupacion: 20,
+    });
+  });
+
+  it('lo pagado y lo pendiente salen de las ventas de los viajes del período, no de otras fechas ni canceladas', () => {
+    expect(cifrasDelPeriodo(salidas, ventas, periodo)).toMatchObject({
+      vendido: 300000,
+      comision: 36000,
+      aRecibir: 264000,
+      pendientes: 4,
+      porCobrar: 440000,
+    });
+  });
+
+  it('sin salidas ni ventas todo es cero (y la ocupación no divide por cero)', () => {
+    expect(cifrasDelPeriodo([], [], periodoDeDia('2026-11-05'))).toEqual({
+      salidas: 0,
+      yaSalieron: 0,
+      proximas: 0,
+      viajeros: 0,
+      cupos: 0,
+      ocupacion: 0,
+      pendientes: 0,
+      porCobrar: 0,
+      vendido: 0,
+      comision: 0,
+      aRecibir: 0,
+    });
+  });
+});
+
+describe('kpisDelPeriodo', () => {
+  const kpis = (parcial: Parameters<typeof kpisDelPeriodo>[0], pct = 12) => Object.fromEntries(kpisDelPeriodo(parcial, pct).map((k) => [k.clave, k]));
+  const vacias = cifrasDelPeriodo([], [], periodoDeDia('2026-11-05'));
+
+  it('las cuatro cifras del período, en orden, con su alcance', () => {
+    const c = {
+      ...vacias,
+      salidas: 12,
+      yaSalieron: 5,
+      proximas: 7,
+      viajeros: 48,
+      cupos: 288,
+      ocupacion: 17,
+      pendientes: 2,
+      porCobrar: 330000,
+      vendido: 6981000,
+      comision: 837720,
+      aRecibir: 6143280,
+    };
+    expect(kpisDelPeriodo(c, 12).map((k) => k.clave)).toEqual(['salidas', 'viajeros', 'pendientes', 'corresponde']);
+    const k = kpis(c);
+    expect([k.salidas.etiqueta, k.salidas.valor, k.salidas.sub]).toEqual(['Salidas', '12', '5 ya salieron · 7 próximas']);
+    expect([k.viajeros.etiqueta, k.viajeros.valor, k.viajeros.sub]).toEqual(['Viajeros', '48', '17 % de 288 cupos']);
+    expect([k.pendientes.etiqueta, k.pendientes.valor, k.pendientes.sub, k.pendientes.tono]).toEqual([
+      'Pagos pendientes',
+      '2 personas',
+      `${cop(330000)} por cobrar`,
+      'alerta',
+    ]);
+    expect([k.corresponde.etiqueta, k.corresponde.valor, k.corresponde.sub, k.corresponde.principal]).toEqual([
+      'Te corresponde',
+      cop(6143280),
+      `Vendido ${cop(6981000)} · comisión 12 %`,
+      true,
+    ]);
+  });
+
+  it('la comisión sale de la agencia, no de un 12 fijo', () => {
+    expect(kpis({ ...vacias, vendido: 1000 }, 15).corresponde.sub).toContain('comisión 15 %');
+  });
+
+  it('singulares', () => {
+    const k = kpis({ ...vacias, salidas: 2, yaSalieron: 1, proximas: 1, pendientes: 1, porCobrar: 5000 });
+    expect(k.salidas.sub).toBe('1 ya salió · 1 próxima');
+    expect(k.pendientes.valor).toBe('1 persona');
+  });
+
+  it('sin nada dice por qué es cero, y sin pendientes dice que todo está pagado', () => {
+    const k = kpis(vacias);
+    expect(k.salidas).toMatchObject({ valor: '0', sub: 'Sin salidas en el período' });
+    expect(k.viajeros).toMatchObject({ valor: '0', sub: 'Sin cupos en el período' });
+    expect(k.pendientes).toMatchObject({ valor: '0 personas', sub: 'Todo pagado', tono: 'neutro' });
+    expect(k.corresponde).toMatchObject({ valor: cop(0), sub: 'Aún sin reservas pagadas' });
+  });
+});
+
+describe('kpiProximoPago', () => {
+  it('el día y el monto, o una frase simple si no hay o no se pudo consultar', () => {
+    expect(kpiProximoPago({ fecha: '2026-11-09', monto: 2151600 }, true)).toEqual({
+      etiqueta: 'Próximo pago',
+      valor: 'lun 9 nov',
+      sub: cop(2151600),
+    });
+    expect(kpiProximoPago(null, true)).toEqual({
+      etiqueta: 'Próximo pago',
+      valor: 'Sin pagos',
+      sub: 'No tienes pagos pendientes por ahora.',
+    });
+    expect(kpiProximoPago(null, false)).toEqual({
+      etiqueta: 'Próximo pago',
+      valor: '—',
+      sub: 'No pudimos consultar tus pagos ahora.',
+    });
   });
 });

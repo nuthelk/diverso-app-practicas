@@ -40,12 +40,6 @@ export function diaCorto(iso: string): string {
 /** «lun»: el día de la semana, abreviado. */
 export const abreviaturaDia = (iso: string) => DIAS_CORTOS[aFecha(iso).getDay()];
 
-/** «31 mar 2027». */
-export function fechaConAnio(iso: string): string {
-  const d = aFecha(iso);
-  return `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}`;
-}
-
 /** «Del 2 al 8 de noviembre» o, si cruza de mes, «Del 26 de octubre al 1 de noviembre». */
 export function rangoTexto(inicio: string, fin: string): string {
   const a = aFecha(inicio);
@@ -55,3 +49,33 @@ export function rangoTexto(inicio: string, fin: string): string {
     ? `Del ${a.getDate()} al ${b.getDate()} de ${mesFin}`
     : `Del ${a.getDate()} de ${MESES_LARGOS[a.getMonth()]} al ${b.getDate()} de ${mesFin}`;
 }
+
+/** Primer día del mes de esa fecha. */
+export const inicioDeMes = (iso: string) => `${iso.slice(0, 7)}-01`;
+
+/** Último día del mes de esa fecha. */
+export function finDeMes(iso: string): string {
+  const d = aFecha(iso);
+  return aISO(new Date(d.getFullYear(), d.getMonth() + 1, 0, 12));
+}
+
+/** Esa fecha `meses` meses después (o antes): el mismo día, o el último del mes si ese mes no lo tiene. */
+export function sumarMeses(iso: string, meses: number): string {
+  const d = aFecha(iso);
+  const mes = d.getMonth() + meses;
+  const ultimo = new Date(d.getFullYear(), mes + 1, 0, 12).getDate();
+  return aISO(new Date(d.getFullYear(), mes, Math.min(d.getDate(), ultimo), 12));
+}
+
+/** «lun 9 nov», «5–11 nov» o, si cruza de mes, «28 oct – 3 nov»: para el chip del período. */
+export function rangoCorto(inicio: string, fin: string): string {
+  if (inicio === fin) return diaCorto(inicio);
+  const a = aFecha(inicio);
+  const b = aFecha(fin);
+  return a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
+    ? `${a.getDate()}–${b.getDate()} ${MESES[b.getMonth()]}`
+    : `${a.getDate()} ${MESES[a.getMonth()]} – ${b.getDate()} ${MESES[b.getMonth()]}`;
+}
+
+/** «Jueves 5 de noviembre» si es un solo día; si no, como `rangoTexto`. */
+export const rangoLargo = (inicio: string, fin: string) => (inicio === fin ? diaLargo(inicio) : rangoTexto(inicio, fin));

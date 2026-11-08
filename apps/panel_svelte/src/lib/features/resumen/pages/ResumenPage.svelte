@@ -1,48 +1,38 @@
 <script lang="ts">
-  import { tick } from 'svelte';
-  import { MediaQuery } from 'svelte/reactivity';
   import Skeleton from '$lib/shared/ui/Skeleton.svelte';
   import Pagina from '$lib/shared/ui/Pagina.svelte';
   import PageHeader from '$lib/shared/ui/PageHeader.svelte';
   import Icono from '$lib/shared/ui/Icono.svelte';
-  import Curvas from '$lib/shared/ui/Curvas.svelte';
+  import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import { ICONOS } from '$lib/shared/ui/iconos';
   import Empty from '$lib/shared/ui/Empty.svelte';
-  import StatusPill from '$lib/shared/ui/StatusPill.svelte';
   import LogoAgencia from '$lib/features/agencias/components/LogoAgencia.svelte';
-  import { misVentas } from '$lib/features/ventas/api/ventas.api';
+  import { misVentas, ventas } from '$lib/features/ventas/api/ventas.api';
   import { misLiquidaciones, cuentasResumen } from '$lib/features/liquidaciones/api/liquidaciones.api';
   import { mensajeError } from '$lib/shared/api/errores';
+  import { fechaBogota } from '$lib/features/planes/model/plan';
   import type { Agency } from '$lib/features/agencias/model/agencia';
   import type { Plan } from '$lib/features/planes/model/plan';
   import type { VentaRow } from '$lib/features/ventas/model/ventas';
   import type { Liquidacion } from '$lib/features/liquidaciones/model/liquidaciones';
-  import { quienesVan, resenasRecientes } from '../api/resumen.api';
-  import {
-    avisosResumen,
-    desdeResumen,
-    dineroDelMes,
-    estadoCabecera,
-    lineaProximoPago,
-    proximoPago,
-  } from '../model/resumen';
-  import { masAdelante, salidaPorDefecto, semanaDeSalidas } from '../model/semana';
-  import { reservasPorFecha, type EstadoQuienes, type QuienViaja, type ResenaReciente } from '../model/quienes-van';
+  import { resenasRecientes } from '../api/resumen.api';
+  import { actividadPorDia } from '../model/calendario';
+  import { diaLargo } from '../model/fechas';
+  import { periodoInicial, textoChip, type Periodo } from '../model/periodo';
+  import { avisosResumen, cifrasDelPeriodo, kpiProximoPago, kpisDelPeriodo, proximoPago } from '../model/resumen';
+  import { salidasDeAgencia, salidasDelPeriodo } from '../model/salidas';
+  import type { ResenaReciente } from '../model/quienes-van';
   import { tusPlanes } from '../model/tus-planes';
   import { resenasParaMostrar } from '../model/resenas';
   import PorResolver from '../components/PorResolver.svelte';
-  import AgendaSemana from '../components/AgendaSemana.svelte';
-  import QuienesVan from '../components/QuienesVan.svelte';
-  import HojaQuienesVan from '../components/HojaQuienesVan.svelte';
+  import PeriodoSelector from '../components/PeriodoSelector.svelte';
+  import CifrasDelPeriodo from '../components/CifrasDelPeriodo.svelte';
+  import SalidasDelPeriodo from '../components/SalidasDelPeriodo.svelte';
   import TusPlanes from '../components/TusPlanes.svelte';
   import ResenasRecientes from '../components/ResenasRecientes.svelte';
-  import DineroDelMes from '../components/DineroDelMes.svelte';
 
   const hoy = new Date();
-
-  /** Por debajo de 1024 px el panel lateral pasa a ser una hoja inferior (como la barra de navegación). */
-  const celular = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? new MediaQuery('max-width: 1023.98px') : null;
-  const esCelular = $derived(celular?.current ?? false);
+  const hoyISO = fechaBogota(hoy);
 
   let cargando = $state(true);
   let error = $state('');
@@ -56,21 +46,20 @@
   let resenas = $state<ResenaReciente[] | null>(null);
   let logoAbierto = $state(false);
 
-  let desplazamiento = $state<0 | 1>(0);
-  let seleccionId = $state<string | null>(null);
-  let hojaAbierta = $state(false);
-  let abridor: HTMLElement | null = null;
-  let quienesEstado = $state<EstadoQuienes>('ok');
-  let quienesFilas = $state<QuienViaja[]>([]);
-  /** Solo vale la última petición de «Quiénes van»: si se cambia de semana antes de que llegue una, se descarta. */
+  /** El período elegido (lo que dice el chip) y el de las cifras que se ven: difieren mientras llegan las ventas del nuevo. */
+  let periodo = $state<Periodo>(periodoInicial(hoy));
+  let periodoMostrado = $state<Periodo>(periodoInicial(hoy));
+  let cargandoPeriodo = $state(false);
+  let errorPeriodo = $state('');
+  /** Solo vale la última petición de ventas: si se cambia de período antes de que llegue una, se descarta. */
   let peticion = 0;
 
   async function cargar() {
     cargando = true;
     error = '';
     try {
-      // Viajes del mes en curso: lo que se vendió y lo que corresponde. Las salidas salen de los planes.
-      const r = await misVentas({ desde: desdeResumen(hoy) });
+      // Viajes del período inicial: lo que se vendió y lo que corresponde. Las salidas salen de los planes.
+      const r = await misVentas({ desde: periodoMostrado.desde, hasta: periodoMostrado.hasta });
       agencia = r.agencia;
       planes = r.planes;
       ventasLista = r.ventas;
@@ -84,8 +73,6 @@
         liquidaciones = liqs;
         hayCuenta = cuentas === null ? null : cuentas.some((c) => c.agency_id === id);
         resenas = ultimas;
-        seleccionId = salidaPorDefecto(semana);
-        cargarQuienes();
       }
     } catch (e) {
       error = mensajeError(e);
@@ -94,44 +81,34 @@
     }
   }
 
-  /** Quiénes van en TODAS las salidas de la semana mostrada: una llamada por semana, no una por salida. */
-  async function cargarQuienes() {
+  /** Trae las ventas de los viajes del período elegido; mientras tanto se siguen viendo las del anterior. */
+  async function cargarPeriodo() {
     const mia = ++peticion;
-    const ids = semana.dias.flatMap((d) => d.salidas.map((s) => s.id));
-    if (ids.length === 0) {
-      quienesFilas = [];
-      quienesEstado = 'ok';
+    const p = periodo;
+    errorPeriodo = '';
+    if (!agencia) return;
+    if (p.desde === periodoMostrado.desde && p.hasta === periodoMostrado.hasta) {
+      // Mismos días que ya están cargados (p. ej. «Este mes» y ese mes elegido a mano): no hay nada que pedir.
+      periodoMostrado = p;
+      cargandoPeriodo = false;
       return;
     }
-    quienesEstado = 'cargando';
+    cargandoPeriodo = true;
     try {
-      const filas = await quienesVan(ids);
+      const filas = await ventas(agencia.id, p.desde, p.hasta);
       if (mia !== peticion) return;
-      quienesFilas = filas;
-      quienesEstado = 'ok';
-    } catch {
-      if (mia === peticion) quienesEstado = 'error';
+      ventasLista = filas;
+      periodoMostrado = p;
+    } catch (e) {
+      if (mia === peticion) errorPeriodo = mensajeError(e);
+    } finally {
+      if (mia === peticion) cargandoPeriodo = false;
     }
   }
 
-  function elegirSemana(n: 0 | 1) {
-    if (n === desplazamiento) return;
-    desplazamiento = n;
-    seleccionId = salidaPorDefecto(semana);
-    hojaAbierta = false;
-    cargarQuienes();
-  }
-
-  function seleccionar(id: string, el: HTMLElement) {
-    seleccionId = id;
-    abridor = el;
-    if (esCelular) hojaAbierta = true;
-  }
-
-  async function cerrarHoja() {
-    hojaAbierta = false;
-    await tick();
-    abridor?.focus();
+  function elegirPeriodo(p: Periodo) {
+    periodo = p;
+    cargarPeriodo();
   }
 
   function logoActualizado(logoUrl: string | null) {
@@ -141,26 +118,24 @@
   // Carga al montar (initState): llamada directa, sin $effect.
   cargar();
 
-  const semana = $derived(semanaDeSalidas(planes, desplazamiento, hoy));
-  const despues = $derived(masAdelante(planes, semana.fin, hoy));
-  const salidaElegida = $derived(semana.dias.flatMap((d) => d.salidas).find((s) => s.id === seleccionId) ?? null);
-  const reservas = $derived((salidaElegida && reservasPorFecha(quienesFilas).get(salidaElegida.id)) || []);
+  const todas = $derived(salidasDeAgencia(planes, hoy));
+  /** Los viajeros por día del calendario salen de los cupos tomados de todas las salidas ya cargadas, de cualquier mes. */
+  const actividad = $derived(actividadPorDia(todas));
+  const delPeriodo = $derived(salidasDelPeriodo(todas, ventasLista, periodoMostrado));
+  const kpis = $derived(kpisDelPeriodo(cifrasDelPeriodo(delPeriodo, ventasLista, periodoMostrado), agencia?.comision_pct ?? 0));
   const avisos = $derived(agencia ? avisosResumen({ agencia, planes, hayCuenta, hoy }) : []);
-  const cabecera = $derived(agencia ? estadoCabecera(agencia, hoy) : null);
-  const pago = $derived(liquidaciones ? proximoPago(liquidaciones, hoy) : null);
+  const pago = $derived(kpiProximoPago(liquidaciones ? proximoPago(liquidaciones, hoy) : null, liquidaciones !== null));
+  /** Lo que depende del período se atenúa mientras llegan sus cifras. */
+  const atenuado = $derived(cargandoPeriodo ? 'opacity-60 transition-opacity' : 'transition-opacity');
 </script>
-
-{#snippet detalle()}
-  <QuienesVan salida={salidaElegida} estado={quienesEstado} {reservas} onreintentar={cargarQuienes} />
-{/snippet}
 
 {#if cargando}
   <Pagina>
     <div class="space-y-4" role="status" aria-label="Cargando">
-      <Skeleton clase="h-14 w-80 max-w-full rounded-lg" />
-      <Skeleton clase="h-[96px]" />
-      <Skeleton clase="h-[360px]" />
-      <Skeleton clase="h-[200px]" />
+      <Skeleton clase="h-14 w-80 max-w-full rounded-hoja-chica" />
+      <Skeleton clase="h-24 rounded-hoja-chica" />
+      <Skeleton clase="h-24 rounded-hoja-chica" />
+      <Skeleton clase="h-[360px] rounded-hoja-chica" />
     </div>
   </Pagina>
 {:else if error}
@@ -169,25 +144,16 @@
   <Empty icono="edificio" titulo="Aún no tienes agencia" mensaje="Registra tu agencia para empezar." />
 {:else}
   <Pagina>
-    <PageHeader titulo="Buen día, {agencia.nombre}">
+    <PageHeader titulo="Resumen">
       {#snippet contexto()}
-        <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          {#if cabecera}
-            <StatusPill estado={cabecera.estado} />
-            {#if cabecera.detalle}<span class="font-titulo">{cabecera.detalle}</span>{/if}
-          {/if}
-          <button
-            type="button"
-            class="enlace rounded text-[12.5px] underline underline-offset-2"
-            aria-expanded={logoAbierto}
-            aria-controls="panel-logo"
-            onclick={() => (logoAbierto = !logoAbierto)}
-          >
-            Cambiar logo
-          </button>
-        </span>
+        <time datetime={hoyISO}>{diaLargo(hoyISO)} de {hoyISO.slice(0, 4)}</time>
+        ·
+        <button type="button" class="enlace rounded" aria-expanded={logoAbierto} aria-controls="panel-logo" onclick={() => (logoAbierto = !logoAbierto)}>
+          Cambiar logo
+        </button>
       {/snippet}
       {#snippet accion()}
+        <PeriodoSelector {periodo} {actividad} {hoy} cargando={cargandoPeriodo} onelegir={elegirPeriodo} />
         <a class="btn btn-primario" href="#/planes/nuevo">
           <Icono trazo={ICONOS.mas} clase="size-4" />
           Nuevo plan
@@ -199,41 +165,33 @@
       <div id="panel-logo" class="mt-4"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
     {/if}
 
+    <p class="sr-only" role="status">{cargandoPeriodo ? `Actualizando las cifras de ${textoChip(periodo, hoy)}…` : ''}</p>
+
     <PorResolver {avisos} />
 
-    <section class="mt-9" aria-labelledby="h-semana">
-      <div class="grid grid-cols-1 gap-6 ancho:grid-cols-[minmax(0,1fr)_clamp(336px,24vw,480px)] ancho:items-start">
-        <AgendaSemana
-          {semana}
-          {desplazamiento}
-          {seleccionId}
-          masAdelante={despues}
-          onsemana={elegirSemana}
-          onseleccionar={seleccionar}
-        />
-        {#if !esCelular}
-          <aside class="overflow-hidden rounded-[8px_30px_8px_30px] border border-linea bg-superficie" aria-labelledby="h-quienes" data-quienes>
-            <div class="relative overflow-hidden border-b border-linea bg-niebla-2 px-[22px] pt-4 pb-3">
-              <Curvas clase="-top-10 -right-[30px] h-[150px] w-[240px] text-musgo opacity-45" />
-              <h2 id="h-quienes" class="relative text-[28px] leading-[1.1]">Quiénes van</h2>
-            </div>
-            <div class="px-[22px] pt-3.5 pb-5">{@render detalle()}</div>
-          </aside>
-        {/if}
+    {#if errorPeriodo}
+      <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2" data-error-periodo>
+        <AlertaError>
+          No pudimos cargar las cifras de {textoChip(periodo, hoy)}: {errorPeriodo} Seguimos mostrando {textoChip(periodoMostrado, hoy)}.
+        </AlertaError>
+        <button type="button" class="btn btn-secundario btn-chico" onclick={cargarPeriodo}>Reintentar</button>
       </div>
-    </section>
+    {/if}
 
-    <!-- Abajo: planes y reseñas en dos columnas; con mucho ancho, la plata se suma como tercera columna -->
-    <div class="mt-11 grid gap-x-10 gap-y-9 lg:grid-cols-2 ancho:grid-cols-3 lg:items-start">
-      <TusPlanes datos={tusPlanes(planes, hoy)} />
-      <ResenasRecientes resenas={resenas === null ? null : resenasParaMostrar(resenas, hoy)} />
-      <div class="lg:col-span-2 ancho:col-span-1">
-        <DineroDelMes dinero={dineroDelMes(ventasLista, agencia.comision_pct, hoy)} proximo={lineaProximoPago(pago, liquidaciones !== null)} />
+    <div class="mt-5 {atenuado}" aria-busy={cargandoPeriodo}>
+      <CifrasDelPeriodo {kpis} {pago} />
+    </div>
+
+    <div class="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div class={atenuado} aria-busy={cargandoPeriodo}>
+        {#key periodoMostrado}
+          <SalidasDelPeriodo salidas={delPeriodo} periodo={periodoMostrado} onquitarfiltro={() => elegirPeriodo(periodoInicial(hoy))} />
+        {/key}
+      </div>
+      <div class="grid content-start gap-6">
+        <div class={atenuado} aria-busy={cargandoPeriodo}><TusPlanes planes={tusPlanes(delPeriodo)} /></div>
+        <ResenasRecientes resenas={resenas === null ? null : resenasParaMostrar(resenas, hoy)} />
       </div>
     </div>
   </Pagina>
-
-  {#if esCelular && hojaAbierta}
-    <HojaQuienesVan onclose={cerrarHoja}>{@render detalle()}</HojaQuienesVan>
-  {/if}
 {/if}

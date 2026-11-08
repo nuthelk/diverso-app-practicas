@@ -1,30 +1,20 @@
-/** Lógica pura del Resumen de la agencia que no es de la agenda: encabezado, avisos por resolver y plata del mes. */
+/** Lógica pura del Resumen de la agencia: avisos por resolver y las cifras del período (salidas, viajeros y plata). */
 
 import { avisoVerificacion, type TonoAviso } from '$lib/features/agencias/model/verificacion';
 import { lunesDeSemana, puedeEjecutarse, type Liquidacion } from '$lib/features/liquidaciones/model/liquidaciones';
 import { diasParaVencer, estadoVigencia, type Agency } from '$lib/features/agencias/model/agencia';
 import { fechaBogota, yaSalio, type Plan } from '$lib/features/planes/model/plan';
 import { totalesVentas, ventasPagadas, type VentaRow } from '$lib/features/ventas/model/ventas';
-import { cop } from '$lib/shared/lib/format';
-import { diaCorto, fechaConAnio, MESES_LARGOS, sumarDias } from './fechas';
+import { cop, plural } from '$lib/shared/lib/format';
+import { diaCorto, sumarDias } from './fechas';
+import type { Periodo } from './periodo';
+import type { Salida } from './salidas';
 
 /**
  * Dónde se renueva el RNT: el Registro Nacional de Turismo es externo al panel (la verificación la registra el equipo
  * Diverso con el soporte que envía la agencia). Único lugar donde vive el enlace.
  */
 export const URL_RENOVAR_RNT = 'https://rnt.rue.com.co/';
-
-/* Encabezado ------------------------------------------------------------ */
-
-/** La píldora (clave de `StatusPill`) y el texto que la acompaña bajo el saludo. */
-export function estadoCabecera(a: Agency, hoy = new Date()): { estado: string; detalle: string } {
-  if (a.estado_verificacion === 'rechazado') return { estado: 'rechazado', detalle: '' };
-  if (a.estado_verificacion === 'pendiente') return { estado: 'en_verificacion', detalle: '' };
-  const estado = estadoVigencia(a, hoy);
-  if (!a.rnt_vigente_hasta) return { estado, detalle: '' };
-  const fecha = fechaConAnio(a.rnt_vigente_hasta);
-  return { estado, detalle: estado === 'vencido' ? `venció el ${fecha}` : `hasta el ${fecha}` };
-}
 
 /* Por resolver ---------------------------------------------------------- */
 
@@ -118,34 +108,7 @@ export function avisosResumen(datos: {
   return [...avisos.filter((a) => a.urgente), ...avisos.filter((a) => !a.urgente)];
 }
 
-/* Plata del mes --------------------------------------------------------- */
-
-export interface ResumenMes {
-  mes: string;
-  vendido: number;
-  comision: number;
-  aRecibir: number;
-  reservas: number;
-}
-
-/** Desde cuándo se piden las ventas del Resumen (yyyy-mm-dd, fecha del viaje): el primer día del mes de Bogotá. */
-export function desdeResumen(hoy = new Date()): string {
-  return `${fechaBogota(hoy).slice(0, 7)}-01`;
-}
-
-/** Lo pagado en los viajes del mes en curso en Bogotá (la vista trae la fecha del viaje, no la de la compra). */
-export function resumenDelMes(ventas: VentaRow[], hoy = new Date()): ResumenMes {
-  const prefijo = fechaBogota(hoy).slice(0, 7);
-  const delMes = ventasPagadas(ventas).filter((v) => v.fecha.startsWith(prefijo));
-  const t = totalesVentas(delMes);
-  return {
-    mes: MESES_LARGOS[Number(prefijo.slice(5)) - 1],
-    vendido: t.total,
-    comision: t.comision,
-    aRecibir: t.saldo,
-    reservas: delMes.length,
-  };
-}
+/* Cifras del período -------------------------------------------------- */
 
 /** Lo que se dispersará: suma de las liquidaciones pendientes con saldo a favor, el próximo lunes (o hoy si es lunes). */
 export function proximoPago(liquidaciones: Liquidacion[], hoy = new Date()): { fecha: string; monto: number } | null {
@@ -156,31 +119,109 @@ export function proximoPago(liquidaciones: Liquidacion[], hoy = new Date()): { f
   return { fecha: lunes === hoyISO ? hoyISO : sumarDias(lunes, 7), monto };
 }
 
-export interface DineroDelMes {
-  /** «$ 6.143.280»: lo que le corresponde a la agencia. */
-  monto: string;
-  /** «Vendiste $ 6.981.000 en noviembre · comisión del 12 % ($ 837.720)» o, sin ventas, por qué es cero. */
-  desglose: string;
+export interface CifrasPeriodo {
+  salidas: number;
+  yaSalieron: number;
+  proximas: number;
+  viajeros: number;
+  cupos: number;
+  /** 0–100, de los cupos de las salidas. */
+  ocupacion: number;
+  /** Personas con reserva sin pagar en los viajes del período. */
+  pendientes: number;
+  porCobrar: number;
+  /** Lo pagado en los viajes del período. */
+  vendido: number;
+  comision: number;
+  /** Lo que le corresponde a la agencia: lo vendido menos la comisión de Diverso. */
+  aRecibir: number;
 }
 
-/** «Este mes te corresponde»: lo vendido menos la comisión que cobra Diverso a esta agencia (su `comision_pct`). */
-export function dineroDelMes(ventas: VentaRow[], comisionPct: number, hoy = new Date()): DineroDelMes {
-  const m = resumenDelMes(ventas, hoy);
+/**
+ * Las cifras de un período: salidas, viajeros y ocupación salen de las `salidas` (las del período); la plata, de las
+ * ventas de los viajes del período (la vista trae la fecha del viaje, no la de la compra).
+ */
+export function cifrasDelPeriodo(salidas: Salida[], ventas: VentaRow[], periodo: Pick<Periodo, 'desde' | 'hasta'>): CifrasPeriodo {
+  const delPeriodo = ventas.filter((v) => v.fecha >= periodo.desde && v.fecha <= periodo.hasta);
+  const pagado = totalesVentas(ventasPagadas(delPeriodo));
+  const sinPagar = delPeriodo.filter((v) => v.booking_estado === 'pendiente_pago');
+  const viajeros = salidas.reduce((s, x) => s + x.reservados, 0);
+  const cupos = salidas.reduce((s, x) => s + x.total, 0);
+  const yaSalieron = salidas.filter((s) => s.yaSalio).length;
   return {
-    monto: cop(m.aRecibir),
-    desglose:
-      m.reservas > 0
-        ? `Vendiste ${cop(m.vendido)} en ${m.mes} · comisión del ${comisionPct} % (${cop(m.comision)})`
-        : `Todavía no hay reservas pagadas en los viajes de ${m.mes}.`,
+    salidas: salidas.length,
+    yaSalieron,
+    proximas: salidas.length - yaSalieron,
+    viajeros,
+    cupos,
+    ocupacion: cupos > 0 ? Math.round((viajeros / cupos) * 100) : 0,
+    pendientes: sinPagar.reduce((s, v) => s + v.pax, 0),
+    porCobrar: sinPagar.reduce((s, v) => s + v.monto_total, 0),
+    vendido: pagado.total,
+    comision: pagado.comision,
+    aRecibir: pagado.saldo,
   };
 }
 
-/** La línea del próximo pago: el texto y, si lo hay, el monto aparte (se pinta grande). */
-export function lineaProximoPago(
+export interface Kpi {
+  clave: 'salidas' | 'viajeros' | 'pendientes' | 'corresponde';
+  etiqueta: string;
+  valor: string;
+  /** Aclara el alcance de la cifra. */
+  sub: string;
+  tono: 'neutro' | 'alerta';
+  /** La cifra de la plata, destacada sobre el monte oscuro. */
+  principal: boolean;
+}
+
+/** Las cuatro cifras del período con su texto; el próximo pago no depende del período (`kpiProximoPago`). */
+export function kpisDelPeriodo(c: CifrasPeriodo, comisionPct: number): Kpi[] {
+  return [
+    {
+      clave: 'salidas',
+      etiqueta: 'Salidas',
+      valor: String(c.salidas),
+      sub:
+        c.salidas > 0
+          ? `${c.yaSalieron} ya ${plural(c.yaSalieron, 'salió', 'salieron')} · ${c.proximas} ${plural(c.proximas, 'próxima', 'próximas')}`
+          : 'Sin salidas en el período',
+      tono: 'neutro',
+      principal: false,
+    },
+    {
+      clave: 'viajeros',
+      etiqueta: 'Viajeros',
+      valor: String(c.viajeros),
+      sub: c.cupos > 0 ? `${c.ocupacion} % de ${c.cupos} cupos` : 'Sin cupos en el período',
+      tono: 'neutro',
+      principal: false,
+    },
+    {
+      clave: 'pendientes',
+      etiqueta: 'Pagos pendientes',
+      valor: `${c.pendientes} ${plural(c.pendientes, 'persona', 'personas')}`,
+      sub: c.pendientes > 0 ? `${cop(c.porCobrar)} por cobrar` : 'Todo pagado',
+      tono: c.pendientes > 0 ? 'alerta' : 'neutro',
+      principal: false,
+    },
+    {
+      clave: 'corresponde',
+      etiqueta: 'Te corresponde',
+      valor: cop(c.aRecibir),
+      sub: c.vendido > 0 ? `Vendido ${cop(c.vendido)} · comisión ${comisionPct} %` : 'Aún sin reservas pagadas',
+      tono: 'neutro',
+      principal: true,
+    },
+  ];
+}
+
+/** La quinta cifra: cuándo y cuánto se paga; una frase simple si no hay pagos o no se pudieron consultar. */
+export function kpiProximoPago(
   pago: { fecha: string; monto: number } | null,
   consultado: boolean,
-): { texto: string; monto: string | null } {
-  if (!consultado) return { texto: 'No pudimos consultar tus pagos ahora.', monto: null };
-  if (!pago) return { texto: 'Próximo pago: no tienes pagos pendientes por ahora.', monto: null };
-  return { texto: `Próximo pago: ${diaCorto(pago.fecha)} ·`, monto: cop(pago.monto) };
+): { etiqueta: string; valor: string; sub: string } {
+  const etiqueta = 'Próximo pago';
+  if (!consultado) return { etiqueta, valor: '—', sub: 'No pudimos consultar tus pagos ahora.' };
+  if (!pago) return { etiqueta, valor: 'Sin pagos', sub: 'No tienes pagos pendientes por ahora.' };
+  return { etiqueta, valor: diaCorto(pago.fecha), sub: cop(pago.monto) };
 }

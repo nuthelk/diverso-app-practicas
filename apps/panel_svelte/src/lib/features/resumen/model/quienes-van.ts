@@ -65,11 +65,3 @@ export function reservasPorFecha(filas: QuienViaja[]): Map<string, ReservaDeSali
 export function cuposDeSalida(s: { reservados: number; total: number; libres: number }): string {
   return `${s.reservados} de ${s.total} cupos reservados · ${s.libres} ${plural(s.libres, 'libre', 'libres')}`;
 }
-
-/** Puntos de cupos: uno por cupo hasta `max`; con más cupos, proporcional (y una persona reservada siempre se ve). */
-export function puntosDeCupos(reservados: number, total: number, max = 36): { llenos: number; total: number } {
-  if (total <= 0) return { llenos: 0, total: 0 };
-  const puntos = Math.min(total, max);
-  const llenos = total <= max ? reservados : Math.round((reservados / total) * puntos);
-  return { llenos: Math.min(reservados > 0 ? Math.max(llenos, 1) : 0, puntos), total: puntos };
-}

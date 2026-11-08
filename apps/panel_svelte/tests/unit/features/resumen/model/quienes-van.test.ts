@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   cuposDeSalida,
-  puntosDeCupos,
   reservasPorFecha,
   type QuienViaja,
 } from '$lib/features/resumen/model/quienes-van';
@@ -56,24 +55,5 @@ describe('cuposDeSalida', () => {
 
   it('singulares', () => {
     expect(cuposDeSalida({ reservados: 1, total: 2, libres: 1 })).toBe('1 de 2 cupos reservados · 1 libre');
-  });
-});
-
-describe('puntosDeCupos', () => {
-  it('un punto por cupo, llenos los reservados', () => {
-    expect(puntosDeCupos(5, 24)).toEqual({ llenos: 5, total: 24 });
-  });
-
-  it('con muchos cupos reduce proporcionalmente para que quepan', () => {
-    expect(puntosDeCupos(50, 100, 40)).toEqual({ llenos: 20, total: 40 });
-  });
-
-  it('una persona reservada siempre se ve, y lleno es lleno', () => {
-    expect(puntosDeCupos(1, 200, 40)).toEqual({ llenos: 1, total: 40 });
-    expect(puntosDeCupos(200, 200, 40)).toEqual({ llenos: 40, total: 40 });
-  });
-
-  it('sin cupos no hay puntos', () => {
-    expect(puntosDeCupos(0, 0)).toEqual({ llenos: 0, total: 0 });
   });
 });
