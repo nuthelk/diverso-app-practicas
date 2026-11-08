@@ -32,7 +32,7 @@
     role={decorativo ? undefined : 'img'}
     aria-label={decorativo ? undefined : `Iniciales de ${agencia.nombre}`}
     aria-hidden={decorativo ? 'true' : undefined}
-    class="flex font-titulo shrink-0 items-center justify-center rounded-brote font-bold tracking-wide text-white"
+    class="flex shrink-0 items-center justify-center rounded-brote font-bold tracking-wide text-white"
     style="width:{tam}px;height:{tam}px;font-size:{tam * 0.36}px;background-color:{colorDeAgencia(agencia.id)}"
   >{inicialesAgencia(agencia.nombre)}</div
   >

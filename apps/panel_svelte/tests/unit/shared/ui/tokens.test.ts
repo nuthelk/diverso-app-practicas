@@ -83,9 +83,10 @@ describe('tokens de app.css', () => {
 });
 
 describe('tipografías', () => {
-  it('interfaz, títulos y cifras en Atkinson Hyperlegible Next; la serif Newsreader queda definida solo para lo que falta migrar', () => {
+  it('interfaz, títulos y cifras en Atkinson Hyperlegible Next, sin serif', () => {
     expect(css).toMatch(/--font-sans:\s*"Atkinson Hyperlegible Next", Calibri/);
-    expect(css).toMatch(/--font-titulo:\s*"Newsreader", Constantia/);
+    expect(css).not.toContain('--font-titulo');
+    expect(fuentes).not.toContain('Newsreader');
     expect(css).toMatch(/h1,\s*h2,\s*h3,\s*h4 \{\s*font-family: var\(--font-sans\)/);
     expect(css).toContain('lining-nums');
   });
@@ -119,10 +120,10 @@ describe('tipografías', () => {
 
   it('autoalojadas: solo woff2 de @fontsource, latin y latin-ext, con font-display: swap', () => {
     const caras = fuentes.match(/@font-face \{[\s\S]*?\n\}/g)!;
-    expect(caras.length).toBe(10); // Newsreader 700 + 400 cursiva, Atkinson 400/600/700 × latin y latin-ext
+    expect(caras.length).toBe(6); // Atkinson 400/600/700 × latin y latin-ext
     for (const c of caras) {
       expect(c).toContain('font-display: swap');
-      expect(c).toMatch(/url\('@fontsource\/(newsreader|atkinson-hyperlegible-next)\/files\/[\w-]+-(latin|latin-ext)-\d+-(normal|italic)\.woff2'\) format\('woff2'\)/);
+      expect(c).toMatch(/url\('@fontsource\/atkinson-hyperlegible-next\/files\/[\w-]+-(latin|latin-ext)-\d+-(normal|italic)\.woff2'\) format\('woff2'\)/);
       expect(c).toContain('unicode-range');
       expect(c).not.toMatch(/\.woff['")]/);
     }

@@ -23,8 +23,6 @@
 @theme {
   /* Interfaz, títulos y cifras: una sola familia. */
   --font-sans: "Atkinson Hyperlegible Next", Calibri, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  /* Serif de apoyo (Newsreader): el marco y la base ya no la usan; solo quedan en ella las pantallas por migrar. */
-  --font-titulo: "Newsreader", Constantia, "Palatino Linotype", Cambria, Georgia, serif;
 
   /* Escala tipográfica de 7 pasos (`text-detalle`…) con su interlineado. */
   --text-nota: 12px;
@@ -555,8 +553,9 @@ body {
   border-width: 1px 0 0 1px;
   border-radius: 0;
 }
+/* Se pasa a 3 columnas solo si hay más de 3 cifras: una franja de 2 no deja una celda vacía. */
 @media (max-width: 1180px) {
-  .franja {
+  .franja:has(> :nth-child(4)) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
