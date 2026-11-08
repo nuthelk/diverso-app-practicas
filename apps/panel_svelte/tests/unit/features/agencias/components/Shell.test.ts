@@ -16,6 +16,7 @@ vi.mock('$lib/features/auth/model/auth.svelte', () => ({
 import { irA } from '$tests/pagina-falsa.svelte';
 import { signOut } from '$lib/features/auth/model/auth.svelte';
 import { miAgencia } from '$lib/features/agencias/api/agencias.api';
+import { tema } from '$lib/shared/lib/tema.svelte';
 import Shell from '$lib/features/agencias/components/Shell.svelte';
 
 const children = createRawSnippet(() => ({ render: () => '<p>contenido de la página</p>' }));
@@ -24,30 +25,48 @@ afterEach(() => {
   cleanup(); // desmonta antes de reiniciar los mocks: el efecto de Shell vuelve a llamar a miAgencia
   vi.resetAllMocks();
   irA('/');
+  tema.preferencia = 'sistema';
+  document.documentElement.classList.remove('dark');
+  localStorage.clear();
 });
 
-describe('Shell · navegación', () => {
-  it('ofrece Liquidaciones y Cuenta para dispersiones además de Resumen, Planes y Ventas', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
+const SECCIONES = ['Resumen', 'Planes', 'Ventas', 'Liquidaciones', 'Cuenta para dispersiones'];
+const RUTAS = ['#/dashboard', '#/planes', '#/ventas', '#/liquidaciones', '#/cuenta-dispersiones'];
 
-    const href = (nombre: string | RegExp) => screen.getAllByRole('link', { name: nombre }).map((a) => a.getAttribute('href'));
-    expect(href('Resumen')).toContain('#/dashboard');
-    expect(href('Planes')).toContain('#/planes');
-    expect(href('Ventas')).toContain('#/ventas');
-    expect(href('Liquidaciones')).toEqual(['#/liquidaciones', '#/liquidaciones']); // barra lateral + inferior móvil
-    expect(href('Cuenta para dispersiones')).toEqual(['#/cuenta-dispersiones']);
-    expect(href('Cuenta')).toContain('#/cuenta-dispersiones'); // etiqueta corta en la barra inferior móvil
+/** Pinta el marco y espera a que cargue la agencia (el botón de la cuenta toma su nombre). */
+async function pintar(parcial = {}) {
+  vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours', ...parcial }));
+  const r = render(Shell, { children });
+  await screen.findByRole('button', { name: 'Cuenta de Comuna 13 Graffiti Tours' });
+  return r;
+}
+const seccionesNav = () => screen.getByRole('navigation', { name: 'Secciones del panel' });
+
+describe('Shell · navegación', () => {
+  it('ofrece Resumen, Planes, Ventas, Liquidaciones y Cuenta para dispersiones, en ese orden', async () => {
+    await pintar();
+    const enlaces = within(seccionesNav()).getAllByRole('link');
+    expect(enlaces.map((a) => a.getAttribute('aria-label') ?? texto(a))).toEqual(SECCIONES);
+    expect(enlaces.map((a) => a.getAttribute('href'))).toEqual(RUTAS);
+  });
+
+  it('la etiqueta corta «Cuenta» está en el enlace de Cuenta para dispersiones, que conserva el nombre completo', async () => {
+    await pintar();
+    const cuenta = within(seccionesNav()).getByRole('link', { name: 'Cuenta para dispersiones' });
+    expect(within(cuenta).getByText('Cuenta')).toBeTruthy();
   });
 
   it('marca la sección activa también en el detalle de una liquidación', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
     irA('/liquidaciones/liq-1');
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
+    await pintar();
     const activos = screen.getAllByRole('link', { current: 'page' }).map((a) => a.getAttribute('href'));
-    expect(activos).toEqual(['#/liquidaciones', '#/liquidaciones']);
+    expect(activos).toEqual(['#/liquidaciones']);
+  });
+
+  it('fuera de las secciones (registro de la agencia) ninguna pestaña queda activa', async () => {
+    irA('/onboarding');
+    await pintar();
+    expect(screen.queryAllByRole('link', { current: 'page' })).toEqual([]);
   });
 
   it('el aviso del RNT va en todas las secciones menos en el Resumen, que ya lo muestra arriba', async () => {
@@ -62,7 +81,7 @@ describe('Shell · navegación', () => {
 
       irA('/dashboard');
       render(Shell, { children });
-      await screen.findAllByText('Aventuras Antioquia');
+      await screen.findByRole('button', { name: 'Cuenta de Aventuras Antioquia' });
       expect(screen.queryByText(/Tu RNT vence el/)).toBeNull();
     } finally {
       vi.useRealTimers();
@@ -76,129 +95,106 @@ describe('Shell · navegación', () => {
   });
 });
 
-describe('Shell · marca, agencia y barra superior', () => {
-  it('riel: el colibrí con «Diverso / Panel de agencias», el carnet de la agencia con ciudad y verificación, y el sendero', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours' }));
-    render(Shell, { children });
-    await screen.findAllByText('Comuna 13 Graffiti Tours');
-
+describe('Shell · barra superior', () => {
+  it('lleva el colibrí real con «Diverso / Panel de agencias» y un solo enlace al Resumen desde la marca', async () => {
+    const { container } = await pintar();
     expect(screen.getByText('Panel de agencias')).toBeTruthy();
-    expect(screen.getAllByRole('link', { name: 'Diverso, panel de agencias, ir al resumen' }).map((a) => a.getAttribute('href'))).toEqual([
-      '#/dashboard',
-      '#/dashboard',
-    ]); // riel + barra del celular
-    const carnet = screen.getByRole('group', { name: 'Agencia activa' });
-    expect(texto(carnet)).toContain('Comuna 13 Graffiti Tours');
-    expect(texto(carnet)).toContain('Medellín');
-    expect(within(carnet).getByText('Verificada')).toBeTruthy();
-    expect(screen.queryByText('GESTIÓN')).toBeNull();
-    const nav = screen.getByRole('navigation', { name: 'Secciones del panel' });
-    expect(within(nav).getAllByRole('link').map((a) => a.textContent?.trim())).toEqual([
-      'Resumen',
-      'Planes',
-      'Ventas',
-      'Liquidaciones',
-      'Cuenta para dispersiones',
-    ]);
+    expect(screen.getAllByRole('link', { name: 'Diverso, panel de agencias, ir al resumen' }).map((a) => a.getAttribute('href'))).toEqual(['#/dashboard']);
+    const marca = screen.getByRole('link', { name: 'Diverso, panel de agencias, ir al resumen' });
+    expect(marca.querySelector('span[style*="logo_diverso.png"]')).toBeTruthy(); // el componente Logo, no una letra
+    expect(texto(marca)).not.toMatch(/^D\b/);
+    expect(container.querySelector('header')).toBeTruthy();
   });
 
-  it('el riel y la cabecera llevan solo decoración aria-hidden (colibrí aparte): nada de ruido para el lector de pantalla', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    const { container } = render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
+  it('no hay migas ni riel lateral: la ubicación la dice la pestaña activa', async () => {
+    irA('/planes/nuevo');
+    const { container } = await pintar();
+    expect(container.querySelector('[data-migas]')).toBeNull();
+    expect(screen.queryByText('Panel · Planes')).toBeNull();
+    expect(container.querySelector('aside')).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Agencia activa' })).toBeNull();
+    expect(within(seccionesNav()).getByRole('link', { current: 'page' }).getAttribute('href')).toBe('#/planes');
+  });
+
+  it('la barra superior y las pestañas llevan solo decoración aria-hidden: nada de ruido para el lector de pantalla', async () => {
+    const { container } = await pintar();
     const svgs = [...container.querySelectorAll('svg')].filter((s) => s.getAttribute('aria-hidden') !== 'true');
     expect(svgs).toEqual([]);
   });
 
-  it('la cabecera dice dónde estás, la fecha de hoy en Bogotá y que los pagos son de prueba', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    irA('/planes/nuevo');
-    const { container } = render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
-    expect(texto(container.querySelector('[data-migas]'))).toBe('Panel · Planes');
-    expect(screen.getAllByText('Modo de prueba: los pagos no mueven dinero real').length).toBeGreaterThan(0);
+  it('«Saltar al contenido» lleva el foco al contenido sin cambiar la ruta', async () => {
+    await pintar();
+    await fireEvent.click(screen.getByRole('button', { name: 'Saltar al contenido' }));
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+    expect(window.location.hash).toBe('');
   });
 
-  it('la fecha de la cabecera es la de Bogotá, no la de la zona del navegador', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
+  it('un solo «Modo de prueba»: ni en la franja ni en el contenido se repite', async () => {
+    const { container } = await pintar();
+    expect(container.querySelectorAll('.prueba')).toHaveLength(1);
+    expect(screen.getAllByText(/Modo de prueba/)).toHaveLength(1);
+    expect(texto(container.querySelector('.prueba'))).toBe('Modo de prueba: los pagos no mueven dinero real');
+    expect(container.querySelector('.prueba')?.getAttribute('role')).toBe('status');
+  });
+});
+
+describe('Shell · cuenta', () => {
+  const boton = () => screen.getByRole('button', { name: 'Cuenta de Comuna 13 Graffiti Tours' });
+  const panel = () => document.getElementById(boton().getAttribute('aria-controls')!)!;
+
+  it('un solo botón de cuenta, cerrado al llegar', async () => {
+    await pintar();
+    expect(screen.getAllByRole('button', { name: /^Cuenta de / })).toHaveLength(1);
+    expect(boton().getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).toBeNull();
+  });
+
+  it('abierto: nombre y estado de la agencia (una vez), Términos y privacidad, tema y Cerrar sesión', async () => {
+    await pintar();
+    await fireEvent.click(boton());
+    const menu = panel();
+    expect(within(menu).getAllByText('Comuna 13 Graffiti Tours')).toHaveLength(1);
+    expect(texto(menu)).toContain('Medellín');
+    expect(within(menu).getByText('Verificada')).toBeTruthy();
+    expect(within(menu).getByRole('link', { name: 'Términos y privacidad' }).getAttribute('href')).toBe('#/legal/terminos-agencias');
+    await fireEvent.click(within(menu).getByRole('button', { name: 'Cerrar sesión' }));
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it('el estado de la agencia aparece una sola vez en todo el marco', async () => {
+    await pintar();
+    expect(screen.getAllByText('Verificada')).toHaveLength(1);
+    expect(screen.getAllByText('Comuna 13 Graffiti Tours')).toHaveLength(1);
+  });
+
+  it('una agencia con la vigencia del RNT por vencer ve las dos píldoras dentro del menú', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2026-11-04T03:00:00Z')); // 22:00 del martes 3 en Bogotá (UTC−5)
+    vi.setSystemTime(new Date(2026, 9, 25, 12));
     try {
-      const { container } = render(Shell, { children });
-      await screen.findAllByText('Aventuras Antioquia');
-      const hora = container.querySelector('time')!;
-      expect(texto(hora)).toBe('Martes, 3 de noviembre de 2026');
-      expect(hora.getAttribute('datetime')).toBe('2026-11-03');
+      await pintar({ rnt_vigente_hasta: '2026-11-10' });
+      expect(screen.getByText('RNT por vencer')).toBeTruthy();
+      expect(screen.getAllByText('RNT por vencer')).toHaveLength(1);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('fuera del menú (registro de la agencia) la ubicación es solo «Panel»', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    irA('/onboarding');
-    const { container } = render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
-    expect(texto(container.querySelector('[data-migas]'))).toBe('Panel');
-  });
-
-  it('«Saltar al contenido» lleva el foco al contenido sin cambiar la ruta', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
-    await fireEvent.click(screen.getByRole('button', { name: 'Saltar al contenido' }));
-    expect(document.activeElement).toBe(screen.getByRole('main'));
-    expect(window.location.hash).toBe('');
-  });
-});
-
-describe('Shell · menú del usuario', () => {
-  async function pintar(parcial = {}) {
-    vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours', ...parcial }));
-    const r = render(Shell, { children });
-    await screen.findAllByText('Comuna 13 Graffiti Tours');
-    return r;
-  }
-  const boton = () => screen.getByRole('button', { name: 'Mi cuenta' });
-
-  it('arranca cerrado y se llama «Mi cuenta»', async () => {
-    await pintar();
-    expect(boton().textContent).toContain('Mi cuenta');
-    expect(boton().getAttribute('aria-expanded')).toBe('false');
-    expect(boton().getAttribute('aria-haspopup')).toBe('true');
-    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).toBeNull();
-  });
-
-  it('se abre con el botón y ofrece Términos y privacidad, tema y Cerrar sesión', async () => {
+  it('el menú no repite las secciones: es de la cuenta', async () => {
     await pintar();
     await fireEvent.click(boton());
+    expect(within(panel()).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['#/legal/terminos-agencias']);
+  });
+
+  it('con el teclado: se abre, el foco entra, Escape lo cierra y el foco vuelve al botón', async () => {
+    await pintar();
+    boton().focus();
+    await fireEvent.keyDown(boton(), { key: 'ArrowDown' });
+    await tick();
     expect(boton().getAttribute('aria-expanded')).toBe('true');
-    const menu = document.getElementById(boton().getAttribute('aria-controls')!)!;
-    expect(menu.hasAttribute('hidden')).toBe(false);
-    expect(within(menu).getByRole('link', { name: 'Términos y privacidad' }).getAttribute('href')).toBe(
-      '#/legal/terminos-agencias',
-    );
-    expect(within(menu).getByRole('button', { name: 'Modo oscuro' })).toBeTruthy();
-    await fireEvent.click(within(menu).getByRole('button', { name: 'Cerrar sesión' }));
-    expect(signOut).toHaveBeenCalledTimes(1);
-  });
-
-  it('Escape lo cierra y devuelve el foco al botón', async () => {
-    await pintar();
-    await fireEvent.click(boton());
-    await fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(panel().contains(document.activeElement)).toBe(true);
+    await fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
     expect(boton().getAttribute('aria-expanded')).toBe('false');
     expect(document.activeElement).toBe(boton());
-  });
-
-  it('un clic dentro del menú lo deja abierto; fuera lo cierra', async () => {
-    await pintar();
-    await fireEvent.click(boton());
-    const menu = document.getElementById(boton().getAttribute('aria-controls')!)!;
-    await fireEvent.click(menu);
-    expect(boton().getAttribute('aria-expanded')).toBe('true');
-    await fireEvent.click(document.body);
-    expect(boton().getAttribute('aria-expanded')).toBe('false');
   });
 
   it('al navegar a otra sección se cierra', async () => {
@@ -211,75 +207,56 @@ describe('Shell · menú del usuario', () => {
 });
 
 describe('Shell · tema', () => {
-  afterEach(() => {
-    document.documentElement.classList.remove('dark');
-    localStorage.clear();
+  it('hay UN solo control de tema (Sistema / Claro / Oscuro) en todo el marco, dentro del menú de cuenta', async () => {
+    const { container } = await pintar();
+    expect(screen.getAllByRole('radiogroup', { hidden: true })).toHaveLength(1);
+    expect(screen.getAllByRole('radio', { hidden: true })).toHaveLength(3);
+    expect(screen.queryByRole('button', { name: /modo (oscuro|claro)/i, hidden: true })).toBeNull();
+    expect(container.querySelector('[aria-pressed]')).toBeNull(); // el interruptor de la barra de antes
+    const boton = screen.getByRole('button', { name: 'Cuenta de Comuna 13 Graffiti Tours' });
+    expect(document.getElementById(boton.getAttribute('aria-controls')!)!.contains(screen.getByRole('radiogroup', { hidden: true }))).toBe(true);
   });
 
-  async function pintar() {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
-  }
-
-  it('el botón de la barra alterna claro/oscuro, lo recuerda y lo anuncia con aria-pressed', async () => {
-    document.documentElement.classList.remove('dark');
+  it('elegir «Oscuro» en el menú de cuenta pone la página en oscuro', async () => {
     await pintar();
-    const tema = screen.getByRole('button', { name: 'Modo oscuro', pressed: false });
-    await fireEvent.click(tema);
+    await fireEvent.click(screen.getByRole('button', { name: 'Cuenta de Comuna 13 Graffiti Tours' }));
+    await fireEvent.click(screen.getByRole('radio', { name: 'Oscuro' }));
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(localStorage.getItem('diverso-panel-theme')).toBe('dark');
-    expect(tema.getAttribute('aria-pressed')).toBe('true');
-    await fireEvent.click(tema);
-    expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(localStorage.getItem('diverso-panel-theme')).toBe('light');
-    expect(tema.getAttribute('aria-pressed')).toBe('false');
-  });
-
-  it('el ítem del menú de usuario hace lo mismo y cambia su texto a «Modo claro»', async () => {
-    document.documentElement.classList.remove('dark');
-    await pintar();
-    const usuario = screen.getByRole('button', { name: 'Mi cuenta' });
-    await fireEvent.click(usuario);
-    const menu = document.getElementById(usuario.getAttribute('aria-controls')!)!;
-    await fireEvent.click(within(menu).getByRole('button', { name: 'Modo oscuro' }));
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(within(menu).getByRole('button', { name: 'Modo claro' })).toBeTruthy();
+    expect(localStorage.getItem('diverso-panel-theme')).toBe('oscuro');
   });
 });
 
-describe('Shell · móvil', () => {
-  it('ya no hay botón de hamburguesa: las cinco secciones están en la barra inferior', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
+describe('Shell · celular', () => {
+  it('sin botón de hamburguesa: las cinco secciones están en una sola barra de navegación', async () => {
+    await pintar();
     expect(screen.queryByRole('button', { name: /menú/i })).toBeNull();
+    expect(screen.getAllByRole('navigation')).toHaveLength(1);
   });
 
-  it('la barra inferior lleva las 5 secciones, marca la actual y respeta la zona segura del teléfono', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia());
+  it('las secciones no se duplican en el marcado: cada una tiene un solo enlace', async () => {
+    const { container } = await pintar();
+    for (const ruta of RUTAS.slice(1)) expect(container.querySelectorAll(`a[href="${ruta}"]`)).toHaveLength(1);
+    // el Resumen tiene además el enlace de la marca
+    expect(container.querySelectorAll('a[href="#/dashboard"]')).toHaveLength(2);
+  });
+
+  it('esa barra se fija abajo en pantallas angostas, respeta la zona segura del teléfono y marca la sección actual', async () => {
     irA('/ventas');
-    render(Shell, { children });
-    await screen.findAllByText('Aventuras Antioquia');
-    const nav = screen.getByRole('navigation', { name: 'Navegación inferior' });
-    expect(within(nav).getAllByRole('link').map((a) => a.textContent?.trim())).toEqual([
-      'Resumen',
-      'Planes',
-      'Ventas',
-      'Liquidaciones',
-      'Cuenta',
-    ]);
+    await pintar();
+    const nav = seccionesNav();
+    expect(nav.getAttribute('class')).toContain('max-lg:fixed');
+    expect(nav.getAttribute('class')).toContain('max-lg:pb-[env(safe-area-inset-bottom)]');
     expect(within(nav).getAllByRole('link', { current: 'page' }).map((a) => a.getAttribute('href'))).toEqual(['#/ventas']);
-    expect(nav.getAttribute('class')).toContain('pb-[env(safe-area-inset-bottom)]');
-    expect(nav.getAttribute('class')).toContain('lg:hidden');
   });
 
-  it('la barra superior del celular muestra la agencia y el modo de prueba va en su propia franja', async () => {
-    vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours' }));
-    render(Shell, { children });
-    await screen.findAllByText('Comuna 13 Graffiti Tours');
-    expect(screen.getByText('Diverso · Panel de agencias')).toBeTruthy();
-    const franjas = screen.getAllByText('Modo de prueba: los pagos no mueven dinero real');
-    expect(franjas.some((f) => f.getAttribute('class')?.includes('ancho:hidden'))).toBe(true);
+  it('el menú de cuenta se alcanza desde la barra superior, sin pasar por la navegación', async () => {
+    const { container } = await pintar();
+    const cabecera = container.querySelector('header')!;
+    expect(within(cabecera).getByRole('button', { name: 'Cuenta de Comuna 13 Graffiti Tours' })).toBeTruthy();
+  });
+
+  it('el contenido deja sitio a la barra inferior', async () => {
+    await pintar();
+    expect(screen.getByRole('main').getAttribute('class')).toContain('max-lg:pb-[calc(84px+env(safe-area-inset-bottom))]');
   });
 });
