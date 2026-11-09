@@ -10,10 +10,6 @@ vi.mock('$lib/features/liquidaciones/api/liquidaciones.api', () => ({
   misLiquidaciones: vi.fn(),
   cuentasResumen: vi.fn(),
 }));
-vi.mock('$lib/features/agencias/api/agencias.api', () => ({
-  subirLogo: vi.fn(),
-  quitarLogo: vi.fn(),
-}));
 vi.mock('$lib/features/resumen/api/resumen.api', () => ({
   quienesVan: vi.fn(),
   resenasRecientes: vi.fn(),
@@ -21,7 +17,6 @@ vi.mock('$lib/features/resumen/api/resumen.api', () => ({
 
 import { cuentasResumen, misLiquidaciones } from '$lib/features/liquidaciones/api/liquidaciones.api';
 import { misVentas, ventas } from '$lib/features/ventas/api/ventas.api';
-import { quitarLogo, subirLogo } from '$lib/features/agencias/api/agencias.api';
 import { quienesVan, resenasRecientes } from '$lib/features/resumen/api/resumen.api';
 import ResumenPage from '$lib/features/resumen/pages/ResumenPage.svelte';
 import { URL_RENOVAR_RNT } from '$lib/features/resumen/model/resumen';
@@ -161,34 +156,15 @@ describe('ResumenPage · encabezado', () => {
     expect(screen.getByRole('link', { name: 'Nuevo plan' }).getAttribute('href')).toBe('#/planes/nuevo');
   });
 
-  it('el logo no va en medio: «Cambiar logo» lo abre y la subida y el quitado siguen funcionando', async () => {
-    const url = 'http://127.0.0.1:54331/storage/v1/object/public/agency-logos/ag-1/logo-abc.png';
+  it('«Cambiar logo» ya no está aquí: el logo se cambia en el perfil de la agencia', async () => {
     cargar({ agencia: agencia({ id: 'ag-1' }) });
-    vi.mocked(subirLogo).mockResolvedValue(url);
-    vi.mocked(quitarLogo).mockResolvedValue();
-    await pintar();
+    const { container } = await pintar();
+    expect(screen.queryByRole('button', { name: 'Cambiar logo' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Logo' })).toBeNull();
     expect(screen.queryByLabelText('Archivo del logo')).toBeNull();
-
-    const abrir = screen.getByRole('button', { name: 'Cambiar logo' });
-    expect(abrir.getAttribute('aria-expanded')).toBe('false');
-    await fireEvent.click(abrir);
-    expect(abrir.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByRole('heading', { name: 'Logo' })).toBeTruthy();
-    expect(screen.getByRole('img', { name: 'Iniciales de Aventuras Antioquia' })).toBeTruthy();
-
-    const archivo = new File([new Uint8Array(1000)], 'logo.png', { type: 'image/png' });
-    await fireEvent.change(screen.getByLabelText('Archivo del logo'), { target: { files: [archivo] } });
-    const img = (await screen.findByRole('img', { name: 'Logo de Aventuras Antioquia' })) as HTMLImageElement;
-    expect(img.getAttribute('src')).toBe(url);
-    expect(vi.mocked(subirLogo)).toHaveBeenCalledWith(expect.objectContaining({ id: 'ag-1' }), archivo);
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Quitar logo' }));
-    await screen.findByRole('img', { name: 'Iniciales de Aventuras Antioquia' });
-    expect(vi.mocked(quitarLogo)).toHaveBeenCalledWith(expect.objectContaining({ logo_url: url }));
-
-    await fireEvent.click(abrir); // se vuelve a cerrar
-    expect(screen.queryByRole('heading', { name: 'Logo' })).toBeNull();
+    expect(texto(container)).not.toMatch(/logo/i);
+    // el resto del encabezado sigue igual: la fecha de hoy va sin el enlace que había detrás
+    expect(texto(container.querySelector('header p'))).toBe('Martes 3 de noviembre de 2026');
   });
 
   it('pide las ventas de los viajes del mes en curso (Bogotá), de su primer a su último día', async () => {

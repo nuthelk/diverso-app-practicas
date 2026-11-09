@@ -130,6 +130,43 @@ describe('MenuCuenta', () => {
   });
 });
 
+describe('MenuCuenta · enlaces propios', () => {
+  const PERFIL = [{ ruta: '/perfil', texto: 'Perfil de la agencia', icono: 'M3 21h18' }];
+  const enlaces = () => within(panel()).getAllByRole('link').map((a) => a.getAttribute('href'));
+
+  it('con enlaces los muestra arriba de Términos y privacidad, apuntando a la ruta del panel', async () => {
+    pintar({ enlaces: PERFIL });
+    await fireEvent.click(boton());
+    expect(enlaces()).toEqual(['#/perfil', '#/legal/terminos-agencias']);
+    expect(within(panel()).getByRole('link', { name: 'Perfil de la agencia' })).toBeTruthy();
+  });
+
+  it('sin enlaces (el admin) no aparece ninguno propio', async () => {
+    pintar();
+    await fireEvent.click(boton());
+    expect(within(panel()).queryByRole('link', { name: 'Perfil de la agencia' })).toBeNull();
+    expect(enlaces()).toEqual(['#/legal/terminos-agencias']);
+  });
+
+  it('marca aria-current="page" solo en la ruta en la que estás', async () => {
+    pintar({ enlaces: PERFIL });
+    await fireEvent.click(boton());
+    expect(within(panel()).getByRole('link', { name: 'Perfil de la agencia' }).hasAttribute('aria-current')).toBe(false);
+    irA('/perfil');
+    await tick();
+    await fireEvent.click(boton());
+    expect(within(panel()).getByRole('link', { name: 'Perfil de la agencia' }).getAttribute('aria-current')).toBe('page');
+    expect(within(panel()).getByRole('link', { name: 'Términos y privacidad' }).hasAttribute('aria-current')).toBe(false);
+  });
+
+  it('al abrir, el foco entra por el primer enlace propio', async () => {
+    pintar({ enlaces: PERFIL });
+    await fireEvent.click(boton());
+    await tick();
+    expect(document.activeElement).toBe(within(panel()).getByRole('link', { name: 'Perfil de la agencia' }));
+  });
+});
+
 describe('MenuCuenta · tema', () => {
   const radio = (nombre: string) => within(panel()).getByRole('radio', { name: nombre });
 

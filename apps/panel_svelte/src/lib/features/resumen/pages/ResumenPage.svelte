@@ -6,7 +6,6 @@
   import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import { ICONOS } from '$lib/shared/ui/iconos';
   import Empty from '$lib/shared/ui/Empty.svelte';
-  import LogoAgencia from '$lib/features/agencias/components/LogoAgencia.svelte';
   import { misVentas, ventas } from '$lib/features/ventas/api/ventas.api';
   import { misLiquidaciones, cuentasResumen } from '$lib/features/liquidaciones/api/liquidaciones.api';
   import { mensajeError } from '$lib/shared/api/errores';
@@ -44,7 +43,6 @@
   let hayCuenta = $state<boolean | null>(null);
   /** null: no se pudieron consultar. */
   let resenas = $state<ResenaReciente[] | null>(null);
-  let logoAbierto = $state(false);
 
   /** El período elegido (lo que dice el chip) y el de las cifras que se ven: difieren mientras llegan las ventas del nuevo. */
   let periodo = $state<Periodo>(periodoInicial(hoy));
@@ -111,10 +109,6 @@
     cargarPeriodo();
   }
 
-  function logoActualizado(logoUrl: string | null) {
-    if (agencia) agencia = { ...agencia, logo_url: logoUrl };
-  }
-
   // Carga al montar (initState): llamada directa, sin $effect.
   cargar();
 
@@ -147,10 +141,6 @@
     <PageHeader titulo="Resumen">
       {#snippet contexto()}
         <time datetime={hoyISO}>{diaLargo(hoyISO)} de {hoyISO.slice(0, 4)}</time>
-        ·
-        <button type="button" class="enlace rounded" aria-expanded={logoAbierto} aria-controls="panel-logo" onclick={() => (logoAbierto = !logoAbierto)}>
-          Cambiar logo
-        </button>
       {/snippet}
       {#snippet accion()}
         <PeriodoSelector {periodo} {actividad} {hoy} cargando={cargandoPeriodo} onelegir={elegirPeriodo} />
@@ -160,10 +150,6 @@
         </a>
       {/snippet}
     </PageHeader>
-
-    {#if logoAbierto}
-      <div id="panel-logo" class="mt-4"><LogoAgencia {agencia} onactualizado={logoActualizado} /></div>
-    {/if}
 
     <p class="sr-only" role="status">{cargandoPeriodo ? `Actualizando las cifras de ${textoChip(periodo, hoy)}…` : ''}</p>
 

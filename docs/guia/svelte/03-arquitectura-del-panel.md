@@ -59,11 +59,11 @@ apps/panel_svelte/
     |   |-- legal/[[doc=doc]]/              documentos legales (parámetro opcional)
     |   `-- (panel)/          grupo de rutas: no cuenta en la URL, aporta el marco con la barra de secciones
     |       |-- +layout.svelte    el Shell
-    |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/
+    |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/  perfil/
     `-- lib/              el código reutilizable (alias $lib)
         |-- features/<funcionalidad>/     cada una con pages/ components/ api/ model/
         |   |-- admin/            verificación de agencias y dispersiones (rol admin)
-        |   |-- agencias/         onboarding, logo, verificación RNT y el Shell
+        |   |-- agencias/         onboarding, perfil (logo y datos), verificación RNT y el Shell
         |   |-- auth/             login, starter, estado de sesión, guard y el menú de cuenta
         |   |-- legal/            documentos y consentimiento (Ley 1581)
         |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
@@ -564,6 +564,7 @@ que va después del `#`.
 | `#/planes/editar/<id>` | `(panel)/planes/editar/[[id]]/+page.svelte` | `Shell` | `planes/pages/PlanFormPage` |
 | `#/ventas` | `(panel)/ventas/+page.svelte` | `Shell` | `ventas/pages/VentasPage` |
 | `#/onboarding` | `(panel)/onboarding/+page.svelte` | `Shell` | `agencias/pages/OnboardingPage` |
+| `#/perfil` | `(panel)/perfil/+page.svelte` | `Shell` | `agencias/pages/PerfilAgenciaPage` (se abre desde el menú de cuenta, no es una pestaña) |
 | `#/liquidaciones/<id>` | `(panel)/liquidaciones/[id]/+page.svelte` | `Shell` | `liquidaciones/pages/LiquidacionDetallePage` |
 | cualquier otra | — | solo raíz | `routes/+error.svelte` |
 
@@ -784,7 +785,7 @@ sigue montado y solo cambia lo de dentro. Por eso el `Shell` observa la ruta (`v
 2, sección 5) para recargar el aviso de la agencia al navegar. `Shell` es la barra superior del tablero:
 la marca, las secciones (`SECCIONES`, de `model/navegacion.ts`; son las pestañas en pantallas anchas y, **la
 misma lista**, la barra inferior en el celular), un solo «Modo de prueba» y el menú de cuenta
-(`MenuCuenta`, con Términos, el tema y «Cerrar sesión»); no repite las secciones ni el estado de la agencia.
+(`MenuCuenta`, con el perfil de la agencia, Términos, el tema y «Cerrar sesión»); no repite las secciones ni el estado de la agencia.
 
 ### El guard de sesión
 

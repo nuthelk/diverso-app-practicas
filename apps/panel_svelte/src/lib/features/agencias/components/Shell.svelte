@@ -11,6 +11,7 @@
   import { page } from '$app/state';
   import { rutaActual } from '$lib/shared/lib/ruta';
   import { miAgencia } from '../api/agencias.api';
+  import { cambiosAgencia } from '../model/cambios-agencia.svelte';
   import { avisoVerificacion } from '../model/verificacion';
   import { estadoVigencia, type Agency } from '../model/agencia';
   import { esActiva, SECCIONES } from '../model/navegacion';
@@ -29,8 +30,9 @@
 
   $effect(() => {
     if (!auth.userId) return;
-    // Se recarga al navegar para reflejar cambios de verificación sin F5.
+    // Se recarga al navegar (cambios de verificación sin F5) y cuando una página la cambia (el logo del perfil).
     void path;
+    void cambiosAgencia.version;
     miAgencia()
       .then((a) => (agencia = a))
       .catch(() => {});
@@ -38,6 +40,9 @@
 
   /** Aviso principal sobre el estado de la agencia (uno a la vez, el más urgente). */
   const aviso = $derived(agencia ? avisoVerificacion(agencia) : null);
+
+  /** El perfil no es una pestaña (esas son el trabajo diario): se abre desde el menú de la cuenta. */
+  const ENLACES_CUENTA = [{ ruta: '/perfil', texto: 'Perfil de la agencia', icono: ICONOS.edificio }];
 </script>
 
 <button type="button" class="saltar" onclick={() => principal?.focus()}>Saltar al contenido</button>
@@ -90,7 +95,7 @@
       <Icono trazo={ICONOS.info} clase="size-4 max-[380px]:hidden" />
       <span>Modo de prueba<span class="max-[1180px]:hidden">: los pagos no mueven dinero real</span></span>
     </p>
-    <MenuCuenta titulo={agencia?.nombre ?? ''}>
+    <MenuCuenta titulo={agencia?.nombre ?? ''} enlaces={ENLACES_CUENTA}>
       {#snippet avatar(tam)}
         {#if agencia?.logo_url}
           <AvatarAgencia {agencia} {tam} decorativo />

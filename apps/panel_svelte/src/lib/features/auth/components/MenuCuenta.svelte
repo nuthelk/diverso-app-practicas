@@ -6,17 +6,20 @@
   import Segmentado from '$lib/shared/ui/Segmentado.svelte';
   import { ICONOS } from '$lib/shared/ui/iconos';
   import { elegirTema, tema, type Preferencia } from '$lib/shared/lib/tema.svelte';
+  import { rutaActual } from '$lib/shared/lib/ruta';
   import { signOut } from '../model/auth.svelte';
 
   /**
    * El menú de la cuenta, único en todo el panel: quién eres (título y estado), Términos y privacidad, el tema
-   * (Sistema / Claro / Oscuro, el ÚNICO control de tema) y Cerrar sesión. No lista las secciones del panel.
+   * (Sistema / Claro / Oscuro, el ÚNICO control de tema) y Cerrar sesión. No lista las secciones del panel; solo los
+   * `enlaces` propios de la cuenta que le pase quien lo usa (el perfil de la agencia).
    * Se adapta al fondo: sobre el monte (`.monte`) el botón es de contorno claro.
    */
   let {
     titulo,
     estado,
     avatar,
+    enlaces = [],
   }: {
     /** Nombre de la cuenta (la agencia); vacío mientras carga. */
     titulo: string;
@@ -24,6 +27,8 @@
     estado?: Snippet;
     /** Imagen de la cuenta en el tamaño (px) que pida; por defecto las iniciales del título. */
     avatar?: Snippet<[number]>;
+    /** Páginas de la cuenta (`ruta` del panel, sin `#`) que van arriba de Términos; la ruta actual lleva `aria-current`. */
+    enlaces?: { ruta: string; texto: string; icono: string }[];
   } = $props();
 
   const uid = $props.id();
@@ -40,6 +45,8 @@
     { valor: 'claro', etiqueta: 'Claro', icono: ICONOS.sol },
     { valor: 'oscuro', etiqueta: 'Oscuro', icono: ICONOS.luna },
   ];
+
+  const ruta = $derived(rutaActual(page.url));
 
   const ITEM =
     'flex min-h-11 w-full items-center gap-3 rounded-campo px-3 text-left text-cuerpo font-semibold text-tinta transition-colors hover:bg-niebla-2';
@@ -115,6 +122,13 @@
         {#if estado}<div class="mt-0.5 flex flex-wrap items-center gap-1.5 text-detalle text-tinta-2">{@render estado()}</div>{/if}
       </div>
     </div>
+
+    {#each enlaces as e (e.ruta)}
+      <a href={'#' + e.ruta} class={ITEM} aria-current={ruta === e.ruta ? 'page' : undefined}>
+        <Icono trazo={e.icono} />
+        {e.texto}
+      </a>
+    {/each}
 
     <a href="#/legal/terminos-agencias" class={ITEM}>
       <Icono trazo={ICONOS.documento} />

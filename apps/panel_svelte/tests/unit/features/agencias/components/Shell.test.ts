@@ -18,6 +18,7 @@ import { signOut } from '$lib/features/auth/model/auth.svelte';
 import { miAgencia } from '$lib/features/agencias/api/agencias.api';
 import { tema } from '$lib/shared/lib/tema.svelte';
 import Shell from '$lib/features/agencias/components/Shell.svelte';
+import { avisarCambioAgencia } from '$lib/features/agencias/model/cambios-agencia.svelte';
 
 const children = createRawSnippet(() => ({ render: () => '<p>contenido de la página</p>' }));
 
@@ -179,10 +180,26 @@ describe('Shell · cuenta', () => {
     }
   });
 
-  it('el menú no repite las secciones: es de la cuenta', async () => {
+  it('el menú no repite las secciones: es de la cuenta (el perfil de la agencia y los Términos)', async () => {
     await pintar();
     await fireEvent.click(boton());
-    expect(within(panel()).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['#/legal/terminos-agencias']);
+    expect(within(panel()).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['#/perfil', '#/legal/terminos-agencias']);
+  });
+
+  it('ofrece «Perfil de la agencia» (#/perfil) en el menú de cuenta y no como pestaña', async () => {
+    const { container } = await pintar();
+    await fireEvent.click(boton());
+    expect(within(panel()).getByRole('link', { name: 'Perfil de la agencia' }).getAttribute('href')).toBe('#/perfil');
+    expect(within(seccionesNav()).queryByRole('link', { name: /Perfil/ })).toBeNull();
+    expect(container.querySelectorAll('a[href="#/perfil"]')).toHaveLength(1);
+  });
+
+  it('en /perfil el enlace del menú es la página actual y ninguna pestaña queda activa', async () => {
+    irA('/perfil');
+    await pintar();
+    await fireEvent.click(boton());
+    expect(within(panel()).getByRole('link', { name: 'Perfil de la agencia' }).getAttribute('aria-current')).toBe('page');
+    expect(within(seccionesNav()).queryAllByRole('link', { current: 'page' })).toEqual([]);
   });
 
   it('con el teclado: se abre, el foco entra, Escape lo cierra y el foco vuelve al botón', async () => {
@@ -258,5 +275,17 @@ describe('Shell · celular', () => {
   it('el contenido deja sitio a la barra inferior', async () => {
     await pintar();
     expect(screen.getByRole('main').getAttribute('class')).toContain('max-lg:pb-[calc(84px+env(safe-area-inset-bottom))]');
+  });
+});
+
+describe('cuando la agencia cambia dentro de una página', () => {
+  it('el marco la vuelve a leer sin navegar: el logo nuevo del perfil se ve en el menú de cuenta', async () => {
+    await pintar();
+    const antes = vi.mocked(miAgencia).mock.calls.length;
+    const logo = 'https://cdn.diverso.app/agency-logos/ag-1/nuevo.png';
+    vi.mocked(miAgencia).mockResolvedValue(agencia({ nombre: 'Comuna 13 Graffiti Tours', logo_url: logo }));
+    avisarCambioAgencia();
+    await vi.waitFor(() => expect(document.querySelector(`img[src="${logo}"]`)).not.toBeNull());
+    expect(vi.mocked(miAgencia).mock.calls.length).toBe(antes + 1);
   });
 });

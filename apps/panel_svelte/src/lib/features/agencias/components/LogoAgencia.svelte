@@ -1,6 +1,8 @@
 <script lang="ts">
   import { subirLogo, quitarLogo } from '../api/agencias.api';
-import { mensajeError } from '$lib/shared/api/errores';
+  import { mensajeError } from '$lib/shared/api/errores';
+  import Tarjeta from '$lib/shared/ui/Tarjeta.svelte';
+  import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import AvatarAgencia from './AvatarAgencia.svelte';
   import { validarLogo } from '../model/logo';
   import { avisar } from '$lib/shared/lib/toast.svelte';
@@ -54,13 +56,12 @@ import { mensajeError } from '$lib/shared/api/errores';
   }
 </script>
 
-<section class="tarjeta p-5" aria-labelledby="logo-titulo">
+<Tarjeta titulo="Logo">
   <div class="flex flex-wrap items-center gap-5">
     <AvatarAgencia {agencia} tam={72} />
 
     <div class="min-w-[220px] flex-1">
-      <h2 id="logo-titulo" class="text-[15px] font-bold">Logo</h2>
-      <p class="mt-0.5 text-[12.5px] leading-relaxed text-tinta-2">
+      <p class="text-detalle text-tinta-2">
         Los viajeros lo ven junto al nombre de tu agencia en la app. PNG, JPG o WebP de hasta 2 MB. Mientras no
         subas uno, mostramos tus iniciales.
       </p>
@@ -80,7 +81,7 @@ import { mensajeError } from '$lib/shared/api/errores';
         {/if}
       </div>
       {#if error}
-        <p class="mt-2 text-[12.5px] font-medium text-heliconia" role="alert">{error}</p>
+        <AlertaError clase="mt-2 text-detalle">{error}</AlertaError>
       {/if}
     </div>
   </div>
@@ -93,4 +94,4 @@ import { mensajeError } from '$lib/shared/api/errores';
     aria-label="Archivo del logo"
     onchange={elegido}
   />
-</section>
+</Tarjeta>
