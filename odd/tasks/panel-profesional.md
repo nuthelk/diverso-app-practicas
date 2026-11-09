@@ -13,6 +13,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - S6 Filtro por fecha: «una cosa mas necesito que en el resumen se vea un icono de fecha para filtrar por fecha y que en la seleccion de fechas se vea que dias o semanas hay actividad»
 - S7 Perfil de la agencia: «si me gusto el diseño por el momento quiero que el "cambiar logo" no este ahi, creo que deberia de haber un lugar como perfil de agencia donde se pueda hacer este cambio»
 - S8 Editar datos: «en el perfil se debe poder editar informacion de la agencia». RNT y matrícula: «No, solo lectura» — «Edita nombre, descripción, ciudad y contactos; RNT y matrícula se muestran sin poder cambiarlos.»
+- S9 Ver todos: «tanto tus planes como reseñas recientes deberian de tener un "ver todos"». Reseñas: «Todas, con paginación (Recomendado)» — «Página de reseñas con «Cargar más». Requiere una migración que agrega una función paginada con la misma privacidad y el mismo filtro por dueña, con prueba SQL. La función actual del Resumen no cambia.»
 
 ## Tasks
 
@@ -29,6 +30,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - T11 [x] Verificación final: tests, build, check y revisión en el navegador — S1–S6 — parent — commit: — (automático verde; el usuario aprobó el diseño en el navegador, ver L16)
 - T12 [x] «Cambiar logo» sale del Resumen; página Perfil de la agencia (ruta `/perfil`, entrada en el menú de cuenta) con el logo y los datos registrados de la agencia — S7 — worker — commit: 84dc353
 - T13 [x] Editar en el perfil nombre, descripción, ciudad, teléfono, correo y WhatsApp (RNT y matrícula solo lectura), con la validación del registro compartida y prueba SQL del permiso — S8 — worker — commit: 793fb83
+- T14 [ ] «Ver todos» en Tus planes (→ Planes) y «Ver todas» en Reseñas recientes (→ página nueva de reseñas paginada, migración con función paginada + prueba SQL) — S9 — worker + verify — commit: pendiente
 
 ## Log
 
@@ -54,3 +56,5 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - L20 (usuario): «en el perfil se debe poder editar informacion de la agencia»; cuestionario RNT/matrícula → «No, solo lectura».
 - L21 (evidencia, explorador): UPDATE de `agencies` por la dueña vía `agencies_update_own` (`0001_schema.sql:349-350`, sin GRANTs por columna); los triggers revierten en silencio estado, comisión, vigencia, sello, motivo (`0002:81-109`) y `anticipo_bloqueado` (`0004:49`); cambiar RNT o matrícula vuelve a `pendiente` si no lo estaba (`0002:100-108`). nombre/descripción/ciudad los ve el viajero en vivo por `agencias_publicas()`; teléfono, correo y WhatsApp no. Sin validación en la base para nombre, ciudad, descripción ni contactos (previo): el formulario valida con las reglas del registro, que hoy están inline en OnboardingPage. CHECK de RNT y matrícula son NOT VALID: una fila vieja fuera de formato haría fallar cualquier edición. Hallazgo aparte: `agencies_select_visible` (0002) deja leer la fila completa (contactos, comisión) a cualquiera con una agencia habilitada. Falta `supabase/migrations/0014` aunque existe su test.
 - L22 (T13): verificado por el parent: 1061 tests / 74 archivos, build OK, check 12 = base, SQL 0017 con 15 OK y rollback. WhatsApp vacío: el perfil guarda null, el registro sigue guardando cadena vacía (el test de Onboarding lo fija). Teléfono y correo son obligatorios al editar, como en el registro: una agencia vieja con null debe completarlos para guardar.
+- L23 (usuario, con captura del Resumen): «tanto tus planes como reseñas recientes deberian de tener un "ver todos"»; cuestionario → «Todas, con paginación (Recomendado)».
+- L24 (evidencia): `resenas_recientes_agencia(p_limite int default 3)` (`0015_quienes_van.sql:48-60`) es security definer, filtra por `a.owner_user_id = auth.uid()`, devuelve el nombre corto del viajero (`nombre_corto_viajero`, endurecido en 0016) y topa en 20. Riesgo ítem 1 (migración) y 2 (función security definer): verificación independiente después del worker.
