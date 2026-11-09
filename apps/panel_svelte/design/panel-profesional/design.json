@@ -4,23 +4,9 @@
   "feature": "odd/tasks/panel-profesional.md",
   "artboards": [
     {
-      "file": "01-evolucion-sobria.html",
-      "title": "Evolución sobria",
-      "tradeoff": "Conserva el riel, las secciones y el orden de hoy (nada que reaprender) y le baja el volumen: sans en la interfaz y las cifras, serif solo en el título, un solo juego de radios y las curvas de nivel solo en el riel. A cambio, el filtro vive en un ícono, el dinero queda bajo el pliegue de 960 px (lo adelanta la línea bajo el título) y la semana en siete columnas sigue siendo densa.",
-      "width": 1440,
-      "height": 960
-    },
-    {
       "file": "02-tablero-operativo.html",
       "title": "Tablero operativo",
       "tradeoff": "Lo más rápido para operar: franja de cifras del período, tabla de salidas con ocupación, pendientes y vendido, y el control de rango en la cabecera; aguanta muchas salidas. A cambio, es la más fría y densa, y la navegación pasa a pestañas superiores, así que cambia el marco.",
-      "width": 1440,
-      "height": 960
-    },
-    {
-      "file": "03-agenda-primero.html",
-      "title": "Agenda primero",
-      "tradeoff": "El calendario mensual persistente es la navegación del Resumen: un clic en un día, una semana o un rango filtra la agenda, las cifras y el dinero, y se ve de un vistazo qué semanas tienen actividad. A cambio, gasta 392 px de ancho (la agenda queda en unos 830 px a 1440) y en celular el calendario pasa a una hoja tras el ícono de fecha.",
       "width": 1440,
       "height": 960
     }
