@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "chosen": "02-tablero-operativo.html",
+  "handoffs": {
+    "02-tablero-operativo.html": {
+      "status": "implemented",
+      "queued": false,
+      "sentAt": "2026-11-08T20:08:22.173Z",
+      "startedAt": "2026-11-08T20:09:03.480Z",
+      "implementedAt": "2026-11-08T23:00:01.309Z",
+      "feature": "odd/tasks/panel-profesional.md",
+      "note": "Implementado en feat/panel-profesional (worktree). Marco con pestañas y un solo menú de cuenta (tema Sistema/Claro/Oscuro), Resumen con filtro por fecha y calendario de actividad, y el resto del panel con el mismo lenguaje. 998 pruebas, build OK. Falta la revisión visual en el navegador.",
+      "previewUrl": "http://127.0.0.1:5175/"
+    }
+  }
+}
