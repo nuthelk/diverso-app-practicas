@@ -30,7 +30,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - T11 [x] Verificación final: tests, build, check y revisión en el navegador — S1–S6 — parent — commit: — (automático verde; el usuario aprobó el diseño en el navegador, ver L16)
 - T12 [x] «Cambiar logo» sale del Resumen; página Perfil de la agencia (ruta `/perfil`, entrada en el menú de cuenta) con el logo y los datos registrados de la agencia — S7 — worker — commit: 84dc353
 - T13 [x] Editar en el perfil nombre, descripción, ciudad, teléfono, correo y WhatsApp (RNT y matrícula solo lectura), con la validación del registro compartida y prueba SQL del permiso — S8 — worker — commit: 793fb83
-- T14 [ ] «Ver todos» en Tus planes (→ Planes) y «Ver todas» en Reseñas recientes (→ página nueva de reseñas paginada, migración con función paginada + prueba SQL) — S9 — worker + verify — commit: pendiente
+- T14 [x] «Ver todos» en Tus planes (→ Planes) y «Ver todas» en Reseñas recientes (→ página nueva de reseñas paginada, migración con función paginada + prueba SQL) — S9 — worker + verify — commit: efd3c60 (migración) + ab12095
 
 ## Log
 
@@ -58,3 +58,4 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - L22 (T13): verificado por el parent: 1061 tests / 74 archivos, build OK, check 12 = base, SQL 0017 con 15 OK y rollback. WhatsApp vacío: el perfil guarda null, el registro sigue guardando cadena vacía (el test de Onboarding lo fija). Teléfono y correo son obligatorios al editar, como en el registro: una agencia vieja con null debe completarlos para guardar.
 - L23 (usuario, con captura del Resumen): «tanto tus planes como reseñas recientes deberian de tener un "ver todos"»; cuestionario → «Todas, con paginación (Recomendado)».
 - L24 (evidencia): `resenas_recientes_agencia(p_limite int default 3)` (`0015_quienes_van.sql:48-60`) es security definer, filtra por `a.owner_user_id = auth.uid()`, devuelve el nombre corto del viajero (`nombre_corto_viajero`, endurecido en 0016) y topa en 20. Riesgo ítem 1 (migración) y 2 (función security definer): verificación independiente después del worker.
+- L25 (T14): verificación independiente PASS (seguridad de resenas_agencia, migración solo DDL y re-ejecutable, SQL 0016/0017/0018 verdes sin dejar datos, front). Parent: foco a la primera reseña nueva tras «Cargar más» (RED observado) y los 2 tests de regresión del verificador. 1082 tests / 76 archivos, build OK, check 12 = base, SQL 0018 con 39 OK. La función se aplicó a la base local a mano: no figura en supabase_migrations.schema_migrations (es create or replace, re-ejecutarla no rompe).
