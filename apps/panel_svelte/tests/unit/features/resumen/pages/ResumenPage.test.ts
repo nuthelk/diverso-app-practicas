@@ -840,6 +840,15 @@ describe('ResumenPage · tus planes', () => {
     ]);
   });
 
+  it('«Ver todos» lleva a Planes y su nombre dice qué abre', async () => {
+    cargar();
+    const { container } = await pintar();
+    const sec = container.querySelector('[data-tus-planes]') as HTMLElement;
+    const enlace = within(sec).getByRole('link', { name: 'Ver todos los planes' });
+    expect(enlace.getAttribute('href')).toBe('#/planes');
+    expect(texto(enlace)).toBe('Ver todos');
+  });
+
   it('sin salidas en el período lo dice simple', async () => {
     cargar({ planes: [] });
     const { container } = await pintar();
@@ -883,6 +892,28 @@ describe('ResumenPage · reseñas recientes', () => {
     await elegirAtajo('Hoy');
     expect(container.querySelectorAll('[data-resena]')).toHaveLength(1);
     expect(resenasMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('«Ver todas» lleva a la página de reseñas y su nombre dice qué abre', async () => {
+    cargar({}, { resenas: [resena()] });
+    const { container } = await pintar();
+    const sec = container.querySelector('[data-resenas]') as HTMLElement;
+    const enlace = within(sec).getByRole('link', { name: 'Ver todas las reseñas' });
+    expect(enlace.getAttribute('href')).toBe('#/resenas');
+    expect(texto(enlace)).toBe('Ver todas');
+  });
+
+  it('el enlace sigue ahí sin reseñas', async () => {
+    cargar();
+    const { container } = await pintar();
+    expect(within(container.querySelector('[data-resenas]') as HTMLElement).getByRole('link', { name: 'Ver todas las reseñas' })).toBeTruthy();
+  });
+
+  it('el enlace sigue ahí si no se pudieron consultar', async () => {
+    cargar();
+    resenasMock.mockRejectedValue(new Error('sin red'));
+    const { container } = await pintar();
+    expect(within(container.querySelector('[data-resenas]') as HTMLElement).getByRole('link', { name: 'Ver todas las reseñas' })).toBeTruthy();
   });
 
   it('sin reseñas lo dice simple', async () => {

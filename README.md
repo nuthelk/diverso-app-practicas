@@ -19,7 +19,7 @@ MVP definido en los Anexos 4–6 del proyecto de Ingeniería de Software
 | Lado | App | Funciones |
 |---|---|---|
 | Viajero (B2C) | `apps/viajero` (Flutter móvil/web) | Catálogo con buscador y filtros, comparador por número de viajeros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + **pago con Wompi en modo prueba** (Web Checkout: tarjeta, PSE, Nequi, Daviplata y Bancolombia) con confirmación verificada en el servidor, mis reservas con **cancelación y reembolso de prueba según la ventana de cada plan** (24, 48 o 72 h), reseñas verificadas (solo quien viajó) |
-| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **perfil de la agencia** (logo y datos de contacto editables —nombre, descripción, ciudad, teléfono, correo y WhatsApp—; el RNT y la matrícula se ven pero no se cambian; desde el menú de cuenta), **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
+| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **perfil de la agencia** (logo y datos de contacto editables —nombre, descripción, ciudad, teléfono, correo y WhatsApp—; el RNT y la matrícula se ven pero no se cambian; desde el menú de cuenta), **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana; «Ver todos» en Tus planes lleva a Planes y «Ver todas» en Reseñas recientes a la página de reseñas), **página Reseñas** (`#/resenas`: todas las reseñas de sus planes, de a 20 con «Cargar más»), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
 | Admin | ídem panel (rol admin) | Verificar con vigencia del RNT, rechazar con motivo, renovar vigencia, retirar verificación e historial auditable, **Admin dispersiones** (generar liquidaciones y anticipos, ejecutar la dispersión de prueba, bloquear o desbloquear el anticipo de una agencia) |
 
 **Dispersión a agencias (modo prueba):** cada lunes (hora de Bogotá) se liquida a cada
@@ -125,6 +125,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 | `0013_checkout_vence_en_la_salida.sql` | `crear_intento_pago` firma la expiración del checkout de Wompi como el menor de `created_at + 30 min` y `salida_at`: una reserva hecha minutos antes de partir no se puede pagar después de la salida |
 | `0015_quienes_van.sql` | Lectura para el panel de agencias, solo `authenticated` y solo para el dueño de la agencia: `quienes_van(uuid[])` (reservas `pendiente_pago`/`confirmada` de sus planes: código, nombre corto «Laura V.», personas, estado; sin teléfono, correo ni documento) y `resenas_recientes_agencia(int)` (últimas reseñas de sus planes, tope 20, con el mismo nombre corto) |
 | `0016_nombre_corto_seguro.sql` | El nombre corto que ve la agencia descarta toda palabra con @ o dígitos y separa por cualquier espacio Unicode: un correo o teléfono escrito como nombre nunca llega al panel («Viajero» si no queda nada) |
+| `0018_resenas_agencia.sql` | `resenas_agencia(p_limite, p_desde)`: todas las reseñas de los planes de la agencia, paginadas (límite 1–50, por defecto 20), con la misma privacidad y el mismo filtro por dueña que `resenas_recientes_agencia`, que no cambia (no hay `0017` en migraciones: ese número es de la prueba de editar datos de la agencia) |
 
 ### RPC y tareas programadas
 
@@ -147,6 +148,10 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - `resenas_recientes_agencia(p_limite int default 3)`: últimas reseñas (`calificacion`, `comentario`,
   `nombre_corto`, `plan_titulo`, `created_at`) de los planes de la agencia de quien llama, la más nueva
   primero, tope 20. Ambas son `security definer`, `stable`, con `search_path` fijo y solo `authenticated`.
+- `resenas_agencia(p_limite int default 20, p_desde int default 0)`: la página «Reseñas» del panel; las mismas columnas
+  que `resenas_recientes_agencia` más `id` (llave de la lista), de los planes de la agencia de quien llama, la más
+  nueva primero (`created_at desc, id desc`, así las páginas no se solapan), `p_limite` acotado a 1–50 y `p_desde`
+  nunca negativo. Mismos permisos que las anteriores.
 - Solo `service_role` (las llama el servidor, no la app): `crear_intento_pago` (si el viaje de la
   reserva ya salió responde `RESERVA_YA_SALIO`, HTTP 409 en `pagos-iniciar`; el checkout vence a
   más tardar en la salida),
@@ -374,9 +379,10 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0015 (quiénes van y reseñas recientes) | ver «Pruebas SQL» | 48 |
 | SQL 0016 (nombre corto sin correos ni teléfonos) | ver «Pruebas SQL» | 15 |
 | SQL 0017 (la dueña edita los datos de su agencia) | ver «Pruebas SQL» | 15 |
+| SQL 0018 (todas las reseñas de la agencia, paginadas) | ver «Pruebas SQL» | 39 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 998 (72 archivos) |
+| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 1082 (76 archivos) |
 | `diverso_core` | `cd packages/diverso_core && flutter test` | 140 |
 | App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 517 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
 
@@ -392,7 +398,7 @@ Los archivos de `supabase/tests/` crean y modifican datos. **Nunca los ejecutes 
 
 Cambia el nombre del archivo para las demás (`0002_verificacion_cumplimiento`,
 `0004_dispersiones`, `0005_endurecimiento_pagos`, `0006_politica_notas`,
-`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`, `0014_rls_resena_ajena`, `0015_quienes_van`, `0016_nombre_corto_seguro`, `0017_editar_datos_agencia`). Si una aserción
+`0007_notas_sin_politica`, `0008_cancelar_antes_de_salir`, `0012_reservar_antes_de_salir`, `0013_checkout_vence_en_la_salida`, `0014_rls_resena_ajena`, `0015_quienes_van`, `0016_nombre_corto_seguro`, `0017_editar_datos_agencia`, `0018_resenas_agencia`). Si una aserción
 falla, `psql` se detiene con `FALLA: …` y el código de salida es distinto de 0; si pasan todas,
 sale con 0 (los avisos «already a transaction in progress» de los archivos que traen su
 propio `begin` son normales).

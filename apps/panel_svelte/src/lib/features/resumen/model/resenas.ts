@@ -27,6 +27,8 @@ export function haceCuanto(iso: string, hoy = new Date()): string {
 export const estrellasLlenas = (calificacion: number) => Math.min(Math.max(Math.round(calificacion), 0), 5);
 
 export interface ResenaMostrada {
+  /** Solo la lista completa de reseñas lo trae (llave de la lista); la del Resumen no lo necesita. */
+  id?: string;
   estrellas: number;
   /** null si el viajero solo puso estrellas. */
   texto: string | null;
@@ -34,14 +36,18 @@ export interface ResenaMostrada {
   nombre: string;
   plan: string;
   cuando: string;
+  /** Día en que se escribió (Bogotá, `2026-11-02`): el texto exacto detrás del «hace 3 días». */
+  fecha: string;
 }
 
-export function resenasParaMostrar(resenas: ResenaReciente[], hoy = new Date()): ResenaMostrada[] {
+export function resenasParaMostrar(resenas: (ResenaReciente & { id?: string })[], hoy = new Date()): ResenaMostrada[] {
   return resenas.map((r) => ({
+    id: r.id,
     estrellas: estrellasLlenas(r.calificacion),
     texto: r.comentario?.trim() || null,
     nombre: r.nombre_corto,
     plan: r.plan_titulo,
     cuando: haceCuanto(r.created_at, hoy),
+    fecha: fechaBogota(new Date(r.created_at)),
   }));
 }

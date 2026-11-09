@@ -18,6 +18,7 @@ const ESPERADO: Record<string, string | null> = {
   './admin/dispersiones/+page.svelte': 'admin/pages/AdminDispersionesPage.svelte',
   './(panel)/onboarding/+page.svelte': 'agencias/pages/OnboardingPage.svelte',
   './(panel)/perfil/+page.svelte': 'agencias/pages/PerfilAgenciaPage.svelte',
+  './(panel)/resenas/+page.svelte': 'resenas/pages/ResenasPage.svelte',
   './(panel)/dashboard/+page.svelte': 'resumen/pages/ResumenPage.svelte',
   './(panel)/planes/+page.svelte': 'planes/pages/PlanesPage.svelte',
   './(panel)/planes/nuevo/+page.svelte': 'planes/pages/PlanFormPage.svelte',

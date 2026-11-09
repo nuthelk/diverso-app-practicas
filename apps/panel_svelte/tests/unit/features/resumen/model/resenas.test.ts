@@ -52,8 +52,17 @@ describe('resenasParaMostrar', () => {
         nombre: 'Laura V.',
         plan: 'Río Claro 2 días con hospedaje',
         cuando: 'ayer',
+        fecha: '2026-11-02',
       },
     ]);
+  });
+
+  it('con id (la lista completa de reseñas) lo conserva para usarlo de llave', () => {
+    expect(resenasParaMostrar([{ ...r(), id: 'r-1' }], MARTES)[0].id).toBe('r-1');
+  });
+
+  it('la fecha es el día de Bogotá: 21:00 de ayer allá ya cuenta como ayer', () => {
+    expect(resenasParaMostrar([r({ created_at: '2026-11-03T02:00:00Z' })], MARTES)[0].fecha).toBe('2026-11-02');
   });
 
   it('sin comentario (o solo espacios) muestra solo las estrellas', () => {

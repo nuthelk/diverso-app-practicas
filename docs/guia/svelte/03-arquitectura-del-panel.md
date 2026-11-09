@@ -59,7 +59,7 @@ apps/panel_svelte/
     |   |-- legal/[[doc=doc]]/              documentos legales (parámetro opcional)
     |   `-- (panel)/          grupo de rutas: no cuenta en la URL, aporta el marco con la barra de secciones
     |       |-- +layout.svelte    el Shell
-    |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/  perfil/
+    |       `-- dashboard/  planes/  ventas/  liquidaciones/  cuenta-dispersiones/  onboarding/  perfil/  resenas/
     `-- lib/              el código reutilizable (alias $lib)
         |-- features/<funcionalidad>/     cada una con pages/ components/ api/ model/
         |   |-- admin/            verificación de agencias y dispersiones (rol admin)
@@ -68,6 +68,7 @@ apps/panel_svelte/
         |   |-- legal/            documentos y consentimiento (Ley 1581)
         |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
         |   |-- planes/           lista de planes, formulario, fechas y cupos
+        |   |-- resenas/          todas las reseñas de la agencia, de a 20 con «Cargar más»
         |   |-- resumen/          el Resumen («Tablero operativo»)
         |   `-- ventas/           ventas y conciliación
         `-- shared/
@@ -319,7 +320,8 @@ sitio justo porque no depende de nadie, ni siquiera de SvelteKit. Por eso `rutaA
 `URL` en lugar de leer `page` ella misma (sección 7).
 
 Entre funcionalidades hay dependencias reales: `ventas`, `planes`, `resumen`, `admin` y
-`liquidaciones` usan a `agencias`; `resumen` usa a cuatro de ellas. El único par que se mira mutuamente
+`liquidaciones` usan a `agencias`; `resumen` usa a cuatro de ellas; `resenas` usa a `resumen` (su tarjeta de
+reseña y su modelo, que el Resumen ya tenía). El único par que se mira mutuamente
 es `auth` ↔ `legal` (`StarterPage` usa `legal.api`; `AceptarDocumentosPage` usa `signOut`), pero
 siempre hacia archivos que no importan nada de la otra funcionalidad, así que no hay ciclo entre
 archivos. **Conviene que siga así**: si dos funcionalidades se necesitan por completo, probablemente
@@ -565,6 +567,7 @@ que va después del `#`.
 | `#/ventas` | `(panel)/ventas/+page.svelte` | `Shell` | `ventas/pages/VentasPage` |
 | `#/onboarding` | `(panel)/onboarding/+page.svelte` | `Shell` | `agencias/pages/OnboardingPage` |
 | `#/perfil` | `(panel)/perfil/+page.svelte` | `Shell` | `agencias/pages/PerfilAgenciaPage` (se abre desde el menú de cuenta, no es una pestaña; edita los datos de contacto, no el RNT ni la matrícula) |
+| `#/resenas` | `(panel)/resenas/+page.svelte` | `Shell` | `resenas/pages/ResenasPage` (se llega desde «Ver todas» en las Reseñas recientes del Resumen, no es una pestaña; reutiliza `ResenaItem` del Resumen) |
 | `#/liquidaciones/<id>` | `(panel)/liquidaciones/[id]/+page.svelte` | `Shell` | `liquidaciones/pages/LiquidacionDetallePage` |
 | cualquier otra | — | solo raíz | `routes/+error.svelte` |
 

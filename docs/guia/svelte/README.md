@@ -34,7 +34,7 @@ sistema, el [README principal](../../../README.md).
 4. Los datos vienen de **Supabase** a través de un archivo `api/<f>.api.ts` por funcionalidad; las
    reglas se prueban como **funciones puras** y las pantallas con Vitest + Testing Library. Las
    pruebas viven en `tests/unit/`, espejo de `src/`: `src/` queda solo con código.
-5. Hoy: **998 pruebas en 72 archivos**; `npm run build` y `npm run check` son parte de cada
+5. Hoy: **1082 pruebas en 76 archivos**; `npm run build` y `npm run check` son parte de cada
    verificación.
 
 ## Cómo está organizada la guía
@@ -73,7 +73,7 @@ npm run dev          # desarrollo: http://localhost:5173
 Las tres comprobaciones del día a día (capítulo 4, sección 10):
 
 ```bash
-npm test             # Vitest: 72 archivos, 998 pruebas
+npm test             # Vitest: 76 archivos, 1082 pruebas
 npm run build        # SvelteKit + Vite: genera dist/ y termina con ✓ built
 npm run check        # tipos y avisos de Svelte: 12 errores y 1 aviso conocidos (capítulo 4, sección 8)
 ```

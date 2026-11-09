@@ -206,7 +206,7 @@ export default defineConfig({
 - **`svelteTesting()`** (de `@testing-library/svelte/vite`) se encarga de tres cosas: que Svelte se
   cargue en su versión de navegador, que el DOM se **limpie solo** tras cada prueba y que las
   dependencias de Testing Library se procesen como el resto. Sin él habría que desmontar a mano.
-- **Las pruebas están en `tests/unit/`, espejo de `src/`**, y hoy son **72 archivos y 998 pruebas**
+- **Las pruebas están en `tests/unit/`, espejo de `src/`**, y hoy son **76 archivos y 1082 pruebas**
   (se explica abajo).
 - Vitest compila los componentes en **modo desarrollo**: los avisos de Svelte (como
   `ownership_invalid_mutation`, capítulo 2) salen en la consola de las pruebas.
@@ -535,7 +535,7 @@ Las tres son baratas (segundos) y se solapan poco: por eso van **juntas** y **ca
 Desde `apps/panel_svelte`:
 
 ```bash
-npm test             # 72 archivos, 998 pruebas, todas verdes
+npm test             # 76 archivos, 1082 pruebas, todas verdes
 npm run build        # termina con ✓ built
 npm run check        # 12 errores y 1 aviso: los de la sección 8, ninguno nuevo
 ```

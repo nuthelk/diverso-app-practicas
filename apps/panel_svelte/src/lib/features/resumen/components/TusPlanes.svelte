@@ -3,12 +3,15 @@
   import { plural } from '$lib/shared/lib/format';
   import type { PlanVendido } from '../model/tus-planes';
 
-  /** «Tus planes»: cuántos viajeros tiene cada plan en las salidas del período y qué tan llenas van. */
+  /** «Tus planes»: cuántos viajeros tiene cada plan en las salidas del período y qué tan llenas van, con el enlace a Planes. */
   let { planes }: { planes: PlanVendido[] } = $props();
 </script>
 
 <div data-tus-planes>
   <Tarjeta titulo="Tus planes" descripcion="Viajeros por plan en el período">
+    {#snippet accion()}
+      <a href="#/planes" class="enlace -my-3 inline-flex min-h-11 items-center text-detalle" aria-label="Ver todos los planes">Ver todos</a>
+    {/snippet}
     {#if planes.length === 0}
       <p class="text-detalle text-tinta-2" data-frase>Sin salidas en este período.</p>
     {:else}
