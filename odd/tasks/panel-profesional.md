@@ -26,7 +26,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - T9 [ ] Login (credenciales solo en desarrollo), Starter, Onboarding, Legal, consentimiento y error — S1, S4, S5 — por definir — commit: pendiente
 - T10 [ ] Guía y README al día — S5 — por definir — commit: pendiente
 - T11 [x] Verificación final: tests, build, check y revisión en el navegador — S1–S6 — parent — commit: — (automático verde; el usuario aprobó el diseño en el navegador, ver L16)
-- T12 [ ] «Cambiar logo» sale del Resumen; página Perfil de la agencia (ruta `/perfil`, entrada en el menú de cuenta) con el logo y los datos registrados de la agencia — S7 — worker — commit: pendiente
+- T12 [x] «Cambiar logo» sale del Resumen; página Perfil de la agencia (ruta `/perfil`, entrada en el menú de cuenta) con el logo y los datos registrados de la agencia — S7 — worker — commit: 84dc353
 
 ## Log
 
@@ -47,3 +47,4 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - L15 (pendientes fuera de alcance): pestañas activas en Onboarding sin agencia (marco); `/starter` sin sesión queda girando (previo); «Pendientes»/«Vendido» por salida cruzan por título + fecha porque `agency_sales` no trae `plan_date_id` (cambio de BD); `mensajeError('RNT_VENCIDO')` habla a la agencia también en admin; `Metrica.sub` solo texto; `design/system.md` (carpeta principal, sin versionar) tiene los tamaños de letra viejos.
 - L16 (usuario): «si me gusto el diseño por el momento quiero que el "cambiar logo" no este ahi, creo que deberia de haber un lugar como perfil de agencia donde se pueda hacer este cambio»
 - L17 (decisión parent): el perfil se abre desde el menú de cuenta (no es una pestaña: las pestañas son el trabajo diario) en `#/perfil`, dentro del marco; vive en `features/agencias` (dueña de la agencia, el logo y `LogoAgencia`). Muestra el logo con cambiar/quitar y los datos registrados de la agencia en solo lectura; editar esos datos no se pide y queda fuera.
+- L18 (T12): worker hizo la página, la ruta, el ítem en MenuCuenta (prop opcional `enlaces`, el admin no la usa) y sacó el logo del Resumen; en su primer intento editó README y la guía en la CARPETA PRINCIPAL (ahora en la rama `feat/panel-bosque-de-niebla`): el usuario autorizó deshacerlo y se restauraron solo esas 4 líneas. Parent: el marco y el perfil tenían cada uno su copia de la agencia y el menú mostraba el logo viejo hasta navegar; se agrega la señal `cambios-agencia.svelte.ts` (RED de comportamiento observado en 2 tests, luego GREEN). Verificado: 1017 tests / 73 archivos, build OK, check 12 = base.
