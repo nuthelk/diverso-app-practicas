@@ -12,6 +12,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - S5 Alcance: «si todo por etapas» sobre «Todo el panel por etapas (Recomendado)» — «Primero la base (componentes y Shell), después las pantallas por grupos, un commit por etapa. Incluye admin, login y legales.»
 - S6 Filtro por fecha: «una cosa mas necesito que en el resumen se vea un icono de fecha para filtrar por fecha y que en la seleccion de fechas se vea que dias o semanas hay actividad»
 - S7 Perfil de la agencia: «si me gusto el diseño por el momento quiero que el "cambiar logo" no este ahi, creo que deberia de haber un lugar como perfil de agencia donde se pueda hacer este cambio»
+- S8 Editar datos: «en el perfil se debe poder editar informacion de la agencia». RNT y matrícula: «No, solo lectura» — «Edita nombre, descripción, ciudad y contactos; RNT y matrícula se muestran sin poder cambiarlos.»
 
 ## Tasks
 
@@ -27,6 +28,7 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - T10 [ ] Guía y README al día — S5 — por definir — commit: pendiente
 - T11 [x] Verificación final: tests, build, check y revisión en el navegador — S1–S6 — parent — commit: — (automático verde; el usuario aprobó el diseño en el navegador, ver L16)
 - T12 [x] «Cambiar logo» sale del Resumen; página Perfil de la agencia (ruta `/perfil`, entrada en el menú de cuenta) con el logo y los datos registrados de la agencia — S7 — worker — commit: 84dc353
+- T13 [ ] Editar en el perfil nombre, descripción, ciudad, teléfono, correo y WhatsApp (RNT y matrícula solo lectura), con la validación del registro compartida y prueba SQL del permiso — S8 — worker — commit: pendiente
 
 ## Log
 
@@ -49,3 +51,5 @@ Rama `feat/panel-profesional` (worktree `.worktrees/panel-svelte`, sale de `feat
 - L17 (decisión parent): el perfil se abre desde el menú de cuenta (no es una pestaña: las pestañas son el trabajo diario) en `#/perfil`, dentro del marco; vive en `features/agencias` (dueña de la agencia, el logo y `LogoAgencia`). Muestra el logo con cambiar/quitar y los datos registrados de la agencia en solo lectura; editar esos datos no se pide y queda fuera.
 - L18 (T12): worker hizo la página, la ruta, el ítem en MenuCuenta (prop opcional `enlaces`, el admin no la usa) y sacó el logo del Resumen; en su primer intento editó README y la guía en la CARPETA PRINCIPAL (ahora en la rama `feat/panel-bosque-de-niebla`): el usuario autorizó deshacerlo y se restauraron solo esas 4 líneas. Parent: el marco y el perfil tenían cada uno su copia de la agencia y el menú mostraba el logo viejo hasta navegar; se agrega la señal `cambios-agencia.svelte.ts` (RED de comportamiento observado en 2 tests, luego GREEN). Verificado: 1017 tests / 73 archivos, build OK, check 12 = base.
 - L19 (revisión nativa de 84dc353): aprobada y acusada (lineage review-3131fc6ffb3aa26a, lentes legibilidad y confiabilidad; el usuario autorizó las 2 corridas). 4 observaciones no bloqueantes; corregidas en e7837a1 con RED de comportamiento observado: el perfil reventaba con telefono/email/whatsapp null (columnas opcionales en 0001_schema.sql:35-37; el tipo Agency decía string) y el marco aceptaba una lectura vieja que llegaba tarde. Queda sin detalle la observación R3-003 sobre el estado «sin agencia» (PerfilAgenciaPage 62-67).
+- L20 (usuario): «en el perfil se debe poder editar informacion de la agencia»; cuestionario RNT/matrícula → «No, solo lectura».
+- L21 (evidencia, explorador): UPDATE de `agencies` por la dueña vía `agencies_update_own` (`0001_schema.sql:349-350`, sin GRANTs por columna); los triggers revierten en silencio estado, comisión, vigencia, sello, motivo (`0002:81-109`) y `anticipo_bloqueado` (`0004:49`); cambiar RNT o matrícula vuelve a `pendiente` si no lo estaba (`0002:100-108`). nombre/descripción/ciudad los ve el viajero en vivo por `agencias_publicas()`; teléfono, correo y WhatsApp no. Sin validación en la base para nombre, ciudad, descripción ni contactos (previo): el formulario valida con las reglas del registro, que hoy están inline en OnboardingPage. CHECK de RNT y matrícula son NOT VALID: una fila vieja fuera de formato haría fallar cualquier edición. Hallazgo aparte: `agencies_select_visible` (0002) deja leer la fila completa (contactos, comisión) a cualquiera con una agencia habilitada. Falta `supabase/migrations/0014` aunque existe su test.
