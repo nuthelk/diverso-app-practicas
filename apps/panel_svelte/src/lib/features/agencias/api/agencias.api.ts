@@ -1,5 +1,6 @@
 import { supabase } from '$lib/shared/api/supabase';
 import type { Agency } from '../model/agencia';
+import type { DatosAgenciaGuardables } from '../model/datos-agencia';
 import { BUCKET_LOGOS, rutaDeLogo, rutaNuevaLogo, validarLogo } from '../model/logo';
 
 /** Datos de la agencia de la sesión: perfil, registro y logo. */
@@ -32,6 +33,19 @@ export async function registrarAgencia(datos: {
     ...datos,
     // estado_verificacion queda 'pendiente' por la política RLS
   });
+  if (error) throw error;
+}
+
+/**
+ * Edita los datos de contacto de la agencia. Escribe solo estas seis columnas, una por una: el RNT y la matrícula no se
+ * editan aquí (cambiarlos obliga a re-verificar) y la base ignora estado, comisión y vigencia si los manda la dueña.
+ */
+export async function actualizarDatosAgencia(agencyId: string, datos: DatosAgenciaGuardables): Promise<void> {
+  const { nombre, descripcion, ciudad, telefono, email, whatsapp } = datos;
+  const { error } = await supabase
+    .from('agencies')
+    .update({ nombre, descripcion, ciudad, telefono, email, whatsapp })
+    .eq('id', agencyId);
   if (error) throw error;
 }
 

@@ -49,7 +49,7 @@ vi.mock('$lib/shared/api/supabase', () => ({
 }));
 
 import { mensajeError } from '$lib/shared/api/errores';
-import { quitarLogo, subirLogo } from '$lib/features/agencias/api/agencias.api';
+import { actualizarDatosAgencia, quitarLogo, subirLogo } from '$lib/features/agencias/api/agencias.api';
 
 const URL = (ruta: string) => `http://127.0.0.1:54331/storage/v1/object/public/agency-logos/${ruta}`;
 const archivo = (type = 'image/png', size = 1000) =>
@@ -150,6 +150,53 @@ describe('quitarLogo', () => {
     rec.errorUpdate = new Error('sin permiso');
     await expect(quitarLogo({ id: 'ag-1', logo_url: URL('ag-1/logo-abc.png') })).rejects.toThrow('sin permiso');
     expect(rec.pasos.filter((p) => p.startsWith('remove'))).toEqual([]);
+  });
+});
+
+describe('actualizarDatosAgencia', () => {
+  const datos = {
+    nombre: 'Aventuras Antioquia',
+    descripcion: 'Tours de grafiti y café.',
+    ciudad: 'Medellín',
+    telefono: '3001234567',
+    email: 'hola@aventuras.co',
+    whatsapp: null,
+  };
+
+  it('actualiza solo nombre, descripción, ciudad, teléfono, correo y WhatsApp de esa agencia', async () => {
+    await actualizarDatosAgencia('ag-1', datos);
+    expect(rec.tabla).toBe('agencies');
+    expect(rec.update).toEqual(datos);
+    expect(Object.keys(rec.update as object).sort()).toEqual(
+      ['ciudad', 'descripcion', 'email', 'nombre', 'telefono', 'whatsapp'],
+    );
+    expect(rec.eq).toEqual([['id', 'ag-1']]);
+  });
+
+  it('aunque le lleguen más campos (RNT, matrícula, estado, comisión, logo) no los envía', async () => {
+    const conDeMas = {
+      ...datos,
+      numero_rnt: '1',
+      matricula_camara_comercio: '2',
+      estado_verificacion: 'verificado',
+      comision_pct: 0,
+      logo_url: 'x',
+    };
+    await actualizarDatosAgencia('ag-1', conDeMas);
+    expect(Object.keys(rec.update as object).sort()).toEqual(
+      ['ciudad', 'descripcion', 'email', 'nombre', 'telefono', 'whatsapp'],
+    );
+  });
+
+  it('manda un WhatsApp escrito tal cual', async () => {
+    await actualizarDatosAgencia('ag-1', { ...datos, whatsapp: '+573009876543' });
+    expect(rec.update).toMatchObject({ whatsapp: '+573009876543' });
+  });
+
+  it('si Supabase responde con error, lo lanza tal cual', async () => {
+    const fallo = new Error('sin permiso');
+    rec.errorUpdate = fallo;
+    await expect(actualizarDatosAgencia('ag-1', datos)).rejects.toBe(fallo);
   });
 });
 

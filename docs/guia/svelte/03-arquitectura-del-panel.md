@@ -63,7 +63,7 @@ apps/panel_svelte/
     `-- lib/              el código reutilizable (alias $lib)
         |-- features/<funcionalidad>/     cada una con pages/ components/ api/ model/
         |   |-- admin/            verificación de agencias y dispersiones (rol admin)
-        |   |-- agencias/         onboarding, perfil (logo y datos), verificación RNT y el Shell
+        |   |-- agencias/         onboarding, perfil (logo y datos de contacto editables), verificación RNT y el Shell
         |   |-- auth/             login, starter, estado de sesión, guard y el menú de cuenta
         |   |-- legal/            documentos y consentimiento (Ley 1581)
         |   |-- liquidaciones/    liquidaciones, detalle y cuenta de dispersión
@@ -564,7 +564,7 @@ que va después del `#`.
 | `#/planes/editar/<id>` | `(panel)/planes/editar/[[id]]/+page.svelte` | `Shell` | `planes/pages/PlanFormPage` |
 | `#/ventas` | `(panel)/ventas/+page.svelte` | `Shell` | `ventas/pages/VentasPage` |
 | `#/onboarding` | `(panel)/onboarding/+page.svelte` | `Shell` | `agencias/pages/OnboardingPage` |
-| `#/perfil` | `(panel)/perfil/+page.svelte` | `Shell` | `agencias/pages/PerfilAgenciaPage` (se abre desde el menú de cuenta, no es una pestaña) |
+| `#/perfil` | `(panel)/perfil/+page.svelte` | `Shell` | `agencias/pages/PerfilAgenciaPage` (se abre desde el menú de cuenta, no es una pestaña; edita los datos de contacto, no el RNT ni la matrícula) |
 | `#/liquidaciones/<id>` | `(panel)/liquidaciones/[id]/+page.svelte` | `Shell` | `liquidaciones/pages/LiquidacionDetallePage` |
 | cualquier otra | — | solo raíz | `routes/+error.svelte` |
 

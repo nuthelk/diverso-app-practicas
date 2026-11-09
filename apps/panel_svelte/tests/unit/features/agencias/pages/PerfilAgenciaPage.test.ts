@@ -6,9 +6,13 @@ vi.mock('$lib/features/agencias/api/agencias.api', () => ({
   miAgencia: vi.fn(),
   subirLogo: vi.fn(),
   quitarLogo: vi.fn(),
+  actualizarDatosAgencia: vi.fn(),
 }));
+vi.mock('$lib/shared/lib/confirmar.svelte', () => ({ confirmar: vi.fn() }));
 
-import { miAgencia, quitarLogo, subirLogo } from '$lib/features/agencias/api/agencias.api';
+import { actualizarDatosAgencia, miAgencia, quitarLogo, subirLogo } from '$lib/features/agencias/api/agencias.api';
+import { confirmar } from '$lib/shared/lib/confirmar.svelte';
+import { toast } from '$lib/shared/lib/toast.svelte';
 import { cambiosAgencia } from '$lib/features/agencias/model/cambios-agencia.svelte';
 import PerfilAgenciaPage from '$lib/features/agencias/pages/PerfilAgenciaPage.svelte';
 
@@ -17,6 +21,7 @@ const URL_LOGO = 'http://127.0.0.1:54331/storage/v1/object/public/agency-logos/a
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
+  toast.mensaje = '';
 });
 
 async function pintar(parcial = {}) {
@@ -153,5 +158,213 @@ describe('PerfilAgenciaPage · datos que la base permite vacíos', () => {
     expect(dato('Teléfono')).toBe('No registrado');
     expect(dato('Correo de contacto')).toBe('No registrado');
     expect(dato('WhatsApp')).toBe('No registrado');
+  });
+});
+
+describe('PerfilAgenciaPage · editar los datos', () => {
+  const editar = () => fireEvent.click(screen.getByRole('button', { name: 'Editar datos' }));
+  const campo = (nombre: string | RegExp) => screen.getByLabelText(nombre) as HTMLInputElement;
+  const escribir = (nombre: string | RegExp, value: string) => fireEvent.input(campo(nombre), { target: { value } });
+  const guardar = () => fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+  const cancelar = () => fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+  const formulario = () => document.querySelector('form') as HTMLFormElement;
+
+  it('«Editar datos» abre el formulario con lo registrado, enfoca el primer campo y oculta la lista de lectura', async () => {
+    await pintar({ descripcion: 'Tours de grafiti y café.', whatsapp: '3009876543' });
+    await editar();
+    expect(campo('Nombre de la agencia').value).toBe('Aventuras Antioquia');
+    expect(campo('Ciudad').value).toBe('Medellín');
+    expect(campo('Teléfono').value).toBe('3001234567');
+    expect(campo('Correo de contacto').value).toBe('hola@aventuras.co');
+    expect(campo(/^WhatsApp/).value).toBe('3009876543');
+    expect(campo(/^Descripción/).value).toBe('Tours de grafiti y café.');
+    await vi.waitFor(() => expect(document.activeElement).toBe(campo('Nombre de la agencia')));
+    expect(screen.queryByRole('button', { name: 'Editar datos' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeTruthy();
+  });
+
+  it('el formulario dice qué ven los viajeros y que el RNT y la matrícula no se pueden cambiar', async () => {
+    await pintar();
+    await editar();
+    const visible = texto(formulario().closest('section'));
+    expect(visible).toContain('Los viajeros ven el nombre, la ciudad y la descripción de tu agencia.');
+    expect(visible).toContain('No se pueden cambiar desde aquí');
+  });
+
+  it('el RNT y la matrícula se ven pero no hay ningún campo para ellos', async () => {
+    await pintar();
+    await editar();
+    expect(dato('Número de RNT')).toBe('123456');
+    expect(dato('Matrícula mercantil')).toBe('987654');
+    expect(screen.queryByLabelText(/RNT/)).toBeNull();
+    expect(screen.queryByLabelText(/Matrícula/)).toBeNull();
+    expect(formulario().querySelectorAll('input, textarea, select')).toHaveLength(6);
+  });
+
+  it('guardar manda solo los seis datos, recortados y con el WhatsApp vacío como null, y muestra lo nuevo', async () => {
+    vi.mocked(actualizarDatosAgencia).mockResolvedValue();
+    await pintar({ descripcion: 'Vieja.' });
+    const antes = cambiosAgencia.version;
+    await editar();
+    await escribir('Nombre de la agencia', '  Aventuras del Norte ');
+    await escribir('Ciudad', 'Bogotá');
+    await escribir('Teléfono', '3110000000');
+    await escribir('Correo de contacto', 'nuevo@norte.co');
+    await escribir(/^WhatsApp/, '   ');
+    await escribir(/^Descripción/, ' Rutas por el norte. ');
+    await guardar();
+
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Editar datos' })).toBeTruthy());
+    expect(actualizarDatosAgencia).toHaveBeenCalledTimes(1);
+    expect(actualizarDatosAgencia).toHaveBeenCalledWith('ag-1', {
+      nombre: 'Aventuras del Norte',
+      ciudad: 'Bogotá',
+      telefono: '3110000000',
+      email: 'nuevo@norte.co',
+      whatsapp: null,
+      descripcion: 'Rutas por el norte.',
+    });
+    expect(formulario()).toBeNull();
+    expect(dato('Nombre')).toBe('Aventuras del Norte');
+    expect(dato('Ciudad')).toBe('Bogotá');
+    expect(dato('Teléfono')).toBe('3110000000');
+    expect(dato('Correo de contacto')).toBe('nuevo@norte.co');
+    expect(dato('WhatsApp')).toBe('No registrado');
+    expect(dato('Descripción')).toBe('Rutas por el norte.');
+    expect(dato('Número de RNT')).toBe('123456');
+    expect(toast.mensaje).toBe('Datos guardados');
+    expect(cambiosAgencia.version).toBe(antes + 1);
+    expect(miAgencia).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Editar datos' })));
+  });
+
+  it('mientras guarda el botón dice «Guardando…», no se puede repetir ni cancelar', async () => {
+    vi.mocked(actualizarDatosAgencia).mockReturnValue(new Promise(() => {}));
+    await pintar();
+    await editar();
+    await guardar();
+    const boton = (await screen.findByRole('button', { name: 'Guardando…' })) as HTMLButtonElement;
+    expect(boton.disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Cancelar' }) as HTMLButtonElement).disabled).toBe(true);
+    await fireEvent.submit(formulario());
+    expect(actualizarDatosAgencia).toHaveBeenCalledTimes(1);
+  });
+
+  it('con datos inválidos no llama a la API: resume lo que falta, marca cada campo y enfoca el primero', async () => {
+    await pintar();
+    await editar();
+    await escribir('Nombre de la agencia', '  ');
+    await escribir('Correo de contacto', 'sin-arroba');
+    await guardar();
+    expect(actualizarDatosAgencia).not.toHaveBeenCalled();
+    expect(texto(screen.getByText(/Para guardar falta completar/))).toBe(
+      'Para guardar falta completar el nombre de la agencia y el correo de contacto.',
+    );
+    expect(campo('Nombre de la agencia').getAttribute('aria-invalid')).toBe('true');
+    expect(campo('Correo de contacto').getAttribute('aria-invalid')).toBe('true');
+    expect(campo('Ciudad').getAttribute('aria-invalid')).toBeNull();
+    expect(screen.getByText('Escribe el nombre de la agencia.')).toBeTruthy();
+    expect(screen.getByText('Escribe un correo válido, por ejemplo hola@tuagencia.co.')).toBeTruthy();
+    await vi.waitFor(() => expect(document.activeElement).toBe(campo('Nombre de la agencia')));
+    expect(toast.mensaje).toBe('');
+
+    await escribir('Nombre de la agencia', 'Aventuras');
+    expect(campo('Nombre de la agencia').getAttribute('aria-invalid')).toBeNull();
+    expect(texto(screen.getByText(/Para guardar falta completar/))).toBe('Para guardar falta completar el correo de contacto.');
+  });
+
+  it('el WhatsApp y la descripción son opcionales: vacíos no impiden guardar', async () => {
+    vi.mocked(actualizarDatosAgencia).mockResolvedValue();
+    await pintar({ whatsapp: '3009876543', descripcion: 'Algo.' });
+    await editar();
+    await escribir(/^WhatsApp/, '');
+    await escribir(/^Descripción/, '');
+    await guardar();
+    await vi.waitFor(() => expect(actualizarDatosAgencia).toHaveBeenCalledTimes(1));
+    expect(actualizarDatosAgencia).toHaveBeenCalledWith('ag-1', expect.objectContaining({ whatsapp: null, descripcion: '' }));
+  });
+
+  it('una agencia sin teléfono ni correo (null en la base) abre con campos vacíos y los exige para guardar', async () => {
+    await pintar({ telefono: null, email: null });
+    await editar();
+    expect(campo('Teléfono').value).toBe('');
+    expect(campo('Correo de contacto').value).toBe('');
+    await guardar();
+    expect(actualizarDatosAgencia).not.toHaveBeenCalled();
+    expect(screen.getByText('Escribe un teléfono de contacto.')).toBeTruthy();
+  });
+
+  it('cancelar no llama a la API, vuelve a la vista de lectura y al reabrir muestra lo registrado', async () => {
+    await pintar();
+    await editar();
+    await escribir('Nombre de la agencia', 'Otro nombre');
+    await escribir('Ciudad', '');
+    await cancelar();
+    expect(actualizarDatosAgencia).not.toHaveBeenCalled();
+    expect(confirmar).not.toHaveBeenCalled();
+    expect(formulario()).toBeNull();
+    expect(dato('Nombre')).toBe('Aventuras Antioquia');
+    expect(dato('Ciudad')).toBe('Medellín');
+    expect(toast.mensaje).toBe('');
+    await vi.waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Editar datos' })));
+    await editar();
+    expect(campo('Nombre de la agencia').value).toBe('Aventuras Antioquia');
+    expect(campo('Ciudad').value).toBe('Medellín');
+    expect(screen.queryByText(/Para guardar falta completar/)).toBeNull();
+  });
+
+  it('si el servidor falla muestra el mensaje en una alerta, conserva lo escrito y no avisa ni da por guardado', async () => {
+    vi.mocked(actualizarDatosAgencia).mockRejectedValue(new Error('No hay conexión con el servidor.'));
+    await pintar();
+    const antes = cambiosAgencia.version;
+    await editar();
+    await escribir('Nombre de la agencia', 'Nombre nuevo');
+    await guardar();
+    const alerta = await screen.findByRole('alert');
+    expect(texto(alerta)).toContain('No hay conexión con el servidor');
+    expect(campo('Nombre de la agencia').value).toBe('Nombre nuevo');
+    expect((screen.getByRole('button', { name: 'Guardar' }) as HTMLButtonElement).disabled).toBe(false);
+    expect(toast.mensaje).toBe('');
+    expect(cambiosAgencia.version).toBe(antes);
+    await cancelar();
+    expect(dato('Nombre')).toBe('Aventuras Antioquia');
+  });
+
+  it('Escape sin cambios cierra el formulario', async () => {
+    await pintar();
+    await editar();
+    await fireEvent.keyDown(campo('Nombre de la agencia'), { key: 'Escape' });
+    await vi.waitFor(() => expect(formulario()).toBeNull());
+    expect(confirmar).not.toHaveBeenCalled();
+  });
+
+  it('Escape con cambios pregunta antes de descartar: «Seguir editando» conserva lo escrito', async () => {
+    vi.mocked(confirmar).mockResolvedValue(false);
+    await pintar();
+    await editar();
+    await escribir('Nombre de la agencia', 'Otro nombre');
+    await fireEvent.keyDown(campo('Nombre de la agencia'), { key: 'Escape' });
+    expect(confirmar).toHaveBeenCalledWith(expect.objectContaining({ titulo: expect.stringContaining('cambios') }));
+    await Promise.resolve();
+    expect(formulario()).toBeTruthy();
+    expect(campo('Nombre de la agencia').value).toBe('Otro nombre');
+  });
+
+  it('Escape con cambios y confirmando el descarte cierra sin llamar a la API', async () => {
+    vi.mocked(confirmar).mockResolvedValue(true);
+    await pintar();
+    await editar();
+    await escribir('Nombre de la agencia', 'Otro nombre');
+    await fireEvent.keyDown(campo('Nombre de la agencia'), { key: 'Escape' });
+    await vi.waitFor(() => expect(formulario()).toBeNull());
+    expect(dato('Nombre')).toBe('Aventuras Antioquia');
+    expect(actualizarDatosAgencia).not.toHaveBeenCalled();
+  });
+
+  it('mientras se editan los datos el control del logo sigue disponible', async () => {
+    await pintar({ logo_url: URL_LOGO });
+    await editar();
+    expect(screen.getByRole('button', { name: 'Quitar logo' })).toBeTruthy();
   });
 });

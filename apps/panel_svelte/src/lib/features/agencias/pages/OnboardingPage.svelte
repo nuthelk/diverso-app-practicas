@@ -6,6 +6,7 @@
   import AlertaError from '$lib/shared/ui/AlertaError.svelte';
   import Consentimiento from '$lib/features/legal/components/Consentimiento.svelte';
   import { registrarAgencia } from '../api/agencias.api';
+  import { normalizarDatosAgencia, validarDatosAgencia } from '../model/datos-agencia';
   import { registrarConsentimiento } from '$lib/features/legal/api/legal.api';
   import { mensajeError } from '$lib/shared/api/errores';
   import { goto } from '$app/navigation';
@@ -26,49 +27,39 @@
   let intentado = $state(false);
   let formulario = $state<HTMLFormElement>();
 
-  // Mismas reglas que las restricciones CHECK de la base de datos.
-  const rntValido = $derived(/^[0-9]{4,8}$/.test(numeroRnt.trim()));
-  const matriculaValida = $derived(/^[0-9][0-9 -]{3,19}$/.test(matricula.trim()));
-  const emailValido = $derived(/^\S+@\S+\.\S+$/.test(email.trim()));
-
-  /** Lo que se exige para enviar: `resumen` completa «falta completar…» y `mensaje` sale junto al campo. */
-  const reglas = $derived([
-    { clave: 'nombre', ok: nombre.trim() !== '', resumen: 'el nombre de la agencia', mensaje: 'Escribe el nombre de la agencia.' },
-    {
-      clave: 'rnt',
-      ok: rntValido,
-      resumen: 'el número de RNT',
-      mensaje: 'El número de RNT debe tener entre 4 y 8 dígitos, sin letras.',
-    },
-    {
-      clave: 'matricula',
-      ok: matriculaValida,
-      resumen: 'la matrícula mercantil',
-      mensaje: 'La matrícula mercantil debe ser numérica (se admiten guiones).',
-    },
-    { clave: 'ciudad', ok: ciudad.trim() !== '', resumen: 'la ciudad', mensaje: 'Escribe la ciudad.' },
-    { clave: 'telefono', ok: telefono.trim() !== '', resumen: 'el teléfono', mensaje: 'Escribe un teléfono de contacto.' },
-    {
-      clave: 'email',
-      ok: emailValido,
-      resumen: 'el correo de contacto',
-      mensaje: 'Escribe un correo válido, por ejemplo hola@tuagencia.co.',
-    },
-    {
-      clave: 'datos',
-      ok: aceptaDatos,
-      resumen: 'la autorización de datos',
-      mensaje: 'Marca la autorización de datos para poder registrarte.',
-    },
-    {
-      clave: 'terminos',
-      ok: aceptaTerminos,
-      resumen: 'los términos y condiciones',
-      mensaje: 'Acepta los términos y condiciones para poder registrarte.',
-    },
+  /** Lo que falta para enviar: los datos con las reglas compartidas, y las dos autorizaciones (solo de este formulario). */
+  const reglas = $derived<{ clave: string; resumen: string; mensaje: string }[]>([
+    ...validarDatosAgencia({
+      nombre,
+      ciudad,
+      telefono,
+      email,
+      whatsapp,
+      descripcion,
+      numero_rnt: numeroRnt,
+      matricula_camara_comercio: matricula,
+    }),
+    ...(aceptaDatos
+      ? []
+      : [
+          {
+            clave: 'datos',
+            resumen: 'la autorización de datos',
+            mensaje: 'Marca la autorización de datos para poder registrarte.',
+          },
+        ]),
+    ...(aceptaTerminos
+      ? []
+      : [
+          {
+            clave: 'terminos',
+            resumen: 'los términos y condiciones',
+            mensaje: 'Acepta los términos y condiciones para poder registrarte.',
+          },
+        ]),
   ]);
   /** Sin intento de envío no se marca nada; después se actualiza al corregir cada campo. */
-  const fallas = $derived(intentado ? reglas.filter((r) => !r.ok) : []);
+  const fallas = $derived(intentado ? reglas : []);
   const errorDe = (clave: string) => fallas.find((f) => f.clave === clave)?.mensaje;
   const faltan = $derived(new Intl.ListFormat('es', { type: 'conjunction' }).format(fallas.map((f) => f.resumen)));
 
@@ -92,15 +83,12 @@
       // Primero la autorización: es requisito previo al tratamiento.
       await registrarConsentimiento('tratamiento_datos');
       await registrarConsentimiento('terminos_agencia');
+      const datos = normalizarDatosAgencia({ nombre, ciudad, telefono, email, whatsapp, descripcion });
       await registrarAgencia({
-        nombre: nombre.trim(),
+        ...datos,
         numero_rnt: numeroRnt.trim(),
         matricula_camara_comercio: matricula.trim(),
-        ciudad: ciudad.trim(),
-        telefono: telefono.trim(),
-        email: email.trim(),
-        whatsapp: whatsapp.trim(),
-        descripcion: descripcion.trim(),
+        whatsapp: datos.whatsapp ?? '', // el registro guarda vacío (no null), como siempre
       });
       avisar('Agencia registrada. Te avisaremos cuando quede verificada.');
       goto('#/dashboard');
