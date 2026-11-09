@@ -28,13 +28,20 @@
   const path = $derived(rutaActual(page.url));
   let principal = $state<HTMLElement>();
 
+  /** Las lecturas se pueden cruzar (navegar mientras cambia el logo): solo cuenta la última pedida. */
+  let ultimoPedido = 0;
+
   $effect(() => {
     if (!auth.userId) return;
     // Se recarga al navegar (cambios de verificación sin F5) y cuando una página la cambia (el logo del perfil).
     void path;
     void cambiosAgencia.version;
+    const pedido = ++ultimoPedido;
     miAgencia()
-      .then((a) => (agencia = a))
+      .then((a) => {
+        if (pedido === ultimoPedido) agencia = a;
+      })
+      // Sin agencia el marco sigue funcionando; cada página muestra su propio error de carga.
       .catch(() => {});
   });
 

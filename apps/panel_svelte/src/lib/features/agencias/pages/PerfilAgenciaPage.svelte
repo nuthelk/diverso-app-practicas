@@ -42,8 +42,8 @@
   cargar();
 
   const vigencia = $derived(agencia ? textoVigencia(agencia) : null);
-  /** Lo que la agencia no llenó (WhatsApp y descripción son opcionales) se dice, no se deja en blanco. */
-  const o = (valor: string) => valor.trim() || 'No registrado';
+  /** Lo que la agencia no llenó (teléfono, correo y WhatsApp pueden ser null) se dice, no se deja en blanco. */
+  const registrado = (valor: string | null) => (valor ?? '').trim() || 'No registrado';
 </script>
 
 {#if cargando}
@@ -97,19 +97,19 @@
             </div>
             <div>
               <dt class="text-detalle text-tinta-2">Correo de contacto</dt>
-              <dd class="[overflow-wrap:anywhere]">{agencia.email}</dd>
+              <dd class="[overflow-wrap:anywhere]">{registrado(agencia.email)}</dd>
             </div>
             <div>
               <dt class="text-detalle text-tinta-2">Teléfono</dt>
-              <dd>{agencia.telefono}</dd>
+              <dd>{registrado(agencia.telefono)}</dd>
             </div>
             <div>
               <dt class="text-detalle text-tinta-2">WhatsApp</dt>
-              <dd>{o(agencia.whatsapp)}</dd>
+              <dd>{registrado(agencia.whatsapp)}</dd>
             </div>
             <div class="sm:col-span-2">
               <dt class="text-detalle text-tinta-2">Descripción</dt>
-              <dd class="max-w-[68ch] whitespace-pre-line [overflow-wrap:anywhere]">{o(agencia.descripcion)}</dd>
+              <dd class="max-w-[68ch] whitespace-pre-line [overflow-wrap:anywhere]">{registrado(agencia.descripcion)}</dd>
             </div>
           </dl>
         </Tarjeta>

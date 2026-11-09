@@ -10,9 +10,10 @@ export interface Agency {
   numero_rnt: string;
   matricula_camara_comercio: string;
   ciudad: string;
-  telefono: string;
-  email: string;
-  whatsapp: string;
+  /** Opcionales en la base (columnas sin `not null`). */
+  telefono: string | null;
+  email: string | null;
+  whatsapp: string | null;
   descripcion: string;
   /** URL pública del logo en el bucket `agency-logos` (null mientras no suba uno). */
   logo_url?: string | null;

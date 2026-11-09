@@ -146,3 +146,12 @@ describe('PerfilAgenciaPage · estados', () => {
     expect(miAgencia).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('PerfilAgenciaPage · datos que la base permite vacíos', () => {
+  it('teléfono, correo y WhatsApp en null (columnas opcionales) dicen «No registrado» y la página no se cae', async () => {
+    await pintar({ telefono: null, email: null, whatsapp: null });
+    expect(dato('Teléfono')).toBe('No registrado');
+    expect(dato('Correo de contacto')).toBe('No registrado');
+    expect(dato('WhatsApp')).toBe('No registrado');
+  });
+});

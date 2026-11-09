@@ -289,3 +289,24 @@ describe('cuando la agencia cambia dentro de una página', () => {
     expect(vi.mocked(miAgencia).mock.calls.length).toBe(antes + 1);
   });
 });
+
+describe('lecturas de la agencia que se cruzan', () => {
+  it('una respuesta vieja que llega tarde no pisa a la nueva: queda el logo nuevo', async () => {
+    await pintar();
+    const viejo = 'https://cdn.diverso.app/agency-logos/ag-1/viejo.png';
+    const nuevo = 'https://cdn.diverso.app/agency-logos/ag-1/nuevo.png';
+    let soltarVieja!: (a: unknown) => void;
+    vi.mocked(miAgencia)
+      .mockImplementationOnce(() => new Promise((r) => (soltarVieja = r as (a: unknown) => void)) as never)
+      .mockResolvedValueOnce(agencia({ nombre: 'Comuna 13 Graffiti Tours', logo_url: nuevo }));
+    avisarCambioAgencia(); // primera lectura: queda colgada
+    await tick();
+    avisarCambioAgencia(); // segunda lectura: responde enseguida con el logo nuevo
+    await vi.waitFor(() => expect(document.querySelector(`img[src="${nuevo}"]`)).not.toBeNull());
+    soltarVieja(agencia({ nombre: 'Comuna 13 Graffiti Tours', logo_url: viejo }));
+    await new Promise((r) => setTimeout(r, 0));
+    await tick();
+    expect(document.querySelector(`img[src="${viejo}"]`)).toBeNull();
+    expect(document.querySelector(`img[src="${nuevo}"]`)).not.toBeNull();
+  });
+});
