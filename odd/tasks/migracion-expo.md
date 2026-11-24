@@ -53,8 +53,8 @@ Especificación funcional y de diseño (fuente de verdad para portar):
 ## Tasks
 
 - T1 [x] Scaffold `apps/viajero_expo`: Expo + Router + TS strict, dependencias de S4, jest, alias `@/`, árbol de S2 vacío, `.env.example` — S2, S4 — worker — commit: 991fb28
-- T2 [ ] Portar `core` (modelos, errores, utils de fecha/moneda en hora de Bogotá, legal, comparison, servicios, repos) con sus tests — S3, S5 — worker — commit: —
-- T3 [ ] Sistema de diseño: tokens resueltos claro/oscuro, `Text` base (1.43 / 0.25), componentes compartidos, logo — S2 — worker — commit: —
+- T2 [x] Portar `core` (modelos, errores, utils de fecha/moneda en hora de Bogotá, legal, comparison, servicios, repos) con sus tests — S3, S5 — worker — commit: fc42f56, 5b38845, 0b68ebf (134 tests Dart portados + extras; 264 en tests/core)
+- T3 [x] Sistema de diseño: tokens resueltos claro/oscuro, `Text` base (1.43 / 0.25), componentes compartidos, logo — S2 — worker — commit: f65d1e5, 9faf6c0 (119 tests en tests/ui)
 - T4 [ ] Raíz de composición, tema, sesión, consentimiento, guard `sesionRedirect` + `destinoSeguro`, shell de pestañas, login, consentimiento, legal, 404 — S3 — worker — commit: —
 - T5 [ ] Catálogo, comparador, agencias, ficha del plan — S3 — worker — commit: —
 - T6 [ ] Checkout, pago Wompi (WebView móvil / misma pestaña en web), resultado, confirmación — S3 — worker — commit: —
@@ -68,3 +68,6 @@ Especificación funcional y de diseño (fuente de verdad para portar):
 - L2 (evidencia): `apps/viajero` = 147 archivos Dart (~12 000 líneas) entre app y core; 55 archivos de test en la app y 16 en core. El panel Svelte no importa `diverso_core`, pero `legal.test.ts`, `Logo.test.ts` y `tools/iconos/generar_iconos.py` leen archivos del paquete (por eso T9 los redirige antes de borrar).
 - L3 (evidencia): bugs heredados de Flutter encontrados en el inventario: agencia nunca visible en reservas (se corrige, S5) y autor de reseñas ajenas en null por RLS (se mantiene, S5).
 - L4 (contexto): apareció `apps/panel/` sin trackear en la carpeta (no lo creó esta migración); no se toca ni se commitea desde aquí.
+- L5 (verificación orquestador tras T2+T3): `npm test` 38 suites / 384 tests verdes; `tsc --noEmit` limpio.
+- L6 (decisiones T2): enums `as const` con el valor de la BD; `Plan.horaSalidaMinutos`; `react-native-url-polyfill/auto` (postgrest-js modifica `searchParams` con valores no ASCII); S5 corregido con `plan:plans(*, agencies(*))`. En nativo falta `startAutoRefresh/stopAutoRefresh` según `AppState` (va en T4).
+- L7 (decisiones T3): sonda con `flutter test` para §3.7: botones y chips NO heredan la altura 1.43; InputChip transparente; `DiversoLogo` es `logo_diverso.png` teñido. @expo/vector-icons no trae variantes Rounded/Outlined de Material: `*_rounded` → glifo filled, `*_outlined` → MaterialCommunityIcons; `payments_outlined` y `travel_explore_outlined` quedan filled.
