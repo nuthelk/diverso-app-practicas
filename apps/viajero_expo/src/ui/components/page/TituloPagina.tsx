@@ -1,0 +1,26 @@
+import type { TextStyle } from 'react-native';
+
+import { AppText, useTheme, type ColorScheme } from '@/ui/theme';
+
+import { Text } from '../Text';
+
+/** `TituloPagina.estilo(cs)`: 28 w800 ls -1 onSurface (la altura 1.1 va con `altura`). */
+export function estiloTituloPagina(cs: ColorScheme): TextStyle {
+  return { fontSize: AppText.tituloPagina, fontWeight: '800', letterSpacing: -1, color: cs.onSurface };
+}
+
+/** Título de pestaña (Explorar, Agencias, Reservas, Perfil): grande, una línea, encabezado. */
+export function TituloPagina({ texto }: { texto: string }) {
+  const cs = useTheme().colorScheme;
+  return (
+    <Text
+      accessibilityRole="header"
+      numberOfLines={1}
+      ellipsizeMode="tail"
+      altura={1.1}
+      style={estiloTituloPagina(cs)}
+    >
+      {texto}
+    </Text>
+  );
+}
