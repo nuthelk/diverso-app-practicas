@@ -1,4 +1,4 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { BookingStatus, DiversoError, EstadoPago } from '@/core';
 import { PagoAbierto } from '@/features/checkout/pago-abierto';
@@ -143,8 +143,9 @@ test('cada intento se avisa a la vista («… (intento N)»)', async () => {
   const puertas = [compuerta(), compuerta(), compuerta()];
   const pasarela = new PasarelaFalsa([pendiente()]);
   const verificarOriginal = pasarela.verificar.bind(pasarela);
+  let llamadas = 0;
   pasarela.verificar = async (p) => {
-    await puertas[pasarela.verificaciones.length]!.promesa;
+    await puertas[llamadas++]!.promesa;
     return verificarOriginal(p);
   };
   const { result } = await crear(pasarela);
@@ -153,17 +154,17 @@ test('cada intento se avisa a la vista («… (intento N)»)', async () => {
     verificando = result.current.verificar();
     await esperar();
   });
-  const vistos: number[] = [];
-  for (const puerta of puertas) {
-    vistos.push(result.current.intentos);
+  for (let n = 1; n <= puertas.length; n++) {
+    // Mientras espera la respuesta del intento n, la vista ya lo muestra.
+    await waitFor(() => expect(llamadas).toBe(n));
+    await waitFor(() => expect(result.current.intentos).toBe(n));
+    expect(result.current.cargando).toBe(true);
     await act(async () => {
-      puerta.completar();
-      await new Promise((r) => setTimeout(r, 0));
+      puertas[n - 1]!.completar();
       await esperar();
     });
   }
   await act(() => verificando);
-  expect(vistos).toEqual([1, 2, 3]);
   expect(result.current.cargando).toBe(false);
 });
 
