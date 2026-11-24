@@ -75,8 +75,10 @@ describe('cada ruta de la tabla resuelve con sus parámetros', () => {
     [AppRoutes.pagoDeTransaccion('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
     [AppRoutes.pagoDeReserva('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
     [AppRoutes.reserva('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
-    [AppRoutes.reservaDetalle('b1'), 'ReservaDetalleView', ['bookingId: "b1"']],
-    [AppRoutes.resena('b1'), 'ReviewView', ['bookingId: "b1"']],
+    // Pantallas reales (T7), con dobles que rechazan: el id que llega al repositorio lo prueban
+    // `consentimiento-guard-resena.test.tsx` y `features/bookings/views/*`.
+    [AppRoutes.reservaDetalle('b1'), 'ReservaDetalleView', ['No pudimos cargar la reserva']],
+    [AppRoutes.resena('b1'), 'ReviewView', ['No pudimos cargar la reserva']],
     ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
     ['/comparar', 'ComparatorView', ['Nada para comparar']],
   ];
