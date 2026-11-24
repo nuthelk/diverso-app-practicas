@@ -69,10 +69,12 @@ describe('cada ruta de la tabla resuelve con sus parámetros', () => {
     // Pantallas reales (T5): que el id llegue al repositorio lo prueba `rutas-catalogo.test.tsx`.
     [AppRoutes.agencia('a1'), 'AgenciaView', []],
     [AppRoutes.plan('p1'), 'PlanDetailView', []],
-    [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['planId: "p1"', 'fechaId: "f1"']],
-    [AppRoutes.pagoDeTransaccion('tx-77'), 'PagoResultadoView', ['transactionId: "tx-77"', 'bookingId: null']],
-    [AppRoutes.pagoDeReserva('r1'), 'PagoResultadoView', ['transactionId: null', 'bookingId: "r1"']],
-    [AppRoutes.reserva('b1'), 'ReservaView', ['bookingId: "b1"']],
+    // Pantallas reales (T6), con dobles que rechazan: el id que llega a cada repositorio lo prueba
+    // `features/checkout/rutas-pago.test.tsx`.
+    [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['No pudimos cargar el plan']],
+    [AppRoutes.pagoDeTransaccion('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
+    [AppRoutes.pagoDeReserva('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
+    [AppRoutes.reserva('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
     [AppRoutes.reservaDetalle('b1'), 'ReservaDetalleView', ['bookingId: "b1"']],
     [AppRoutes.resena('b1'), 'ReviewView', ['bookingId: "b1"']],
     ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
