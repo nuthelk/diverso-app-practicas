@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Diverso App",
+    "slug": "diverso-viajero",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo_diverso.png",
+    "scheme": "diverso",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.diversoapp.viajero",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.diversoapp.viajero",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/logo_diverso.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/logo_diverso.png",
+          "imageWidth": 200
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
