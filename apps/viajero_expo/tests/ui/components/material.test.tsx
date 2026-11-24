@@ -236,4 +236,20 @@ describe('Card, Divider y SegmentedButton', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Oscuro' }));
     expect(onCambio).toHaveBeenCalledWith('dark');
   });
+
+  it('segmented sin ícono de seleccionado (`showSelectedIcon: false`): sin ✓', async () => {
+    await renderConTema(
+      <SegmentedButton
+        segmentos={[
+          { valor: 'a', etiqueta: 'Puntaje' },
+          { valor: 'b', etiqueta: 'Nombre' },
+        ]}
+        seleccionado="a"
+        onCambio={() => {}}
+        mostrarIconoSeleccionado={false}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Puntaje' })).toBeSelected();
+    expect(iconos('check_rounded')).toHaveLength(0);
+  });
 });

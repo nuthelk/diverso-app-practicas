@@ -168,12 +168,15 @@ export function SegmentedButton<T extends string>({
   segmentos,
   seleccionado,
   onCambio,
+  mostrarIconoSeleccionado = true,
   style,
   testID = 'segmented-button',
 }: {
   segmentos: Segmento<T>[];
   seleccionado: T;
   onCambio: (valor: T) => void;
+  /** `showSelectedIcon` de Flutter: el ✓ del segmento elegido (la lista de agencias no lo usa). */
+  mostrarIconoSeleccionado?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }) {
@@ -183,7 +186,7 @@ export function SegmentedButton<T extends string>({
       {segmentos.map((s, i) => {
         const activo = s.valor === seleccionado;
         const colorContenido = activo ? cs.onSecondaryContainer : cs.onSurface;
-        const icono = activo ? 'check_rounded' : s.icono;
+        const icono = activo && mostrarIconoSeleccionado ? 'check_rounded' : s.icono;
         return (
           <Pressable
             key={s.valor}
