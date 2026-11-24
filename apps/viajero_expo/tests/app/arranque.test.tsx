@@ -66,16 +66,17 @@ describe('cada ruta de la tabla resuelve con sus parámetros', () => {
     ['/agencias', 'AgenciasView', []],
     ['/reservas', 'BookingsView', []],
     ['/perfil', 'ProfileView', []],
-    [AppRoutes.agencia('a1'), 'AgenciaView', ['agencyId: "a1"']],
-    [AppRoutes.plan('p1'), 'PlanDetailView', ['planId: "p1"']],
+    // Pantallas reales (T5): que el id llegue al repositorio lo prueba `rutas-catalogo.test.tsx`.
+    [AppRoutes.agencia('a1'), 'AgenciaView', []],
+    [AppRoutes.plan('p1'), 'PlanDetailView', []],
     [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['planId: "p1"', 'fechaId: "f1"']],
     [AppRoutes.pagoDeTransaccion('tx-77'), 'PagoResultadoView', ['transactionId: "tx-77"', 'bookingId: null']],
     [AppRoutes.pagoDeReserva('r1'), 'PagoResultadoView', ['transactionId: null', 'bookingId: "r1"']],
     [AppRoutes.reserva('b1'), 'ReservaView', ['bookingId: "b1"']],
     [AppRoutes.reservaDetalle('b1'), 'ReservaDetalleView', ['bookingId: "b1"']],
     [AppRoutes.resena('b1'), 'ReviewView', ['bookingId: "b1"']],
-    ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', ['ids: ["b","a","c"]']],
-    ['/comparar', 'ComparatorView', ['ids: []']],
+    ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
+    ['/comparar', 'ComparatorView', ['Nada para comparar']],
   ];
   for (const [url, vista, params] of rutas) {
     test(`${url} → ${vista}`, async () => {

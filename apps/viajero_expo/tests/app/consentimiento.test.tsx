@@ -6,6 +6,7 @@ import { ConsentViewModel } from '@/features/legal/view-models/consent-view-mode
 import { arrancarApp, asentar, pantallaVisible } from '../support/app';
 import { controlarAppState } from '../support/app-state';
 import { AuthFalso } from '../support/auth-falso';
+import { CatalogoFalso } from '../support/catalogo-falso';
 import { compuerta, type Compuerta } from '../support/compuerta';
 import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
 
@@ -304,11 +305,13 @@ describe('guardia: mientras se verifica el consentimiento', () => {
 describe('guardia: cambio de usuario', () => {
   test('U1: A aceptó y entra B sin cerrar sesión: se vuelve a comprobar', async () => {
     const auth = new AuthManual('A');
-    const r = await arrancar(auth, '/');
+    // El catálogo ya es la pantalla real (T5): se cuenta cuántas veces se montó por sus cargas.
+    const catalogo = new CatalogoFalso();
+    const r = await arrancarApp('/', dependenciasDePrueba({ auth, catalogo }));
     await responder(auth.abiertas[0], []);
     expect(barraInferior()).toBeOnTheScreen();
 
-    expect(mockMontadas).toEqual(['CatalogView']);
+    expect(catalogo.busquedas).toHaveLength(1);
     await act(async () => auth.cambiarSesion('B'));
     await asentar(1);
     expect(auth.abiertas).toHaveLength(2);
@@ -317,7 +320,7 @@ describe('guardia: cambio de usuario', () => {
 
     expect(r.getPathname()).toBe('/consentimiento');
     // Mientras B se verificaba, el catálogo de A no volvió a montarse.
-    expect(mockMontadas).toEqual(['CatalogView']);
+    expect(catalogo.busquedas).toHaveLength(1);
   });
 
   test('U2: la respuesta «aceptado» tardía de A no cuenta para B', async () => {
