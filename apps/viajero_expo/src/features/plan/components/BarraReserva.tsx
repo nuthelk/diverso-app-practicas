@@ -1,0 +1,146 @@
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { formatCOP, formatFechaCorta, type Plan, type PlanDate } from '@/core';
+import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
+import { AppRadios, AppText, conAlfa, Curvas, Duraciones, useTheme } from '@/ui/theme';
+
+/** Pocos cupos: desde aquí hacia abajo se avisa «¡Últimos N!». */
+const POCOS_CUPOS = 4;
+
+/**
+ * Barra inferior de la ficha (`barra_reserva.dart`): fechas con sus cupos, precio y «Reservar» de
+ * la fecha elegida. No guarda estado (la fecha la maneja el view model). Va DEBAJO del scroll y
+ * respeta la barra de gestos (gotcha 14). Sin fechas, avisa y ofrece «Ver otros planes».
+ */
+export function BarraReserva({
+  plan,
+  fechas,
+  seleccionada,
+  onSeleccionar,
+  onReservar,
+  onVerOtros,
+}: {
+  plan: Plan;
+  fechas: readonly PlanDate[];
+  /** Null solo cuando no hay fechas. */
+  seleccionada: PlanDate | null;
+  onSeleccionar: (fecha: PlanDate) => void;
+  onReservar: (fecha: PlanDate) => void;
+  onVerOtros: () => void;
+}) {
+  const tema = useTheme();
+  const cs = tema.colorScheme;
+  const insets = useSafeAreaInsets();
+  const superficie = { backgroundColor: tema.fondoPagina, borderTopColor: conAlfa(cs.outlineVariant, 0.5) };
+
+  if (seleccionada === null) {
+    return (
+      <View testID="barra-reserva" style={[estilos.superficie, superficie]}>
+        <View style={[estilos.sinFechas, { paddingBottom: 16 + insets.bottom }]}>
+          <Icono nombre="event_busy_rounded" color={cs.onSurfaceVariant} />
+          <View style={{ width: 10 }} />
+          <Text style={{ flex: 1, fontWeight: '600' }}>Sin fechas disponibles por ahora</Text>
+          {/* Se encoge: en celulares angostos o con letra grande parte su texto en vez de desbordar. */}
+          <TextButton texto="Ver otros planes" onPress={onVerOtros} style={estilos.encogible} />
+        </View>
+      </View>
+    );
+  }
+
+  // SafeArea(minimum: 20, 10, 20, 12): el mayor entre el inset del sistema y el mínimo.
+  return (
+    <View testID="barra-reserva" style={[estilos.superficie, superficie]}>
+      <View
+        style={{
+          paddingLeft: Math.max(20, insets.left),
+          paddingRight: Math.max(20, insets.right),
+          paddingTop: 10,
+          paddingBottom: Math.max(12, insets.bottom),
+        }}
+      >
+        <ScrollView
+          testID="fechas-reserva"
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ height: 62 }}
+          contentContainerStyle={estilos.fechas}
+        >
+          {fechas.map((f) => (
+            <ChipFecha key={f.id} fecha={f} seleccionada={f.id === seleccionada.id} onPress={() => onSeleccionar(f)} />
+          ))}
+        </ScrollView>
+        <View style={{ height: 10 }} />
+        <View style={estilos.fila}>
+          <View>
+            <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
+              {formatCOP(plan.precioCop)}
+            </Text>
+            <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>
+          </View>
+          <View style={{ flex: 1 }} />
+          <FilledButton icono="lock_outline_rounded" texto="Reservar" onPress={() => onReservar(seleccionada)} style={estilos.reservar} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** Chip de una fecha con sus cupos; el cambio de selección se anima 160 ms easeOut. */
+function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccionada: boolean; onPress: () => void }) {
+  const tema = useTheme();
+  const cs = tema.colorScheme;
+  const t = useRef(new Animated.Value(seleccionada ? 1 : 0)).current;
+  useEffect(() => {
+    const animacion = Animated.timing(t, {
+      toValue: seleccionada ? 1 : 0,
+      duration: Duraciones.chipFecha,
+      easing: Curvas.easeOut.fn,
+      useNativeDriver: false,
+    });
+    animacion.start();
+    return () => animacion.stop();
+  }, [seleccionada, t]);
+  const pocos = fecha.cupoDisponible <= POCOS_CUPOS;
+  const cupos = pocos ? `¡Últimos ${fecha.cupoDisponible}!` : `${fecha.cupoDisponible} cupos`;
+  return (
+    <Pressable
+      testID={`fecha-${fecha.id}`}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${formatFechaCorta(fecha.fecha)}, ${cupos}`}
+      accessibilityState={{ selected: seleccionada }}
+    >
+      <Animated.View
+        style={[
+          estilos.chip,
+          { backgroundColor: t.interpolate({ inputRange: [0, 1], outputRange: [cs.surfaceContainerHigh, cs.primary] }) },
+        ]}
+      >
+        <Text style={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
+          {formatFechaCorta(fecha.fecha)}
+        </Text>
+        <Text
+          style={{
+            fontSize: AppText.nota,
+            fontWeight: '600',
+            color: seleccionada ? conAlfa(cs.onPrimary, 0.8) : pocos ? tema.diverso.pocosCupos : cs.onSurfaceVariant,
+          }}
+        >
+          {cupos}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+const estilos = StyleSheet.create({
+  superficie: { borderTopWidth: 1 },
+  sinFechas: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16 },
+  encogible: { flexShrink: 1 },
+  fechas: { gap: 8, alignItems: 'stretch' },
+  chip: { height: 62, justifyContent: 'center', paddingHorizontal: 14, borderRadius: AppRadios.field },
+  fila: { flexDirection: 'row', alignItems: 'center' },
+  reservar: { minWidth: 150, minHeight: 52 },
+});
