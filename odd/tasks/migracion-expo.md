@@ -52,7 +52,7 @@ Especificación funcional y de diseño (fuente de verdad para portar):
 
 ## Tasks
 
-- T1 [ ] Scaffold `apps/viajero_expo`: Expo + Router + TS strict, dependencias de S4, jest, alias `@/`, árbol de S2 vacío, `.env.example` — S2, S4 — worker — commit: —
+- T1 [x] Scaffold `apps/viajero_expo`: Expo + Router + TS strict, dependencias de S4, jest, alias `@/`, árbol de S2 vacío, `.env.example` — S2, S4 — worker — commit: 991fb28
 - T2 [ ] Portar `core` (modelos, errores, utils de fecha/moneda en hora de Bogotá, legal, comparison, servicios, repos) con sus tests — S3, S5 — worker — commit: —
 - T3 [ ] Sistema de diseño: tokens resueltos claro/oscuro, `Text` base (1.43 / 0.25), componentes compartidos, logo — S2 — worker — commit: —
 - T4 [ ] Raíz de composición, tema, sesión, consentimiento, guard `sesionRedirect` + `destinoSeguro`, shell de pestañas, login, consentimiento, legal, 404 — S3 — worker — commit: —
