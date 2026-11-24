@@ -1,6 +1,108 @@
-// PLACEHOLDER: T5 (pestaña Agencias) reemplaza este archivo por la pantalla real (mantener el nombre).
-import { PantallaPendiente } from '@/features/shell/components/PantallaPendiente';
+import { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { useDependencies } from '@/composition';
+import { LABEL_ORDEN_AGENCIAS, OrdenAgencias, valoresDe } from '@/core';
+import { Grilla } from '@/features/catalog/components/Grilla';
+import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { EmptyState, FilledButton, SegmentedButton, Skeleton, TituloPagina } from '@/ui/components';
+import { AppInsets, AppRadios, AppTheme, useTheme } from '@/ui/theme';
+
+import { AgenciaCard } from '../components/AgenciaCard';
+import { useAgenciasViewModel } from '../view-models/useAgenciasViewModel';
+
+const SEGMENTOS = valoresDe(OrdenAgencias).map((o) => ({ valor: o, etiqueta: LABEL_ORDEN_AGENCIAS[o] }));
+
+/**
+ * Pestaña «Agencias» (`agencias_view.dart`): agencias verificadas con puntaje, logo y portada,
+ * ordenables por puntaje, número de planes o nombre. Cada una abre `/agencia/:id`. Se puede
+ * tirar para recargar aunque la lista esté vacía.
+ */
 export function AgenciasView() {
-  return <PantallaPendiente nombre="AgenciasView" />;
+  const tema = useTheme();
+  const { catalogo } = useDependencies();
+  const vm = useAgenciasViewModel({ catalogo });
+  const { width } = useWindowDimensions();
+  const esGrid = width > AppTheme.bpCompact;
+  const [refrescando, setRefrescando] = useState(false);
+  const { cargar } = vm;
+
+  useEffect(() => {
+    void cargar();
+  }, [cargar]);
+
+  const refrescar = async () => {
+    setRefrescando(true);
+    try {
+      await vm.cargar();
+    } finally {
+      setRefrescando(false);
+    }
+  };
+
+  return (
+    <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+      <BarraSuperior titulo={<TituloPagina texto="Agencias" />} />
+      <ScrollView
+        testID="agencias-scroll"
+        style={estilos.flex}
+        contentContainerStyle={estilos.crecer}
+        alwaysBounceVertical
+        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[tema.colorScheme.primary]} tintColor={tema.colorScheme.primary} />}
+      >
+        {vm.hayAgencias || vm.cargando ? (
+          <View style={estilos.orden}>
+            <SegmentedButton segmentos={SEGMENTOS} seleccionado={vm.orden} onCambio={vm.cambiarOrden} mostrarIconoSeleccionado={false} />
+          </View>
+        ) : null}
+        {vm.cargando && !vm.hayAgencias ? (
+          <View style={AppInsets.lista}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={AppInsets.entreTarjetas}>
+                <Skeleton height={210} radius={AppRadios.card} />
+              </View>
+            ))}
+          </View>
+        ) : vm.error !== null && !vm.hayAgencias ? (
+          <EmptyState
+            icono="cloud_off_rounded"
+            titulo="Sin conexión"
+            mensaje={vm.error}
+            detalle={vm.errorDetalle}
+            accion={<FilledButton variante="tonal" icono="refresh_rounded" texto="Reintentar" onPress={() => void vm.cargar()} />}
+          />
+        ) : !vm.hayAgencias ? (
+          <EmptyState
+            icono="storefront_outlined"
+            titulo="Aún no hay agencias"
+            mensaje="Cuando una agencia verificada publique planes, la verás aquí."
+          />
+        ) : (
+          <View testID="lista-agencias" style={AppInsets.lista}>
+            {esGrid ? (
+              <Grilla
+                items={vm.agencias}
+                anchoUtil={width - 40}
+                aspecto={1.7}
+                clave={(a) => a.id}
+                render={(a) => <AgenciaCard agencia={a} />}
+              />
+            ) : (
+              vm.agencias.map((a) => (
+                <View key={a.id} style={AppInsets.entreTarjetas}>
+                  <AgenciaCard agencia={a} />
+                </View>
+              ))
+            )}
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
 }
+
+const estilos = StyleSheet.create({
+  flex: { flex: 1 },
+  crecer: { flexGrow: 1 },
+  orden: { paddingLeft: 20, paddingTop: 4, paddingRight: 20, paddingBottom: 12 },
+});
