@@ -24,16 +24,16 @@ de dar un cambio por terminado, y por qué las tres.
 
 ## 1. Tabla de equivalencias
 
-| Tarea | Panel (Node) | App del viajero (Flutter) |
+| Tarea | Panel (Node) | App del viajero (Expo) |
 |---|---|---|
-| Instalar dependencias | `npm install` | `flutter pub get` |
-| Ejecutar en desarrollo | `npm run dev` (SvelteKit sobre Vite) | `flutter run` |
-| Analizar tipos y avisos | `npm run check` | `flutter analyze` |
-| Ejecutar las pruebas | `npm test` (= `vitest run`) | `flutter test` |
-| Compilar para producción | `npm run build` (= `vite build`, SvelteKit + `adapter-static`) | `flutter build web` |
+| Instalar dependencias | `npm install` | `npm install` (para agregar una: `npx expo install <paquete>`) |
+| Ejecutar en desarrollo | `npm run dev` (SvelteKit sobre Vite) | `npx expo start` (`--web` para el navegador) |
+| Analizar tipos y avisos | `npm run check` | `npm run typecheck` (= `tsc --noEmit`) |
+| Ejecutar las pruebas | `npm test` (= `vitest run`) | `npm test` (= `jest`, con `jest-expo`) |
+| Compilar para producción | `npm run build` (= `vite build`, SvelteKit + `adapter-static`) | Builds en la nube con EAS (`npx eas-cli@latest build`); el repo todavía no trae `eas.json` |
 | Servir lo compilado | `npm run preview` | — |
-| Regenerar los tipos de SvelteKit | `npm run prepare` (= `svelte-kit sync`) | — |
-| Formatear | No hay formateador configurado | `dart format` |
+| Regenerar los tipos de SvelteKit | `npm run prepare` (= `svelte-kit sync`) | — (Expo Router genera los suyos al correr `npx expo start`) |
+| Formatear | No hay formateador configurado | No hay formateador configurado |
 
 Los scripts están en `apps/panel_svelte/package.json` (`dev`, `build`, `preview`, `prepare`, `check`,
 `test`). `npm run check` ejecuta `svelte-kit sync` y después `svelte-check` (sección 8); `prepare`
@@ -451,8 +451,8 @@ la más barata. `apps/panel_svelte/tests/unit/features/auth/model/sesion.test.ts
 Tres pruebas del panel también **leen archivos del repo** para no desalinearse de la base de datos
 y de la app móvil: `politica.test.ts` compara el texto de la política con los vectores de las pruebas
 SQL (`supabase/tests/0005_endurecimiento_pagos.sql` y otras), `legal.test.ts` compara la versión de los
-documentos con `documento_legal.dart` y las migraciones, y `Logo.test.ts` compara el PNG del panel con
-el de Flutter. Usan `node:fs` y `process` (rutas desde `apps/panel_svelte`, el directorio donde corre
+documentos con `apps/viajero/src/core/legal/documento-legal.ts` y las migraciones, y `Logo.test.ts`
+compara el PNG del panel con la máscara de la app del viajero (`apps/viajero/assets/logo_diverso.png`). Usan `node:fs` y `process` (rutas desde `apps/panel_svelte`, el directorio donde corre
 `npm test`, no desde la carpeta de la prueba), y eso explica los errores conocidos de la sección
 siguiente. (`tokens.test.ts` también lee `src/app.css` y `src/fuentes.css` con `node:fs`, pero
 lleva un `@ts-expect-error` en el import y no suma ningún error a `svelte-check`.)
@@ -461,7 +461,7 @@ lleva un `@ts-expect-error` en el import y no suma ningún error a `svelte-check
 
 ## 8. `svelte-check`
 
-`svelte-check` es el equivalente de `flutter analyze`: revisa los tipos de TypeScript **dentro de
+`svelte-check` es el equivalente de `npm run typecheck` en la app del viajero: revisa los tipos de TypeScript **dentro de
 los `.svelte`** y los avisos del compilador de Svelte (accesibilidad, CSS sin usar,
 `state_referenced_locally`…).
 

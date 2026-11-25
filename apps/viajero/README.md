@@ -1,11 +1,11 @@
 # Diverso App — viajero (Expo)
 
-App del viajero en React Native + Expo (SDK 58, Expo Router, TypeScript `strict`). Reemplaza a `apps/viajero` (Flutter) durante la migración.
+App del viajero en React Native + Expo (SDK 58, Expo Router, TypeScript `strict`). Reemplazó a la app Flutter: el inventario de lo migrado está en [`docs/migracion-expo/`](../../docs/migracion-expo/).
 
 ## Instalar
 
 ```bash
-cd apps/viajero_expo
+cd apps/viajero
 npm install
 ```
 
@@ -23,13 +23,14 @@ Completá `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_KEY` (con Supabase 
 
 ```bash
 npx expo start         # Expo Go / emulador (a: Android, i: iOS)
-npx expo start --web   # navegador (SPA, URLs sin #)
+npx expo start --web --port 8080   # navegador (SPA, URLs sin #); 8080 está en la allowlist de pagos-iniciar
 ```
 
 ## Testear
 
 ```bash
 npm test               # jest-expo + Testing Library; tests en tests/ (espejo de src/)
+                       # integración contra Supabase local: solo con SUPABASE_SERVICE_ROLE_KEY en el entorno
 npm run typecheck      # tsc --noEmit
 ```
 
@@ -38,8 +39,9 @@ npm run typecheck      # tsc --noEmit
 Por funcionalidad (Screaming Architecture) en capas, patrón MVVM + Repository + inyección por Context. Detalle y decisiones en [`odd/tasks/migracion-expo.md`](../../odd/tasks/migracion-expo.md) (S2, S3).
 
 - `src/app/` — Expo Router: solo rutas, layouts y guards; cada ruta re-exporta una pantalla.
-- `src/core/` — port de `diverso_core`: TypeScript puro sin React (config, modelos, errores, utils, legal, comparación, servicios y repositorios).
+- `src/core/` — port del antiguo paquete Dart `diverso_core`: TypeScript puro sin React (config, modelos, errores, utils, legal, comparación, servicios y repositorios).
 - `src/ui/` — sistema de diseño compartido (`theme/` tokens claro/oscuro, `components/`).
 - `src/features/<funcionalidad>/` — `views/` (presentación pura), `view-models/` (hooks `useXxxViewModel`), `components/`.
+- `src/router/` — tabla de rutas tipada, guard puro `sesionRedirect`, `destinoSeguro` y `volverSeguro`.
 - `src/composition/` — raíz de composición: crea los repositorios una vez y los provee por Context.
 - `tests/` — espejo de `src/`; el alias `@/` apunta a `src/` en TypeScript, Metro y Jest.

@@ -147,10 +147,10 @@ no toca las rutas.
 
 | Carpeta | Qué contiene | Cómo se llaman los archivos | Equivale en `apps/viajero` a |
 |---|---|---|---|
-| `pages/` | Una **pantalla** por archivo: su `+page.svelte` la dibuja; carga datos y reparte a componentes | `<Nombre>Page.svelte` | `views/*_view.dart` |
-| `components/` | Piezas de la pantalla que solo esta funcionalidad usa (un grupo grande va en su subcarpeta: `plan-form/`) | `PascalCase.svelte` | `widgets/` de la funcionalidad |
-| `api/` | **Acceso a datos**: habla con Supabase y devuelve datos tipados | `<f>.api.ts` | Los *services* y *repositories* |
-| `model/` | Tipos y **lógica pura** (sin Svelte, sin red, sin DOM) y el estado reactivo compartido | `<f>.ts` (`plan.ts`, `ventas.ts`…); `<f>.svelte.ts` para estado (solo `auth`) | `packages/diverso_core/lib/models/` y un `ChangeNotifier` global |
+| `pages/` | Una **pantalla** por archivo: su `+page.svelte` la dibuja; carga datos y reparte a componentes | `<Nombre>Page.svelte` | `features/<f>/views/<Nombre>View.tsx` |
+| `components/` | Piezas de la pantalla que solo esta funcionalidad usa (un grupo grande va en su subcarpeta: `plan-form/`) | `PascalCase.svelte` | `features/<f>/components/` |
+| `api/` | **Acceso a datos**: habla con Supabase y devuelve datos tipados | `<f>.api.ts` | Los *services* y *repositories* de `src/core/data/` |
+| `model/` | Tipos y **lógica pura** (sin Svelte, sin red, sin DOM) y el estado reactivo compartido | `<f>.ts` (`plan.ts`, `ventas.ts`…); `<f>.svelte.ts` para estado (solo `auth`) | `src/core/models/` y un Context provider global (`SesionProvider`, `ConsentimientoProvider`) |
 
 Los imports entre esas carpetas van siempre en el mismo sentido: `pages/` → `components/` → `api/` →
 `model/`. Una carpeta puede importar de las que tiene a su derecha, nunca de las de su izquierda:
@@ -158,13 +158,13 @@ Los imports entre esas carpetas van siempre en el mismo sentido: `pages/` → `c
 
 Equivalencias del resto de piezas:
 
-| `apps/viajero` (Flutter) | `apps/panel_svelte` |
+| `apps/viajero` (Expo) | `apps/panel_svelte` |
 |---|---|
-| `lib/router/app_router.dart` y `app_routes.dart` | Las carpetas de `src/routes/` |
-| `lib/router/sesion_redirect.dart` | `src/lib/features/auth/model/sesion.ts` (usado en `src/routes/+layout.svelte`) |
-| `lib/ui/shell/app_shell.dart` | `src/lib/features/agencias/components/Shell.svelte` (usado en `src/routes/(panel)/+layout.svelte`) |
-| `lib/ui/core/widgets/` | `src/lib/shared/ui/` |
-| `ui/features/<f>/view_models/` | No hay clase aparte: el estado vive en el `<script>` de la página (`$state`, `$derived`) y las reglas en el `.ts` puro de `model/` |
+| Los archivos de `src/app/` (Expo Router) y `src/router/rutas.ts` | Las carpetas de `src/routes/` |
+| `src/router/sesion-redirect.ts` | `src/lib/features/auth/model/sesion.ts` (usado en `src/routes/+layout.svelte`) |
+| `src/features/shell/views/AppShell.tsx` (usado en `src/app/(tabs)/_layout.tsx`) | `src/lib/features/agencias/components/Shell.svelte` (usado en `src/routes/(panel)/+layout.svelte`) |
+| `src/ui/components/` | `src/lib/shared/ui/` |
+| `features/<f>/view-models/` (hooks `useXxxViewModel`) | No hay view model aparte: el estado vive en el `<script>` de la página (`$state`, `$derived`) y las reglas en el `.ts` puro de `model/` |
 
 > **Por qué el `Shell` vive en `features/agencias/` y no en `shared/`.** El `Shell` muestra la
 > tarjeta de la agencia y su aviso de verificación: conoce la funcionalidad `agencias` y `auth`.
@@ -871,8 +871,8 @@ Dos consecuencias a tener presentes:
   `perfilActual()`, pero nada en `routes/` impide que otro rol escriba esa URL; lo que protege los datos
   son las políticas RLS de la base (`supabase/migrations/0001_schema.sql`).
 
-Es el equivalente del `redirect` global de `go_router` en la app del viajero
-(`apps/viajero/lib/router/sesion_redirect.dart`).
+Es el equivalente del guard de sesión de la app del viajero: la función pura `sesionRedirect()`
+(`apps/viajero/src/router/sesion-redirect.ts`), que aplica `src/router/NavegacionDeLaApp.tsx`.
 
 ---
 

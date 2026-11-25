@@ -18,7 +18,7 @@ MVP definido en los Anexos 4–6 del proyecto de Ingeniería de Software
 
 | Lado | App | Funciones |
 |---|---|---|
-| Viajero (B2C) | `apps/viajero` (Flutter móvil/web) | Catálogo con buscador y filtros, comparador por número de viajeros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + **pago con Wompi en modo prueba** (Web Checkout: tarjeta, PSE, Nequi, Daviplata y Bancolombia) con confirmación verificada en el servidor, mis reservas con **cancelación y reembolso de prueba según la ventana de cada plan** (24, 48 o 72 h), reseñas verificadas (solo quien viajó) |
+| Viajero (B2C) | `apps/viajero` (React Native + Expo: Android, iOS y web) | Catálogo con buscador y filtros, comparador por número de viajeros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + **pago con Wompi en modo prueba** (Web Checkout: tarjeta, PSE, Nequi, Daviplata y Bancolombia) con confirmación verificada en el servidor, mis reservas con **cancelación y reembolso de prueba según la ventana de cada plan** (24, 48 o 72 h), reseñas verificadas (solo quien viajó) |
 | Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **perfil de la agencia** (logo y datos de contacto editables —nombre, descripción, ciudad, teléfono, correo y WhatsApp—; el RNT y la matrícula se ven pero no se cambian; desde el menú de cuenta), **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana; «Ver todos» en Tus planes lleva a Planes y «Ver todas» en Reseñas recientes a la página de reseñas), **página Reseñas** (`#/resenas`: todas las reseñas de sus planes, de a 20 con «Cargar más»), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
 | Admin | ídem panel (rol admin) | Verificar con vigencia del RNT, rechazar con motivo, renovar vigencia, retirar verificación e historial auditable, **Admin dispersiones** (generar liquidaciones y anticipos, ejecutar la dispersión de prueba, bloquear o desbloquear el anticipo de una agencia) |
 
@@ -38,29 +38,33 @@ la evidencia de ventas del piloto.
 ## Arquitectura
 
 ```
-apps/viajero          → Flutter (Android/iOS/Web) — app del viajero
+apps/viajero          → React Native + Expo (Android/iOS/Web), Expo Router, TypeScript — app del viajero
 apps/panel_svelte     → Svelte 5 + SvelteKit estático (URLs #/) + Tailwind 4 (SPA/PWA) — panel B2B + admin
-packages/diverso_core → modelos, errores, `data/services` y `data/repositories` compartidos
 supabase/             → migraciones SQL, seed, pruebas SQL, Edge Functions de pagos y métricas
 tools/iconos          → generador de los íconos de la app y de las webs (Pillow)
 ```
 
-- **Guía para aprender la app y Flutter:** [`docs/guia/`](docs/guia/README.md) (plan de
-  aprendizaje, capítulos para quien viene de React Native y TypeScript y un recorrido de los
-  flujos de la app: entrar, catálogo, reservar y pagar, cancelar). **Guía del panel y de
+- **Guías:** [`docs/guia/`](docs/guia/README.md) (índice). **Guía del panel y de
   Svelte 5:** [`docs/guia/svelte/`](docs/guia/svelte/README.md) (Svelte desde React, runes,
   SvelteKit estático con rutas por carpetas, la arquitectura por funcionalidad de
   `apps/panel_svelte` —cada una con `pages/`, `components/`, `api/` y `model/`—, su sistema visual
   (tokens en `app.css` y componentes de `shared/ui`) y sus pruebas en `tests/unit/`).
-- **Capa de datos de Flutter** (`packages/diverso_core/lib/data`): un *service* (`*_api.dart`:
-  `BookingApi`, `CatalogApi`, `EdgeFunctionsApi`) solo hace las consultas a Supabase
-  y devuelve filas; un *repository* (`*_repository.dart`) las convierte en modelos y aplica las
-  reglas de datos (ventana de 30 minutos, filtro de fecha del catálogo, reseñas de «Mis
-  reservas»…) y traduce los fallos a `DiversoException` (`errors/`). `AuthRepository` y
-  `ReviewRepository` usan el cliente directo, y `PaymentGateway` (`WompiPaymentGateway`) es la
-  única interfaz. Nada en `diverso_core` lee `Supabase.instance`: cada app crea el
-  `SupabaseClient` una vez en su `main.dart`, arma los servicios y repositorios por constructor y
-  los entrega con Provider; las pantallas hacen `context.read<…Repository>()`.
+- **App del viajero** (`apps/viajero/src`): arquitectura por funcionalidad en capas y patrón
+  MVVM + Repository + inyección de dependencias por Context. `app/` tiene solo las rutas de Expo
+  Router; cada `features/<f>/` tiene `views/` (pantallas que solo pintan), `view-models/` (hooks
+  `useXxxViewModel` con el estado y los comandos) y `components/`; `ui/` es el sistema de diseño
+  compartido, y `core/` es TypeScript puro, sin React. Decisiones y tabla de equivalencias en
+  [`odd/tasks/migracion-expo.md`](odd/tasks/migracion-expo.md) (S2 y S3).
+- **Capa de datos del viajero** (`apps/viajero/src/core/data`): un *service*
+  (`services/*-api.ts`: `BookingApiSupabase`, `CatalogApiSupabase`, `EdgeFunctionsApiSupabase`) solo
+  hace las consultas a Supabase y devuelve filas; un *repository* (`repositories/*-repository.ts`)
+  las convierte en modelos (`core/models/`), aplica las reglas de datos (ventana de 30 minutos,
+  filtro de fecha del catálogo, reseñas de «Mis reservas»…) y traduce los fallos a `DiversoError`
+  (`core/errors/`). `AuthRepository` y `ReviewRepository` usan el cliente directo, y `PaymentGateway`
+  (`WompiPaymentGateway`) es la única interfaz. Nada en `core` crea el cliente por su cuenta: la
+  raíz de composición (`src/composition/dependencias-reales.ts`) crea el `SupabaseClient` una vez,
+  arma servicios y repositorios por constructor y los entrega con `DependenciesProvider`; las
+  pantallas los piden con `useDependencies()` (en los tests se pasan repositorios falsos).
 - **Backend:** Supabase (PostgreSQL + Auth + Storage + API REST auto-generada + Edge
   Functions), enfoque API-first como pide el Anexo 6.
 - **Anti-sobreventa (el reto de ingeniería central):** la reserva vive en la RPC
@@ -178,7 +182,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
   piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/features/legal/model/legal.ts` y
-  `packages/diverso_core/lib/legal/documento_legal.dart` (**borradores** para revisión jurídica).
+  `apps/viajero/src/core/legal/documento-legal.ts` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias
   pendientes o rechazadas.
@@ -253,8 +257,9 @@ Fuente: documentación de Wompi, sección «Datos de prueba en Sandbox»
 
 ## Cómo correr (desarrollo local)
 
-Requisitos: Docker Desktop corriendo, Flutter (testeado con 3.47.5), Node (para el panel; se usó la 24), Supabase CLI. Los comandos con `eval`/`(echo …)` están pensados para bash (en Windows,
-Git Bash).
+Requisitos: Docker Desktop corriendo, Node (para la app del viajero y el panel; se usó la 24),
+Supabase CLI y, para probar en un teléfono, la app **Expo Go**. Los comandos con
+`eval`/`(echo …)` están pensados para bash (en Windows, Git Bash).
 
 ```bash
 cd diverso-app
@@ -268,10 +273,11 @@ supabase db reset        # SOLO la primera vez: aplica migraciones + seed demo (
 # 2. Edge Functions de pagos (ver «Configurar Wompi en modo prueba»), en otra terminal
 supabase functions serve --env-file supabase/functions/.env
 
-# 3. App del viajero en web, en el puerto 3000
+# 3. App del viajero en web, en el puerto 8080
 cd apps/viajero
-flutter pub get
-flutter run -d web-server --web-port=3000     # abre http://localhost:3000
+npm install
+cp .env.example .env     # ver «Configurar la app del viajero» abajo
+npx expo start --web --port 8080              # abre http://localhost:8080
 
 # 4. Panel de agencias (Svelte 5 + SvelteKit estático + Tailwind 4)
 cd ../panel_svelte
@@ -281,56 +287,46 @@ npm run check          # tipos y avisos de Svelte (svelte-kit sync + svelte-chec
 npm run build          # producción → dist/ (servir con cualquier estático)
 ```
 
-**¿Por qué el puerto 3000?** Después de pagar, Wompi devuelve al viajero a una URL de retorno
+### Configurar la app del viajero
+
+La app lee `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_KEY` de `apps/viajero/.env` (copia de
+`.env.example`; `.env` no se versiona). El Supabase local de Diverso escucha en
+**`http://127.0.0.1:54331`** (puerto `[api]` de `supabase/config.toml`; **54331, no el 54321** por
+defecto de Supabase) y la key es la publicable que imprime `supabase status`. Sin `.env` la app usa
+esos mismos valores locales (`apps/viajero/src/core/config/diverso-config.ts`). Expo incrusta las
+variables `EXPO_PUBLIC_*` al empaquetar: si cambias el `.env`, reinicia `npx expo start`.
+
+**¿Por qué el puerto 8080?** Después de pagar, Wompi devuelve al viajero a una URL de retorno
 y el servidor solo acepta las de una lista de permitidos (para que nadie pueda redirigir el
 resultado de un pago a un sitio ajeno). Por defecto: la app web local en los puertos **8080 y
-3000** y `https://diverso.app/pago/resultado` (la URL que intercepta el WebView móvil). Si
-necesitas otro puerto u origen, defínelo en `supabase/functions/.env` (y reinicia
-`functions serve`); esa variable **reemplaza** la lista por defecto, así que repite lo que
-sigas necesitando:
+3000** y `https://diverso.app/pago/resultado` (la URL que intercepta el WebView móvil). Con el
+puerto por defecto de Expo (8081) el pago web se rechaza: si necesitas ese u otro puerto u origen,
+defínelo en `supabase/functions/.env` (y reinicia `functions serve`); esa variable **reemplaza**
+la lista por defecto, así que repite lo que sigas necesitando:
 
 ```bash
-PAGOS_REDIRECT_ALLOWLIST=http://localhost:4000/,https://diverso.app/pago/resultado
+PAGOS_REDIRECT_ALLOWLIST=http://localhost:8081/,https://diverso.app/pago/resultado
 ```
 
 (una entrada que termina en `/` autoriza cualquier ruta de ese origen; una con ruta exacta,
 solo esa ruta).
 
-**Emulador de Android:** el host local no es `127.0.0.1` sino `10.0.2.2`:
+### Probar en Android o iOS
 
 ```bash
-flutter run -d emulator-5554 --dart-define=SUPABASE_URL=http://10.0.2.2:54331
+cd apps/viajero
+npx expo start         # escanea el QR con Expo Go (o pulsa «a» para abrir el emulador de Android)
 ```
 
-### Probar en celular Android (USB)
+El `127.0.0.1` del `.env` es el propio teléfono o emulador, no el PC, así que cambia
+`EXPO_PUBLIC_SUPABASE_URL` y reinicia `npx expo start`:
 
-1. Activa **Opciones de desarrollador → Depuración USB** y conecta el teléfono.
-2. Crea un túnel para que el `localhost` del teléfono llegue al Supabase del PC
-   (no requiere compartir WiFi y evita el firewall):
+- **Emulador de Android:** `http://10.0.2.2:54331` (el host del PC visto desde el emulador).
+- **Celular con Expo Go (por USB o en la misma red WiFi):** la IP LAN del PC, por ejemplo
+  `http://192.168.1.4:54331`; si el firewall de Windows bloquea, permite el puerto 54331 en entrada.
 
-   ```bash
-   adb reverse tcp:54331 tcp:54331
-   ```
-
-3. Ejecuta la app en el dispositivo:
-
-   ```bash
-   cd apps/viajero
-   flutter run -d R5CW60JDZPE   # usa el ID que muestre `flutter devices`
-   ```
-
-La app queda instalada (`com.diversoapp.viajero`) y puedes abrirla normalmente;
-solo recuerda que mientras el backend sea local necesita el cable puesto y el
-túnel activo (se pierde al desconectar; basta repetir el `adb reverse`).
-
-Si prefieres **WiFi en vez de cable** (ambos en la misma red), omite el túnel y
-agrega `--dart-define=SUPABASE_URL=http://192.168.1.4:54331` (la IP LAN del PC);
-si el firewall de Windows bloquea, permite el puerto 54331 en entrada.
-
-En Android el checkout de Wompi se abre en un WebView dentro de la app y el permiso
-`INTERNET` ya está declarado en el manifiesto. Los builds `debug` y `profile` tienen
-`usesCleartextTraffic` para permitir el HTTP local; firmar y publicar un build `release` está
-fuera del alcance actual.
+En Android e iOS el checkout de Wompi se abre en un WebView dentro de la app. Los builds
+instalables (EAS) y su firma y publicación están fuera del alcance actual.
 
 Los puertos del stack se movieron al rango 5433x (`supabase/config.toml`) para no
 chocar con otros proyectos Supabase de la máquina.
@@ -338,7 +334,7 @@ chocar con otros proyectos Supabase de la máquina.
 ### Cuentas demo (contraseña: `demo1234`)
 
 En la app del viajero el botón «Usar cuenta demo» (rellena `viajero@demo.com`) solo aparece en
-builds de **debug** (`flutter run`); en una build de release no existe.
+desarrollo (`__DEV__`, es decir, con `npx expo start`); en una build de producción no existe.
 
 | Cuenta | Rol | Para ver |
 |---|---|---|
@@ -383,8 +379,8 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
 | Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 1082 (76 archivos) |
-| `diverso_core` | `cd packages/diverso_core && flutter test` | 140 |
-| App del viajero (incluye integración) | `cd apps/viajero && flutter test` | 517 (con `SUPABASE_SERVICE_ROLE_KEY`; sin ella se omiten 4) |
+| App del viajero (jest-expo + Testing Library) | `cd apps/viajero && npm test` | 1016 (89 suites), más `npm run typecheck` (`tsc --noEmit`) |
+| Integración anti-sobreventa de la app del viajero | incluida en `npm test` | Solo con `SUPABASE_SERVICE_ROLE_KEY` en el entorno; sin ella se omite |
 
 ### Pruebas SQL: siempre dentro de `begin … rollback`
 
@@ -418,60 +414,38 @@ python -I apps/viajero/scripts/smoke_pago_mock.py --servir   # solo deja el mock
 ### Pruebas de la app del viajero
 
 ```bash
-eval "$(supabase status -o env | sed 's/^/export SUPABASE_/')"   # bash: exporta SUPABASE_SERVICE_ROLE_KEY, SUPABASE_API_URL…
-cd apps/viajero && flutter test
+cd apps/viajero
+npm test               # jest-expo + Testing Library; tests en tests/ (espejo de src/)
+npm run typecheck      # tsc --noEmit
 ```
 
-- `test/integration/anti_sobreventa_test.dart` — integración contra el Supabase local: carrera por el
-  último cupo (exactamente un ganador), una sola reserva pendiente por fecha, y que
-  `confirm_payment`/`cancel_booking` ya no existen y las funciones de pago son solo del
-  servidor. Las pruebas que escriben en la base limpian lo que crean con la llave
-  `service_role`, que se lee **solo** de `SUPABASE_SERVICE_ROLE_KEY` (nunca va en el repo);
-  sin esa variable se omiten, con el motivo a la vista.
-- `test/ui/features/checkout/pago_wompi_test.dart`, `test/router/rutas_pago_test.dart`,
-  `test/ui/features/checkout/checkout_pendiente_test.dart`,
-  `test/ui/features/bookings/widgets/cancel_dialog_test.dart` — pasarela, rutas que sobreviven
-  a la recarga, aviso de reserva pendiente y diálogo de cancelación.
-- `test/ui/features/checkout/pago_abierto_test.dart`,
-  `test/ui/features/checkout/view_models/*_test.dart` (`checkout`, `checkout_plan`, `reserva`,
-  `pago_resultado`), `checkout/views/pago_resultado_view_test.dart` — el resultado explícito de
-  abrir el pago (`PagoAbierto`: en web `redirigido` termina «Procesando…» y deja bloqueado «Pagar con Wompi» hasta que la página se descarga), los view models del
-  checkout con repositorios y pasarela falsos (carga, error, reserva pendiente, verificar y
-  reintentar, guardia de `dispose`) y el reintento de pago desde la vista.
-- `test/router/sesion_redirect_test.dart`, `test/router/consentimiento_test.dart`,
-  `test/router/consentimiento_guard_test.dart`, `test/router/rutas_con_ids_test.dart`,
-  `test/app_test.dart` — el redirect de sesión y consentimiento (función pura, `?desde=` validado,
-  recorrido completo con «Reintentar», nada protegido se abre mientras se verifica, falla o falta
-  aceptar), las rutas con ids
-  (`/resena/:bookingId`, `/comparar?ids=…`), la página no encontrada y que cambiar el tema no
-  reinicie la navegación.
-- `test/ui/features/catalog/view_models/catalog_view_model_test.dart`,
-  `test/ui/features/plan/view_models/plan_detail_view_model_test.dart`,
-  `test/ui/features/catalog/views/filtros_test.dart`,
-  `test/ui/features/plan/views/detalle_fechas_test.dart`, `detalle_resena_test.dart` — los view models
-  del catálogo y de la ficha con repositorios falsos (carga, error, vacío, una sola consulta al
-  aplicar filtros, guardia de `dispose`), la barra de reserva y la inicial de las reseñas.
-- `test/ui/features/bookings/view_models/*_test.dart` (`bookings`, `reserva_detalle`, `review`),
-  `test/ui/features/profile/view_models/profile_view_model_test.dart`,
-  `test/ui/features/auth/view_models/login_view_model_test.dart`,
-  `test/ui/features/auth/views/login_view_test.dart`, `bookings/views/cancelar_reserva_test.dart`,
-  `bookings/views/review_view_test.dart`, `profile/views/profile_view_test.dart` — los view models
-  de reservas, reseña, perfil y acceso con repositorios falsos (carga, error, vacío, aviso que la
-  vista consume, guardia de `dispose`) y que «Usar cuenta demo» no existe con el flag apagado.
-- `test/ui/core/notifica_si_vive_test.dart` — la guarda de `dispose` que comparten los view models
-  (`NotificaSiVive`): notifica mientras vive y no lanza después de `dispose`.
-- `test/router/verificacion_final_probe_test.dart` — sondas de la verificación final: URL de retorno
-  e intercepción del pago, guarda del consentimiento con `desde`, `destinoSeguro`, enums de la base
-  y el mensaje `FECHA_YA_SALIO`.
-- `test/ui/core/theme/modo_oscuro_test.dart`, `chip_filtro_contraste_test.dart` — el tema: los
-  textos secundarios toman el color del tema en oscuro, y el chip de filtro activo (texto e ícono de
-  borrar) llega a contraste WCAG AA (4.5:1) en claro y oscuro, medido sobre lo que se pinta.
-- `test/ui/features/catalog/views/comparison_test.dart`, `test/ui/core/widgets/widget_test.dart`,
-  `test/ui/features/agencies/agency_vigencia_test.dart` — comparador por viajeros, widgets base
-  y sello de verificación/documentos legales.
+Las pruebas no necesitan Supabase, salvo la de integración:
 
-> La prueba de integración usa un binding propio que habilita HTTP real; requiere el stack
-> local corriendo.
+```bash
+eval "$(supabase status -o env | sed 's/^/export SUPABASE_/')"   # bash: exporta SUPABASE_SERVICE_ROLE_KEY, SUPABASE_API_URL…
+cd apps/viajero && npx jest tests/integration
+```
+
+- `tests/integration/anti-sobreventa.test.ts` — integración contra el Supabase local: carrera por
+  el último cupo (nunca se sobrevende), una sola reserva pendiente por fecha
+  (`RESERVA_PENDIENTE_EXISTENTE`), y que `confirm_payment`/`cancel_booking` ya no existen y las
+  funciones de pago son solo del servidor. Lo que escribe en la base lo limpia con la llave
+  `service_role`, que se lee **solo** de `SUPABASE_SERVICE_ROLE_KEY` (nunca va en el repo); sin
+  esa variable el archivo entero se omite. La URL sale de `EXPO_PUBLIC_SUPABASE_URL` o, si no
+  está, de `http://127.0.0.1:54331`.
+
+Qué cubre cada carpeta de `apps/viajero/tests/` (espejo de `src/`):
+
+| Carpeta | Qué prueba |
+|---|---|
+| `core/` | TypeScript puro: modelos y enums de la base, errores, utilidades de fecha, moneda, hora de Bogotá y búsqueda, documentos legales, comparación, configuración, y los *services* y *repositories* de `data/` con un Supabase falso |
+| `ui/` | Sistema de diseño: tokens claro/oscuro, tipografía, transiciones, `ThemeProvider` y componentes compartidos (`Text`, plan, precio y puntaje, calificación, avatar…) |
+| `features/` | Por funcionalidad (`auth`, `catalog`, `plan`, `agencies`, `checkout`, `bookings`, `profile`, `legal`, `shell`, `compartido`): los view models con `renderHook` y repositorios falsos, y las vistas con Testing Library; además, los providers globales de sesión y consentimiento |
+| `router/` | Las reglas de navegación como funciones puras: `sesionRedirect`, la tabla de rutas y `volverSeguro` |
+| `app/` | Las rutas de Expo Router montadas de punta a punta: arranque, cada ruta con sus parámetros, el layout real y el guard de consentimiento |
+| `composition/` | La raíz de composición: que las pantallas reciben los repositorios por Context |
+| `integration/` | La anti-sobreventa contra el Supabase local (arriba) |
+| `support/` | Ayudas compartidas, no son pruebas: repositorios, Supabase y router falsos, montaje de pantallas |
 
 ### Métricas
 
@@ -492,33 +466,34 @@ solo servidor) · `payments` (pago aprobado, con id y método de la transacción
 
 ## Decisiones y notas
 
-- **Flutter 3.47.5** (actualizado desde 3.32.5 al iniciar el proyecto). El código
-  usa las APIs actuales: `CardThemeData`, `RadioGroup`, `withValues`, wildcards `_`.
-- **Tokens de diseño del viajero** (`apps/viajero/lib/ui/core/theme/`): `AppTheme` (temas claro y
-  oscuro), `DiversoColors` (`ThemeExtension` con los colores que no están en el `ColorScheme`:
-  dorado de las estrellas, píldoras de estado, «pocos cupos», fondos sobre foto; se lee con
-  `DiversoColors.of(context)`), `AppText` (escala de tamaños de letra), `AppRadios` y `AppInsets`
-  (radios y espaciados repetidos). No se escriben colores, tamaños de letra ni radios sueltos en
-  los widgets. Lints estrictos en `analysis_options.yaml`, entre ellos
-  `avoid_catches_without_on_clauses` y `avoid_dynamic_calls`.
+- **App del viajero:** Expo SDK 58 (`expo ~58.0.26`), React Native 0.88.1 y React 19.3.0, con
+  Expo Router (rutas tipadas) y TypeScript `strict` (versiones en `apps/viajero/package.json`). Hasta
+  la migración era una app Flutter; el porqué del cambio y de la arquitectura está en
+  [`odd/tasks/migracion-expo.md`](odd/tasks/migracion-expo.md).
+- **Tokens de diseño del viajero** (`apps/viajero/src/ui/theme/`): `temaClaro` y `temaOscuro`
+  (`tema.ts`, con el `ColorScheme` de `colores.ts`), `DiversoColors` (los colores que no están en el
+  `ColorScheme`: dorado de las estrellas, píldoras de estado, «pocos cupos», fondos sobre foto),
+  `AppText` (escala de tamaños de letra, `tipografia.ts`), `AppRadios` y `AppInsets` (radios y
+  espaciados repetidos, `medidas.ts`), sombras y movimiento; las pantallas leen el tema activo con
+  `useTheme()` (`ThemeProvider`). No se escriben colores, tamaños de letra ni radios sueltos en los
+  componentes.
 - **Pasarela en modo prueba** (decisión del usuario): `WompiPaymentGateway` (en
-  `diverso_core`, detrás de la abstracción `PaymentGateway`) inicia y verifica el pago
+  `apps/viajero/src/core/data/repositories/payment-gateway.ts`, detrás de la abstracción `PaymentGateway`) inicia y verifica el pago
   llamando a las Edge Functions; la plataforma opera solo con transacciones de prueba hasta
   que se decida lo contrario.
 - **Marca:** el colibrí de la primera versión de la app. La máscara maestra
-  (`packages/diverso_core/assets/logo_diverso.png`, negro + alfa) la dibuja `DiversoLogo`
+  (`apps/viajero/assets/logo_diverso.png`, negro + alfa) la dibuja `DiversoLogo`
   teñida con el color que pida cada pantalla; el panel Svelte usa una copia como máscara CSS
-  (`apps/panel_svelte/static/logo_diverso.png`). Todos los íconos (launcher Android e iOS,
-  favicon y PWA de la app y del panel) salen de esa máscara, ave blanca sobre `#0E6E4F`:
-  `python -I -B tools/iconos/generar_iconos.py` (requiere Pillow) los regenera, y la zona
-  segura y los márgenes por plataforma están documentados en el script.
-  La pantalla de arranque de Android muestra solo el colibrí grande, sin círculo ni fondo
-  (`splash_colibri.png`, verde en claro y menta en oscuro; Android 12+ vía `values-v31`).
+  (`apps/panel_svelte/static/logo_diverso.png`). Todos los íconos salen de esa máscara, ave blanca
+  sobre `#0E6E4F`: `python -I -B tools/iconos/generar_iconos.py` (requiere Pillow) regenera los de
+  Expo en `apps/viajero/assets/` (ícono, ícono adaptativo de Android, pantalla de arranque clara y
+  oscura y favicon web, que lee `app.json`) y los del panel (favicon y PWA); la zona segura y los
+  márgenes por plataforma están documentados en el script.
+  La pantalla de arranque muestra solo el colibrí grande, sin círculo ni fondo
+  (`splash-colibri.png` verde sobre blanco en claro y `splash-colibri-oscuro.png` menta en oscuro).
 - **Ley 1581/2012:** autorización expresa con evidencia en `consents` (ver migración 0002);
   política y términos legibles en la app (`/legal/...`) y en el panel (`#/legal/...`).
   **PCI-DSS:** la plataforma no almacena datos de tarjeta: se digitan en la página de Wompi.
 - **Seed:** 12 agencias (11 verificadas), 30 planes con destinos y precios reales
   de Antioquia (Guatapé, Jardín, Jericó, Santa Fe, Río Claro, Comuna 13…),
   ~610 fechas futuras con cupos y historial con reseñas.
-- OneDrive sincroniza esta carpeta; si los builds se vuelven lentos, conviene
-  excluir `build/` y `.dart_tool/` de la sincronización.

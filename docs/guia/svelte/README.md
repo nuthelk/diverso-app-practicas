@@ -17,7 +17,8 @@ app y cómo saber que ya la entendiste.
 
 Qué **no** cubre: de SvelteKit, solo lo que el panel usa (rutas por carpetas, layouts, `$app/*`,
 adapter estático; no hay `load`, acciones de formulario ni SSR), las migraciones SQL, las Edge
-Functions, ni las apps Flutter (para esas está la [guía de Flutter y Dart](../README.md)). Para correr todo el
+Functions, ni la app del viajero en Expo (para esa, el [índice de guías](../README.md), que enlaza
+su arquitectura y su inventario). Para correr todo el
 sistema, el [README principal](../../../README.md).
 
 ## El panel en 5 líneas
@@ -362,7 +363,7 @@ comandos `npx vitest run tests/…`) parten de `apps/panel_svelte/`.
 | **`$app/navigation`, `$app/state`** | `goto` para navegar; `page` con la URL, los parámetros y el error actuales | `useNavigate`, `useLocation` |
 | **`adapter-static`** | Hace que `npm run build` deje solo archivos en `dist/` | `next export` |
 | **Router por hash** | La ruta va tras el `#` (`#/planes`): el hosting estático siempre sirve `/` | `HashRouter` |
-| **Guard** | Función que decide si una ruta exige sesión y a dónde mandar | El `redirect` de `go_router` |
+| **Guard** | Función que decide si una ruta exige sesión y a dónde mandar | En la app del viajero, `sesionRedirect()` (`apps/viajero/src/router/sesion-redirect.ts`) |
 
 ---
 
