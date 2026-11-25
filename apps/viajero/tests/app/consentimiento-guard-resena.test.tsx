@@ -29,7 +29,7 @@ class AuthManual extends AuthFalso {
     this.perfil = new Profile({ id: 'viajero-1', role: UserRole.traveler, name: 'Santiago' });
   }
 
-  override consentimientosPendientes(): Promise<string[]> {
+  override pendingConsents(): Promise<string[]> {
     this.consultas++;
     const c = compuerta<string[]>();
     this.abiertas.push(c);
@@ -41,11 +41,11 @@ class AuthManual extends AuthFalso {
 function reservasAjenas() {
   const consultas: string[] = [];
   const repo = doble<Public<BookingRepository>>('BookingRepository', {
-    reserva: async (bookingId: string): Promise<Booking> => {
+    booking: async (bookingId: string): Promise<Booking> => {
       consultas.push(bookingId);
       throw new DiversoError('RESERVA_NO_EXISTE');
     },
-    misReservas: async () => {
+    myBookings: async () => {
       consultas.push('misReservas');
       return [];
     },

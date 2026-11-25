@@ -33,7 +33,7 @@ export class PasarelaFalsa implements PaymentGateway {
 
   constructor(readonly respuestas: (VerifiedPayment | unknown)[] = []) {}
 
-  async verificar(p: { transactionId?: string | null; bookingId?: string | null }): Promise<VerifiedPayment> {
+  async verify(p: { transactionId?: string | null; bookingId?: string | null }): Promise<VerifiedPayment> {
     this.verificaciones.push({ transaccion: p.transactionId ?? null, reserva: p.bookingId ?? null });
     this.clavesVerificar.push(Object.keys(p));
     await this.compuerta?.promesa;
@@ -43,7 +43,7 @@ export class PasarelaFalsa implements PaymentGateway {
     throw respuesta;
   }
 
-  async iniciar({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<StartedCheckout> {
+  async start({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<StartedCheckout> {
     this.iniciadas.push({ bookingId, redirectUrl });
     if (this.checkoutUrl !== null) {
       return new StartedCheckout({

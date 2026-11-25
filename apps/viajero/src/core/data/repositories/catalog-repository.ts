@@ -20,54 +20,54 @@ export class CatalogRepository {
    * solo los planes que ese día aún tengan una salida por partir (y con cupos). Mantiene el orden
    * del servidor.
    */
-  async search(filtros: CatalogFilters = {}): Promise<Plan[]> {
-    const busqueda = normalizeSearch(filtros.text ?? '');
-    const destino = filtros.destination ?? null;
-    const dia = filtros.date ?? null;
-    const filas = await this.api.planesPublicados({
+  async search(filters: CatalogFilters = {}): Promise<Plan[]> {
+    const searchText = normalizeSearch(filters.text ?? '');
+    const destination = filters.destination ?? null;
+    const day = filters.date ?? null;
+    const rows = await this.api.publishedPlans({
       // Las reservas vencidas se liberan en el servidor (pg_cron cada 5 min).
-      desde: dateToIso(todayInBogota()),
-      orden: filtros.sort ?? CatalogSort.rating,
-      busqueda: busqueda === '' ? null : busqueda,
-      categoria: filtros.category ?? null,
-      destino: destino === null || destino === '' ? null : destino,
-      precioMax: filtros.maxPrice ?? null,
-      fecha: dia === null ? null : dateToIso(dia),
-      agencyId: filtros.agencyId ?? null,
+      from: dateToIso(todayInBogota()),
+      sort: filters.sort ?? CatalogSort.rating,
+      search: searchText === '' ? null : searchText,
+      category: filters.category ?? null,
+      destination: destination === null || destination === '' ? null : destination,
+      maxPrice: filters.maxPrice ?? null,
+      date: day === null ? null : dateToIso(day),
+      agencyId: filters.agencyId ?? null,
     });
-    const planes = filas.map(Plan.fromMap);
-    return dia === null ? planes : planes.filter((p) => p.hasDepartureOn(dia));
+    const plans = rows.map(Plan.fromMap);
+    return day === null ? plans : plans.filter((p) => p.hasDepartureOn(day));
   }
 
   /** Agencias con planes publicados (función `agencias_publicas`: solo columnas públicas y agregados). */
-  async agencias(): Promise<AgencySummary[]> {
-    return (await this.api.agenciasPublicas()).map(AgencySummary.fromMap);
+  async agencies(): Promise<AgencySummary[]> {
+    return (await this.api.publicAgencies()).map(AgencySummary.fromMap);
   }
 
   /**
    * Una agencia y sus planes publicados (misma consulta y modelo que el catálogo), pedidos en
    * paralelo. Null si no existe o no está habilitada.
    */
-  async agenciaConPlanes(agencyId: string): Promise<{ agencia: AgencySummary; planes: Plan[] } | null> {
-    const [filas, planes] = await Promise.all([
-      this.api.agenciasPublicas({ agencyId }),
+  async agencyWithPlans(agencyId: string): Promise<{ agency: AgencySummary; plans: Plan[] } | null> {
+    const [rows, plans] = await Promise.all([
+      this.api.publicAgencies({ agencyId }),
       this.search({ agencyId }),
     ]);
-    if (filas.length === 0) return null;
-    return { agencia: AgencySummary.fromMap(filas[0]!), planes };
+    if (rows.length === 0) return null;
+    return { agency: AgencySummary.fromMap(rows[0]!), plans };
   }
 
   /** Ficha del plan con sus fechas desde hoy (Bogotá). Falla si no existe. */
-  async planDetalle(planId: string): Promise<Plan> {
-    return Plan.fromMap(await this.api.plan(planId, { desde: dateToIso(todayInBogota()) }));
+  async planDetail(planId: string): Promise<Plan> {
+    return Plan.fromMap(await this.api.plan(planId, { from: dateToIso(todayInBogota()) }));
   }
 
   /**
    * Destinos distintos con planes publicados (para el filtro), ordenados por unidades de código
    * como `List.sort()` de Dart (no por locale: «Ánimas» quedaría al final).
    */
-  async destinos(): Promise<string[]> {
-    const filas = await this.api.destinosPublicados();
-    return [...new Set(filas.map((e) => asString(e['destino'])))].sort();
+  async destinations(): Promise<string[]> {
+    const rows = await this.api.publishedDestinations();
+    return [...new Set(rows.map((e) => asString(e['destino'])))].sort();
   }
 }

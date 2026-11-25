@@ -112,7 +112,7 @@ describe('ConsentView', () => {
 
   test('mientras se verifica muestra un indicador y no el formulario', async () => {
     const auth = new AuthFalso();
-    jest.spyOn(auth, 'consentimientosPendientes').mockReturnValue(new Promise(() => {}));
+    jest.spyOn(auth, 'pendingConsents').mockReturnValue(new Promise(() => {}));
     await abrir(auth);
     expect(screen.getByTestId('consentimiento-verificando')).toBeOnTheScreen();
     expect(screen.queryByText('Aceptar y continuar')).toBeNull();

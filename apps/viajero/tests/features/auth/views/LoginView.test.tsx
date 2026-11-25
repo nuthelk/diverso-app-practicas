@@ -120,7 +120,7 @@ describe('entrar y crear cuenta', () => {
     await tocar('Crear cuenta');
 
     expect(auth.registros).toEqual([
-      { nombre: 'Ana', email: 'ana@correo.test', password: 'secreto1', aceptaDocumentos: true },
+      { name: 'Ana', email: 'ana@correo.test', password: 'secreto1', acceptsDocuments: true },
     ]);
   });
 

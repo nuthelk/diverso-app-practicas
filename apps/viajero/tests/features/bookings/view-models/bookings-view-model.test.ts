@@ -50,7 +50,7 @@ async function crear(repo: Public<BookingRepository>) {
 }
 
 async function cargado(lista: Booking[]) {
-  const r = await crear(doble<Public<BookingRepository>>('BookingRepository', { misReservas: async () => lista }));
+  const r = await crear(doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => lista }));
   await act(() => r.result.current.cargar());
   return r.result;
 }

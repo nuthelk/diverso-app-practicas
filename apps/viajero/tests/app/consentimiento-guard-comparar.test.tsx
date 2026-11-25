@@ -30,12 +30,12 @@ class Catalogo extends CatalogoFalso {
   constructor() {
     super({ detalles: { p1: plan('p1') } });
   }
-  override async planDetalle(planId: string): Promise<Plan> {
+  override async planDetail(planId: string): Promise<Plan> {
     if (planId === 'nope') {
       this.detallesPedidos.push(planId);
       throw new DiversoError('PLAN_NO_EXISTE');
     }
-    return super.planDetalle(planId);
+    return super.planDetail(planId);
   }
 }
 

@@ -55,7 +55,7 @@ export function useReservaAcciones({
     async (b: Booking): Promise<CancellationPreview | null> => {
       setMensaje(null);
       try {
-        return await reservas.vistaPreviaCancelacion(b.id);
+        return await reservas.cancellationPreview(b.id);
       } catch (e) {
         console.warn('ReservaAccionesViewModel.vistaPrevia:', e);
         setMensaje(mensajeDeError(e));
@@ -73,7 +73,7 @@ export function useReservaAcciones({
     async (b: Booking): Promise<boolean> => {
       setMensaje(null);
       try {
-        const resultado = await reservas.cancelar(b.id);
+        const resultado = await reservas.cancel(b.id);
         setMensaje(mensajeCancelacion(resultado));
       } catch (e) {
         console.warn('ReservaAccionesViewModel.cancelar:', e);

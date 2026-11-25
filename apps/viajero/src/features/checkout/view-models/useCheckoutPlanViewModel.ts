@@ -16,7 +16,7 @@ interface EstadoCheckoutPlan {
  * pedida. No carga solo: la vista llama a `cargar()` al montarse (como el `..cargar()` de Dart).
  */
 export function useCheckoutPlanViewModel(
-  { catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'planDetalle'> },
+  { catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'planDetail'> },
   { planId, fechaId, reloj = () => new Date() }: { planId: string; fechaId: string; reloj?: () => Date },
 ) {
   const { estado, cambiar } = useEstadoVivo<EstadoCheckoutPlan>(() => ({ plan: null, cargando: true, error: null }));
@@ -24,7 +24,7 @@ export function useCheckoutPlanViewModel(
   const cargar = async (): Promise<void> => {
     cambiar({ cargando: true, error: null });
     try {
-      cambiar({ plan: await catalogo.planDetalle(planId) }, false);
+      cambiar({ plan: await catalogo.planDetail(planId) }, false);
     } catch (e) {
       console.warn('CheckoutPlanViewModel.cargar:', e);
       cambiar({ error: 'Revisa tu conexión e intenta de nuevo.' }, false);

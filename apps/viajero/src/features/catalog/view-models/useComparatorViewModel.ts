@@ -24,7 +24,7 @@ export function useComparatorViewModel({
   ids,
   planesIniciales,
 }: {
-  catalogo: Pick<Public<CatalogRepository>, 'planDetalle'>;
+  catalogo: Pick<Public<CatalogRepository>, 'planDetail'>;
   ids: readonly string[];
   planesIniciales?: readonly Plan[] | null;
 }) {
@@ -43,7 +43,7 @@ export function useComparatorViewModel({
     if (planesRef.current !== null) return;
     setErrorEstado(null);
     try {
-      const cargados = await Promise.all(ids.map((id) => catalogo.planDetalle(id)));
+      const cargados = await Promise.all(ids.map((id) => catalogo.planDetail(id)));
       if (!montado.current) return;
       planesRef.current = cargados;
       setPlanesEstado(cargados);

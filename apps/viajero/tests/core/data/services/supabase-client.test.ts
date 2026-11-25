@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { crearClienteSupabase, opcionesSupabase } from '@/core/data/services/supabase-client';
+import { createSupabaseClient, supabaseOptions } from '@/core/data/services/supabase-client';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -8,7 +8,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 describe('cliente Supabase para React Native', () => {
   test('sesión en AsyncStorage, refresco automático y sin leer la sesión de la URL', () => {
-    expect(opcionesSupabase().auth).toEqual({
+    expect(supabaseOptions().auth).toEqual({
       storage: AsyncStorage,
       autoRefreshToken: true,
       persistSession: true,
@@ -17,7 +17,7 @@ describe('cliente Supabase para React Native', () => {
   });
 
   test('crearClienteSupabase usa la configuración recibida', () => {
-    const client = crearClienteSupabase({
+    const client = createSupabaseClient({
       supabaseUrl: 'http://10.0.2.2:54331',
       supabaseKey: 'clave',
       paymentResultPath: '/pago/resultado',

@@ -29,7 +29,7 @@ export function useAgenciaViewModel({
   catalogo,
   agencyId,
 }: {
-  catalogo: Pick<Public<CatalogRepository>, 'agenciaConPlanes'>;
+  catalogo: Pick<Public<CatalogRepository>, 'agencyWithPlans'>;
   agencyId: string;
 }) {
   const [estado, setEstado] = useState<EstadoAgencia>(inicial);
@@ -42,8 +42,8 @@ export function useAgenciaViewModel({
   const cargar = useCallback(async (): Promise<void> => {
     cambiar({ cargando: true, error: null, errorDetalle: null });
     try {
-      const r = await catalogo.agenciaConPlanes(agencyId);
-      cambiar({ noEncontrada: r === null, agencia: r?.agencia ?? null, planes: Object.freeze([...(r?.planes ?? [])]) });
+      const r = await catalogo.agencyWithPlans(agencyId);
+      cambiar({ noEncontrada: r === null, agencia: r?.agency ?? null, planes: Object.freeze([...(r?.plans ?? [])]) });
     } catch (e) {
       console.warn('AgenciaViewModel.cargar:', e);
       cambiar({

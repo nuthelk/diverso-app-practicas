@@ -142,7 +142,7 @@ describe('crear cuenta', () => {
     await enviar(result.current);
 
     expect(auth.registros).toEqual([
-      { nombre: 'Ana', email: 'ana@correo.test', password: 'secreto', aceptaDocumentos: true },
+      { name: 'Ana', email: 'ana@correo.test', password: 'secreto', acceptsDocuments: true },
     ]);
     expect(result.current.error).toBeNull();
   });

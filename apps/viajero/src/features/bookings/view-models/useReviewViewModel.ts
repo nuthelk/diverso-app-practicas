@@ -59,7 +59,7 @@ export function useReviewViewModel({
     if (actual.current.reserva !== null) return;
     cambiar({ cargandoAhora: true, error: null });
     try {
-      cambiar({ reserva: await reservas.reserva(bookingId), cargandoAhora: false });
+      cambiar({ reserva: await reservas.booking(bookingId), cargandoAhora: false });
     } catch (e) {
       console.warn('ReviewViewModel.cargar:', e);
       cambiar({ error: mensajeDeError(e), cargandoAhora: false });
@@ -84,7 +84,7 @@ export function useReviewViewModel({
       if (actual.current.enviando || actual.current.publicada) return false;
       cambiar({ enviando: true, errorEnvio: null });
       try {
-        await resenas.crear({ bookingId, calificacion: actual.current.calificacion, comentario });
+        await resenas.create({ bookingId, rating: actual.current.calificacion, comment: comentario });
         cambiar({ publicada: true, enviando: false });
         return true;
       } catch (e) {

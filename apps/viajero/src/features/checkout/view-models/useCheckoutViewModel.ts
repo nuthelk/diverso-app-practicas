@@ -50,7 +50,7 @@ interface EstadoCheckout {
  * para que el viajero la complete o la cancele. [vibrar] se inyecta en las pruebas.
  */
 export function useCheckoutViewModel(
-  { reservas }: { reservas: Pick<Public<BookingRepository>, 'reservaPendiente' | 'crearReserva' | 'cancelar'> },
+  { reservas }: { reservas: Pick<Public<BookingRepository>, 'pendingBooking' | 'createBooking' | 'cancel'> },
   { vibrar = vibrarMedio }: { vibrar?: () => void } = {},
 ) {
   const { estado, actual, cambiar, notificar } = useEstadoVivo<EstadoCheckout>(() => ({
@@ -76,7 +76,7 @@ export function useCheckoutViewModel(
    */
   const cargarPendiente = async (fecha: PlanDate): Promise<void> => {
     try {
-      cambiar({ pendiente: await reservas.reservaPendiente(fecha.id) }, false);
+      cambiar({ pendiente: await reservas.pendingBooking(fecha.id) }, false);
     } catch (e) {
       console.warn('CheckoutViewModel.cargarPendiente:', e);
       cambiar({ pendiente: null }, false);
@@ -114,19 +114,19 @@ export function useCheckoutViewModel(
     if (actual.current.procesando || actual.current.redirigido) return;
     await ejecutar(async () => {
       if (actual.current.bookingId === null) {
-        const existente = await reservas.reservaPendiente(fecha.id);
+        const existente = await reservas.pendingBooking(fecha.id);
         if (existente !== null) {
           cambiar({ pendiente: existente }, false);
           return;
         }
         try {
-          const creada = await reservas.crearReserva({ planDateId: fecha.id, pax: actual.current.pax });
+          const creada = await reservas.createBooking({ planDateId: fecha.id, pax: actual.current.pax });
           cambiar({ bookingId: creada.bookingId }, false);
         } catch (e) {
           // El servidor también impide la segunda pendiente (otra pestaña o dispositivo la abrió
           // entre la consulta y el alta): se muestra el mismo aviso en vez de un error.
           if (!(e instanceof DiversoError) || e.code !== 'RESERVA_PENDIENTE_EXISTENTE') throw e;
-          const pendiente = await reservas.reservaPendiente(fecha.id);
+          const pendiente = await reservas.pendingBooking(fecha.id);
           cambiar({ pendiente }, false);
           if (pendiente === null) throw e;
           return;
@@ -154,7 +154,7 @@ export function useCheckoutViewModel(
     const reserva = actual.current.pendiente;
     if (reserva === null || actual.current.procesando) return;
     await ejecutar(async () => {
-      await reservas.cancelar(reserva.id);
+      await reservas.cancel(reserva.id);
       cambiar({ pendiente: null }, false);
     });
   };

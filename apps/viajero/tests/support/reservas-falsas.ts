@@ -63,14 +63,14 @@ export class ReservasFalsas implements Public<BookingRepository> {
     this.lista = [...lista];
   }
 
-  async misReservas(): Promise<Booking[]> {
+  async myBookings(): Promise<Booking[]> {
     this.consultasLista++;
     await this.compuerta?.promesa;
     if (this.fallo != null) throw this.fallo;
     return this.lista;
   }
 
-  async reserva(bookingId: string): Promise<Booking> {
+  async booking(bookingId: string): Promise<Booking> {
     this.consultas.push(bookingId);
     await this.compuerta?.promesa;
     if (this.fallo != null) throw this.fallo;
@@ -79,12 +79,12 @@ export class ReservasFalsas implements Public<BookingRepository> {
     return b;
   }
 
-  async reservaPendiente(_planDateId: string): Promise<Booking | null> {
+  async pendingBooking(_planDateId: string): Promise<Booking | null> {
     if (this.falloAlBuscarPendiente != null) throw this.falloAlBuscarPendiente;
     return this.pendiente;
   }
 
-  async crearReserva({ planDateId, pax }: { planDateId: string; pax: number }): Promise<CreatedBooking> {
+  async createBooking({ planDateId, pax }: { planDateId: string; pax: number }): Promise<CreatedBooking> {
     if (this.falloAlCrear != null) {
       this.pendiente = this.pendienteTrasFalla;
       throw this.falloAlCrear;
@@ -93,12 +93,12 @@ export class ReservasFalsas implements Public<BookingRepository> {
     return new CreatedBooking({ bookingId: `nueva-${this.creadas.length}`, code: 'DIV-NEW', totalAmount: 1, planTitle: '' });
   }
 
-  async vistaPreviaCancelacion(_bookingId: string): Promise<CancellationPreview> {
+  async cancellationPreview(_bookingId: string): Promise<CancellationPreview> {
     if (this.falloAlCancelar != null) throw this.falloAlCancelar;
     return this.vista;
   }
 
-  async cancelar(bookingId: string): Promise<CancellationResult> {
+  async cancel(bookingId: string): Promise<CancellationResult> {
     if (this.falloAlCancelar != null) throw this.falloAlCancelar;
     this.canceladas.push(bookingId);
     if (this.pendiente?.id === bookingId) this.pendiente = null;
@@ -116,22 +116,22 @@ export class PublicadorDeResenasFalso implements Public<ReviewRepository> {
 
   readonly creadas: { bookingId: string; calificacion: number; comentario: string | null }[] = [];
 
-  async porPlan(_planId: string): Promise<Review[]> {
+  async byPlan(_planId: string): Promise<Review[]> {
     return [];
   }
 
-  async crear({
+  async create({
     bookingId,
-    calificacion,
-    comentario = null,
+    rating,
+    comment = null,
   }: {
     bookingId: string;
-    calificacion: number;
-    comentario?: string | null;
+    rating: number;
+    comment?: string | null;
   }): Promise<void> {
     await this.compuerta?.promesa;
     if (this.fallo != null) throw this.fallo;
-    this.creadas.push({ bookingId, calificacion, comentario });
+    this.creadas.push({ bookingId, calificacion: rating, comentario: comment });
   }
 }
 

@@ -43,7 +43,7 @@ export function useAbrirPago(pasarela: PaymentGateway): { abrirPago: AbrirPago; 
   };
 
   const abrirPago: AbrirPago = async (bookingId) => {
-    const checkout = await pasarela.iniciar({ bookingId, redirectUrl: urlRetornoPago() });
+    const checkout = await pasarela.start({ bookingId, redirectUrl: urlRetornoPago() });
     if (Platform.OS === 'web') return abrirEnLaMismaVentana(checkout.checkoutUrl);
     if (!montado.current) return PagoAbierto.cerrado;
     const id = await new Promise<string | null>((resolve) => {

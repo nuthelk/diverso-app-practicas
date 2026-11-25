@@ -15,7 +15,7 @@ import type { Compuerta } from '../../../support/compuerta';
  * [CatalogRepository] sin Supabase, solo con `planDetalle` (lo único que usa el checkout; port de
  * la parte de `catalogo_falso.dart` que tocan sus pruebas).
  */
-export class CatalogoFalso implements Pick<Public<CatalogRepository>, 'planDetalle'> {
+export class CatalogoFalso implements Pick<Public<CatalogRepository>, 'planDetail'> {
   readonly detalles: Map<string, Plan>;
 
   /** Si no es null, `planDetalle` lo lanza. */
@@ -30,7 +30,7 @@ export class CatalogoFalso implements Pick<Public<CatalogRepository>, 'planDetal
     this.detalles = new Map(Object.entries(detalles));
   }
 
-  async planDetalle(planId: string): Promise<Plan> {
+  async planDetail(planId: string): Promise<Plan> {
     this.detallesPedidos.push(planId);
     await this.compuerta?.promesa;
     if (this.fallo !== null) throw this.fallo;

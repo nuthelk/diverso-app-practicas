@@ -85,11 +85,11 @@ export function useLoginViewModel({
     cambiar({ cargando: true, error: null });
     try {
       if (e.esRegistro) {
-        await auth.signUpViajero({
-          nombre: nombre.trim(),
+        await auth.signUpTraveler({
+          name: nombre.trim(),
           email: email.trim(),
           password,
-          aceptaDocumentos: e.aceptaDatos && e.aceptaTerminos,
+          acceptsDocuments: e.aceptaDatos && e.aceptaTerminos,
         });
       } else {
         await auth.signIn({ email: email.trim(), password });

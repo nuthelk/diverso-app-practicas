@@ -29,7 +29,7 @@ const ordenar = (agencias: readonly AgencySummary[], orden: AgencySort) => Objec
  * orden (por puntaje por defecto). Cambiar el orden reordena en memoria, sin volver a consultar;
  * una recarga que falla conserva lo que ya se veía.
  */
-export function useAgenciasViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'agencias'> }) {
+export function useAgenciasViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'agencies'> }) {
   const [estado, setEstado] = useState<EstadoAgencias>(inicial);
   const actual = useRef<EstadoAgencias>(inicial);
   const cambiar = useCallback((cambios: Partial<EstadoAgencias>) => {
@@ -40,7 +40,7 @@ export function useAgenciasViewModel({ catalogo }: { catalogo: Pick<Public<Catal
   const cargar = useCallback(async (): Promise<void> => {
     cambiar({ cargando: true, error: null, errorDetalle: null });
     try {
-      const crudas = await catalogo.agencias();
+      const crudas = await catalogo.agencies();
       cambiar({ crudas, agencias: ordenar(crudas, actual.current.orden) });
     } catch (e) {
       console.warn('AgenciasViewModel.cargar:', e);

@@ -25,7 +25,7 @@ export function useBookingsViewModel({ reservas, reloj }: { reservas: Public<Boo
   const pedir = useCallback(async (enSegundoPlano: boolean): Promise<void> => {
     setEstado((e) => (enSegundoPlano ? { ...e, error: null } : { ...e, cargando: true, error: null }));
     try {
-      const lista = Object.freeze([...(await reservas.misReservas())]);
+      const lista = Object.freeze([...(await reservas.myBookings())]);
       setEstado({ lista, cargando: false, error: null });
     } catch (e) {
       console.warn('BookingsViewModel.cargar:', e);

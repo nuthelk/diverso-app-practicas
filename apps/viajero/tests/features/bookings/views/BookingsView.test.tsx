@@ -80,7 +80,7 @@ function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?
 
 async function abrir(reservas: Booking[]) {
   await fijarVentana(800, 1400);
-  const repo = doble<Public<BookingRepository>>('BookingRepository', { misReservas: async () => reservas });
+  const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => reservas });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
   await asentarPantalla();
 }
@@ -264,7 +264,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
   await fijarVentana(800, 1400);
   let intentos = 0;
   const repo = doble<Public<BookingRepository>>('BookingRepository', {
-    misReservas: async () => {
+    myBookings: async () => {
       intentos++;
       if (intentos === 1) throw new Error('sin red');
       return [reserva('FUTURA', 5)];
@@ -284,7 +284,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
 test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
   await fijarVentana(800, 1400);
   const repo = doble<Public<BookingRepository>>('BookingRepository', {
-    misReservas: () => new Promise<Booking[]>(() => {}),
+    myBookings: () => new Promise<Booking[]>(() => {}),
   });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
 

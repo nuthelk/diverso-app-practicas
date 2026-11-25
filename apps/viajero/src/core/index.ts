@@ -47,4 +47,4 @@ export * from './data/repositories/booking-repository';
 export * from './data/repositories/catalog-repository';
 export * from './data/repositories/review-repository';
 export * from './data/repositories/payment-gateway';
-export * from './data/repositories/llamar-edge-function';
+export * from './data/repositories/call-edge-function';

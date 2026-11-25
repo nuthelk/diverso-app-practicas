@@ -26,12 +26,12 @@ import { configFromEnv, type DiversoConfig, metroHost } from '../../config/diver
  * En desarrollo, en un dispositivo, el Supabase local vive en el PC que sirve Metro: se usa su
  * host (LAN, o 127.0.0.1 con `--localhost` + `adb reverse`). En web y en producción, nada.
  */
-function hostDesarrollo(): string | undefined {
+function devHost(): string | undefined {
   if (!__DEV__ || Platform.OS === 'web') return undefined;
   return metroHost(Constants.expoConfig?.hostUri);
 }
 
-export function opcionesSupabase() {
+export function supabaseOptions() {
   return {
     auth: {
       storage: AsyncStorage,
@@ -43,6 +43,6 @@ export function opcionesSupabase() {
 }
 
 /** Crea el cliente (una vez, en la raíz de composición). */
-export function crearClienteSupabase(config: DiversoConfig = configFromEnv(hostDesarrollo())): SupabaseClient {
-  return createClient(config.supabaseUrl, config.supabaseKey, opcionesSupabase());
+export function createSupabaseClient(config: DiversoConfig = configFromEnv(devHost())): SupabaseClient {
+  return createClient(config.supabaseUrl, config.supabaseKey, supabaseOptions());
 }

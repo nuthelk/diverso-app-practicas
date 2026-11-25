@@ -16,7 +16,7 @@ interface EstadoReserva {
  * confirmación sobreviva a recargar la página en web.
  */
 export function useReservaViewModel(
-  { reservas }: { reservas: Pick<Public<BookingRepository>, 'reserva'> },
+  { reservas }: { reservas: Pick<Public<BookingRepository>, 'booking'> },
   { bookingId }: { bookingId: string },
 ) {
   const { estado, cambiar } = useEstadoVivo<EstadoReserva>(() => ({ reserva: null, cargando: true, error: null }));
@@ -24,7 +24,7 @@ export function useReservaViewModel(
   const cargar = async (): Promise<void> => {
     cambiar({ cargando: true, error: null });
     try {
-      cambiar({ reserva: await reservas.reserva(bookingId) }, false);
+      cambiar({ reserva: await reservas.booking(bookingId) }, false);
     } catch (e) {
       console.warn('ReservaViewModel.cargar:', e);
       cambiar({ error: mensajeDeError(e) }, false);

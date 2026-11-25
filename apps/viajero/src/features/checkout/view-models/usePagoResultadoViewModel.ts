@@ -56,7 +56,7 @@ export function usePagoResultadoViewModel(
       cambiar({ intentos: actual.current.intentos + 1 });
       let resultado: VerifiedPayment;
       try {
-        resultado = await pasarela.verificar(transactionId !== null ? { transactionId } : { bookingId });
+        resultado = await pasarela.verify(transactionId !== null ? { transactionId } : { bookingId });
         cambiar({ resultado, falla: null }, false);
       } catch (e) {
         if (!(e instanceof DiversoError)) console.warn('PagoResultadoViewModel.verificar:', e);

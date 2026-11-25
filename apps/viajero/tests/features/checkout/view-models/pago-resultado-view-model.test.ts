@@ -142,9 +142,9 @@ test('cada intento se avisa a la vista («… (intento N)»)', async () => {
   // Cada verificación espera su propia compuerta: así se ve el estado entre intentos.
   const puertas = [compuerta(), compuerta(), compuerta()];
   const pasarela = new PasarelaFalsa([pendiente()]);
-  const verificarOriginal = pasarela.verificar.bind(pasarela);
+  const verificarOriginal = pasarela.verify.bind(pasarela);
   let llamadas = 0;
-  pasarela.verificar = async (p) => {
+  pasarela.verify = async (p) => {
     await puertas[llamadas++]!.promesa;
     return verificarOriginal(p);
   };

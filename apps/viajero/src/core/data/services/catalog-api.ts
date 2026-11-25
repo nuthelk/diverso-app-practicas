@@ -4,47 +4,47 @@ import { type ExperienceCategory, PlanStatus } from '../../models/enums';
 import type { Row } from '../../models/row';
 import { CatalogSort } from '../../models/catalog-filters';
 
-const SELECCION_PLAN = '*, agencies(*), plan_dates(*)';
+const PLAN_SELECT = '*, agencies(*), plan_dates(*)';
 
 /**
  * Con un día elegido la unión con `plan_dates` es interna (`!inner`): los filtros sobre
  * `plan_dates.fecha` descartan planes y no solo fechas, así el límite de 60 se aplica a los planes
  * que sí tienen ese día.
  */
-const SELECCION_PLAN_CON_DIA = '*, agencies(*), plan_dates!inner(*)';
+const PLAN_SELECT_WITH_DAY = '*, agencies(*), plan_dates!inner(*)';
 
-/** Filtros de `planesPublicados`; null/ausente = sin filtro. */
-export interface ParametrosPlanes {
+/** Filtros de `publishedPlans`; null/ausente = sin filtro. */
+export interface PlanQueryParams {
   /** YYYY-MM-DD: solo fechas embebidas desde este día. */
-  desde: string;
-  orden: CatalogSort;
+  from: string;
+  sort: CatalogSort;
   /** Ya normalizada (minúsculas y sin tildes). */
-  busqueda?: string | null;
-  categoria?: ExperienceCategory | null;
-  destino?: string | null;
-  precioMax?: number | null;
+  search?: string | null;
+  category?: ExperienceCategory | null;
+  destination?: string | null;
+  maxPrice?: number | null;
   /** YYYY-MM-DD. */
-  fecha?: string | null;
+  date?: string | null;
   agencyId?: string | null;
 }
 
 /** Acceso crudo al catálogo público en Supabase: devuelve filas y LANZA los errores de PostgREST. */
 export interface CatalogApi {
-  /** Planes publicados con su agencia y las fechas desde `desde`, aplicando los filtros que no sean null. */
-  planesPublicados(p: ParametrosPlanes): Promise<Row[]>;
+  /** Planes publicados con su agencia y las fechas desde `from`, aplicando los filtros que no sean null. */
+  publishedPlans(p: PlanQueryParams): Promise<Row[]>;
   /** `agencias_publicas`: solo columnas públicas y agregados; con `agencyId`, solo esa agencia. */
-  agenciasPublicas(opciones?: { agencyId?: string | null }): Promise<Row[]>;
-  /** Un plan con su agencia y las fechas desde `desde`; falla (PGRST116) si no existe. */
-  plan(planId: string, opciones: { desde: string }): Promise<Row>;
+  publicAgencies(options?: { agencyId?: string | null }): Promise<Row[]>;
+  /** Un plan con su agencia y las fechas desde `from`; falla (PGRST116) si no existe. */
+  plan(planId: string, options: { from: string }): Promise<Row>;
   /** `destino` de cada plan publicado (con repeticiones). */
-  destinosPublicados(): Promise<Row[]>;
+  publishedDestinations(): Promise<Row[]>;
 }
 
-const ORDEN: Record<CatalogSort, { columna: string; ascending: boolean }> = {
-  [CatalogSort.rating]: { columna: 'rating_promedio', ascending: false },
-  [CatalogSort.priceAsc]: { columna: 'precio_cop', ascending: true },
-  [CatalogSort.priceDesc]: { columna: 'precio_cop', ascending: false },
-  [CatalogSort.newest]: { columna: 'created_at', ascending: false },
+const SORT_COLUMNS: Record<CatalogSort, { column: string; ascending: boolean }> = {
+  [CatalogSort.rating]: { column: 'rating_promedio', ascending: false },
+  [CatalogSort.priceAsc]: { column: 'precio_cop', ascending: true },
+  [CatalogSort.priceDesc]: { column: 'precio_cop', ascending: false },
+  [CatalogSort.newest]: { column: 'created_at', ascending: false },
 };
 
 export class CatalogApiSupabase implements CatalogApi {
@@ -54,33 +54,33 @@ export class CatalogApiSupabase implements CatalogApi {
     this.client = client;
   }
 
-  async planesPublicados(p: ParametrosPlanes): Promise<Row[]> {
+  async publishedPlans(p: PlanQueryParams): Promise<Row[]> {
     // Filtros primero; orden y límite al final.
     let query = this.client
       .from('plans')
-      .select(p.fecha == null ? SELECCION_PLAN : SELECCION_PLAN_CON_DIA)
+      .select(p.date == null ? PLAN_SELECT : PLAN_SELECT_WITH_DAY)
       .eq('estado', PlanStatus.published)
       // Sin `!inner` filtra las fechas embebidas, no los planes.
-      .gte('plan_dates.fecha', p.desde);
+      .gte('plan_dates.fecha', p.from);
 
     // Un solo ilike sobre la columna generada `plans.busqueda` (0011: minúsculas y sin tildes).
-    if (p.busqueda != null) query = query.ilike('busqueda', `%${p.busqueda}%`);
-    if (p.categoria != null) query = query.eq('categoria', p.categoria);
-    if (p.destino != null) query = query.eq('destino', p.destino);
-    if (p.precioMax != null) query = query.lte('precio_cop', p.precioMax);
-    if (p.fecha != null) query = query.eq('plan_dates.fecha', p.fecha);
+    if (p.search != null) query = query.ilike('busqueda', `%${p.search}%`);
+    if (p.category != null) query = query.eq('categoria', p.category);
+    if (p.destination != null) query = query.eq('destino', p.destination);
+    if (p.maxPrice != null) query = query.lte('precio_cop', p.maxPrice);
+    if (p.date != null) query = query.eq('plan_dates.fecha', p.date);
     if (p.agencyId != null) query = query.eq('agency_id', p.agencyId);
 
-    const { columna, ascending } = ORDEN[p.orden];
+    const { column, ascending } = SORT_COLUMNS[p.sort];
     const { data } = await query
       .order('fecha', { ascending: true, referencedTable: 'plan_dates' })
-      .order(columna, { ascending })
+      .order(column, { ascending })
       .limit(60)
       .throwOnError();
     return data as unknown as Row[];
   }
 
-  async agenciasPublicas({ agencyId = null }: { agencyId?: string | null } = {}): Promise<Row[]> {
+  async publicAgencies({ agencyId = null }: { agencyId?: string | null } = {}): Promise<Row[]> {
     const { data } = await (agencyId == null
       ? this.client.rpc('agencias_publicas')
       : this.client.rpc('agencias_publicas', { p_agency_id: agencyId })
@@ -88,19 +88,19 @@ export class CatalogApiSupabase implements CatalogApi {
     return data as Row[];
   }
 
-  async plan(planId: string, { desde }: { desde: string }): Promise<Row> {
+  async plan(planId: string, { from }: { from: string }): Promise<Row> {
     const { data } = await this.client
       .from('plans')
-      .select(SELECCION_PLAN)
+      .select(PLAN_SELECT)
       .eq('id', planId)
-      .gte('plan_dates.fecha', desde)
+      .gte('plan_dates.fecha', from)
       .order('fecha', { ascending: true, referencedTable: 'plan_dates' })
       .single()
       .throwOnError();
     return data as Row;
   }
 
-  async destinosPublicados(): Promise<Row[]> {
+  async publishedDestinations(): Promise<Row[]> {
     const { data } = await this.client
       .from('plans')
       .select('destino')

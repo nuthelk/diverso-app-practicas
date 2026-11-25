@@ -48,7 +48,7 @@ export class AuthFalso implements Public<AuthRepository> {
   compuerta: Compuerta | null = null;
 
   readonly entradas: { email: string; password: string }[] = [];
-  readonly registros: { nombre: string; email: string; password: string; aceptaDocumentos: boolean }[] = [];
+  readonly registros: { name: string; email: string; password: string; acceptsDocuments: boolean }[] = [];
 
   private readonly escuchas = new Set<(usuario: string | null) => void>();
 
@@ -86,7 +86,7 @@ export class AuthFalso implements Public<AuthRepository> {
     return this.email;
   }
 
-  async consentimientosPendientes(): Promise<string[]> {
+  async pendingConsents(): Promise<string[]> {
     const i = Math.min(this.consultas, this.respuestas.length - 1);
     const respuesta = this.respuestas[i]!;
     this.consultas++;
@@ -94,7 +94,7 @@ export class AuthFalso implements Public<AuthRepository> {
     return respuesta;
   }
 
-  async registrarConsentimiento(tipo: string): Promise<void> {
+  async recordConsent(tipo: string): Promise<void> {
     if (this.falloAlRegistrar) throw new Error('sin red');
     this.registrados.push(tipo);
   }
@@ -112,11 +112,11 @@ export class AuthFalso implements Public<AuthRepository> {
     this.entradas.push({ email, password });
   }
 
-  async signUpViajero(datos: {
-    nombre: string;
+  async signUpTraveler(datos: {
+    name: string;
     email: string;
     password: string;
-    aceptaDocumentos: boolean;
+    acceptsDocuments: boolean;
   }): Promise<void> {
     await this.compuerta?.promesa;
     if (this.falloAlEntrar != null) throw this.falloAlEntrar;

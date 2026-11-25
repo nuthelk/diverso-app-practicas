@@ -10,7 +10,7 @@ import {
   ReviewRepository,
   WompiPaymentGateway,
 } from '@/core';
-import { crearClienteSupabase } from '@/core/data/services/supabase-client';
+import { createSupabaseClient } from '@/core/data/services/supabase-client';
 
 import type { Dependencias } from './DependenciesProvider';
 
@@ -21,7 +21,7 @@ import type { Dependencias } from './DependenciesProvider';
  * Fuera del barrel `@/composition` a propósito: importa AsyncStorage y el polyfill de URL, y los
  * tests de pantallas no los necesitan.
  */
-export function crearDependenciasReales(client: SupabaseClient = crearClienteSupabase()): {
+export function crearDependenciasReales(client: SupabaseClient = createSupabaseClient()): {
   dependencias: Dependencias;
   client: SupabaseClient;
 } {

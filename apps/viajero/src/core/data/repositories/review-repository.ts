@@ -15,7 +15,7 @@ export class ReviewRepository {
    * Reseñas del plan, más recientes primero, con el nombre del autor (`profiles(nombre)`: llega
    * null para reseñas AJENAS por RLS; se mantiene igual que en Flutter). NO traduce errores.
    */
-  async porPlan(planId: string, { limit = 20 }: { limit?: number } = {}): Promise<Review[]> {
+  async byPlan(planId: string, { limit = 20 }: { limit?: number } = {}): Promise<Review[]> {
     const { data } = await this.client
       .from('reviews')
       .select('*, profiles(nombre)')
@@ -31,20 +31,20 @@ export class ReviewRepository {
    * esté confirmada/completada, sea del usuario y la fecha ya haya pasado, y deriva plan/viajero.
    * El comentario se recorta; vacío → null. Errores → `DiversoError.fromPostgrest`.
    */
-  async crear({
+  async create({
     bookingId,
-    calificacion,
-    comentario = null,
+    rating,
+    comment = null,
   }: {
     bookingId: string;
-    calificacion: number;
-    comentario?: string | null;
+    rating: number;
+    comment?: string | null;
   }): Promise<void> {
-    const recortado = comentario?.trim() ?? null;
+    const trimmed = comment?.trim() ?? null;
     try {
       await this.client
         .from('reviews')
-        .insert({ booking_id: bookingId, calificacion, comentario: recortado === '' ? null : recortado })
+        .insert({ booking_id: bookingId, calificacion: rating, comentario: trimmed === '' ? null : trimmed })
         .throwOnError();
     } catch (e) {
       throw DiversoError.fromPostgrest(e);

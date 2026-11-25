@@ -189,7 +189,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       if (errorOtro) throw errorOtro;
 
       // 2. Consumir cupo-1 asientos en una reserva grande.
-      const grande = await bookings.crearReserva({ planDateId, pax: cupo - 1 });
+      const grande = await bookings.createBooking({ planDateId, pax: cupo - 1 });
       creadas.push(grande.bookingId);
       expect(grande.code.startsWith('DIV-')).toBe(true);
       // La reserva grande queda pagada: si siguiera pendiente, la regla de una pendiente por viajero y
@@ -207,7 +207,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       };
 
       const resultados = await Promise.all([
-        intento(() => bookings.crearReserva({ planDateId, pax: 1 })),
+        intento(() => bookings.createBooking({ planDateId, pax: 1 })),
         intento(async () => {
           try {
             const { data: res } = await otro
@@ -262,9 +262,9 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
     const planDateId = asString(fechas[0]!['id']);
     const cupo = await cupoDe(planDateId);
 
-    const primera = await bookings.crearReserva({ planDateId, pax: 1 });
+    const primera = await bookings.createBooking({ planDateId, pax: 1 });
     try {
-      const error = await bookings.crearReserva({ planDateId, pax: 1 }).then(
+      const error = await bookings.createBooking({ planDateId, pax: 1 }).then(
         () => null,
         (e: unknown) => e,
       );
@@ -288,19 +288,19 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
     const b = asString(fechas[1]!['id']);
     const cupoA = await cupoDe(a);
 
-    expect(await bookings.reservaPendiente(a)).toBeNull(); // antes de reservar no hay pendiente
-    const creada = await bookings.crearReserva({ planDateId: a, pax: 1 });
+    expect(await bookings.pendingBooking(a)).toBeNull(); // antes de reservar no hay pendiente
+    const creada = await bookings.createBooking({ planDateId: a, pax: 1 });
     try {
-      const pendiente = await bookings.reservaPendiente(a);
+      const pendiente = await bookings.pendingBooking(a);
       expect(pendiente?.id).toBe(creada.bookingId);
       expect(pendiente?.status).toBe(BookingStatus.pendingPayment);
       expect(pendiente?.pax).toBe(1);
       expect(pendiente!.expiresAt.getTime()).toBeGreaterThan(Date.now());
-      expect(await bookings.reservaPendiente(b)).toBeNull(); // otra fecha no se ve afectada
+      expect(await bookings.pendingBooking(b)).toBeNull(); // otra fecha no se ve afectada
     } finally {
       await limpiar([creada.bookingId]);
     }
-    expect(await bookings.reservaPendiente(a)).toBeNull();
+    expect(await bookings.pendingBooking(a)).toBeNull();
     expect(await cupoDe(a)).toBe(cupoA);
   });
 
@@ -343,7 +343,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
         (f) => asInt(f['cupo_disponible']) >= 2 && f['plans'] != null,
       );
       if (fecha === undefined) throw new Error('el seed debe dejar una fecha con cupos');
-      const reserva = await bookings.crearReserva({ planDateId: asString(fecha['id']), pax: 1 });
+      const reserva = await bookings.createBooking({ planDateId: asString(fecha['id']), pax: 1 });
       try {
         const insercion = await client.from('payments').insert({
           booking_id: reserva.bookingId,

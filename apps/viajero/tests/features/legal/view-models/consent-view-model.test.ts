@@ -29,7 +29,7 @@ afterEach(() => {
 
 /** Una consulta de consentimiento que nunca responde. */
 class AuthColgado extends AuthFalso {
-  override consentimientosPendientes(): Promise<string[]> {
+  override pendingConsents(): Promise<string[]> {
     this.consultas++;
     return new Promise<string[]>(() => {});
   }
@@ -43,8 +43,8 @@ class AuthLento extends AuthFalso {
     super();
   }
 
-  override consentimientosPendientes(): Promise<string[]> {
-    if (this.atendida) return super.consentimientosPendientes();
+  override pendingConsents(): Promise<string[]> {
+    if (this.atendida) return super.pendingConsents();
     this.atendida = true;
     return this.primera.promesa;
   }

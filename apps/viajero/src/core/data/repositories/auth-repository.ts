@@ -29,24 +29,24 @@ export class AuthRepository {
   /**
    * Registra un viajero nuevo. El trigger `handle_new_user` crea su perfil y, si la versión legal
    * coincide con la del servidor, guarda como evidencia la autorización de datos y la aceptación
-   * de términos (Ley 1581 de 2012). Sin [aceptaDocumentos] → `ArgumentError` sin llamar al servidor.
+   * de términos (Ley 1581 de 2012). Sin [acceptsDocuments] → `ArgumentError` sin llamar al servidor.
    */
-  async signUpViajero({
-    nombre,
+  async signUpTraveler({
+    name,
     email,
     password,
-    aceptaDocumentos,
+    acceptsDocuments,
   }: {
-    nombre: string;
+    name: string;
     email: string;
     password: string;
-    aceptaDocumentos: boolean;
+    acceptsDocuments: boolean;
   }): Promise<void> {
-    if (!aceptaDocumentos) throw new ArgumentError('Se requiere la autorización expresa del titular.');
+    if (!acceptsDocuments) throw new ArgumentError('Se requiere la autorización expresa del titular.');
     const { error } = await this.client.auth.signUp({
       email,
       password,
-      options: { data: { nombre, rol: 'viajero', consentimiento_version: LEGAL_VERSION } },
+      options: { data: { nombre: name, rol: 'viajero', consentimiento_version: LEGAL_VERSION } },
     });
     if (error) throw error;
   }
@@ -55,15 +55,15 @@ export class AuthRepository {
    * Documentos vigentes que el usuario actual aún no ha aceptado (`tratamiento_datos`,
    * `terminos_viajero`). Vacío si está al día.
    */
-  async consentimientosPendientes(): Promise<string[]> {
+  async pendingConsents(): Promise<string[]> {
     const { data } = await this.client.rpc('consentimientos_pendientes').throwOnError();
     return Array.isArray(data) ? data.map((e) => String(e)) : [];
   }
 
   /** Registra la aceptación de un documento en su versión vigente (falla con VERSION_DESACTUALIZADA si no coincide). */
-  async registrarConsentimiento(tipo: string): Promise<void> {
+  async recordConsent(type: string): Promise<void> {
     await this.client
-      .rpc('registrar_consentimiento', { p_tipo: tipo, p_version: LEGAL_VERSION, p_origen: 'app' })
+      .rpc('registrar_consentimiento', { p_tipo: type, p_version: LEGAL_VERSION, p_origen: 'app' })
       .throwOnError();
   }
 
@@ -80,13 +80,13 @@ export class AuthRepository {
   /**
    * Avisa el id del usuario (o null) en CADA evento de auth, incluida la sesión inicial y los
    * refrescos de token (filtrar repetidos es cosa de quien escucha). Devuelve la función para
-   * cancelar. Ojo: no hagas `await` de otra llamada de supabase dentro de [escucha] (supabase-js
+   * cancelar. Ojo: no hagas `await` de otra llamada de supabase dentro de [listener] (supabase-js
    * puede bloquearse); difiérela con `setTimeout`.
    */
-  onAuthStateChanged(escucha: (userId: string | null) => void): () => void {
+  onAuthStateChanged(listener: (userId: string | null) => void): () => void {
     const {
       data: { subscription },
-    } = this.client.auth.onAuthStateChange((_evento, sesion) => escucha(sesion?.user.id ?? null));
+    } = this.client.auth.onAuthStateChange((_event, session) => listener(session?.user.id ?? null));
     return () => subscription.unsubscribe();
   }
 

@@ -2,10 +2,10 @@ import { ReviewRepository } from '@/core/data/repositories/review-repository';
 import { DiversoError } from '@/core/errors/diverso-error';
 
 import { capture } from '../../../support/errors';
-import { crearSupabaseFalso, cuerpoErrorPostgrest } from '../../../support/supabase-falso';
+import { createFakeSupabase, postgrestErrorBody } from '../../../support/fake-supabase';
 
 /** `ReviewRepository` no tiene test en Dart: se prueba contra el Supabase falso (HTTP). */
-const fila = (id: string, nombre: string | null) => ({
+const row = (id: string, name: string | null) => ({
   id,
   booking_id: `b-${id}`,
   plan_id: 'p-1',
@@ -13,15 +13,15 @@ const fila = (id: string, nombre: string | null) => ({
   calificacion: 4,
   comentario: 'Muy bueno',
   created_at: '2026-10-25T10:00:00+00:00',
-  profiles: nombre === null ? null : { nombre },
+  profiles: name === null ? null : { nombre: name },
 });
 
 describe('porPlan', () => {
   test('pide las reseñas del plan con el nombre del autor, más recientes primero, 20 por defecto', async () => {
-    const { client, pedidos } = crearSupabaseFalso(() => ({ cuerpo: [fila('r1', 'Ana'), fila('r2', null)] }));
-    const r = await new ReviewRepository({ client }).porPlan('p-1');
-    expect(pedidos[0]!.ruta).toBe('/rest/v1/reviews');
-    expect(pedidos[0]!.params).toEqual({
+    const { client, requests } = createFakeSupabase(() => ({ body: [row('r1', 'Ana'), row('r2', null)] }));
+    const r = await new ReviewRepository({ client }).byPlan('p-1');
+    expect(requests[0]!.path).toBe('/rest/v1/reviews');
+    expect(requests[0]!.params).toEqual({
       select: ['*,profiles(nombre)'],
       plan_id: ['eq.p-1'],
       order: ['created_at.desc'],
@@ -35,9 +35,9 @@ describe('porPlan', () => {
   });
 
   test('límite configurable y errores crudos (no se traducen, como en Dart)', async () => {
-    const { client, pedidos } = crearSupabaseFalso(() => ({ status: 401, cuerpo: cuerpoErrorPostgrest('JWT expired', { code: 'PGRST301' }) }));
-    const e = await capture(() => new ReviewRepository({ client }).porPlan('p-1', { limit: 5 }));
-    expect(pedidos[0]!.params['limit']).toEqual(['5']);
+    const { client, requests } = createFakeSupabase(() => ({ status: 401, body: postgrestErrorBody('JWT expired', { code: 'PGRST301' }) }));
+    const e = await capture(() => new ReviewRepository({ client }).byPlan('p-1', { limit: 5 }));
+    expect(requests[0]!.params['limit']).toEqual(['5']);
     expect(e).not.toBeInstanceOf(DiversoError);
     expect(e).toMatchObject({ message: 'JWT expired' });
   });
@@ -45,28 +45,28 @@ describe('porPlan', () => {
 
 describe('crear', () => {
   test('inserta booking_id, calificación y el comentario recortado', async () => {
-    const { client, pedidos } = crearSupabaseFalso(() => ({ status: 201 }));
-    await new ReviewRepository({ client }).crear({ bookingId: 'b-1', calificacion: 5, comentario: '  ¡Genial!  ' });
-    expect(pedidos[0]!.metodo).toBe('POST');
-    expect(pedidos[0]!.ruta).toBe('/rest/v1/reviews');
-    expect(pedidos[0]!.cuerpo).toStrictEqual({ booking_id: 'b-1', calificacion: 5, comentario: '¡Genial!' });
+    const { client, requests } = createFakeSupabase(() => ({ status: 201 }));
+    await new ReviewRepository({ client }).create({ bookingId: 'b-1', rating: 5, comment: '  ¡Genial!  ' });
+    expect(requests[0]!.method).toBe('POST');
+    expect(requests[0]!.path).toBe('/rest/v1/reviews');
+    expect(requests[0]!.body).toStrictEqual({ booking_id: 'b-1', calificacion: 5, comentario: '¡Genial!' });
   });
 
   test('comentario vacío o ausente se guarda como null', async () => {
-    const { client, pedidos } = crearSupabaseFalso(() => ({ status: 201 }));
+    const { client, requests } = createFakeSupabase(() => ({ status: 201 }));
     const repo = new ReviewRepository({ client });
-    await repo.crear({ bookingId: 'b-1', calificacion: 3, comentario: '   ' });
-    await repo.crear({ bookingId: 'b-2', calificacion: 3 });
-    expect(pedidos.map((p) => (p.cuerpo as { comentario: unknown }).comentario)).toEqual([null, null]);
+    await repo.create({ bookingId: 'b-1', rating: 3, comment: '   ' });
+    await repo.create({ bookingId: 'b-2', rating: 3 });
+    expect(requests.map((p) => (p.body as { comentario: unknown }).comentario)).toEqual([null, null]);
   });
 
   test('un rechazo de RLS sale como DiversoError', async () => {
-    const { client } = crearSupabaseFalso(() => ({
+    const { client } = createFakeSupabase(() => ({
       status: 403,
-      cuerpo: cuerpoErrorPostgrest('new row violates row-level security policy for table "reviews"', { code: '42501' }),
+      body: postgrestErrorBody('new row violates row-level security policy for table "reviews"', { code: '42501' }),
     }));
     const e = await capture<DiversoError>(() =>
-      new ReviewRepository({ client }).crear({ bookingId: 'b-1', calificacion: 5 }),
+      new ReviewRepository({ client }).create({ bookingId: 'b-1', rating: 5 }),
     );
     expect(e).toBeInstanceOf(DiversoError);
     expect(e.code).toBe('ERROR_BD');

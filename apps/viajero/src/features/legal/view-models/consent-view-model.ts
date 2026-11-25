@@ -114,7 +114,7 @@ export class ConsentViewModel {
       const limite = new Promise<never>((_, rechazar) => {
         temporizador = setTimeout(() => rechazar(new TiempoAgotado('consentimiento: tiempo agotado')), ConsentViewModel.tiempoLimite);
       });
-      const pendientes = await Promise.race([this.auth.consentimientosPendientes(), limite]);
+      const pendientes = await Promise.race([this.auth.pendingConsents(), limite]);
       if (this.desechado || revision !== this.revision) return;
       this.cambiar({
         pendientes,
@@ -142,7 +142,7 @@ export class ConsentViewModel {
     if (this.actual.estado !== EstadoConsentimiento.pendiente) return false;
     try {
       for (const tipo of this.actual.pendientes) {
-        await this.auth.registrarConsentimiento(tipo);
+        await this.auth.recordConsent(tipo);
       }
     } catch (e) {
       console.warn('ConsentViewModel: no se pudo guardar la autorización:', e);

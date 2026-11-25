@@ -18,7 +18,7 @@ import type { Compuerta } from '../../../support/compuerta';
  * para no pisar los dobles de reservas de T7.
  */
 export class ReservasFalsas
-  implements Pick<Public<BookingRepository>, 'reserva' | 'reservaPendiente' | 'crearReserva' | 'cancelar' | 'misReservas'>
+  implements Pick<Public<BookingRepository>, 'booking' | 'pendingBooking' | 'createBooking' | 'cancel' | 'myBookings'>
 {
   lista: Booking[];
 
@@ -62,14 +62,14 @@ export class ReservasFalsas
     this.lista = [...lista];
   }
 
-  async misReservas(): Promise<Booking[]> {
+  async myBookings(): Promise<Booking[]> {
     this.consultasLista++;
     await this.compuerta?.promesa;
     if (this.fallo !== null) throw this.fallo;
     return this.lista;
   }
 
-  async reserva(bookingId: string): Promise<Booking> {
+  async booking(bookingId: string): Promise<Booking> {
     this.consultas.push(bookingId);
     await this.compuerta?.promesa;
     if (this.fallo !== null) throw this.fallo;
@@ -78,13 +78,13 @@ export class ReservasFalsas
     return b;
   }
 
-  async reservaPendiente(_planDateId: string): Promise<Booking | null> {
+  async pendingBooking(_planDateId: string): Promise<Booking | null> {
     this.busquedasPendiente++;
     if (this.falloAlBuscarPendiente !== null) throw this.falloAlBuscarPendiente;
     return this.pendiente;
   }
 
-  async crearReserva({ planDateId, pax }: { planDateId: string; pax: number }): Promise<CreatedBooking> {
+  async createBooking({ planDateId, pax }: { planDateId: string; pax: number }): Promise<CreatedBooking> {
     if (this.falloAlCrear !== null) {
       this.pendiente = this.pendienteTrasFalla;
       throw this.falloAlCrear;
@@ -98,7 +98,7 @@ export class ReservasFalsas
     });
   }
 
-  async cancelar(bookingId: string): Promise<CancellationResult> {
+  async cancel(bookingId: string): Promise<CancellationResult> {
     if (this.falloAlCancelar !== null) throw this.falloAlCancelar;
     this.canceladas.push(bookingId);
     if (this.pendiente?.id === bookingId) this.pendiente = null;

@@ -56,7 +56,7 @@ const inicial: EstadoCatalogo = {
  * Igual que en los demás view models, el estado vive en `useState` + un ref espejo que leen los
  * comandos (un comando lanzado desde un cierre viejo ve el estado actual).
  */
-export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'search' | 'destinos'> }) {
+export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'search' | 'destinations'> }) {
   const [estado, setEstado] = useState<EstadoCatalogo>(inicial);
   const actual = useRef<EstadoCatalogo>(inicial);
 
@@ -77,7 +77,7 @@ export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Public<Catalo
         date: e.fecha,
         sort: e.orden,
       });
-      const destinos = await catalogo.destinos();
+      const destinos = await catalogo.destinations();
       // La selección puede referenciar planes que ya no aparecen.
       const idsComparar = actual.current.idsComparar.filter((id) => resultados.some((p) => p.id === id));
       cambiar({ planes: Object.freeze([...resultados]), destinos: Object.freeze([...destinos]), idsComparar });

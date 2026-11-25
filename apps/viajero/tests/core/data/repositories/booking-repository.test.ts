@@ -7,99 +7,99 @@ import type { Row } from '@/core/models/row';
 import { LABEL_REFUND_STATUS, RefundStatus } from '@/core/models/refund';
 import { localDate } from '@/core/utils/dates';
 
-import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
+import { FakeEdgeFunctions } from '../../../support/fake-edge-functions';
 import { capture, httpError, postgrestError } from '../../../support/errors';
 
 /**
  * Api falsa: devuelve las filas que se le indiquen y registra qué se le pidió. No sabe nada de
  * Supabase; así se prueban las reglas del repositorio sin red.
  */
-class BookingApiFalsa implements BookingApi {
+class FakeBookingApi implements BookingApi {
   uid: string | null = 'viajero-1';
   /** Lo que lanza cualquier consulta (null = responde normal). */
-  falla: unknown = null;
+  failure: unknown = null;
 
-  filaCrear: Row = {};
-  reservas: Row[] = [];
-  resenas: Row[] = [];
-  filaReserva: Row | null = null;
-  filaResena: Row | null = null;
-  pendientes: Row[] = [];
-  filaVistaPrevia: Row = {};
+  createRow: Row = {};
+  bookings: Row[] = [];
+  reviews: Row[] = [];
+  bookingRow: Row | null = null;
+  reviewRow: Row | null = null;
+  pending: Row[] = [];
+  previewRow: Row = {};
 
-  readonly consultas: string[] = [];
-  creadaDespuesDe: Date | null = null;
+  readonly queries: string[] = [];
+  createdAfter: Date | null = null;
 
-  private consulta<T>(nombre: string, respuesta: T): T {
-    this.consultas.push(nombre);
-    if (this.falla !== null) throw this.falla;
-    return respuesta;
+  private query<T>(name: string, response: T): T {
+    this.queries.push(name);
+    if (this.failure !== null) throw this.failure;
+    return response;
   }
 
-  async usuarioId() {
+  async currentUserId() {
     return this.uid;
   }
-  async crearReserva() {
-    return this.consulta('crearReserva', this.filaCrear);
+  async createBooking() {
+    return this.query('createBooking', this.createRow);
   }
-  async reservasDe() {
-    return this.consulta('reservasDe', this.reservas);
+  async bookingsOf() {
+    return this.query('bookingsOf', this.bookings);
   }
-  async resenasDe() {
-    return this.consulta('resenasDe', this.resenas);
+  async reviewsOf() {
+    return this.query('reviewsOf', this.reviews);
   }
-  async reserva() {
-    return this.consulta('reserva', this.filaReserva);
+  async booking() {
+    return this.query('booking', this.bookingRow);
   }
-  async resenaDe() {
-    return this.consulta('resenaDe', this.filaResena);
+  async reviewOf() {
+    return this.query('reviewOf', this.reviewRow);
   }
-  async pendientesDe(p: { viajeroId: string; planDateId: string; creadaDespuesDe: Date }) {
-    this.creadaDespuesDe = p.creadaDespuesDe;
-    return this.consulta('pendientesDe', this.pendientes);
+  async pendingOf(p: { travelerId: string; planDateId: string; createdAfter: Date }) {
+    this.createdAfter = p.createdAfter;
+    return this.query('pendingOf', this.pending);
   }
-  async vistaPreviaCancelacion() {
-    return this.consulta('vistaPreviaCancelacion', this.filaVistaPrevia);
+  async cancellationPreview() {
+    return this.query('cancellationPreview', this.previewRow);
   }
 }
 
-const fila = (id: string, estado = 'confirmada'): Row => ({
+const row = (id: string, status = 'confirmada'): Row => ({
   id,
   codigo: `DIV-${id}`,
   plan_date_id: 'pd-1',
   viajero_id: 'viajero-1',
   pax: 2,
   monto_total: 200000,
-  estado,
+  estado: status,
   created_at: '2026-10-25T10:00:00+00:00',
 });
 
-const error = (accion: () => Promise<unknown>) => capture<DiversoError>(accion).then((e) => {
+const error = (action: () => Promise<unknown>) => capture<DiversoError>(action).then((e) => {
   expect(e).toBeInstanceOf(DiversoError);
   return e;
 });
 
-const repo = (api: BookingApiFalsa, edge?: EdgeFunctionsFalsas) =>
+const repo = (api: FakeBookingApi, edge?: FakeEdgeFunctions) =>
   new BookingRepository({
     api,
     edgeFunctions:
       edge ??
-      new EdgeFunctionsFalsas(() => {
+      new FakeEdgeFunctions(() => {
         throw new Error('sin Edge Functions');
       }),
   });
 
 describe('crearReserva', () => {
   test('convierte la fila de create_booking en CreatedBooking', async () => {
-    const api = new BookingApiFalsa();
-    api.filaCrear = {
+    const api = new FakeBookingApi();
+    api.createRow = {
       booking_id: 'b-1',
       codigo: 'DIV-AB12',
       monto_total: 300000,
       plan_titulo: 'Guatapé',
       fecha: '2026-11-20',
     };
-    const r = await repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 });
+    const r = await repo(api).createBooking({ planDateId: 'pd-1', pax: 2 });
     expect(r.bookingId).toBe('b-1');
     expect(r.code).toBe('DIV-AB12');
     expect(r.totalAmount).toBe(300000);
@@ -108,135 +108,135 @@ describe('crearReserva', () => {
   });
 
   test('sin plan_titulo ni fecha: título vacío y fecha nula', async () => {
-    const api = new BookingApiFalsa();
-    api.filaCrear = { booking_id: 'b', codigo: 'C', monto_total: 1 };
-    const r = await repo(api).crearReserva({ planDateId: 'pd-1', pax: 1 });
+    const api = new FakeBookingApi();
+    api.createRow = { booking_id: 'b', codigo: 'C', monto_total: 1 };
+    const r = await repo(api).createBooking({ planDateId: 'pd-1', pax: 1 });
     expect(r.planTitle).toBe('');
     expect(r.date).toBeNull();
   });
 
   test('un error de PostgREST sale como DiversoError con su código', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = postgrestError('SIN_CUPO', { code: 'P0001' });
-    const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
+    const api = new FakeBookingApi();
+    api.failure = postgrestError('SIN_CUPO', { code: 'P0001' });
+    const e = await error(() => repo(api).createBooking({ planDateId: 'pd-1', pax: 2 }));
     expect(e.code).toBe('SIN_CUPO');
     expect(e.userMessage).toContain('cupos');
   });
 
   test('RESERVA_PENDIENTE_EXISTENTE conserva el id de la reserva existente', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = postgrestError('RESERVA_PENDIENTE_EXISTENTE', { code: 'P0001', details: 'b-9' });
-    const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
+    const api = new FakeBookingApi();
+    api.failure = postgrestError('RESERVA_PENDIENTE_EXISTENTE', { code: 'P0001', details: 'b-9' });
+    const e = await error(() => repo(api).createBooking({ planDateId: 'pd-1', pax: 2 }));
     expect(e.code).toBe('RESERVA_PENDIENTE_EXISTENTE');
     expect(e.details?.['booking_id']).toBe('b-9');
   });
 
   test('un fallo que no es de PostgREST sale como ERROR_INESPERADO', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = new Error('se cayó');
-    const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
+    const api = new FakeBookingApi();
+    api.failure = new Error('se cayó');
+    const e = await error(() => repo(api).createBooking({ planDateId: 'pd-1', pax: 2 }));
     expect(e.code).toBe('ERROR_INESPERADO');
   });
 });
 
 describe('misReservas', () => {
   test('sin sesión: lista vacía y no consulta nada', async () => {
-    const api = new BookingApiFalsa();
+    const api = new FakeBookingApi();
     api.uid = null;
-    expect(await repo(api).misReservas()).toEqual([]);
-    expect(api.consultas).toEqual([]);
+    expect(await repo(api).myBookings()).toEqual([]);
+    expect(api.queries).toEqual([]);
   });
 
   test('sin reservas: no pide las reseñas', async () => {
-    const api = new BookingApiFalsa();
-    expect(await repo(api).misReservas()).toEqual([]);
-    expect(api.consultas).toEqual(['reservasDe']);
+    const api = new FakeBookingApi();
+    expect(await repo(api).myBookings()).toEqual([]);
+    expect(api.queries).toEqual(['bookingsOf']);
   });
 
   test('marca con reseña solo las reservas reseñadas y respeta el orden', async () => {
-    const api = new BookingApiFalsa();
-    api.reservas = [fila('b1'), fila('b2'), fila('b3')];
-    api.resenas = [{ booking_id: 'b2' }];
-    const r = await repo(api).misReservas();
+    const api = new FakeBookingApi();
+    api.bookings = [row('b1'), row('b2'), row('b3')];
+    api.reviews = [{ booking_id: 'b2' }];
+    const r = await repo(api).myBookings();
     expect(r.map((b) => b.id)).toEqual(['b1', 'b2', 'b3']);
     expect(r.map((b) => b.hasReview)).toEqual([false, true, false]);
-    expect(api.consultas).toEqual(['reservasDe', 'resenasDe']);
+    expect(api.queries).toEqual(['bookingsOf', 'reviewsOf']);
   });
 });
 
 describe('reserva (por id)', () => {
   test('sin reseña: la devuelve tal cual', async () => {
-    const api = new BookingApiFalsa();
-    api.filaReserva = fila('b1');
-    const b = await repo(api).reserva('b1');
+    const api = new FakeBookingApi();
+    api.bookingRow = row('b1');
+    const b = await repo(api).booking('b1');
     expect(b.id).toBe('b1');
     expect(b.hasReview).toBe(false);
   });
 
   test('con reseña: la marca para no ofrecer «Reseñar» otra vez', async () => {
-    const api = new BookingApiFalsa();
-    api.filaReserva = fila('b1');
-    api.filaResena = { id: 'r1' };
-    expect((await repo(api).reserva('b1')).hasReview).toBe(true);
+    const api = new FakeBookingApi();
+    api.bookingRow = row('b1');
+    api.reviewRow = { id: 'r1' };
+    expect((await repo(api).booking('b1')).hasReview).toBe(true);
   });
 
   test('no existe: RESERVA_NO_EXISTE (no se convierte en ERROR_INESPERADO)', async () => {
-    const api = new BookingApiFalsa();
-    const e = await error(() => repo(api).reserva('nada'));
+    const api = new FakeBookingApi();
+    const e = await error(() => repo(api).booking('nada'));
     expect(e.code).toBe('RESERVA_NO_EXISTE');
-    expect(api.consultas).toEqual(['reserva']);
+    expect(api.queries).toEqual(['booking']);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = postgrestError('NO_AUTENTICADO', { code: 'P0001' });
-    const e = await error(() => repo(api).reserva('b1'));
+    const api = new FakeBookingApi();
+    api.failure = postgrestError('NO_AUTENTICADO', { code: 'P0001' });
+    const e = await error(() => repo(api).booking('b1'));
     expect(e.code).toBe('NO_AUTENTICADO');
   });
 });
 
 describe('reservaPendiente (ventana de 30 minutos)', () => {
   test('sin sesión: null y no consulta', async () => {
-    const api = new BookingApiFalsa();
+    const api = new FakeBookingApi();
     api.uid = null;
-    expect(await repo(api).reservaPendiente('pd-1')).toBeNull();
-    expect(api.consultas).toEqual([]);
+    expect(await repo(api).pendingBooking('pd-1')).toBeNull();
+    expect(api.queries).toEqual([]);
   });
 
   test('pide solo las creadas en los últimos 30 minutos (Booking.retencionMs)', async () => {
-    const api = new BookingApiFalsa();
-    const antes = Date.now();
-    await repo(api).reservaPendiente('pd-1');
-    const despues = Date.now();
-    const desde = api.creadaDespuesDe!;
+    const api = new FakeBookingApi();
+    const before = Date.now();
+    await repo(api).pendingBooking('pd-1');
+    const after = Date.now();
+    const since = api.createdAfter!;
     // En JS un Date ya es un instante: la api lo envía con toISOString() (UTC, «Z»).
-    expect(desde).toBeInstanceOf(Date);
+    expect(since).toBeInstanceOf(Date);
     expect(Booking.holdMs).toBe(30 * 60 * 1000);
-    expect(desde.getTime() < antes - Booking.holdMs).toBe(false);
-    expect(desde.getTime() > despues - Booking.holdMs).toBe(false);
+    expect(since.getTime() < before - Booking.holdMs).toBe(false);
+    expect(since.getTime() > after - Booking.holdMs).toBe(false);
   });
 
   test('sin filas: null; con filas: la primera', async () => {
-    const api = new BookingApiFalsa();
-    expect(await repo(api).reservaPendiente('pd-1')).toBeNull();
-    api.pendientes = [fila('b1', 'pendiente_pago'), fila('b0')];
-    const b = await repo(api).reservaPendiente('pd-1');
+    const api = new FakeBookingApi();
+    expect(await repo(api).pendingBooking('pd-1')).toBeNull();
+    api.pending = [row('b1', 'pendiente_pago'), row('b0')];
+    const b = await repo(api).pendingBooking('pd-1');
     expect(b!.id).toBe('b1');
     expect(b!.status).toBe(BookingStatus.pendingPayment);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = postgrestError('algo raro');
-    const e = await error(() => repo(api).reservaPendiente('pd-1'));
+    const api = new FakeBookingApi();
+    api.failure = postgrestError('algo raro');
+    const e = await error(() => repo(api).pendingBooking('pd-1'));
     expect(e.code).toBe('ERROR_BD');
   });
 });
 
 describe('vistaPreviaCancelacion', () => {
   test('lee la fila del RPC', async () => {
-    const api = new BookingApiFalsa();
-    api.filaVistaPrevia = {
+    const api = new FakeBookingApi();
+    api.previewRow = {
       booking_id: 'b',
       horas_antes: 30.5,
       aplica: true,
@@ -244,25 +244,25 @@ describe('vistaPreviaCancelacion', () => {
       monto: 150000.0,
       motivo: 'x',
     };
-    const v = await repo(api).vistaPreviaCancelacion('b');
+    const v = await repo(api).cancellationPreview('b');
     expect(v.percentage).toBe(50);
     expect(v.amount).toBe(150000);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
-    const api = new BookingApiFalsa();
-    api.falla = postgrestError('NO_ES_DUENO', { code: 'P0001' });
-    const e = await error(() => repo(api).vistaPreviaCancelacion('b'));
+    const api = new FakeBookingApi();
+    api.failure = postgrestError('NO_ES_DUENO', { code: 'P0001' });
+    const e = await error(() => repo(api).cancellationPreview('b'));
     expect(e.code).toBe('NO_ES_DUENO');
   });
 });
 
 describe('cancelar (reservas-cancelar)', () => {
-  const cancelada = (r: Row) => ({ estado: 'cancelada', reembolso: r });
+  const cancelled = (r: Row) => ({ estado: 'cancelada', reembolso: r });
 
   test('llama a reservas-cancelar y lee el reembolso aprobado', async () => {
-    const edge = new EdgeFunctionsFalsas(() =>
-      cancelada({
+    const edge = new FakeEdgeFunctions(() =>
+      cancelled({
         aplica: true,
         porcentaje: 50,
         monto: 150000,
@@ -270,10 +270,10 @@ describe('cancelar (reservas-cancelar)', () => {
         motivo: 'Cancelación con menos de 48 h y al menos 24 h de anticipación: reembolso del 50 %',
       }),
     );
-    const r = await repo(new BookingApiFalsa(), edge).cancelar('b-1');
-    expect(edge.llamadas).toHaveLength(1);
-    expect(edge.llamadas[0]![0]).toBe('reservas-cancelar');
-    expect(edge.llamadas[0]![1]).toStrictEqual({ booking_id: 'b-1' });
+    const r = await repo(new FakeBookingApi(), edge).cancel('b-1');
+    expect(edge.calls).toHaveLength(1);
+    expect(edge.calls[0]![0]).toBe('reservas-cancelar');
+    expect(edge.calls[0]![1]).toStrictEqual({ booking_id: 'b-1' });
     expect(r.applies).toBe(true);
     expect(r.percentage).toBe(50);
     expect(r.amount).toBe(150000);
@@ -282,14 +282,14 @@ describe('cancelar (reservas-cancelar)', () => {
   });
 
   test('estados pendiente, rechazado y no_aplica', async () => {
-    const casos: [string, RefundStatus, string][] = [
+    const cases: [string, RefundStatus, string][] = [
       ['pendiente', RefundStatus.pending, 'Reembolso de prueba pendiente'],
       ['rechazado', RefundStatus.rejected, 'Reembolso de prueba rechazado'],
       ['no_aplica', RefundStatus.notApplicable, 'Sin reembolso'],
     ];
-    for (const [raw, esperado, etiqueta] of casos) {
-      const edge = new EdgeFunctionsFalsas(() =>
-        cancelada({
+    for (const [raw, expected, label] of cases) {
+      const edge = new FakeEdgeFunctions(() =>
+        cancelled({
           aplica: raw !== 'no_aplica',
           porcentaje: raw === 'no_aplica' ? 0 : 100,
           monto: raw === 'no_aplica' ? 0 : 300000,
@@ -297,15 +297,15 @@ describe('cancelar (reservas-cancelar)', () => {
           motivo: 'm',
         }),
       );
-      const r = await repo(new BookingApiFalsa(), edge).cancelar('b-1');
-      expect(r.status).toBe(esperado);
-      expect(LABEL_REFUND_STATUS[r.status]).toBe(etiqueta);
+      const r = await repo(new FakeBookingApi(), edge).cancel('b-1');
+      expect(r.status).toBe(expected);
+      expect(LABEL_REFUND_STATUS[r.status]).toBe(label);
     }
   });
 
   test('errores de la función: ESTADO_INVALIDO', async () => {
-    const edge = new EdgeFunctionsFalsas(() => httpError(409, { error: 'ESTADO_INVALIDO' }));
-    const e = await error(() => repo(new BookingApiFalsa(), edge).cancelar('b-1'));
+    const edge = new FakeEdgeFunctions(() => httpError(409, { error: 'ESTADO_INVALIDO' }));
+    const e = await error(() => repo(new FakeBookingApi(), edge).cancel('b-1'));
     expect(e.code).toBe('ESTADO_INVALIDO');
   });
 });

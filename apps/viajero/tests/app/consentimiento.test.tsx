@@ -234,7 +234,7 @@ class AuthManual extends AuthFalso {
     this.perfil = null;
   }
 
-  override consentimientosPendientes(): Promise<string[]> {
+  override pendingConsents(): Promise<string[]> {
     this.consultas++;
     const c = compuerta<string[]>();
     this.abiertas.push(c);
@@ -273,7 +273,7 @@ describe('guardia: mientras se verifica el consentimiento', () => {
     expect(r.getPathname()).toBe('/reservas/b-1');
     expect(pantallaVisible('ReservaDetalleView')).toBeOnTheScreen();
     // Cargó la reserva b-1 una sola vez, y recién con el consentimiento confirmado.
-    expect(cargas).toEqual(['BookingRepository.reserva("b-1")']);
+    expect(cargas).toEqual(['BookingRepository.booking("b-1")']);
   });
 
   test('V1: pendiente, tras aceptar se llega al enlace original', async () => {

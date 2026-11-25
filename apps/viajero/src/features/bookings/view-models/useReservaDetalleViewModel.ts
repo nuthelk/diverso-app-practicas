@@ -44,7 +44,7 @@ export function useReservaDetalleViewModel({
   const cargar = useCallback(async (): Promise<void> => {
     cambiar((e) => ({ ...e, cargandoAhora: true, error: null }));
     try {
-      const nueva = await reservas.reserva(bookingId);
+      const nueva = await reservas.booking(bookingId);
       // `reserva(id)` no sabe si ya se reseñó: no se pierde lo que la lista ya había marcado.
       cambiar((e) => ({ ...e, reserva: e.reserva?.hasReview ? nueva.withReview() : nueva, cargandoAhora: false }));
     } catch (e) {

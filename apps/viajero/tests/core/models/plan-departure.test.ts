@@ -29,7 +29,7 @@ const plan = (horaSalidaMinutos: number, dates: PlanDate[]) =>
     priceCop: 100000,
     status: PlanStatus.published,
     departureMinutes: horaSalidaMinutos,
-    dates: dates,
+    dates,
   });
 
 describe('fechasDisponiblesA: salidas que ya partieron', () => {

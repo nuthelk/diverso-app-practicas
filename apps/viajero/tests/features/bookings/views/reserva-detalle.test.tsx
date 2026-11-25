@@ -122,14 +122,14 @@ function reserva({
 function repo(lista: Booking[]) {
   const consultas: string[] = [];
   const r = doble<Public<BookingRepository>>('BookingRepository', {
-    misReservas: async () => lista,
-    reserva: async (id: string) => {
+    myBookings: async () => lista,
+    booking: async (id: string) => {
       consultas.push(id);
       const b = lista.find((x) => x.id === id);
       if (!b) throw new DiversoError('RESERVA_NO_EXISTE');
       return b;
     },
-    vistaPreviaCancelacion: async () =>
+    cancellationPreview: async () =>
       new CancellationPreview({ applies: true, percentage: 100, amount: 190000, hoursBefore: 72, reason: '' }),
   });
   return { repo: r, consultas };

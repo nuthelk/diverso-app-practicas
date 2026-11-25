@@ -67,13 +67,13 @@ export class CatalogoFalso implements Public<CatalogRepository> {
     return this.planes;
   }
 
-  async destinos(): Promise<string[]> {
+  async destinations(): Promise<string[]> {
     this.consultasDestinos++;
     await this.esperar();
     return this.destinosDisponibles;
   }
 
-  async planDetalle(planId: string): Promise<Plan> {
+  async planDetail(planId: string): Promise<Plan> {
     this.detallesPedidos.push(planId);
     await this.esperar();
     const plan = this.detalles.get(planId);
@@ -81,23 +81,23 @@ export class CatalogoFalso implements Public<CatalogRepository> {
     return plan;
   }
 
-  async agencias(): Promise<AgencySummary[]> {
+  async agencies(): Promise<AgencySummary[]> {
     this.consultasAgencias++;
     await this.esperar();
     return this.agenciasPublicas;
   }
 
   /** Null si la agencia no está en `agenciasPublicas` (no existe o no está habilitada). */
-  async agenciaConPlanes(agencyId: string): Promise<{ agencia: AgencySummary; planes: Plan[] } | null> {
+  async agencyWithPlans(agencyId: string): Promise<{ agency: AgencySummary; plans: Plan[] } | null> {
     this.agenciasPedidas.push(agencyId);
     await this.esperar();
     const agencia = this.agenciasPublicas.find((a) => a.id === agencyId);
-    return agencia ? { agencia, planes: this.planesPorAgencia.get(agencyId) ?? [] } : null;
+    return agencia ? { agency: agencia, plans: this.planesPorAgencia.get(agencyId) ?? [] } : null;
   }
 }
 
 /** `ReviewRepository` sin Supabase: devuelve las reseñas dadas (o lanza `fallo`). */
-export class ResenasFalsas implements Pick<Public<ReviewRepository>, 'porPlan'> {
+export class ResenasFalsas implements Pick<Public<ReviewRepository>, 'byPlan'> {
   resenas: Review[];
   fallo: unknown = null;
   readonly pedidas: string[] = [];
@@ -107,7 +107,7 @@ export class ResenasFalsas implements Pick<Public<ReviewRepository>, 'porPlan'> 
     this.resenas = resenas;
   }
 
-  async porPlan(planId: string, { limit = 20 }: { limit?: number } = {}): Promise<Review[]> {
+  async byPlan(planId: string, { limit = 20 }: { limit?: number } = {}): Promise<Review[]> {
     this.pedidas.push(planId);
     this.limites.push(limit);
     if (this.fallo !== null) throw this.fallo;

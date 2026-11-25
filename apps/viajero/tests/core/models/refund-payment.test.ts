@@ -81,7 +81,7 @@ describe('reembolsos y pagos de la reserva', () => {
       monto_total: 100000,
       estado: 'cancelada',
       created_at: '2026-10-25T10:00:00+00:00',
-      payments: payments,
+      payments,
       refunds: [],
     });
     const withPayment = Booking.fromMap(

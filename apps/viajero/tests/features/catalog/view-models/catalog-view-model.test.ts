@@ -101,7 +101,7 @@ describe('carga', () => {
 
   test('si falla `destinos` falla toda la carga (se piden en serie)', async () => {
     const { result } = await crear();
-    const destinos = jest.spyOn(catalogo, 'destinos').mockRejectedValue(new Error('sin red'));
+    const destinos = jest.spyOn(catalogo, 'destinations').mockRejectedValue(new Error('sin red'));
 
     await act(() => result.current.cargar());
 

@@ -29,8 +29,8 @@ export function usePlanDetailViewModel({
   planId,
   reloj = () => new Date(),
 }: {
-  catalogo: Pick<Public<CatalogRepository>, 'planDetalle'>;
-  resenas: Pick<Public<ReviewRepository>, 'porPlan'>;
+  catalogo: Pick<Public<CatalogRepository>, 'planDetail'>;
+  resenas: Pick<Public<ReviewRepository>, 'byPlan'>;
   planId: string;
   reloj?: () => Date;
 }) {
@@ -44,8 +44,8 @@ export function usePlanDetailViewModel({
   const cargar = useCallback(async (): Promise<void> => {
     cambiar({ cargando: true, error: null, fechaId: null });
     try {
-      const plan = await catalogo.planDetalle(planId);
-      const lista = await resenas.porPlan(planId, { limit: MAX_RESENAS });
+      const plan = await catalogo.planDetail(planId);
+      const lista = await resenas.byPlan(planId, { limit: MAX_RESENAS });
       cambiar({ plan, resenas: Object.freeze([...lista]) });
     } catch (e) {
       console.warn('PlanDetailViewModel.cargar:', e);

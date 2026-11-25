@@ -12,7 +12,7 @@ import { Refund } from '../../models/refund';
  * `agencies`, así que la agencia de una reserva nunca llegaba. Sin alias, la fila tiene la misma
  * forma que en el catálogo.
  */
-export const SELECCION_RESERVA =
+export const BOOKING_SELECT =
   `*, plan_date:plan_dates(*, plan:plans(*, agencies(*))), payments(*), refunds(${Refund.columns})`;
 
 /**
@@ -21,20 +21,20 @@ export const SELECCION_RESERVA =
  */
 export interface BookingApi {
   /** Id del usuario con sesión, o null (en supabase-js no hay `currentUser` síncrono). */
-  usuarioId(): Promise<string | null>;
+  currentUserId(): Promise<string | null>;
   /** `create_booking`: decrementa cupos de forma atómica en el servidor. */
-  crearReserva(p: { planDateId: string; pax: number }): Promise<Row>;
+  createBooking(p: { planDateId: string; pax: number }): Promise<Row>;
   /** Reservas del viajero, la más reciente primero. */
-  reservasDe(viajeroId: string): Promise<Row[]>;
+  bookingsOf(travelerId: string): Promise<Row[]>;
   /** `booking_id` de las reseñas que ya publicó el viajero. */
-  resenasDe(viajeroId: string): Promise<Row[]>;
-  reserva(bookingId: string): Promise<Row | null>;
+  reviewsOf(travelerId: string): Promise<Row[]>;
+  booking(bookingId: string): Promise<Row | null>;
   /** La reseña de la reserva, si existe. */
-  resenaDe(bookingId: string): Promise<Row | null>;
-  /** La reserva más reciente del viajero para esa fecha que sigue `pendiente_pago` y se creó después de `creadaDespuesDe`. */
-  pendientesDe(p: { viajeroId: string; planDateId: string; creadaDespuesDe: Date }): Promise<Row[]>;
+  reviewOf(bookingId: string): Promise<Row | null>;
+  /** La reserva más reciente del viajero para esa fecha que sigue `pendiente_pago` y se creó después de `createdAfter`. */
+  pendingOf(p: { travelerId: string; planDateId: string; createdAfter: Date }): Promise<Row[]>;
   /** `vista_previa_cancelacion`: solo lectura. */
-  vistaPreviaCancelacion(bookingId: string): Promise<Row>;
+  cancellationPreview(bookingId: string): Promise<Row>;
 }
 
 export class BookingApiSupabase implements BookingApi {
@@ -44,45 +44,45 @@ export class BookingApiSupabase implements BookingApi {
     this.client = client;
   }
 
-  async usuarioId(): Promise<string | null> {
+  async currentUserId(): Promise<string | null> {
     // getSession lee la sesión guardada (sin red); equivale a `auth.currentUser?.id`.
     const { data } = await this.client.auth.getSession();
     return data.session?.user.id ?? null;
   }
 
-  async crearReserva({ planDateId, pax }: { planDateId: string; pax: number }): Promise<Row> {
+  async createBooking({ planDateId, pax }: { planDateId: string; pax: number }): Promise<Row> {
     const { data } = await this.client
       .rpc('create_booking', { p_plan_date_id: planDateId, p_pax: pax })
       .throwOnError();
     return data as Row;
   }
 
-  async reservasDe(viajeroId: string): Promise<Row[]> {
+  async bookingsOf(travelerId: string): Promise<Row[]> {
     const { data } = await this.client
       .from('bookings')
-      .select(SELECCION_RESERVA)
-      .eq('viajero_id', viajeroId)
+      .select(BOOKING_SELECT)
+      .eq('viajero_id', travelerId)
       .order('created_at', { ascending: false })
       .throwOnError();
     return data as unknown as Row[];
   }
 
-  async resenasDe(viajeroId: string): Promise<Row[]> {
-    const { data } = await this.client.from('reviews').select('booking_id').eq('viajero_id', viajeroId).throwOnError();
+  async reviewsOf(travelerId: string): Promise<Row[]> {
+    const { data } = await this.client.from('reviews').select('booking_id').eq('viajero_id', travelerId).throwOnError();
     return data as Row[];
   }
 
-  async reserva(bookingId: string): Promise<Row | null> {
+  async booking(bookingId: string): Promise<Row | null> {
     const { data } = await this.client
       .from('bookings')
-      .select(SELECCION_RESERVA)
+      .select(BOOKING_SELECT)
       .eq('id', bookingId)
       .maybeSingle()
       .throwOnError();
     return (data as unknown as Row | null) ?? null;
   }
 
-  async resenaDe(bookingId: string): Promise<Row | null> {
+  async reviewOf(bookingId: string): Promise<Row | null> {
     const { data } = await this.client
       .from('reviews')
       .select('id')
@@ -92,29 +92,29 @@ export class BookingApiSupabase implements BookingApi {
     return (data as Row | null) ?? null;
   }
 
-  async pendientesDe({
-    viajeroId,
+  async pendingOf({
+    travelerId,
     planDateId,
-    creadaDespuesDe,
+    createdAfter,
   }: {
-    viajeroId: string;
+    travelerId: string;
     planDateId: string;
-    creadaDespuesDe: Date;
+    createdAfter: Date;
   }): Promise<Row[]> {
     const { data } = await this.client
       .from('bookings')
       .select()
-      .eq('viajero_id', viajeroId)
+      .eq('viajero_id', travelerId)
       .eq('plan_date_id', planDateId)
       .eq('estado', BookingStatus.pendingPayment)
-      .gt('created_at', creadaDespuesDe.toISOString())
+      .gt('created_at', createdAfter.toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .throwOnError();
     return data as Row[];
   }
 
-  async vistaPreviaCancelacion(bookingId: string): Promise<Row> {
+  async cancellationPreview(bookingId: string): Promise<Row> {
     const { data } = await this.client
       .rpc('vista_previa_cancelacion', { p_booking_id: bookingId })
       .throwOnError();
