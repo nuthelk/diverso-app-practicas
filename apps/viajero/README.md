@@ -26,6 +26,33 @@ npx expo start         # Expo Go / emulador (a: Android, i: iOS)
 npx expo start --web --port 8080   # navegador (SPA, URLs sin #); 8080 está en la allowlist de pagos-iniciar
 ```
 
+En un dispositivo (emulador, simulador o celular) la app busca el Supabase local en el PC que sirve
+Metro, así que no hace falta `.env` para desarrollar.
+
+### Build nativa (splash, ícono y todo lo que Expo Go no muestra)
+
+Expo Go no muestra el splash ni el ícono de la app. Para verlos hace falta una development build:
+
+```bash
+npx expo run:android   # compila e instala en el emulador o el celular conectado
+```
+
+En **Windows** la parte en C++ (Reanimated, Worklets, gesture-handler) arma rutas de más de 260
+caracteres y el ninja 1.10 de la CMake 3.22 del SDK no las soporta, aunque Windows tenga
+`LongPathsEnabled`. Lo que funciona:
+
+1. Instalar una CMake con ninja ≥ 1.12: `sdkmanager "cmake;3.31.6"` (no la 4.x: dejó de aceptar
+   `cmake_minimum_required` antiguos que usan algunas librerías).
+2. Compilar desde una ruta corta (p. ej. un `git worktree` en `C:\dv\vb`). No usar `subst`: Gradle
+   mezcla `V:\` y `C:\` y falla con «different roots».
+3. Después del prebuild, en `android/local.properties` (archivo local, no se versiona):
+   `cmake.dir=C\:/Users/<usuario>/AppData/Local/Android/Sdk/cmake/3.31.6`.
+
+`expo run:android` reescribe los scripts `android`/`ios` de `package.json` (`expo run:*`): revertirlo
+si se quiere seguir usando Expo Go con `npm run android`. En el emulador, la build de desarrollo
+llega a Metro por `localhost:8081` con `adb reverse tcp:8081 tcp:8081` (por `10.0.2.2` la descarga
+del bundle falla con `ProtocolException`). iOS solo se compila en macOS (o con EAS Build).
+
 ## Testear
 
 ```bash
