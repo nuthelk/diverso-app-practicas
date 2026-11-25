@@ -88,7 +88,6 @@ export function ContenidoAgencia({
             <Grilla
               items={planes}
               anchoUtil={width - 40}
-              aspecto={0.82}
               clave={(p) => p.id}
               render={(p) => <PlanCard plan={p} />}
             />

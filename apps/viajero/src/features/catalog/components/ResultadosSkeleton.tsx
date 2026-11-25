@@ -29,7 +29,7 @@ export function ResultadosSkeleton({ esGrid, anchoUtil }: { esGrid: boolean; anc
   return (
     <View style={AppInsets.listaConAire}>
       {esGrid ? (
-        <Grilla items={items} anchoUtil={anchoUtil} aspecto={0.82} clave={(i) => String(i)} render={() => <TarjetaSkeleton />} />
+        <Grilla items={items} anchoUtil={anchoUtil} clave={(i) => String(i)} render={() => <TarjetaSkeleton />} />
       ) : (
         items.map((i) => (
           <View key={i} style={AppInsets.entreTarjetas}>

@@ -138,7 +138,7 @@ export function CatalogView() {
         ) : (
           <View testID="resultados" style={AppInsets.listaConAire}>
             {esGrid ? (
-              <Grilla items={vm.planes} anchoUtil={width - LADOS_LISTA} aspecto={0.82} clave={(p) => p.id} render={tarjeta} />
+              <Grilla items={vm.planes} anchoUtil={width - LADOS_LISTA} clave={(p) => p.id} render={tarjeta} />
             ) : (
               vm.planes.map((p) => (
                 <View key={p.id} style={AppInsets.entreTarjetas}>

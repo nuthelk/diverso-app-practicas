@@ -83,7 +83,6 @@ export function AgenciasView() {
               <Grilla
                 items={vm.agencias}
                 anchoUtil={width - 40}
-                aspecto={1.7}
                 clave={(a) => a.id}
                 render={(a) => <AgenciaCard agencia={a} />}
               />
