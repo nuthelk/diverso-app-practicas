@@ -38,4 +38,19 @@ describe('PlanCard', () => {
     await renderPantalla(<PlanCard plan={plan} />);
     expect(StyleSheet.flatten(screen.getByTestId('plan-card-plan-1').props.style).flexGrow).toBe(1);
   });
+
+  test('la píldora de duración es oscura translúcida con texto blanco: se lee sobre fotos claras', async () => {
+    await renderPantalla(<PlanCard plan={plan} />);
+    const pildora = screen.getByTestId('pildora-duracion');
+    const fondo = String(StyleSheet.flatten(pildora.props.style).backgroundColor);
+    const m = fondo.match(/rgba\((\d+), ?(\d+), ?(\d+), ?([\d.]+)\)/);
+    expect(m).not.toBeNull();
+    const [r, g, b, a] = m!.slice(1).map(Number) as [number, number, number, number];
+    // Negro (no blanco) y con cuerpo suficiente para que el blanco contraste sobre un cielo.
+    expect(r + g + b).toBe(0);
+    expect(a).toBeGreaterThanOrEqual(0.35);
+    expect(a).toBeLessThan(0.6);
+    const texto = within(pildora).getByText(plan.duracionTexto);
+    expect(StyleSheet.flatten(texto.props.style).color).toBe('#FFFFFF');
+  });
 });

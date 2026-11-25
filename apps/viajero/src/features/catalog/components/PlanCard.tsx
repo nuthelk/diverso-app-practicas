@@ -88,7 +88,11 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
             {plan.destino}
           </Text>
           <View style={{ width: 8 }} />
-          <View style={[estilos.pildora, { backgroundColor: 'rgba(255, 255, 255, 0.22)', paddingHorizontal: 7, paddingVertical: 2 }]}>
+          {/* Oscura translúcida (no blanca): el texto blanco se lee igual sobre un cielo o una pared clara. */}
+          <View
+            testID="pildora-duracion"
+            style={[estilos.pildora, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
+          >
             <Text style={{ color: '#FFFFFF', fontSize: AppText.nota, fontWeight: '600' }}>{plan.duracionTexto}</Text>
           </View>
         </View>
