@@ -65,9 +65,9 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
             </>
           ) : null}
           <View style={{ height: 24 }} />
-          <FilledButton texto="Ver mis reservas" onPress={() => irA(router, AppRoutes.reservas)} />
+          <FilledButton text="Ver mis reservas" onPress={() => irA(router, AppRoutes.reservas)} />
           <View style={{ height: 8 }} />
-          <TextButton texto="Seguir explorando" onPress={() => irA(router, AppRoutes.explorar)} />
+          <TextButton text="Seguir explorando" onPress={() => irA(router, AppRoutes.explorar)} />
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -49,7 +49,7 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
           icono="cloud_off_rounded"
           titulo="No pudimos cargar la reserva"
           mensaje={vm.error ?? ''}
-          accion={<FilledButton variante="tonal" texto="Ver mis reservas" onPress={irAReservas} />}
+          accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
         />
       </Estado>
     );
@@ -70,7 +70,7 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
               icono="event_busy_rounded"
               titulo="Reserva cancelada"
               mensaje={noLineBreaks(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
-              accion={<FilledButton variante="tonal" texto="Ver mis reservas" onPress={irAReservas} />}
+              accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
             />
           </Estado>
         );

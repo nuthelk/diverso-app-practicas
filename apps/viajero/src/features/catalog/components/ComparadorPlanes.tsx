@@ -52,11 +52,11 @@ function SelectorViajeros({ pax, onCambio, min, max }: { pax: number; onCambio: 
   return (
     <View style={estilos.fila}>
       <Text style={{ flex: 1, fontSize: AppText.body, fontWeight: '600', color: cs.onSurface }}>¿Cuántos viajan?</Text>
-      <IconButton variante="outlined" icono="remove_rounded" tooltip="Menos viajeros" onPress={pax > min ? () => onCambio(pax - 1) : null} />
+      <IconButton variant="outlined" icon="remove_rounded" tooltip="Menos viajeros" onPress={pax > min ? () => onCambio(pax - 1) : null} />
       <Text testID="viajeros" style={{ width: 40, textAlign: 'center', fontSize: AppText.largeSubtitle, fontWeight: '800' }}>
         {String(pax)}
       </Text>
-      <IconButton variante="outlined" icono="add_rounded" tooltip="Más viajeros" onPress={pax < max ? () => onCambio(pax + 1) : null} />
+      <IconButton variant="outlined" icon="add_rounded" tooltip="Más viajeros" onPress={pax < max ? () => onCambio(pax + 1) : null} />
     </View>
   );
 }

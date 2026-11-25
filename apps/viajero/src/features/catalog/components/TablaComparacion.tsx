@@ -94,8 +94,8 @@ export function TablaComparacion({
             {celda(
               i,
               <FilledButton
-                variante="tonal"
-                texto="Ver plan"
+                variant="tonal"
+                text="Ver plan"
                 accessibilityLabel={`Ver plan ${p.title}`}
                 style={{ minHeight: 40, paddingHorizontal: 8 }}
                 onPress={() => router.push(AppRoutes.plan(p.id) as Href)}

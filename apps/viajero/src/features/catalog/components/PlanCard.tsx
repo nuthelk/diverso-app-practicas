@@ -51,11 +51,11 @@ export const PlanCard = memo(function PlanCard({
       {onToggleComparar ? (
         <View style={estilos.comparar}>
           <IconButton
-            icono={comparada ? 'check_rounded' : 'compare_arrows_rounded'}
-            tamanoIcono={19}
+            icon={comparada ? 'check_rounded' : 'compare_arrows_rounded'}
+            iconSize={19}
             tooltip={comparada ? 'Quitar del comparador' : 'Agregar al comparador'}
-            colorFondo={comparada ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
-            colorIcono={comparada ? cs.onPrimary : '#FFFFFF'}
+            backgroundColor={comparada ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
+            iconColor={comparada ? cs.onPrimary : '#FFFFFF'}
             style={estilos.compacto}
             onPress={() => onToggleComparar(plan)}
           />

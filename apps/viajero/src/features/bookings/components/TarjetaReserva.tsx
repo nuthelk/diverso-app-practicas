@@ -139,9 +139,9 @@ export function TarjetaReserva({
           <View style={estilos.acciones}>
             {conPago ? (
               <View style={[estilos.envolver, { marginTop: 10 }]}>
-                {onVerificar ? <TextButton texto="Ya pagué, verificar" onPress={onVerificar} /> : null}
+                {onVerificar ? <TextButton text="Ya pagué, verificar" onPress={onVerificar} /> : null}
                 {onPagar ? (
-                  <FilledButton variante="tonal" texto="Completar pago" onPress={onPagar} style={estilos.boton38} />
+                  <FilledButton variant="tonal" text="Completar pago" onPress={onPagar} style={estilos.boton38} />
                 ) : null}
               </View>
             ) : null}
@@ -149,7 +149,7 @@ export function TarjetaReserva({
               <View style={[estilos.envolver, { marginTop: 10 }]}>
                 {onResenar ? (
                   <FilledButton
-                    variante="tonal"
+                    variant="tonal"
                     onPress={onResenar}
                     accessibilityLabel="Reseñar"
                     style={[estilos.boton38, { paddingHorizontal: 14 }]}

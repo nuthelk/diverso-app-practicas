@@ -45,8 +45,8 @@ export function ReservaPendienteAviso({
       </View>
       <View style={{ height: 12 }} />
       <View style={estilos.botones}>
-        <FilledButton variante="tonal" texto="Completar pago" onPress={ocupado ? null : onCompletar} />
-        <TextButton texto="Ya pagué, verificar" onPress={ocupado ? null : onVerificar} />
+        <FilledButton variant="tonal" text="Completar pago" onPress={ocupado ? null : onCompletar} />
+        <TextButton text="Ya pagué, verificar" onPress={ocupado ? null : onVerificar} />
         {/* `TextButton.styleFrom(foregroundColor: error)`: deshabilitado vuelve al onSurface 38 %. */}
         <TextButton accessibilityLabel="Cancelar y empezar de nuevo" onPress={ocupado ? null : onCancelar}>
           <Text style={[estilos.centrado, { color: ocupado ? withAlpha(cs.onSurface, 0.38) : cs.error }]}>

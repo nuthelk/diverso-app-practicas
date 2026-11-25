@@ -106,7 +106,7 @@ function Identidad({ vm }: { vm: ProfileViewModel }) {
       {vm.error !== null ? (
         <View style={estilos.error}>
           <Text style={{ fontSize: AppText.detail, color: cs.error, textAlign: 'center' }}>{vm.error}</Text>
-          <TextButton texto="Reintentar" onPress={() => void vm.cargar()} />
+          <TextButton text="Reintentar" onPress={() => void vm.cargar()} />
         </View>
       ) : null}
     </View>

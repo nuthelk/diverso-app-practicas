@@ -189,11 +189,11 @@ export function CabeceraColapsable({
       {/* «Volver» fijo, sobre la foto o sobre la barra sólida. */}
       <View style={[estilos.volver, { top: insets.top + 8 }]}>
         <IconButton
-          variante="filled"
-          icono="arrow_back_rounded"
-          tamanoIcono={20}
-          colorFondo="rgba(0, 0, 0, 0.45)"
-          colorIcono="#FFFFFF"
+          variant="filled"
+          icon="arrow_back_rounded"
+          iconSize={20}
+          backgroundColor="rgba(0, 0, 0, 0.45)"
+          iconColor="#FFFFFF"
           tooltip="Volver"
           onPress={onVolver}
         />

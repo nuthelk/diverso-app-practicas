@@ -67,8 +67,8 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
         mensaje={vm.error}
         accion={
           <View style={estilos.acciones}>
-            <FilledButton variante="tonal" texto="Reintentar" onPress={() => void cargar()} />
-            <TextButton texto="Ver mis reservas" onPress={irAMisReservas} />
+            <FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} />
+            <TextButton text="Ver mis reservas" onPress={irAMisReservas} />
           </View>
         }
       />
@@ -79,7 +79,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
         icono="rate_review_outlined"
         titulo="Esta reserva no se puede reseñar"
         mensaje="Solo se reseñan los viajes ya realizados que aún no tienen reseña."
-        accion={<FilledButton variante="tonal" texto="Ver mis reservas" onPress={irAMisReservas} />}
+        accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAMisReservas} />}
       />
     );
   } else {

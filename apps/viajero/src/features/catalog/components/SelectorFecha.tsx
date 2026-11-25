@@ -66,9 +66,9 @@ export function SelectorFecha({
             </Text>
             {/* Sin `chevron_left` en el mapa de íconos: el mismo glifo girado. */}
             <View style={estilos.girado}>
-              <IconButton icono="chevron_right_rounded" tooltip="Mes anterior" onPress={puedeAtras ? () => mover(-1) : null} />
+              <IconButton icon="chevron_right_rounded" tooltip="Mes anterior" onPress={puedeAtras ? () => mover(-1) : null} />
             </View>
-            <IconButton icono="chevron_right_rounded" tooltip="Mes siguiente" onPress={puedeAdelante ? () => mover(1) : null} />
+            <IconButton icon="chevron_right_rounded" tooltip="Mes siguiente" onPress={puedeAdelante ? () => mover(1) : null} />
           </View>
           <View style={estilos.semana}>
             {DIAS.map((d, i) => (
@@ -113,8 +113,8 @@ export function SelectorFecha({
             })}
           </View>
           <View style={estilos.acciones}>
-            <TextButton texto="Cancelar" onPress={onCerrar} style={estilos.intrinseco} />
-            <TextButton texto="Aceptar" onPress={() => onElegir(elegida)} style={estilos.intrinseco} />
+            <TextButton text="Cancelar" onPress={onCerrar} style={estilos.intrinseco} />
+            <TextButton text="Aceptar" onPress={() => onElegir(elegida)} style={estilos.intrinseco} />
           </View>
         </Pressable>
       </Pressable>

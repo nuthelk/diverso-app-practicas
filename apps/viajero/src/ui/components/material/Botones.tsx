@@ -27,65 +27,65 @@ import { DefaultTextStyle, Text } from '../Text';
  * Ancho: como un View de RN (se estira en una columna). Para el ancho intrínseco de Flutter
  * usar `style={{ alignSelf: 'center' | 'flex-start' }}`.
  */
-export interface BotonProps {
+export interface ButtonProps {
   onPress?: (() => void) | null;
   /** Texto del botón (atajo de `children`). */
-  texto?: string;
+  text?: string;
   children?: ReactNode;
-  icono?: IconName;
+  icon?: IconName;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
   onLongPress?: PressableProps['onLongPress'];
 }
 
-interface Apariencia {
-  fondo: string;
-  contenido: string;
-  borde?: string;
+interface Appearance {
+  background: string;
+  content: string;
+  border?: string;
   minHeight: number;
   padding: number;
-  paddingConIcono: [number, number];
-  texto: { fontSize: number; fontWeight: FontWeight; letterSpacing: number };
+  paddingWithIcon: [number, number];
+  text: { fontSize: number; fontWeight: FontWeight; letterSpacing: number };
   hitSlop?: Insets;
 }
 
-function BotonBase({
+function ButtonBase({
   onPress,
-  texto,
+  text,
   children,
-  icono,
+  icon,
   accessibilityLabel,
   style,
   testID,
   onLongPress,
-  apariencia,
-}: BotonProps & { apariencia: Apariencia }) {
-  const tema = useTheme();
-  const habilitado = typeof onPress === 'function';
-  const a = apariencia;
-  const contenido = a.contenido;
-  const relleno: ViewStyle = icono
-    ? { paddingLeft: a.paddingConIcono[0], paddingRight: a.paddingConIcono[1] }
+  appearance,
+}: ButtonProps & { appearance: Appearance }) {
+  const theme = useTheme();
+  const enabled = typeof onPress === 'function';
+  const a = appearance;
+  const content = a.content;
+  const paddingStyle: ViewStyle = icon
+    ? { paddingLeft: a.paddingWithIcon[0], paddingRight: a.paddingWithIcon[1] }
     : { paddingHorizontal: a.padding };
   return (
     <Pressable
       testID={testID}
-      onPress={habilitado ? onPress : undefined}
+      onPress={enabled ? onPress : undefined}
       onLongPress={onLongPress}
-      disabled={!habilitado}
+      disabled={!enabled}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? texto}
-      accessibilityState={{ disabled: !habilitado }}
+      accessibilityLabel={accessibilityLabel ?? text}
+      accessibilityState={{ disabled: !enabled }}
       hitSlop={a.hitSlop}
       style={[
-        estilos.boton,
+        styles.button,
         {
           minHeight: a.minHeight,
-          backgroundColor: a.fondo,
-          ...(a.borde ? { borderColor: a.borde, borderWidth: 1 } : null),
+          backgroundColor: a.background,
+          ...(a.border ? { borderColor: a.border, borderWidth: 1 } : null),
         },
-        relleno,
+        paddingStyle,
         style,
       ]}
     >
@@ -94,12 +94,12 @@ function BotonBase({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(contenido, tema.components.pressedOpacity) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(content, theme.components.pressedOpacity) }]}
             />
           ) : null}
-          {icono ? <Icon name={icono} size={18} color={contenido} /> : null}
-          <DefaultTextStyle style={{ ...a.texto, color: contenido, height: null }}>
-            {texto !== undefined ? <Text style={estilos.centrado}>{texto}</Text> : children}
+          {icon ? <Icon name={icon} size={18} color={content} /> : null}
+          <DefaultTextStyle style={{ ...a.text, color: content, height: null }}>
+            {text !== undefined ? <Text style={styles.centered}>{text}</Text> : children}
           </DefaultTextStyle>
         </>
       )}
@@ -108,66 +108,66 @@ function BotonBase({
 }
 
 /** Contenido deshabilitado (onSurface 38 %). */
-const deshabilitado = (onSurface: string) => withAlpha(onSurface, 0.38);
+const disabledColor = (onSurface: string) => withAlpha(onSurface, 0.38);
 
 export function FilledButton({
-  variante = 'filled',
+  variant = 'filled',
   testID = 'filled-button',
   ...props
-}: BotonProps & { variante?: 'filled' | 'tonal' }) {
+}: ButtonProps & { variant?: 'filled' | 'tonal' }) {
   const cs = useTheme().colorScheme;
-  const habilitado = typeof props.onPress === 'function';
-  const tonal = variante === 'tonal';
+  const enabled = typeof props.onPress === 'function';
+  const isTonal = variant === 'tonal';
   return (
-    <BotonBase
+    <ButtonBase
       {...props}
       testID={testID}
-      apariencia={{
-        fondo: habilitado ? (tonal ? cs.secondaryContainer : cs.primary) : withAlpha(cs.onSurface, 0.12),
-        contenido: habilitado ? (tonal ? cs.onSecondaryContainer : cs.onPrimary) : deshabilitado(cs.onSurface),
+      appearance={{
+        background: enabled ? (isTonal ? cs.secondaryContainer : cs.primary) : withAlpha(cs.onSurface, 0.12),
+        content: enabled ? (isTonal ? cs.onSecondaryContainer : cs.onPrimary) : disabledColor(cs.onSurface),
         minHeight: 52,
         padding: 24,
-        paddingConIcono: [16, 24],
-        texto: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
+        paddingWithIcon: [16, 24],
+        text: { fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
       }}
     />
   );
 }
 
-export function OutlinedButton({ testID = 'outlined-button', ...props }: BotonProps) {
+export function OutlinedButton({ testID = 'outlined-button', ...props }: ButtonProps) {
   const cs = useTheme().colorScheme;
-  const habilitado = typeof props.onPress === 'function';
+  const enabled = typeof props.onPress === 'function';
   return (
-    <BotonBase
+    <ButtonBase
       {...props}
       testID={testID}
-      apariencia={{
-        fondo: 'transparent',
-        contenido: habilitado ? cs.primary : deshabilitado(cs.onSurface),
-        borde: habilitado ? cs.outlineVariant : withAlpha(cs.onSurface, 0.12),
+      appearance={{
+        background: 'transparent',
+        content: enabled ? cs.primary : disabledColor(cs.onSurface),
+        border: enabled ? cs.outlineVariant : withAlpha(cs.onSurface, 0.12),
         minHeight: 48,
         padding: 24,
-        paddingConIcono: [16, 24],
-        texto: { fontSize: 14.5, fontWeight: '600', letterSpacing: 0 },
+        paddingWithIcon: [16, 24],
+        text: { fontSize: 14.5, fontWeight: '600', letterSpacing: 0 },
       }}
     />
   );
 }
 
-export function TextButton({ testID = 'text-button', ...props }: BotonProps) {
+export function TextButton({ testID = 'text-button', ...props }: ButtonProps) {
   const cs = useTheme().colorScheme;
-  const habilitado = typeof props.onPress === 'function';
+  const enabled = typeof props.onPress === 'function';
   return (
-    <BotonBase
+    <ButtonBase
       {...props}
       testID={testID}
-      apariencia={{
-        fondo: 'transparent',
-        contenido: habilitado ? cs.primary : deshabilitado(cs.onSurface),
+      appearance={{
+        background: 'transparent',
+        content: enabled ? cs.primary : disabledColor(cs.onSurface),
         minHeight: 40,
         padding: 12,
-        paddingConIcono: [12, 16],
-        texto: { fontSize: 14, fontWeight: '600', letterSpacing: 0 },
+        paddingWithIcon: [12, 16],
+        text: { fontSize: 14, fontWeight: '600', letterSpacing: 0 },
         hitSlop: { top: 4, bottom: 4 },
       }}
     />
@@ -175,63 +175,63 @@ export function TextButton({ testID = 'text-button', ...props }: BotonProps) {
 }
 
 export interface IconButtonProps {
-  icono: IconName;
+  icon: IconName;
   /** Texto del tooltip de Flutter: es la etiqueta accesible (lo que verifican los tests). */
   tooltip: string;
   onPress?: (() => void) | null;
-  variante?: 'standard' | 'filled' | 'filledTonal' | 'outlined';
-  tamanoIcono?: number;
-  colorFondo?: string;
-  colorIcono?: string;
+  variant?: 'standard' | 'filled' | 'filledTonal' | 'outlined';
+  iconSize?: number;
+  backgroundColor?: string;
+  iconColor?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
 /** `IconButton` M3: 40 visibles (48 táctiles), ícono 24. */
 export function IconButton({
-  icono,
+  icon,
   tooltip,
   onPress,
-  variante = 'standard',
-  tamanoIcono = 24,
-  colorFondo,
-  colorIcono,
+  variant = 'standard',
+  iconSize = 24,
+  backgroundColor,
+  iconColor,
   style,
   testID = 'icon-button',
 }: IconButtonProps) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const habilitado = typeof onPress === 'function';
-  const lleno = variante === 'filled' || variante === 'filledTonal';
-  const fondoPorDefecto = !lleno
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const enabled = typeof onPress === 'function';
+  const isFilled = variant === 'filled' || variant === 'filledTonal';
+  const defaultBackground = !isFilled
     ? 'transparent'
-    : !habilitado
+    : !enabled
       ? withAlpha(cs.onSurface, 0.12)
-      : variante === 'filled'
+      : variant === 'filled'
         ? cs.primary
         : cs.secondaryContainer;
-  const iconoPorDefecto = !habilitado
-    ? deshabilitado(cs.onSurface)
-    : variante === 'filled'
+  const defaultIconColor = !enabled
+    ? disabledColor(cs.onSurface)
+    : variant === 'filled'
       ? cs.onPrimary
-      : variante === 'filledTonal'
+      : variant === 'filledTonal'
         ? cs.onSecondaryContainer
         : cs.onSurfaceVariant;
-  const color = colorIcono ?? iconoPorDefecto;
+  const color = iconColor ?? defaultIconColor;
   return (
     <Pressable
       testID={testID}
-      onPress={habilitado ? onPress : undefined}
-      disabled={!habilitado}
+      onPress={enabled ? onPress : undefined}
+      disabled={!enabled}
       accessibilityRole="button"
       accessibilityLabel={tooltip}
-      accessibilityState={{ disabled: !habilitado }}
+      accessibilityState={{ disabled: !enabled }}
       hitSlop={4}
       style={[
-        estilos.iconButton,
-        { backgroundColor: colorFondo ?? fondoPorDefecto },
-        variante === 'outlined'
-          ? { borderWidth: 1, borderColor: habilitado ? cs.outline : withAlpha(cs.onSurface, 0.12) }
+        styles.iconButton,
+        { backgroundColor: backgroundColor ?? defaultBackground },
+        variant === 'outlined'
+          ? { borderWidth: 1, borderColor: enabled ? cs.outline : withAlpha(cs.onSurface, 0.12) }
           : null,
         style,
       ]}
@@ -241,18 +241,18 @@ export function IconButton({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, tema.components.pressedOpacity) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, theme.components.pressedOpacity) }]}
             />
           ) : null}
-          <Icon name={icono} size={tamanoIcono} color={color} />
+          <Icon name={icon} size={iconSize} color={color} />
         </>
       )}
     </Pressable>
   );
 }
 
-const estilos = StyleSheet.create({
-  boton: {
+const styles = StyleSheet.create({
+  button: {
     borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
@@ -260,7 +260,7 @@ const estilos = StyleSheet.create({
     gap: 8,
     overflow: 'hidden',
   },
-  centrado: { textAlign: 'center' },
+  centered: { textAlign: 'center' },
   iconButton: {
     width: 40,
     height: 40,

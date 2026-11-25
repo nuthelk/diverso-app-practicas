@@ -49,7 +49,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
           icono="cloud_off_rounded"
           titulo="No pudimos cargar el plan"
           mensaje="Revisa tu conexión e intenta de nuevo."
-          accion={<FilledButton variante="tonal" texto="Reintentar" onPress={() => void vm.cargar()} />}
+          accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />}
         />
       </EstadoCheckout>
     );
@@ -63,7 +63,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
           titulo="Fecha no disponible"
           mensaje="Esa fecha ya no está disponible. Elige otra salida de este plan."
           accion={
-            <FilledButton variante="tonal" texto="Ver fechas del plan" onPress={() => irA(router, AppRoutes.plan(plan.id))} />
+            <FilledButton variant="tonal" text="Ver fechas del plan" onPress={() => irA(router, AppRoutes.plan(plan.id))} />
           }
         />
       </EstadoCheckout>

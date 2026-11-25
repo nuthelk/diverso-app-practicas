@@ -68,19 +68,19 @@ export function CatalogView() {
           <View style={estilos.fila}>
             <TextField
               style={estilos.flex}
-              valor={vm.texto}
+              value={vm.texto}
               onChangeText={vm.setTexto}
               onSubmitEditing={() => void vm.buscar()}
               returnKeyType="search"
-              pista="Guatapé, café, parapente…"
+              hint="Guatapé, café, parapente…"
               accessibilityLabel="Buscar planes"
-              icono="search_rounded"
+              icon="search_rounded"
               testID="buscador"
-              sufijo={
+              suffix={
                 vm.texto === '' ? undefined : (
                   <IconButton
-                    icono="close_rounded"
-                    tamanoIcono={19}
+                    icon="close_rounded"
+                    iconSize={19}
                     tooltip="Borrar búsqueda"
                     onPress={() => {
                       vm.setTexto('');
@@ -98,17 +98,17 @@ export function CatalogView() {
             <>
               <View style={estilos.chips}>
                 {vm.destino !== null ? (
-                  <InputChip icono="location_on_outlined" tamanoIcono={15} etiqueta={vm.destino} onBorrar={() => void vm.setDestino(null)} />
+                  <InputChip icon="location_on_outlined" iconSize={15} label={vm.destino} onDelete={() => void vm.setDestino(null)} />
                 ) : null}
                 {vm.fecha !== null ? (
-                  <InputChip icono="event_outlined" tamanoIcono={15} etiqueta={formatShortDate(vm.fecha)} onBorrar={() => void vm.setFecha(null)} />
+                  <InputChip icon="event_outlined" iconSize={15} label={formatShortDate(vm.fecha)} onDelete={() => void vm.setFecha(null)} />
                 ) : null}
                 {vm.precioMax !== null ? (
                   <InputChip
-                    icono="payments_outlined"
-                    tamanoIcono={15}
-                    etiqueta={`Hasta ${formatCOP(vm.precioMax)}`}
-                    onBorrar={() => void vm.setPrecioMax(null)}
+                    icon="payments_outlined"
+                    iconSize={15}
+                    label={`Hasta ${formatCOP(vm.precioMax)}`}
+                    onDelete={() => void vm.setPrecioMax(null)}
                   />
                 ) : null}
               </View>
@@ -131,7 +131,7 @@ export function CatalogView() {
             titulo="Sin conexión"
             mensaje={vm.error}
             detalle={vm.errorDetalle}
-            accion={<FilledButton variante="tonal" icono="refresh_rounded" texto="Reintentar" onPress={() => void vm.cargar()} />}
+            accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
           />
         ) : vm.planes.length === 0 ? (
           <EmptyState icono="search_off_rounded" titulo="Sin resultados" mensaje="Prueba con otro destino o quita algunos filtros." />

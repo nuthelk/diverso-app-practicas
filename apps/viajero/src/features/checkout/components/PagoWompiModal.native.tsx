@@ -81,10 +81,10 @@ export function PagoWompiPage({
         <View style={[estilos.barra, { height: appBar.toolbarHeight }]}>
           <View style={estilos.inicio}>
             <IconButton
-              icono="close_rounded"
+              icon="close_rounded"
               tooltip="Cerrar"
               onPress={() => terminar(null)}
-              colorIcono={appBar.foregroundColor}
+              iconColor={appBar.foregroundColor}
             />
           </View>
           <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>

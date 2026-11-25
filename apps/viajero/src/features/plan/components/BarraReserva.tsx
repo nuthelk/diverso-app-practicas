@@ -43,7 +43,7 @@ export function BarraReserva({
           <View style={{ width: 10 }} />
           <Text style={{ flex: 1, fontWeight: '600' }}>Sin fechas disponibles por ahora</Text>
           {/* Se encoge: en celulares angostos o con letra grande parte su texto en vez de desbordar. */}
-          <TextButton texto="Ver otros planes" onPress={onVerOtros} style={estilos.encogible} />
+          <TextButton text="Ver otros planes" onPress={onVerOtros} style={estilos.encogible} />
         </View>
       </View>
     );
@@ -80,7 +80,7 @@ export function BarraReserva({
             <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>
           </View>
           <View style={{ flex: 1 }} />
-          <FilledButton icono="lock_outline_rounded" texto="Reservar" onPress={() => onReservar(seleccionada)} style={estilos.reservar} />
+          <FilledButton icon="lock_outline_rounded" text="Reservar" onPress={() => onReservar(seleccionada)} style={estilos.reservar} />
         </View>
       </View>
     </View>

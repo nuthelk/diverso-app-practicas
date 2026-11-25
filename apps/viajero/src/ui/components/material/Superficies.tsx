@@ -31,11 +31,11 @@ export function Card({
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }) {
-  const tema = useTheme();
-  const fondo = { backgroundColor: color ?? tema.components.card.backgroundColor, borderRadius: tema.components.card.radius };
+  const theme = useTheme();
+  const background = { backgroundColor: color ?? theme.components.card.backgroundColor, borderRadius: theme.components.card.radius };
   if (!onPress) {
     return (
-      <View testID={testID} style={[estilos.card, fondo, style]}>
+      <View testID={testID} style={[styles.card, background, style]}>
         {children}
       </View>
     );
@@ -46,7 +46,7 @@ export function Card({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      style={[estilos.card, fondo, style]}
+      style={[styles.card, background, style]}
     >
       {({ pressed }) => (
         <>
@@ -54,7 +54,7 @@ export function Card({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(tema.colorScheme.onSurface, tema.components.pressedOpacity) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(theme.colorScheme.onSurface, theme.components.pressedOpacity) }]}
             />
           ) : null}
         </>
@@ -65,29 +65,29 @@ export function Card({
 
 /** `Divider` del tema: 1 px de outlineVariant al 50 % (`space: 1`). */
 export function Divider({ color, style, testID = 'divider' }: { color?: string; style?: StyleProp<ViewStyle>; testID?: string }) {
-  const tema = useTheme();
+  const theme = useTheme();
   return (
     <View
       testID={testID}
-      style={[{ height: tema.components.divider.height, backgroundColor: color ?? tema.components.divider.color }, style]}
+      style={[{ height: theme.components.divider.height, backgroundColor: color ?? theme.components.divider.color }, style]}
     />
   );
 }
 
 export interface ChipProps {
-  etiqueta: ReactNode;
+  label: ReactNode;
   /** `avatar` (ícono a la izquierda). */
-  icono?: IconName;
-  tamanoIcono?: number;
-  colorIcono?: string;
+  icon?: IconName;
+  iconSize?: number;
+  iconColor?: string;
   /** `onDeleted`: muestra la ✕ (`Icons.clear` 18, onSurfaceVariant). */
-  onBorrar?: () => void;
+  onDelete?: () => void;
   /** Etiqueta accesible del botón de borrar. */
-  etiquetaBorrar?: string;
+  deleteLabel?: string;
   /** Estilo propio de la etiqueta (p.ej. `{ fontSize: 12 }`). */
-  estiloEtiqueta?: StyleProp<TextStyle>;
+  labelStyle?: StyleProp<TextStyle>;
   /** `VisualDensity.compact`: 8 menos de alto. */
-  denso?: boolean;
+  dense?: boolean;
   color?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -99,50 +99,50 @@ export interface ChipProps {
  * ✕ 16 | 8.
  */
 export function Chip({
-  etiqueta,
-  icono,
-  tamanoIcono = 18,
-  colorIcono,
-  onBorrar,
-  etiquetaBorrar = 'Eliminar',
-  estiloEtiqueta,
-  denso = false,
+  label,
+  icon,
+  iconSize = 18,
+  iconColor,
+  onDelete,
+  deleteLabel = 'Eliminar',
+  labelStyle,
+  dense = false,
   color,
   style,
   testID,
 }: ChipProps) {
-  const tema = useTheme();
-  const chip = tema.components.chip;
+  const theme = useTheme();
+  const chip = theme.components.chip;
   return (
     <View
-      testID={testID ?? (onBorrar ? 'input-chip' : 'chip')}
+      testID={testID ?? (onDelete ? 'input-chip' : 'chip')}
       style={[
-        estilos.chip,
-        { backgroundColor: color ?? chip.backgroundColor, height: denso ? 24 : 32 },
+        styles.chip,
+        { backgroundColor: color ?? chip.backgroundColor, height: dense ? 24 : 32 },
         style,
       ]}
     >
-      {icono ? (
-        <View style={estilos.caja16}>
-          <Icon name={icono} size={tamanoIcono} color={colorIcono ?? chip.avatarColor} />
+      {icon ? (
+        <View style={styles.box16}>
+          <Icon name={icon} size={iconSize} color={iconColor ?? chip.avatarColor} />
         </View>
       ) : null}
       <DefaultTextStyle style={{ ...chip.label, height: null, letterSpacing: 0 }}>
-        {typeof etiqueta === 'string' ? (
-          <Text numberOfLines={1} style={estiloEtiqueta}>
-            {etiqueta}
+        {typeof label === 'string' ? (
+          <Text numberOfLines={1} style={labelStyle}>
+            {label}
           </Text>
         ) : (
-          etiqueta
+          label
         )}
       </DefaultTextStyle>
-      {onBorrar ? (
+      {onDelete ? (
         <Pressable
-          onPress={onBorrar}
+          onPress={onDelete}
           accessibilityRole="button"
-          accessibilityLabel={etiquetaBorrar}
+          accessibilityLabel={deleteLabel}
           hitSlop={{ top: 16, bottom: 16, left: 4, right: 8 }}
-          style={estilos.caja16}
+          style={styles.box16}
         >
           <Icon name="clear" size={18} color={chip.deleteIconColor} />
         </Pressable>
@@ -160,10 +160,10 @@ export function InputChip({ style, ...props }: ChipProps) {
   return <Chip {...props} style={[{ borderWidth: 1, borderColor: cs.outlineVariant }, style]} />;
 }
 
-export interface Segmento<T extends string> {
-  valor: T;
-  etiqueta: string;
-  icono?: IconName;
+export interface Segment<T extends string> {
+  value: T;
+  label: string;
+  icon?: IconName;
 }
 
 /**
@@ -171,48 +171,48 @@ export interface Segmento<T extends string> {
  * táctil); el seleccionado en secondaryContainer con ✓ 18; texto 13.5 w600.
  */
 export function SegmentedButton<T extends string>({
-  segmentos,
-  seleccionado,
-  onCambio,
-  mostrarIconoSeleccionado = true,
+  segments,
+  selected,
+  onChange,
+  showSelectedIcon = true,
   style,
   testID = 'segmented-button',
 }: {
-  segmentos: Segmento<T>[];
-  seleccionado: T;
-  onCambio: (valor: T) => void;
+  segments: Segment<T>[];
+  selected: T;
+  onChange: (value: T) => void;
   /** `showSelectedIcon` de Flutter: el ✓ del segmento elegido (la lista de agencias no lo usa). */
-  mostrarIconoSeleccionado?: boolean;
+  showSelectedIcon?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID={testID} style={[estilos.segmentado, { borderColor: cs.outline }, style]}>
-      {segmentos.map((s, i) => {
-        const activo = s.valor === seleccionado;
-        const colorContenido = activo ? cs.onSecondaryContainer : cs.onSurface;
-        const icono = activo && mostrarIconoSeleccionado ? 'check_rounded' : s.icono;
+    <View testID={testID} style={[styles.segmented, { borderColor: cs.outline }, style]}>
+      {segments.map((s, i) => {
+        const active = s.value === selected;
+        const contentColor = active ? cs.onSecondaryContainer : cs.onSurface;
+        const icon = active && showSelectedIcon ? 'check_rounded' : s.icon;
         return (
           <Pressable
-            key={s.valor}
-            onPress={() => onCambio(s.valor)}
+            key={s.value}
+            onPress={() => onChange(s.value)}
             accessibilityRole="button"
-            accessibilityLabel={s.etiqueta}
-            accessibilityState={{ selected: activo }}
+            accessibilityLabel={s.label}
+            accessibilityState={{ selected: active }}
             hitSlop={{ top: 4, bottom: 4 }}
             style={[
-              estilos.segmento,
+              styles.segment,
               {
-                backgroundColor: activo ? cs.secondaryContainer : 'transparent',
+                backgroundColor: active ? cs.secondaryContainer : 'transparent',
                 borderLeftWidth: i === 0 ? 0 : 1,
                 borderColor: cs.outline,
               },
             ]}
           >
-            {icono ? <Icon name={icono} size={18} color={colorContenido} /> : null}
-            <DefaultTextStyle style={{ fontSize: 13.5, fontWeight: '600', color: colorContenido, height: null, letterSpacing: 0 }}>
-              <Text numberOfLines={1}>{s.etiqueta}</Text>
+            {icon ? <Icon name={icon} size={18} color={contentColor} /> : null}
+            <DefaultTextStyle style={{ fontSize: 13.5, fontWeight: '600', color: contentColor, height: null, letterSpacing: 0 }}>
+              <Text numberOfLines={1}>{s.label}</Text>
             </DefaultTextStyle>
           </Pressable>
         );
@@ -227,7 +227,7 @@ export function CircularProgressIndicator({ color, style }: { color?: string; st
   return <ActivityIndicator size="large" color={color ?? cs.primary} style={style} />;
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   card: { overflow: 'hidden' },
   chip: {
     borderRadius: 999,
@@ -237,15 +237,15 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 8,
     gap: 8,
   },
-  caja16: { width: 16, height: 16, alignItems: 'center', justifyContent: 'center', overflow: 'visible' },
-  segmentado: {
+  box16: { width: 16, height: 16, alignItems: 'center', justifyContent: 'center', overflow: 'visible' },
+  segmented: {
     flexDirection: 'row',
     borderWidth: 1,
     borderRadius: 999,
     overflow: 'hidden',
     minHeight: 40,
   },
-  segmento: {
+  segment: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',

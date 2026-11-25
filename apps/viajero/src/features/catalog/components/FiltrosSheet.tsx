@@ -99,7 +99,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
           {fecha !== null ? (
             <>
               <View style={{ width: 8 }} />
-              <IconButton variante="outlined" icono="close_rounded" tamanoIcono={18} tooltip="Quitar fecha" onPress={() => setFecha(null)} />
+              <IconButton variant="outlined" icon="close_rounded" iconSize={18} tooltip="Quitar fecha" onPress={() => setFecha(null)} />
             </>
           ) : null}
         </View>
@@ -130,10 +130,10 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
             lista y no la hoja. */}
         <SectionLabel text="Destino" />
         <TextField
-          valor={busqueda}
+          value={busqueda}
           onChangeText={setBusqueda}
-          pista="Buscar destino…"
-          icono="search_rounded"
+          hint="Buscar destino…"
+          icon="search_rounded"
           returnKeyType="search"
           testID="buscar-destino"
         />
@@ -174,9 +174,9 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
       </ScrollView>
       {/* Pie fijo: siempre visible por larga que sea la lista; el inset inferior es su relleno. */}
       <View testID="filtros-pie" style={[estilos.pie, { paddingBottom: 16 + abajo, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
-        <OutlinedButton texto="Limpiar" onPress={limpiar} style={estilos.flex} />
+        <OutlinedButton text="Limpiar" onPress={limpiar} style={estilos.flex} />
         <View style={{ width: 12 }} />
-        <FilledButton icono="check_rounded" texto="Aplicar filtros" onPress={aplicar} style={{ flex: 2 }} />
+        <FilledButton icon="check_rounded" text="Aplicar filtros" onPress={aplicar} style={{ flex: 2 }} />
       </View>
       {eligiendoFecha ? (
         <SelectorFecha

@@ -59,7 +59,7 @@ export function ConsentView() {
           </Text>
         </View>
         <View style={{ height: 16 }} />
-        <FilledButton texto="Reintentar" onPress={() => void consentimiento.reintentar()} />
+        <FilledButton text="Reintentar" onPress={() => void consentimiento.reintentar()} />
       </>
     );
   } else if (consentimiento.estado === EstadoConsentimiento.verificando && !guardando) {
@@ -108,7 +108,7 @@ export function ConsentView() {
           <View style={{ height: 20 }} />
           {contenido}
           <View style={{ height: 8 }} />
-          <TextButton texto="Cerrar sesión" onPress={guardando ? null : () => void consentimiento.cerrarSesion()} />
+          <TextButton text="Cerrar sesión" onPress={guardando ? null : () => void consentimiento.cerrarSesion()} />
         </ScrollView>
       </View>
     </SafeAreaView>

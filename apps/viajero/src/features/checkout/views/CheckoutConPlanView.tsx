@@ -83,8 +83,8 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
           <>
             <View style={{ height: 10 }} />
             <OutlinedButton
-              icono="refresh_rounded"
-              texto="Ya pagué, verificar"
+              icon="refresh_rounded"
+              text="Ya pagué, verificar"
               onPress={vm.procesando ? null : () => yaPague(bookingId)}
             />
           </>

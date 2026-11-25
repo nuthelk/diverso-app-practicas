@@ -17,11 +17,11 @@ export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos
   return (
     <View>
       <IconButton
-        variante="filledTonal"
-        icono="tune_rounded"
+        variant="filledTonal"
+        icon="tune_rounded"
         tooltip="Filtros y orden"
-        colorFondo={tema.components.input.fillColor}
-        colorIcono={tema.colorScheme.onSurface}
+        backgroundColor={tema.components.input.fillColor}
+        iconColor={tema.colorScheme.onSurface}
         style={estilos.boton}
         onPress={() => setAbierta(true)}
       />

@@ -32,7 +32,7 @@ export function BarraSuperior({
       <View style={[estilos.fila, { height: appBar.toolbarHeight }]}>
         {onVolver ? (
           <View style={estilos.inicio}>
-            <IconButton icono="arrow_back_rounded" tooltip="Volver" onPress={onVolver} colorIcono={appBar.foregroundColor} />
+            <IconButton icon="arrow_back_rounded" tooltip="Volver" onPress={onVolver} iconColor={appBar.foregroundColor} />
           </View>
         ) : null}
         <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>

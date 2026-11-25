@@ -48,8 +48,8 @@ export function CancelacionDialog({
           </Text>
           <View style={{ height: 24 }} />
           <View style={estilos.acciones}>
-            <TextButton texto="Mantener" onPress={() => onResultado(false)} />
-            <FilledButton variante="tonal" accessibilityLabel="Sí, cancelar" onPress={() => onResultado(true)}>
+            <TextButton text="Mantener" onPress={() => onResultado(false)} />
+            <FilledButton variant="tonal" accessibilityLabel="Sí, cancelar" onPress={() => onResultado(true)}>
               <Text style={{ color: cs.error }}>Sí, cancelar</Text>
             </FilledButton>
           </View>

@@ -103,7 +103,7 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
           <Text style={{ fontSize: AppText.emphasis, fontWeight: '800', letterSpacing: -0.2 }}>{`${n} de ${maximo} planes`}</Text>
           {pista ? <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{pista}</Text> : null}
         </View>
-        <TextButton texto="Limpiar" onPress={onLimpiar} />
+        <TextButton text="Limpiar" onPress={onLimpiar} />
       </View>
       <View style={{ height: 8 }} />
       <View style={estilos.fila}>
@@ -118,7 +118,7 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
           })}
         </View>
         <View style={{ width: 12 }} />
-        <FilledButton texto={`Comparar (${n})`} onPress={puede ? onComparar : null} testID="boton-comparar" />
+        <FilledButton text={`Comparar (${n})`} onPress={puede ? onComparar : null} testID="boton-comparar" />
       </View>
     </View>
   );
@@ -142,12 +142,12 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
         )}
         <View style={estilos.quitar}>
           <IconButton
-            variante="filled"
-            icono="close_rounded"
-            tamanoIcono={14}
+            variant="filled"
+            icon="close_rounded"
+            iconSize={14}
             tooltip={`Quitar ${plan.title} de la comparación`}
-            colorFondo={tema.diverso.controlOverPhoto}
-            colorIcono="#FFFFFF"
+            backgroundColor={tema.diverso.controlOverPhoto}
+            iconColor="#FFFFFF"
             style={estilos.quitarBoton}
             onPress={onQuitar}
           />

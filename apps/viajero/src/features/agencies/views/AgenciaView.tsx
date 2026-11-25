@@ -55,7 +55,7 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
           titulo="No pudimos cargar la agencia"
           mensaje={vm.error}
           detalle={vm.errorDetalle}
-          accion={<FilledButton variante="tonal" icono="refresh_rounded" texto="Reintentar" onPress={() => void vm.cargar()} />}
+          accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
         />
       </AvisoAgencia>
     );

@@ -52,8 +52,8 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
         mensaje={vm.error}
         accion={
           <View style={estilos.acciones}>
-            <FilledButton variante="tonal" texto="Reintentar" onPress={() => void vm.cargar()} />
-            <TextButton texto="Ir al catálogo" onPress={() => router.replace(AppRoutes.explorar as Href)} />
+            <FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />
+            <TextButton text="Ir al catálogo" onPress={() => router.replace(AppRoutes.explorar as Href)} />
           </View>
         }
       />

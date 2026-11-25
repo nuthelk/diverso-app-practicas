@@ -11,7 +11,7 @@ import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
 import { AgenciaCard } from '../components/AgenciaCard';
 import { useAgenciasViewModel } from '../view-models/useAgenciasViewModel';
 
-const SEGMENTOS = valuesOf(AgencySort).map((o) => ({ valor: o, etiqueta: LABEL_AGENCY_SORT[o] }));
+const SEGMENTOS = valuesOf(AgencySort).map((o) => ({ value: o, label: LABEL_AGENCY_SORT[o] }));
 
 /**
  * Pestaña «Agencias» (`agencias_view.dart`): agencias verificadas con puntaje, logo y portada,
@@ -52,7 +52,7 @@ export function AgenciasView() {
       >
         {vm.hayAgencias || vm.cargando ? (
           <View style={estilos.orden}>
-            <SegmentedButton segmentos={SEGMENTOS} seleccionado={vm.orden} onCambio={vm.cambiarOrden} mostrarIconoSeleccionado={false} />
+            <SegmentedButton segments={SEGMENTOS} selected={vm.orden} onChange={vm.cambiarOrden} showSelectedIcon={false} />
           </View>
         ) : null}
         {vm.cargando && !vm.hayAgencias ? (
@@ -69,7 +69,7 @@ export function AgenciasView() {
             titulo="Sin conexión"
             mensaje={vm.error}
             detalle={vm.errorDetalle}
-            accion={<FilledButton variante="tonal" icono="refresh_rounded" texto="Reintentar" onPress={() => void vm.cargar()} />}
+            accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
           />
         ) : !vm.hayAgencias ? (
           <EmptyState

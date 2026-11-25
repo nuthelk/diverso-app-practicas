@@ -84,9 +84,9 @@ export function FormularioLogin({
       {vm.esRegistro ? (
         <>
           <TextField
-            etiqueta="Tu nombre"
-            icono="person_outline_rounded"
-            valor={campos.nombre}
+            label="Tu nombre"
+            icon="person_outline_rounded"
+            value={campos.nombre}
             onChangeText={(v) => onCampo('nombre', v)}
             error={errores.nombre}
             autoCapitalize="words"
@@ -97,9 +97,9 @@ export function FormularioLogin({
         </>
       ) : null}
       <TextField
-        etiqueta="Correo"
-        icono="mail_outline_rounded"
-        valor={campos.email}
+        label="Correo"
+        icon="mail_outline_rounded"
+        value={campos.email}
         onChangeText={(v) => onCampo('email', v)}
         error={errores.email}
         keyboardType="email-address"
@@ -110,9 +110,9 @@ export function FormularioLogin({
       />
       <View style={estilos.entreCampos} />
       <TextField
-        etiqueta="Contraseña"
-        icono="lock_outline_rounded"
-        valor={campos.password}
+        label="Contraseña"
+        icon="lock_outline_rounded"
+        value={campos.password}
         onChangeText={(v) => onCampo('password', v)}
         error={errores.password}
         secureTextEntry={!verClave}
@@ -120,12 +120,12 @@ export function FormularioLogin({
         autoComplete={vm.esRegistro ? 'new-password' : 'current-password'}
         textContentType={vm.esRegistro ? 'newPassword' : 'password'}
         onSubmitEditing={onEnviar}
-        sufijo={
+        suffix={
           <IconButton
-            icono={verClave ? 'visibility_off_outlined' : 'visibility_outlined'}
+            icon={verClave ? 'visibility_off_outlined' : 'visibility_outlined'}
             tooltip={verClave ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            colorIcono={cs.onSurfaceVariant}
-            tamanoIcono={22}
+            iconColor={cs.onSurfaceVariant}
+            iconSize={22}
             onPress={() => setVerClave((antes) => !antes)}
           />
         }
@@ -158,7 +158,7 @@ export function FormularioLogin({
       </FilledButton>
       <View style={{ height: 10 }} />
       <TextButton
-        texto={vm.esRegistro ? 'Ya tengo cuenta — entrar' : 'Crear cuenta nueva'}
+        text={vm.esRegistro ? 'Ya tengo cuenta — entrar' : 'Crear cuenta nueva'}
         onPress={onAlternarModo}
         style={estilos.centro}
       />

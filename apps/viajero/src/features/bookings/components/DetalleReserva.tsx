@@ -157,15 +157,15 @@ function AccionesDetalleReserva({
     <View style={estilos.columna}>
       {pendiente ? (
         <>
-          <FilledButton texto="Completar pago" onPress={onPagar} style={estilos.inicio} />
+          <FilledButton text="Completar pago" onPress={onPagar} style={estilos.inicio} />
           <View style={{ height: 8 }} />
-          <TextButton texto="Ya pagué, verificar" onPress={onVerificar} style={estilos.inicio} />
+          <TextButton text="Ya pagué, verificar" onPress={onVerificar} style={estilos.inicio} />
           <View style={{ height: 8 }} />
         </>
       ) : null}
       {puedeResenar ? (
         <>
-          <FilledButton variante="tonal" icono="star_outline_rounded" texto="Reseñar" onPress={onResenar} style={estilos.inicio} />
+          <FilledButton variant="tonal" icon="star_outline_rounded" text="Reseñar" onPress={onResenar} style={estilos.inicio} />
           <View style={{ height: 10 }} />
         </>
       ) : booking.hasReview ? (
@@ -180,7 +180,7 @@ function AccionesDetalleReserva({
       ) : null}
       <View style={estilos.fila}>
         {planId !== null ? (
-          <OutlinedButton texto="Ver plan" onPress={() => onVerPlan(planId)} style={estilos.flex} />
+          <OutlinedButton text="Ver plan" onPress={() => onVerPlan(planId)} style={estilos.flex} />
         ) : null}
         {planId !== null && puedeCancelar ? <View style={{ width: 10 }} /> : null}
         {puedeCancelar ? (

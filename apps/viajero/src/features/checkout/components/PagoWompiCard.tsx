@@ -53,12 +53,12 @@ export function PagoWompiCard() {
           {medios.map(([icono, nombre]) => (
             <Chip
               key={nombre}
-              etiqueta={nombre}
-              icono={icono}
-              tamanoIcono={16}
-              colorIcono={cs.primary}
-              estiloEtiqueta={{ fontSize: AppText.caption }}
-              denso
+              label={nombre}
+              icon={icono}
+              iconSize={16}
+              iconColor={cs.primary}
+              labelStyle={{ fontSize: AppText.caption }}
+              dense
             />
           ))}
         </View>

@@ -60,7 +60,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
           icono="cloud_off_rounded"
           titulo="No pudimos cargar el plan"
           mensaje={vm.error ?? ''}
-          accion={<FilledButton variante="tonal" texto="Reintentar" onPress={() => void vm.cargar()} />}
+          accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />}
         />
       </>
     );

@@ -119,7 +119,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
         icono="cloud_off_rounded"
         titulo="No pudimos cargar la reserva"
         mensaje={vm.error}
-        accion={<FilledButton variante="tonal" texto="Reintentar" onPress={() => void cargar()} style={estilos.centro} />}
+        accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.centro} />}
       />,
     );
   }

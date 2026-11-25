@@ -95,7 +95,7 @@ export function BookingsView() {
       icono="cloud_off_rounded"
       titulo="Sin conexión"
       mensaje={vm.error}
-      accion={<FilledButton variante="tonal" texto="Reintentar" onPress={() => void cargar()} style={estilos.accion} />}
+      accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.accion} />}
     />
   ) : vm.reservas.length === 0 ? (
     <EmptyState
@@ -112,8 +112,8 @@ export function BookingsView() {
       mensaje="¡Hora de explorar!"
       accion={
         <FilledButton
-          variante="tonal"
-          texto="Explorar planes"
+          variant="tonal"
+          text="Explorar planes"
           onPress={() => router.navigate(AppRoutes.explorar as Href)}
           style={estilos.accion}
         />

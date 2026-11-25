@@ -5,10 +5,10 @@ export {
   IconButton,
   OutlinedButton,
   TextButton,
-  type BotonProps,
+  type ButtonProps,
   type IconButtonProps,
 } from './material/Botones';
-export { medidasCampo, TextField, type TextFieldProps } from './material/TextField';
+export { fieldMetrics, TextField, type TextFieldProps } from './material/TextField';
 export {
   Card,
   Chip,
@@ -17,7 +17,7 @@ export {
   InputChip,
   SegmentedButton,
   type ChipProps,
-  type Segmento,
+  type Segment,
 } from './material/Superficies';
 export { AgencyAvatar, agencyColor, hashFnv1a, type AgencyAvatarData } from './AgencyAvatar';
 export { SectionLabel } from './SectionLabel';

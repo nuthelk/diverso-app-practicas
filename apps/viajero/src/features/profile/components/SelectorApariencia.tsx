@@ -14,13 +14,13 @@ export function SelectorApariencia() {
   return (
     <View style={{ padding: 6, backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card }}>
       <SegmentedButton<ThemeMode>
-        segmentos={[
-          { valor: 'system', etiqueta: 'Sistema', icono: 'brightness_auto_rounded' },
-          { valor: 'light', etiqueta: 'Claro', icono: 'light_mode_rounded' },
-          { valor: 'dark', etiqueta: 'Oscuro', icono: 'dark_mode_rounded' },
+        segments={[
+          { value: 'system', label: 'Sistema', icon: 'brightness_auto_rounded' },
+          { value: 'light', label: 'Claro', icon: 'light_mode_rounded' },
+          { value: 'dark', label: 'Oscuro', icon: 'dark_mode_rounded' },
         ]}
-        seleccionado={modo}
-        onCambio={setModo}
+        selected={modo}
+        onChange={setModo}
       />
     </View>
   );

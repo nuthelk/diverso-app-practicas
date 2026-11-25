@@ -103,7 +103,7 @@ function ErrorVerificacion({
       mensaje={falla.userMessage}
       accion={
         <Acciones>
-          {!definitivo ? <FilledButton texto="Reintentar" onPress={verificar} /> : null}
+          {!definitivo ? <FilledButton text="Reintentar" onPress={verificar} /> : null}
           <VerReservas principal={definitivo} onPress={irAReservas} />
         </Acciones>
       }
@@ -139,11 +139,11 @@ function ResultadoNoAprobado({
         <Acciones>
           {puedeReintentar ? (
             <FilledButton
-              texto="Intentar de nuevo"
+              text="Intentar de nuevo"
               onPress={vm.reintentandoPago ? null : () => reintentar(r.bookingId)}
             />
           ) : null}
-          {pendiente ? <FilledButton texto="Verificar de nuevo" onPress={() => void vm.verificar()} /> : null}
+          {pendiente ? <FilledButton text="Verificar de nuevo" onPress={() => void vm.verificar()} /> : null}
           <VerReservas principal={!puedeReintentar && !pendiente} onPress={irAReservas} />
         </Acciones>
       }
@@ -153,9 +153,9 @@ function ResultadoNoAprobado({
 
 function VerReservas({ principal, onPress }: { principal: boolean; onPress: () => void }) {
   return principal ? (
-    <FilledButton texto="Ver mis reservas" onPress={onPress} />
+    <FilledButton text="Ver mis reservas" onPress={onPress} />
   ) : (
-    <TextButton texto="Ver mis reservas" onPress={onPress} />
+    <TextButton text="Ver mis reservas" onPress={onPress} />
   );
 }
 

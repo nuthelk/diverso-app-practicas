@@ -79,12 +79,12 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
           <EtiquetaCalificacion texto={etiquetaDe(vm.calificacion)} color={cs.primary} />
           <View style={{ height: 28 }} />
           <TextField
-            valor={comentario}
+            value={comentario}
             onChangeText={setComentario}
-            etiqueta="Cuenta cómo te fue (opcional)"
-            lineas={5}
+            label="Cuenta cómo te fue (opcional)"
+            lines={5}
             maxLength={500}
-            deshabilitado={bloqueado}
+            disabled={bloqueado}
           />
           <View style={{ height: 18 }} />
           <FilledButton

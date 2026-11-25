@@ -49,11 +49,11 @@ function BotonPersonas({ quitar = false, habilitado, onTap }: { quitar?: boolean
   const cs = useTheme().colorScheme;
   return (
     <IconButton
-      variante="outlined"
-      icono={quitar ? 'remove_rounded' : 'add_rounded'}
+      variant="outlined"
+      icon={quitar ? 'remove_rounded' : 'add_rounded'}
       tooltip={quitar ? 'Quitar una persona' : 'Agregar una persona'}
-      tamanoIcono={18}
-      colorIcono={habilitado ? cs.primary : cs.outline}
+      iconSize={18}
+      iconColor={habilitado ? cs.primary : cs.outline}
       onPress={habilitado ? onTap : null}
       style={[estilos.boton, { borderColor: habilitado ? cs.primary : cs.outlineVariant }]}
     />
