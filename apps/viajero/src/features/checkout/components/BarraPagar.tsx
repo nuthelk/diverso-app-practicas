@@ -9,15 +9,19 @@ import { AppText, conAlfa, useTheme } from '@/ui/theme';
 const ANCHO_BOTON = 220;
 
 /**
- * Alto del teclado (`MediaQuery.viewInsetsOf(context).bottom`). En Android la ventana ya se
- * redimensiona (adjustResize) y en web no hay teclado del sistema: solo cuenta en iOS.
+ * Alto del teclado (`MediaQuery.viewInsetsOf(context).bottom`). Ni iOS ni Android (edge-to-edge
+ * desde el SDK 58: la ventana ya NO se achica) le hacen lugar solos; en web no hay teclado del
+ * sistema. iOS avisa ANTES (`keyboardWill*`); Android solo emite `keyboardDid*`.
  */
 function useAlturaTeclado(): number {
   const [alto, setAlto] = useState(0);
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-    const mostrar = Keyboard.addListener('keyboardWillShow', (e) => setAlto(e.endCoordinates.height));
-    const ocultar = Keyboard.addListener('keyboardWillHide', () => setAlto(0));
+    if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+    const ios = Platform.OS === 'ios';
+    const mostrar = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
+      setAlto(e.endCoordinates.height),
+    );
+    const ocultar = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setAlto(0));
     return () => {
       mostrar.remove();
       ocultar.remove();

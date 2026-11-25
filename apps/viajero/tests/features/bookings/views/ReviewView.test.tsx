@@ -1,4 +1,6 @@
 import { fireEvent, screen } from 'expo-router/testing-library';
+import { act } from '@testing-library/react-native';
+import { Keyboard, Platform, StyleSheet, type KeyboardEvent } from 'react-native';
 
 import { BookingStatus, DiversoError, ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { ocultarAviso } from '@/features/compartido/aviso-flotante';
@@ -190,5 +192,42 @@ describe('/resena/:bookingId', () => {
   test('la ruta vieja /resena (sin id) lleva a «Mis reservas»', async () => {
     const { r } = await abrir({ url: '/resena' });
     expect(r.getPathname()).toBe('/reservas');
+  });
+});
+
+describe('teclado', () => {
+  // SDK 58: Android es edge-to-edge y la ventana NO se achica con el teclado. Sin `padding` el
+  // teclado tapaba el comentario y «Publicar reseña». iOS emite `keyboardWill*`; Android, SOLO
+  // `keyboardDid*` (y a esos escucha el KeyboardAvoidingView en cada plataforma).
+  test.each([
+    ['ios', 'keyboardWillShow'],
+    ['android', 'keyboardDidShow'],
+  ] as const)('en %s el formulario deja lugar al teclado (padding abajo)', async (so, evento) => {
+    const original = Platform.OS;
+    const oyentes = new Map<string, ((e: KeyboardEvent) => void)[]>();
+    jest.spyOn(Keyboard, 'addListener').mockImplementation(((nombre: string, oyente: (e: KeyboardEvent) => void) => {
+      oyentes.set(nombre, [...(oyentes.get(nombre) ?? []), oyente]);
+      return { remove: () => {} };
+    }) as never);
+    Object.defineProperty(Platform, 'OS', { configurable: true, get: () => so });
+    try {
+      await abrir();
+      const contenedor = screen.getByTestId('resena-teclado');
+      // Ocupa toda la ventana (0..800) y el teclado empieza en y = 500: tapa 300 px.
+      await fireEvent(contenedor, 'layout', {
+        persist: () => {},
+        nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 800 } },
+      });
+      await act(async () => {
+        for (const oyente of oyentes.get(evento) ?? []) {
+          oyente({ endCoordinates: { screenX: 0, screenY: 500, width: 400, height: 300 } } as KeyboardEvent);
+        }
+      });
+
+      expect(StyleSheet.flatten(screen.getByTestId('resena-teclado').props.style).paddingBottom).toBe(300);
+    } finally {
+      Object.defineProperty(Platform, 'OS', { configurable: true, get: () => original });
+      jest.restoreAllMocks();
+    }
   });
 });

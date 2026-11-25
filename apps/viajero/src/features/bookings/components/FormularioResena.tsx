@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Animated, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { formatFechaLarga } from '@/core';
 import { FilledButton, Icono, Text, TextField } from '@/ui/components';
@@ -26,8 +26,9 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
   const colorBotonDeshabilitado = conAlfa(cs.onSurface, 0.38);
 
   return (
-    // iOS no achica la ventana con el teclado: sin esto taparía el comentario y «Publicar reseña».
-    <KeyboardAvoidingView style={estilos.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    // Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
+    // `padding` en AMBAS taparía el comentario y «Publicar reseña». En web no hace nada.
+    <KeyboardAvoidingView testID="resena-teclado" style={estilos.flex} behavior="padding">
       <ScrollView contentContainerStyle={[AppInsets.pantalla, estilos.centro]} keyboardShouldPersistTaps="handled">
         <View style={estilos.columna}>
           {plan !== null ? (
