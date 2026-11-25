@@ -1,11 +1,11 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { BookingStatus, EstadoPago, type DiversoError, type PagoVerificado } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { AppRoutes } from '@/router';
+import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -28,7 +28,6 @@ export interface PagoResultadoViewProps {
 export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoViewProps) {
   const tema = useTheme();
   const router = useRouter();
-  const hayHistorial = useCanGoBack();
   const { pasarela } = useDependencies();
   const vm = usePagoResultadoViewModel({ pasarela }, { transactionId, bookingId });
   const { abrirPago, modalPago } = useAbrirPago(pasarela);
@@ -47,7 +46,7 @@ export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoVie
 
   return (
     <View testID="pantalla-PagoResultadoView" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="Resultado del pago" onVolver={hayHistorial ? () => router.back() : null} />
+      <BarraSuperior titulo="Resultado del pago" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       <Contenido vm={vm} irAReservas={() => irA(router, AppRoutes.reservas)} reintentar={(id) => void vm.intentarDeNuevo(id, abrirPago)} />
       {modalPago}
     </View>

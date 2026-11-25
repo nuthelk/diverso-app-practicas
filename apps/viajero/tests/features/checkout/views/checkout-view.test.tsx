@@ -206,3 +206,19 @@ describe('pago en web (misma pestaña)', () => {
     expect(reservas.creadas).toHaveLength(1);
   });
 });
+
+describe('«Volver» sin historial (recarga o enlace directo)', () => {
+  test('lleva a la ficha del plan en vez de dejar la pantalla sin salida', async () => {
+    await abrir();
+    await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.plan('plan-1'));
+    expect(routerFalso.back).not.toHaveBeenCalled();
+  });
+
+  test('con historial, vuelve atrás', async () => {
+    routerFalso.canGoBack.mockImplementation(() => true);
+    await abrir();
+    await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
+    expect(routerFalso.back).toHaveBeenCalled();
+  });
+});

@@ -102,3 +102,9 @@ describe('estados', () => {
     expect(pasarela.verificaciones).toHaveLength(2);
   });
 });
+
+test('«Volver» sin historial lleva a Mis reservas (nunca de vuelta al pago)', async () => {
+  await abrir();
+  await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
+  expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
+});

@@ -1,10 +1,10 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { AppRoutes } from '@/router';
+import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -34,7 +34,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
 
   if (vm.cargando) {
     return (
-      <EstadoCheckout>
+      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
         <View style={estilos.centro}>
           <CircularProgressIndicator />
         </View>
@@ -44,7 +44,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
   const plan = vm.plan;
   if (vm.error !== null || plan === null) {
     return (
-      <EstadoCheckout>
+      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
         <EmptyState
           icono="cloud_off_rounded"
           titulo="No pudimos cargar el plan"
@@ -57,7 +57,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
   const fecha = vm.fecha;
   if (fecha === null) {
     return (
-      <EstadoCheckout>
+      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
         <EmptyState
           icono="event_busy_rounded"
           titulo="Fecha no disponible"
@@ -73,13 +73,12 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
 }
 
 /** `Scaffold(AppBar('Confirmar y pagar'))` de los estados de carga. */
-function EstadoCheckout({ children }: { children: ReactNode }) {
+function EstadoCheckout({ children, volverA }: { children: ReactNode; volverA: string }) {
   const tema = useTheme();
   const router = useRouter();
-  const hayHistorial = useCanGoBack();
   return (
     <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="Confirmar y pagar" onVolver={hayHistorial ? () => router.back() : null} />
+      <BarraSuperior titulo="Confirmar y pagar" onVolver={() => volverSeguro(router, volverA)} />
       {children}
     </View>
   );

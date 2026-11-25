@@ -8,8 +8,9 @@ import { useTheme } from '@/ui/theme';
 /**
  * `AppBar` con el tema de la app (§3.7): alto 56 bajo la barra de estado, opaco del color de la
  * página y sin tinte; título 15 w700 ls -0.2 onSurface a 20 del borde (o tras el botón atrás).
- * [onVolver] pinta el botón «Volver» (en Flutter, automático solo si hay historial: quien la usa
- * decide con `useCanGoBack()`). [titulo] puede ser texto o un nodo (p.ej. `TituloPagina`).
+ * [onVolver] pinta el botón «Volver». Las pantallas a las que se puede llegar por enlace o recarga lo
+ * pasan siempre con `volverSeguro` (atrás si hay historial; si no, a un destino lógico): en Flutter
+ * solo aparecía con historial y la pantalla quedaba sin salida. [titulo] puede ser texto o un nodo (p.ej. `TituloPagina`).
  */
 export function BarraSuperior({
   titulo,

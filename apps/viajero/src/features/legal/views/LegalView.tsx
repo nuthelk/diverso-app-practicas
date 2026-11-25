@@ -1,9 +1,10 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Fragment } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { DocumentoLegal, VERSION_LEGAL } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { AppRoutes, volverSeguro } from '@/router';
 import { Text } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
 
@@ -17,12 +18,11 @@ export function LegalView({ docId }: { docId: string }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const router = useRouter();
-  const hayHistorial = useCanGoBack();
   const doc = DocumentoLegal.porId(docId);
 
   return (
     <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="Documentos legales" onVolver={hayHistorial ? () => router.back() : null} />
+      <BarraSuperior titulo="Documentos legales" onVolver={() => volverSeguro(router, AppRoutes.explorar)} />
       {doc === null ? (
         <View style={estilos.centro}>
           <Text>Documento no encontrado.</Text>

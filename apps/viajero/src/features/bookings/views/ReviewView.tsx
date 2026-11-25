@@ -1,4 +1,4 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -29,7 +29,6 @@ export interface ReviewViewProps {
 export function ReviewView({ bookingId }: ReviewViewProps) {
   const tema = useTheme();
   const router = useRouter();
-  const puedeVolver = useCanGoBack();
   const { reservas, resenas } = useDependencies();
   const adelantada = useRef(reservaAdelantada(bookingId)).current;
   const vm = useReviewViewModel({ reservas, resenas, bookingId, adelantada });
@@ -89,7 +88,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
 
   return (
     <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="Tu reseña" onVolver={puedeVolver ? () => router.back() : null} />
+      <BarraSuperior titulo="Tu reseña" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       <View style={estilos.flex}>{cuerpo}</View>
       <AvisoFlotante />
     </View>

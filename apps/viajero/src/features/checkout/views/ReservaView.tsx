@@ -1,11 +1,11 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { BookingStatus } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { AppRoutes } from '@/router';
+import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -81,14 +81,13 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
   return <EntradaZoom testID="pantalla-ReservaView">{contenido}</EntradaZoom>;
 }
 
-/** `Scaffold(AppBar())`: barra vacía (con «Volver» solo si hay historial). */
+/** `Scaffold(AppBar())`: barra vacía con «Volver» (sin historial, a Mis reservas). */
 function Estado({ children }: { children: ReactNode }) {
   const tema = useTheme();
   const router = useRouter();
-  const hayHistorial = useCanGoBack();
   return (
     <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="" onVolver={hayHistorial ? () => router.back() : null} />
+      <BarraSuperior titulo="" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       {children}
     </View>
   );

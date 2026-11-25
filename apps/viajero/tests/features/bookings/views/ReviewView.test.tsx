@@ -231,3 +231,10 @@ describe('teclado', () => {
     }
   });
 });
+
+test('abierta en frío (sin historial), «Volver» lleva a Mis reservas en vez de dejarla sin salida', async () => {
+  const { r } = await abrir();
+  await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+  await asentar();
+  expect(r.getPathname()).toBe('/reservas');
+});

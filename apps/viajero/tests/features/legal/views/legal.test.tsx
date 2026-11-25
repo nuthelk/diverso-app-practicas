@@ -6,6 +6,7 @@ import { DocumentoLegal, VERSION_LEGAL } from '@/core';
 import { ConsentimientoProvider } from '@/features/legal/view-models/ConsentimientoProvider';
 import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes';
 import { ConsentView } from '@/features/legal/views/ConsentView';
+import { AppRoutes } from '@/router';
 import { LegalView } from '@/features/legal/views/LegalView';
 import { temaClaro } from '@/ui/theme';
 
@@ -216,9 +217,10 @@ describe('LegalView', () => {
     expect(screen.getByText('Documento no encontrado.')).toBeOnTheScreen();
   });
 
-  test('el botón atrás solo aparece si hay historial', async () => {
+  test('sin historial (recarga o enlace directo), «Volver» lleva al inicio: el guard decide si es el login', async () => {
     await renderPantalla(<LegalView docId="privacidad" />);
-    expect(screen.queryByRole('button', { name: 'Volver' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.explorar);
   });
 
   test('con historial, «Volver» vuelve atrás', async () => {

@@ -1,11 +1,11 @@
-import { useCanGoBack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import type { Plan, PlanDate } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { AppRoutes } from '@/router';
+import { AppRoutes, volverSeguro } from '@/router';
 import { OutlinedButton, SectionLabel } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -28,7 +28,6 @@ import { useCheckoutViewModel } from '../view-models/useCheckoutViewModel';
 export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
   const tema = useTheme();
   const router = useRouter();
-  const hayHistorial = useCanGoBack();
   const { reservas, pasarela } = useDependencies();
   const vm = useCheckoutViewModel({ reservas });
   const { abrirPago, modalPago } = useAbrirPago(pasarela);
@@ -44,7 +43,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
   const { pendiente, error, bookingId } = vm;
   return (
     <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <BarraSuperior titulo="Confirmar y pagar" onVolver={hayHistorial ? () => router.back() : null} />
+      <BarraSuperior titulo="Confirmar y pagar" onVolver={() => volverSeguro(router, AppRoutes.plan(plan.id))} />
       <ScrollView testID="checkout-scroll" style={estilos.pantalla} contentContainerStyle={estilos.lista}>
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}
         {pendiente !== null ? (
