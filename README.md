@@ -19,7 +19,7 @@ MVP definido en los Anexos 4–6 del proyecto de Ingeniería de Software
 | Lado | App | Funciones |
 |---|---|---|
 | Viajero (B2C) | `apps/viajero` (React Native + Expo: Android, iOS y web) | Catálogo con buscador y filtros, comparador por número de viajeros, ficha estandarizada con precio final e itinerario, cupos en tiempo real, reserva + **pago con Wompi en modo prueba** (Web Checkout: tarjeta, PSE, Nequi, Daviplata y Bancolombia) con confirmación verificada en el servidor, mis reservas con **cancelación y reembolso de prueba según la ventana de cada plan** (24, 48 o 72 h), reseñas verificadas (solo quien viajó) |
-| Agencia (B2B) | `apps/panel_svelte` (Svelte 5 + SvelteKit estático + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **perfil de la agencia** (logo y datos de contacto editables —nombre, descripción, ciudad, teléfono, correo y WhatsApp—; el RNT y la matrícula se ven pero no se cambian; desde el menú de cuenta), **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana; «Ver todos» en Tus planes lleva a Planes y «Ver todas» en Reseñas recientes a la página de reseñas), **página Reseñas** (`#/resenas`: todas las reseñas de sus planes, de a 20 con «Cargar más»), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
+| Agencia (B2B) | `apps/panel` (React 19 + TypeScript + Vite + React Router + Tailwind 4 / PWA) | Onboarding con verificación RNT y autorización de datos, **perfil de la agencia** (logo y datos de contacto editables —nombre, descripción, ciudad, teléfono, correo y WhatsApp—; el RNT y la matrícula se ven pero no se cambian; desde el menú de cuenta), **Resumen «Tablero operativo»** (por resolver, cifras del período y salidas con ocupación, pendientes y vendido; un ícono de calendario filtra por día, semana o rango y marca cuántos viajeros salen cada día y cada semana; «Ver todos» en Tus planes lleva a Planes y «Ver todas» en Reseñas recientes a la página de reseñas), **página Reseñas** (`#/resenas`: todas las reseñas de sus planes, de a 20 con «Cargar más»), **menú de cuenta único con tema Sistema / Claro / Oscuro**, **confirmación antes de publicar, despublicar o eliminar una fecha**, CRUD de planes con ficha estandarizada y **política de cancelación por horas (con notas opcionales)**, calendario de cupos, conciliación con comisión 12%, avisos de RNT por vencer o vencido, **Liquidaciones** (dispersión semanal y anticipos de prueba), **Cuenta para dispersiones** |
 | Admin | ídem panel (rol admin) | Verificar con vigencia del RNT, rechazar con motivo, renovar vigencia, retirar verificación e historial auditable, **Admin dispersiones** (generar liquidaciones y anticipos, ejecutar la dispersión de prueba, bloquear o desbloquear el anticipo de una agencia) |
 
 **Dispersión a agencias (modo prueba):** cada lunes (hora de Bogotá) se liquida a cada
@@ -39,16 +39,17 @@ la evidencia de ventas del piloto.
 
 ```
 apps/viajero          → React Native + Expo (Android/iOS/Web), Expo Router, TypeScript — app del viajero
-apps/panel_svelte     → Svelte 5 + SvelteKit estático (URLs #/) + Tailwind 4 (SPA/PWA) — panel B2B + admin
+apps/panel            → React 19 + TypeScript + Vite + React Router (URLs #/) + Tailwind 4 (SPA/PWA) — panel B2B + admin
 supabase/             → migraciones SQL, seed, pruebas SQL, Edge Functions de pagos y métricas
 tools/iconos          → generador de los íconos de la app y de las webs (Pillow)
 ```
 
-- **Guías:** [`docs/guia/`](docs/guia/README.md) (índice). **Guía del panel y de
-  Svelte 5:** [`docs/guia/svelte/`](docs/guia/svelte/README.md) (Svelte desde React, runes,
-  SvelteKit estático con rutas por carpetas, la arquitectura por funcionalidad de
-  `apps/panel_svelte` —cada una con `pages/`, `components/`, `api/` y `model/`—, su sistema visual
-  (tokens en `app.css` y componentes de `shared/ui`) y sus pruebas en `tests/unit/`).
+- **Guías:** [`docs/guia/`](docs/guia/README.md) (índice). **Guía del panel:**
+  [`apps/panel/ARQUITECTURA.md`](apps/panel/ARQUITECTURA.md) (Screaming Architecture por
+  funcionalidad —`features/<dominio>/{api,model,hooks,components,pages}` más `shared/` y `app/`—,
+  patrón Contenedor/Presentacional con hooks propios, rutas con React Router, estado global sin
+  librerías, su sistema visual (tokens en `app.css` y componentes de `shared/ui`) y sus pruebas en
+  `tests/unit/`). Migrado desde Svelte; ver ARQUITECTURA.md.
 - **App del viajero** (`apps/viajero/src`): arquitectura por funcionalidad en capas y patrón
   MVVM + Repository + inyección de dependencias por Context. `app/` tiene solo las rutas de Expo
   Router; cada `features/<f>/` tiene `views/` (pantallas que solo pintan), `view-models/` (hooks
@@ -181,7 +182,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
 - **Ley 1581 de 2012:** autorización expresa (casillas no marcadas) en el registro
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
-  piden aceptar de nuevo. Textos en `apps/panel_svelte/src/lib/features/legal/model/legal.ts` y
+  piden aceptar de nuevo. Textos en `apps/panel/src/features/legal/model/legal.ts` y
   `apps/viajero/src/core/legal/documento-legal.ts` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias
@@ -279,11 +280,12 @@ npm install
 cp .env.example .env     # ver «Configurar la app del viajero» abajo
 npx expo start --web --port 8080              # abre http://localhost:8080
 
-# 4. Panel de agencias (Svelte 5 + SvelteKit estático + Tailwind 4)
-cd ../panel_svelte
+# 4. Panel de agencias (React 19 + TypeScript + Vite + React Router + Tailwind 4)
+cd ../panel
 npm install
-npm run dev            # desarrollo con SvelteKit (http://localhost:5173; URLs #/ruta)
-npm run check          # tipos y avisos de Svelte (svelte-kit sync + svelte-check)
+npm run dev            # desarrollo con Vite (http://localhost:5173; URLs #/ruta)
+npm run check          # chequeo de tipos (tsc --noEmit)
+npm test               # pruebas (vitest)
 npm run build          # producción → dist/ (servir con cualquier estático)
 ```
 
@@ -378,7 +380,7 @@ Desde la raíz del repo, con `supabase start` corriendo. Conteos de la última c
 | SQL 0018 (todas las reseñas de la agencia, paginadas) | ver «Pruebas SQL» | 39 |
 | Edge Functions, HTTP de punta a punta (mock de Wompi) | `python -I -B supabase/functions/_tests/test_pagos.py` | 43 |
 | Vectores de Wompi (firmas, checksum, guardia, URL de retorno) | `node --test supabase/functions/_tests/vectores_wompi.test.ts` | 14 |
-| Panel Svelte (vitest) | `npm test --prefix apps/panel_svelte` | 1082 (76 archivos) |
+| Panel React (vitest) | `npm test --prefix apps/panel` | 1103 (78 archivos) |
 | App del viajero (jest-expo + Testing Library) | `cd apps/viajero && npm test` | 1016 (89 suites), más `npm run typecheck` (`tsc --noEmit`) |
 | Integración anti-sobreventa de la app del viajero | incluida en `npm test` | Solo con `SUPABASE_SERVICE_ROLE_KEY` en el entorno; sin ella se omite |
 
@@ -483,8 +485,8 @@ solo servidor) · `payments` (pago aprobado, con id y método de la transacción
   que se decida lo contrario.
 - **Marca:** el colibrí de la primera versión de la app. La máscara maestra
   (`apps/viajero/assets/logo_diverso.png`, negro + alfa) la dibuja `DiversoLogo`
-  teñida con el color que pida cada pantalla; el panel Svelte usa una copia como máscara CSS
-  (`apps/panel_svelte/static/logo_diverso.png`). Todos los íconos salen de esa máscara, ave blanca
+  teñida con el color que pida cada pantalla; el panel usa una copia como máscara CSS
+  (`apps/panel/public/logo_diverso.png`). Todos los íconos salen de esa máscara, ave blanca
   sobre `#0E6E4F`: `python -I -B tools/iconos/generar_iconos.py` (requiere Pillow) regenera los de
   Expo en `apps/viajero/assets/` (ícono, ícono adaptativo de Android, pantalla de arranque clara y
   oscura y favicon web, que lee `app.json`) y los del panel (favicon y PWA); la zona segura y los

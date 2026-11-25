@@ -11,7 +11,7 @@ supabase/.temp/
 .DS_Store
 Thumbs.db
 
-# Node (panel Svelte)
+# Node (panel React)
 node_modules/
 dist/
 
@@ -26,4 +26,3 @@ supabase/functions/.env
 # Python (pruebas HTTP de pagos)
 __pycache__/
 *.pyc
-.svelte-kit/

@@ -10,8 +10,8 @@ Resultado (ave blanca sobre #0E6E4F, el verde de marca, salvo donde se dice otra
       splash-colibri.png       pantalla de arranque: solo el ave, verde de marca, sin fondo;
       splash-colibri-oscuro.png  la misma en menta, para el modo oscuro;
       favicon.png              favicon web;
-  - apps/panel_svelte/static: favicon.png, icons/Icon-{192,512}.png y los maskable;
-  - apps/panel_svelte/static/logo_diverso.png: copia de la máscara para `Logo.svelte`.
+  - apps/panel/public: favicon.png, icons/Icon-{192,512}.png y los maskable;
+  - apps/panel/public/logo_diverso.png: copia de la máscara para `Logo.tsx`.
 
 Márgenes: cada ícono se escala para que el punto más lejano del ave (medido desde el centro
 de su caja) quede dentro de un círculo de radio fijo; la caja del ave queda centrada.
@@ -42,7 +42,7 @@ R_ARRANQUE = 96 / 288 * 0.98  # círculo de 192 dp (ícono de arranque sin fondo
 R_MASCABLE = 0.40 * 0.98  # círculo de seguridad del 80 %
 R_ICONO = 0.44  # resto de íconos
 
-PANEL_STATIC = RAIZ / "apps/panel_svelte/static"
+PANEL_STATIC = RAIZ / "apps/panel/public"
 
 
 def cargar_maestro():

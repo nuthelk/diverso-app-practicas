@@ -5,7 +5,7 @@
 -- Uso (sobre la BD local ya migrada; NO requiere db reset ni deja datos):
 --   docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/0007_notas_sin_politica.sql
 -- Todo corre dentro de una transacción que termina en ROLLBACK.
--- Los vectores de la sección 1 son LOS MISMOS que apps/panel_svelte/src/lib/politica.test.ts
+-- Los vectores de la sección 1 son LOS MISMOS que apps/panel/tests/unit/features/planes/model/politica.test.ts
 -- («vectores de notas con política compartidos con la BD»): SQL y TypeScript deben decidir igual.
 \set ON_ERROR_STOP 1
 begin;

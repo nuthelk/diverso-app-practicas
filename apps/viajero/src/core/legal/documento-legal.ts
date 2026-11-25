@@ -1,6 +1,6 @@
 /**
  * Documentos legales de Diverso (mismo texto que el panel web,
- * `apps/panel_svelte/src/lib/features/legal/model/legal.ts`, y que `documento_legal.dart`).
+ * `apps/panel/src/features/legal/model/legal.ts`; los tests del panel comparan ambos).
  *
  * BORRADOR: base técnica para el piloto. Antes del lanzamiento debe revisarlo un abogado y
  * completarse con los datos del responsable. Cambiar el contenido de fondo exige subir
