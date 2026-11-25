@@ -23,83 +23,83 @@ const plan = (id: string) =>
     status: PlanStatus.published,
   });
 
-let catalogo: CatalogoFalso;
+let catalog: CatalogoFalso;
 beforeEach(() => {
-  catalogo = new CatalogoFalso({ detalles: Object.fromEntries(['a', 'b', 'c'].map((id) => [id, plan(id)])) });
+  catalog = new CatalogoFalso({ detalles: Object.fromEntries(['a', 'b', 'c'].map((id) => [id, plan(id)])) });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());
 
-function crear(ids: string[], planesIniciales?: Plan[]) {
-  return renderHook(() => useComparatorViewModel({ catalogo, ids, planesIniciales }));
+function setup(ids: string[], initialPlans?: Plan[]) {
+  return renderHook(() => useComparatorViewModel({ catalog, ids, initialPlans }));
 }
 
-const idsDe = (planes: readonly Plan[] | null) => planes?.map((p) => p.id);
+const idsOf = (plans: readonly Plan[] | null) => plans?.map((p) => p.id);
 
 test('carga los planes por id, en el orden de los ids', async () => {
-  const { result } = await crear(['b', 'a']);
-  expect(result.current.cargando).toBe(true);
+  const { result } = await setup(['b', 'a']);
+  expect(result.current.loading).toBe(true);
 
-  await act(() => result.current.cargar());
+  await act(() => result.current.load());
 
-  expect(result.current.cargando).toBe(false);
-  expect(idsDe(result.current.planes)).toEqual(['b', 'a']);
+  expect(result.current.loading).toBe(false);
+  expect(idsOf(result.current.plans)).toEqual(['b', 'a']);
   expect(result.current.error).toBeNull();
 });
 
 test('sin ids no hay nada que cargar', async () => {
-  const { result } = await crear([]);
-  expect(result.current.cargando).toBe(false);
-  expect(result.current.planes).toEqual([]);
-  await act(() => result.current.cargar());
-  expect(catalogo.detallesPedidos).toEqual([]);
+  const { result } = await setup([]);
+  expect(result.current.loading).toBe(false);
+  expect(result.current.plans).toEqual([]);
+  await act(() => result.current.load());
+  expect(catalog.detallesPedidos).toEqual([]);
 });
 
 test('los planes que ya se tenían (mismos ids) evitan la consulta', async () => {
-  const { result } = await crear(['a', 'b'], [plan('a'), plan('b')]);
-  expect(result.current.cargando).toBe(false);
-  await act(() => result.current.cargar());
-  expect(catalogo.detallesPedidos).toEqual([]);
-  expect(idsDe(result.current.planes)).toEqual(['a', 'b']);
+  const { result } = await setup(['a', 'b'], [plan('a'), plan('b')]);
+  expect(result.current.loading).toBe(false);
+  await act(() => result.current.load());
+  expect(catalog.detallesPedidos).toEqual([]);
+  expect(idsOf(result.current.plans)).toEqual(['a', 'b']);
 });
 
 test('si los planes que se tenían no son los de la URL, se pide lo que dice la URL', async () => {
-  const { result } = await crear(['a', 'c'], [plan('a'), plan('b')]);
-  expect(result.current.cargando).toBe(true);
-  await act(() => result.current.cargar());
-  expect(catalogo.detallesPedidos).toEqual(['a', 'c']);
-  expect(idsDe(result.current.planes)).toEqual(['a', 'c']);
+  const { result } = await setup(['a', 'c'], [plan('a'), plan('b')]);
+  expect(result.current.loading).toBe(true);
+  await act(() => result.current.load());
+  expect(catalog.detallesPedidos).toEqual(['a', 'c']);
+  expect(idsOf(result.current.plans)).toEqual(['a', 'c']);
 });
 
 test('los mismos ids en otro orden tampoco cuentan: se pide lo que dice la URL', async () => {
-  const { result } = await crear(['b', 'a'], [plan('a'), plan('b')]);
-  expect(result.current.cargando).toBe(true);
-  await act(() => result.current.cargar());
-  expect(catalogo.detallesPedidos).toEqual(['b', 'a']);
+  const { result } = await setup(['b', 'a'], [plan('a'), plan('b')]);
+  expect(result.current.loading).toBe(true);
+  await act(() => result.current.load());
+  expect(catalog.detallesPedidos).toEqual(['b', 'a']);
 });
 
 test('si falla queda con el mensaje y «cargar» de nuevo se recupera', async () => {
-  catalogo.fallo = new Error('sin red');
-  const { result } = await crear(['a', 'b']);
+  catalog.fallo = new Error('sin red');
+  const { result } = await setup(['a', 'b']);
 
-  await act(() => result.current.cargar());
-  expect(result.current.planes).toBeNull();
-  expect(result.current.cargando).toBe(false);
+  await act(() => result.current.load());
+  expect(result.current.plans).toBeNull();
+  expect(result.current.loading).toBe(false);
   expect(result.current.error).toBe('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.');
 
-  catalogo.fallo = null;
-  await act(() => result.current.cargar());
+  catalog.fallo = null;
+  await act(() => result.current.load());
   expect(result.current.error).toBeNull();
-  expect(result.current.planes).toHaveLength(2);
+  expect(result.current.plans).toHaveLength(2);
 });
 
 test('una respuesta que llega después de desmontar no lanza', async () => {
-  const { result, unmount } = await crear(['a']);
-  const puerta = (catalogo.compuerta = compuerta());
-  const carga = result.current.cargar();
+  const { result, unmount } = await setup(['a']);
+  const gate = (catalog.compuerta = compuerta());
+  const pending = result.current.load();
 
   await unmount();
-  puerta.completar();
+  gate.completar();
 
-  await expect(carga).resolves.toBeUndefined();
+  await expect(pending).resolves.toBeUndefined();
 });

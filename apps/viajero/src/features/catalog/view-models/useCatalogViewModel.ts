@@ -11,152 +11,152 @@ import { MAX_COMPARAR } from '@/router';
 
 export { MAX_COMPARAR };
 
-interface EstadoCatalogo {
-  planes: readonly Plan[];
-  destinos: readonly string[];
-  cargando: boolean;
+interface CatalogState {
+  plans: readonly Plan[];
+  destinations: readonly string[];
+  loading: boolean;
   /** Mensaje para el usuario si la última carga falló. */
   error: string | null;
   /** Detalle técnico del último error (para soporte). */
-  errorDetalle: string | null;
-  texto: string;
-  categoria: ExperienceCategory | null;
-  destino: string | null;
-  precioMax: number | null;
-  fecha: Date | null;
-  orden: CatalogSort;
+  errorDetails: string | null;
+  text: string;
+  category: ExperienceCategory | null;
+  destination: string | null;
+  maxPrice: number | null;
+  date: Date | null;
+  sort: CatalogSort;
   /** Ids elegidos para comparar (máx. [MAX_COMPARAR]), en el orden en que se eligieron. */
-  idsComparar: readonly string[];
+  compareIds: readonly string[];
 }
 
-const inicial: EstadoCatalogo = {
-  planes: [],
-  destinos: [],
-  cargando: true,
+const initialState: CatalogState = {
+  plans: [],
+  destinations: [],
+  loading: true,
   error: null,
-  errorDetalle: null,
-  texto: '',
-  categoria: null,
-  destino: null,
-  precioMax: null,
-  fecha: null,
-  orden: CatalogSort.rating,
-  idsComparar: [],
+  errorDetails: null,
+  text: '',
+  category: null,
+  destination: null,
+  maxPrice: null,
+  date: null,
+  sort: CatalogSort.rating,
+  compareIds: [],
 };
 
 /**
  * ViewModel del catálogo (`CatalogViewModel`): filtros, resultados y selección para comparar.
  *
- * - Escribir NO busca (`setTexto` solo guarda); busca al enviar (`buscar`) o al borrar.
- * - `aplicarFiltros` fija destino, precio y fecha con UNA consulta.
- * - `search` y `destinos` se piden en serie: si falla cualquiera, falla la carga (y se conserva
+ * - Escribir NO busca (`setText` solo guarda); busca al enviar (`search`) o al borrar.
+ * - `applyFilters` fija destino, precio y fecha con UNA consulta.
+ * - `search` y `destinations` se piden en serie: si falla cualquiera, falla la carga (y se conserva
  *   lo anterior).
  * - La selección para comparar se purga de los planes que ya no aparecen; el 4.º se ignora.
  *
  * Igual que en los demás view models, el estado vive en `useState` + un ref espejo que leen los
  * comandos (un comando lanzado desde un cierre viejo ve el estado actual).
  */
-export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'search' | 'destinations'> }) {
-  const [estado, setEstado] = useState<EstadoCatalogo>(inicial);
-  const actual = useRef<EstadoCatalogo>(inicial);
+export function useCatalogViewModel({ catalog }: { catalog: Pick<Public<CatalogRepository>, 'search' | 'destinations'> }) {
+  const [state, setState] = useState<CatalogState>(initialState);
+  const latest = useRef<CatalogState>(initialState);
 
-  const cambiar = useCallback((cambios: Partial<EstadoCatalogo>) => {
-    actual.current = { ...actual.current, ...cambios };
-    setEstado(actual.current);
+  const update = useCallback((changes: Partial<CatalogState>) => {
+    latest.current = { ...latest.current, ...changes };
+    setState(latest.current);
   }, []);
 
-  const cargar = useCallback(async (): Promise<void> => {
-    cambiar({ cargando: true, error: null, errorDetalle: null });
-    const e = actual.current;
+  const load = useCallback(async (): Promise<void> => {
+    update({ loading: true, error: null, errorDetails: null });
+    const e = latest.current;
     try {
-      const resultados = await catalogo.search({
-        text: e.texto,
-        category: e.categoria,
-        destination: e.destino,
-        maxPrice: e.precioMax,
-        date: e.fecha,
-        sort: e.orden,
+      const results = await catalog.search({
+        text: e.text,
+        category: e.category,
+        destination: e.destination,
+        maxPrice: e.maxPrice,
+        date: e.date,
+        sort: e.sort,
       });
-      const destinos = await catalogo.destinations();
+      const destinations = await catalog.destinations();
       // La selección puede referenciar planes que ya no aparecen.
-      const idsComparar = actual.current.idsComparar.filter((id) => resultados.some((p) => p.id === id));
-      cambiar({ planes: Object.freeze([...resultados]), destinos: Object.freeze([...destinos]), idsComparar });
+      const compareIds = latest.current.compareIds.filter((id) => results.some((p) => p.id === id));
+      update({ plans: Object.freeze([...results]), destinations: Object.freeze([...destinations]), compareIds });
     } catch (error) {
-      console.warn('CatalogViewModel.cargar:', error);
-      cambiar({
+      console.warn('CatalogViewModel.load:', error);
+      update({
         error: 'No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.',
-        errorDetalle: String(error),
+        errorDetails: String(error),
       });
     } finally {
-      cambiar({ cargando: false });
+      update({ loading: false });
     }
-  }, [catalogo, cambiar]);
+  }, [catalog, update]);
 
-  const setTexto = useCallback((texto: string) => cambiar({ texto }), [cambiar]);
+  const setText = useCallback((text: string) => update({ text }), [update]);
 
-  const conFiltros = useCallback(
-    (cambios: Partial<EstadoCatalogo>) => {
-      cambiar(cambios);
-      return cargar();
+  const updateAndLoad = useCallback(
+    (changes: Partial<CatalogState>) => {
+      update(changes);
+      return load();
     },
-    [cambiar, cargar],
+    [update, load],
   );
 
-  const toggleCategoria = useCallback(
-    (c: ExperienceCategory | null) => conFiltros({ categoria: c === actual.current.categoria ? null : c }),
-    [conFiltros],
+  const toggleCategory = useCallback(
+    (c: ExperienceCategory | null) => updateAndLoad({ category: c === latest.current.category ? null : c }),
+    [updateAndLoad],
   );
 
-  const aplicarFiltros = useCallback(
-    ({ destino = null, precioMax = null, fecha = null }: { destino?: string | null; precioMax?: number | null; fecha?: Date | null } = {}) =>
-      conFiltros({ destino, precioMax, fecha }),
-    [conFiltros],
+  const applyFilters = useCallback(
+    ({ destination = null, maxPrice = null, date = null }: { destination?: string | null; maxPrice?: number | null; date?: Date | null } = {}) =>
+      updateAndLoad({ destination, maxPrice, date }),
+    [updateAndLoad],
   );
 
-  const toggleComparar = useCallback(
+  const toggleCompare = useCallback(
     (p: Plan) => {
-      const ids = actual.current.idsComparar;
-      if (ids.includes(p.id)) cambiar({ idsComparar: ids.filter((id) => id !== p.id) });
-      else if (ids.length < MAX_COMPARAR) cambiar({ idsComparar: [...ids, p.id] });
+      const ids = latest.current.compareIds;
+      if (ids.includes(p.id)) update({ compareIds: ids.filter((id) => id !== p.id) });
+      else if (ids.length < MAX_COMPARAR) update({ compareIds: [...ids, p.id] });
     },
-    [cambiar],
+    [update],
   );
 
-  const seleccion = useMemo(
-    () => estado.planes.filter((p) => estado.idsComparar.includes(p.id)),
-    [estado.planes, estado.idsComparar],
+  const selection = useMemo(
+    () => state.plans.filter((p) => state.compareIds.includes(p.id)),
+    [state.plans, state.compareIds],
   );
 
   return {
-    planes: estado.planes,
-    destinos: estado.destinos,
-    cargando: estado.cargando,
-    error: estado.error,
-    errorDetalle: estado.errorDetalle,
-    texto: estado.texto,
-    categoria: estado.categoria,
-    destino: estado.destino,
-    precioMax: estado.precioMax,
-    fecha: estado.fecha,
-    orden: estado.orden,
-    /** Los planes elegidos para comparar, en el orden de `planes`. */
-    seleccion,
-    comparando: (p: Plan) => estado.idsComparar.includes(p.id),
+    plans: state.plans,
+    destinations: state.destinations,
+    loading: state.loading,
+    error: state.error,
+    errorDetails: state.errorDetails,
+    text: state.text,
+    category: state.category,
+    destination: state.destination,
+    maxPrice: state.maxPrice,
+    date: state.date,
+    sort: state.sort,
+    /** Los planes elegidos para comparar, en el orden de `plans`. */
+    selection,
+    isComparing: (p: Plan) => state.compareIds.includes(p.id),
     /** Filtros de la hoja activos (destino, precio, fecha); categoría y texto no cuentan. */
-    filtrosActivos: (estado.destino !== null ? 1 : 0) + (estado.precioMax !== null ? 1 : 0) + (estado.fecha !== null ? 1 : 0),
-    cargar,
-    setTexto,
+    activeFilterCount: (state.destination !== null ? 1 : 0) + (state.maxPrice !== null ? 1 : 0) + (state.date !== null ? 1 : 0),
+    load,
+    setText,
     /** Al enviar el teclado. */
-    buscar: cargar,
-    toggleCategoria,
-    setDestino: (destino: string | null) => conFiltros({ destino }),
-    setPrecioMax: (precioMax: number | null) => conFiltros({ precioMax }),
-    setFecha: (fecha: Date | null) => conFiltros({ fecha }),
-    aplicarFiltros,
-    limpiarFiltros: () => aplicarFiltros(),
-    cambiarOrden: (orden: CatalogSort) => conFiltros({ orden }),
-    toggleComparar,
-    limpiarComparar: () => cambiar({ idsComparar: [] }),
+    search: load,
+    toggleCategory,
+    setDestination: (destination: string | null) => updateAndLoad({ destination }),
+    setMaxPrice: (maxPrice: number | null) => updateAndLoad({ maxPrice }),
+    setDate: (date: Date | null) => updateAndLoad({ date }),
+    applyFilters,
+    clearFilters: () => applyFilters(),
+    setSort: (sort: CatalogSort) => updateAndLoad({ sort }),
+    toggleCompare,
+    clearCompare: () => update({ compareIds: [] }),
   };
 }
 

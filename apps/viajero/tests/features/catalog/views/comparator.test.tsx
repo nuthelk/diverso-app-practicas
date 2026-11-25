@@ -21,25 +21,25 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * `comparator_loader.dart`.
  */
 
-const plan = (id: string, precio: number, titulo = `Plan ${id} con un nombre bastante largo`) =>
+const plan = (id: string, price: number, title = `Plan ${id} con un nombre bastante largo`) =>
   new Plan({
     id,
     agencyId: 'ag',
-    title: titulo,
+    title,
     destination: 'Santa Fe de Antioquia',
     category: ExperienceCategory.culture,
-    priceCop: precio,
+    priceCop: price,
     status: PlanStatus.published,
   });
 
-const tres = () => [plan('1', 189000), plan('2', 178000), plan('3', 179000)];
+const threePlans = () => [plan('1', 189000), plan('2', 178000), plan('3', 179000)];
 
-async function abrirTabla(ancho: number, planes = tres()) {
-  await fijarVentana(ancho, 1600);
-  await renderPantalla(<PlanComparator plans={planes} />);
+async function renderTable(width: number, plans = threePlans()) {
+  await fijarVentana(width, 1600);
+  await renderPantalla(<PlanComparator plans={plans} />);
 }
 
-const anchoDe = (el: { props: Record<string, unknown> }) => StyleSheet.flatten(el.props.style as never).width as number;
+const widthOf = (el: { props: Record<string, unknown> }) => StyleSheet.flatten(el.props.style as never).width as number;
 
 beforeEach(() => {
   reiniciarRouterFalso();
@@ -53,35 +53,35 @@ afterEach(async () => {
 
 describe('tabla (comparador_layout_test)', () => {
   test('320 px y 3 planes: precio en una sola línea, columnas legibles y tabla deslizable', async () => {
-    await abrirTabla(320);
+    await renderTable(320);
 
     expect(screen.getByTestId('tabla-deslizable')).toBeOnTheScreen();
     expect(screen.getByText('Desliza la tabla para ver todos los planes')).toBeOnTheScreen();
 
     // El precio no se parte: una sola línea y, si no cabe, se achica.
-    const precio = screen.getAllByText('$ 178.000')[0]!;
-    expect(precio.props.numberOfLines).toBe(1);
-    expect(precio.props.adjustsFontSizeToFit).toBe(true);
+    const price = screen.getAllByText('$ 178.000')[0]!;
+    expect(price.props.numberOfLines).toBe(1);
+    expect(price.props.adjustsFontSizeToFit).toBe(true);
 
     // Cada columna de plan conserva un ancho legible.
-    expect(anchoDe(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThanOrEqual(110);
+    expect(widthOf(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThanOrEqual(110);
   });
 
   test('pantalla ancha: las columnas se reparten el ancho, sin quedar angostas', async () => {
-    await abrirTabla(900);
+    await renderTable(900);
 
     expect(screen.queryByTestId('tabla-deslizable')).toBeNull();
-    expect(anchoDe(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThan(200);
+    expect(widthOf(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThan(200);
   });
 
   test('el más barato se marca en su columna y cada plan tiene su botón «Ver plan»', async () => {
-    await abrirTabla(900);
+    await renderTable(900);
 
     expect(screen.getAllByText('Mejor precio')).toHaveLength(1);
     // El sello está en la cabecera de la columna del plan 2 (el más barato).
-    const cabecera2 = screen.getAllByTestId('columna-1')[0]!;
-    expect(within(cabecera2).getByText('Mejor precio')).toBeOnTheScreen();
-    expect(within(cabecera2).getByText('Plan 2 con un nombre bastante largo')).toBeOnTheScreen();
+    const header2 = screen.getAllByTestId('columna-1')[0]!;
+    expect(within(header2).getByText('Mejor precio')).toBeOnTheScreen();
+    expect(within(header2).getByText('Plan 2 con un nombre bastante largo')).toBeOnTheScreen();
     expect(screen.getAllByText('Ver plan')).toHaveLength(3);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Ver plan Plan 3 con un nombre bastante largo' }));
@@ -89,14 +89,14 @@ describe('tabla (comparador_layout_test)', () => {
   });
 
   test('con empate de precio se marcan todas las columnas más baratas', async () => {
-    await abrirTabla(900, [plan('1', 100000), plan('2', 100000), plan('3', 120000)]);
+    await renderTable(900, [plan('1', 100000), plan('2', 100000), plan('3', 120000)]);
     expect(screen.getAllByText('Mejor precio')).toHaveLength(2);
   });
 });
 
 describe('control de viajeros (comparison_test)', () => {
   test('el comparador recalcula el total con el control de viajeros', async () => {
-    await abrirTabla(900, [plan('1', 100000), plan('2', 200000)]);
+    await renderTable(900, [plan('1', 100000), plan('2', 200000)]);
 
     expect(screen.getByText('¿Cuántos viajan?')).toBeOnTheScreen();
     expect(screen.getByText('Total para 2 personas')).toBeOnTheScreen();
@@ -115,41 +115,41 @@ describe('control de viajeros (comparison_test)', () => {
   });
 
   test('con menos de 2 planes avisa que no hay nada para comparar', async () => {
-    await abrirTabla(400, [plan('1', 100000)]);
+    await renderTable(400, [plan('1', 100000)]);
     expect(screen.getByText('Nada para comparar')).toBeOnTheScreen();
     expect(screen.getByText('Selecciona dos o tres planes en el catálogo con el ícono de comparar.')).toBeOnTheScreen();
   });
 });
 
 describe('pantalla /comparar (comparator_loader)', () => {
-  async function abrir(ids: string[], catalogo: CatalogoFalso) {
+  async function renderComparator(ids: string[], catalog: CatalogoFalso) {
     await fijarVentana(600, 1000);
-    await renderPantalla(<ComparatorView ids={ids} />, { dependencias: dependenciasDePrueba({ catalogo }) });
+    await renderPantalla(<ComparatorView ids={ids} />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
   }
-  const catalogoCon = () => new CatalogoFalso({ detalles: { a: plan('a', 100000), b: plan('b', 120000) } });
+  const catalogWithPlans = () => new CatalogoFalso({ detalles: { a: plan('a', 100000), b: plan('b', 120000) } });
 
   test('carga los planes por id y muestra la tabla bajo «Comparar planes»', async () => {
-    const catalogo = catalogoCon();
-    await abrir(['b', 'a'], catalogo);
+    const catalog = catalogWithPlans();
+    await renderComparator(['b', 'a'], catalog);
 
     expect(screen.getByText('Comparar planes')).toBeOnTheScreen();
-    expect(catalogo.detallesPedidos).toEqual(['b', 'a']);
+    expect(catalog.detallesPedidos).toEqual(['b', 'a']);
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
 
   test('si el catálogo dejó los mismos planes (mismo orden) no consulta', async () => {
-    const catalogo = catalogoCon();
+    const catalog = catalogWithPlans();
     setPlansToCompare([plan('a', 1), plan('b', 2)]);
-    await abrir(['a', 'b'], catalogo);
+    await renderComparator(['a', 'b'], catalog);
 
-    expect(catalogo.detallesPedidos).toEqual([]);
+    expect(catalog.detallesPedidos).toEqual([]);
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
 
   test('error: «No pudimos cargar la comparación», «Reintentar» se recupera e «Ir al catálogo» va al inicio', async () => {
-    const catalogo = catalogoCon();
-    catalogo.fallo = new Error('sin red');
-    await abrir(['a', 'b'], catalogo);
+    const catalog = catalogWithPlans();
+    catalog.fallo = new Error('sin red');
+    await renderComparator(['a', 'b'], catalog);
 
     expect(screen.getByText('No pudimos cargar la comparación')).toBeOnTheScreen();
     expect(screen.getByText('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.')).toBeOnTheScreen();
@@ -157,13 +157,13 @@ describe('pantalla /comparar (comparator_loader)', () => {
     await fireEvent.press(screen.getByText('Ir al catálogo'));
     expect(routerFalso.replace).toHaveBeenCalledWith('/');
 
-    catalogo.fallo = null;
+    catalog.fallo = null;
     await fireEvent.press(screen.getByText('Reintentar'));
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
 
   test('«Volver» sin historial lleva al catálogo', async () => {
-    await abrir([], catalogoCon());
+    await renderComparator([], catalogWithPlans());
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
     expect(routerFalso.replace).toHaveBeenCalledWith('/');
   });

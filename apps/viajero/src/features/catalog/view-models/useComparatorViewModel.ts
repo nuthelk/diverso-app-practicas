@@ -3,12 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CatalogRepository, Plan, Public } from '@/core';
 
 /** `listEquals` de los ids: mismos ids y en el mismo orden. */
-function mismosIds(planes: readonly Plan[], ids: readonly string[]): boolean {
-  return planes.length === ids.length && planes.every((p, i) => p.id === ids[i]);
+function sameIds(plans: readonly Plan[], ids: readonly string[]): boolean {
+  return plans.length === ids.length && plans.every((p, i) => p.id === ids[i]);
 }
 
-function planesDeArranque(ids: readonly string[], planesIniciales?: readonly Plan[] | null): readonly Plan[] | null {
-  if (planesIniciales && mismosIds(planesIniciales, ids)) return planesIniciales;
+function startingPlans(ids: readonly string[], initialPlans?: readonly Plan[] | null): readonly Plan[] | null {
+  if (initialPlans && sameIds(initialPlans, ids)) return initialPlans;
   if (ids.length === 0) return [];
   return null;
 }
@@ -16,50 +16,50 @@ function planesDeArranque(ids: readonly string[], planesIniciales?: readonly Pla
 /**
  * ViewModel del comparador (`ComparatorViewModel`): carga los planes por sus ids
  * (`/comparar?ids=a,b`), así la pantalla se reconstruye igual tras recargar en web.
- * [planesIniciales] (los que el catálogo ya tenía, el `extra` de go_router) solo se usan si son
+ * [initialPlans] (los que el catálogo ya tenía, el `extra` de go_router) solo se usan si son
  * EXACTAMENTE los de [ids], en el mismo orden (gotcha 5).
  */
 export function useComparatorViewModel({
-  catalogo,
+  catalog,
   ids,
-  planesIniciales,
+  initialPlans,
 }: {
-  catalogo: Pick<Public<CatalogRepository>, 'planDetail'>;
+  catalog: Pick<Public<CatalogRepository>, 'planDetail'>;
   ids: readonly string[];
-  planesIniciales?: readonly Plan[] | null;
+  initialPlans?: readonly Plan[] | null;
 }) {
-  const [planes, setPlanesEstado] = useState<readonly Plan[] | null>(() => planesDeArranque(ids, planesIniciales));
-  const [error, setErrorEstado] = useState<string | null>(null);
-  const planesRef = useRef(planes);
-  const montado = useRef(true);
+  const [plans, setPlans] = useState<readonly Plan[] | null>(() => startingPlans(ids, initialPlans));
+  const [error, setError] = useState<string | null>(null);
+  const plansRef = useRef(plans);
+  const mounted = useRef(true);
   useEffect(() => {
-    montado.current = true;
+    mounted.current = true;
     return () => {
-      montado.current = false;
+      mounted.current = false;
     };
   }, []);
 
-  const cargar = useCallback(async (): Promise<void> => {
-    if (planesRef.current !== null) return;
-    setErrorEstado(null);
+  const load = useCallback(async (): Promise<void> => {
+    if (plansRef.current !== null) return;
+    setError(null);
     try {
-      const cargados = await Promise.all(ids.map((id) => catalogo.planDetail(id)));
-      if (!montado.current) return;
-      planesRef.current = cargados;
-      setPlanesEstado(cargados);
+      const loaded = await Promise.all(ids.map((id) => catalog.planDetail(id)));
+      if (!mounted.current) return;
+      plansRef.current = loaded;
+      setPlans(loaded);
     } catch (e) {
-      if (!montado.current) return;
-      console.warn('ComparatorViewModel.cargar:', e);
-      setErrorEstado('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.');
+      if (!mounted.current) return;
+      console.warn('ComparatorViewModel.load:', e);
+      setError('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.');
     }
-  }, [catalogo, ids]);
+  }, [catalog, ids]);
 
   return {
     /** Los planes a comparar, en el orden de los ids; null mientras se cargan o si falló. */
-    planes,
-    cargando: planes === null && error === null,
+    plans,
+    loading: plans === null && error === null,
     /** Mensaje para el usuario si no se pudieron cargar los planes. */
     error,
-    cargar,
+    load,
   };
 }

@@ -10,7 +10,7 @@ import { EmptyState, FilledButton, IconButton, InputChip, TextField, PageTitle }
 import { AppInsets, AppTheme, useTheme } from '@/ui/theme';
 
 import { AnimatedCompareTray } from '../components/CompareTray';
-import { BotonFiltros } from '../components/BotonFiltros';
+import { FiltersButton } from '../components/FiltersButton';
 import { CategoryChip } from '../components/CategoryChip';
 import { Grid } from '../components/Grid';
 import { PlanCard } from '../components/PlanCard';
@@ -19,7 +19,7 @@ import { setPlansToCompare } from '../plans-to-compare';
 import { MAX_COMPARAR, useCatalogViewModel } from '../view-models/useCatalogViewModel';
 
 /** Padding horizontal de la lista (20 + 20): el ancho útil de la rejilla sale de la ventana. */
-const LADOS_LISTA = 40;
+const LIST_SIDE_PADDING = 40;
 
 /**
  * Catálogo, pestaña «Explorar» (`catalog_view.dart`): buscador (solo busca al enviar o al
@@ -27,122 +27,122 @@ const LADOS_LISTA = 40;
  * debajo de la lista. El estado vive en `useCatalogViewModel` (MVVM).
  */
 export function CatalogView() {
-  const tema = useTheme();
+  const theme = useTheme();
   const router = useRouter();
-  const { catalogo } = useDependencies();
-  const vm = useCatalogViewModel({ catalogo });
+  const { catalogo: catalog } = useDependencies();
+  const vm = useCatalogViewModel({ catalog });
   const { width } = useWindowDimensions();
-  const esGrid = width > AppTheme.bpCompact;
-  const [refrescando, setRefrescando] = useState(false);
-  const { cargar } = vm;
+  const isGrid = width > AppTheme.bpCompact;
+  const [refreshing, setRefreshing] = useState(false);
+  const { load } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
-  const refrescar = async () => {
-    setRefrescando(true);
+  const refresh = async () => {
+    setRefreshing(true);
     try {
-      await vm.cargar();
+      await vm.load();
     } finally {
-      setRefrescando(false);
+      setRefreshing(false);
     }
   };
 
-  const tarjeta = (plan: (typeof vm.planes)[number]) => (
-    <PlanCard plan={plan} isCompared={vm.comparando(plan)} onToggleCompare={vm.toggleComparar} />
+  const renderCard = (plan: (typeof vm.plans)[number]) => (
+    <PlanCard plan={plan} isCompared={vm.isComparing(plan)} onToggleCompare={vm.toggleCompare} />
   );
 
   return (
-    <View testID="pantalla-CatalogView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-CatalogView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {/* El título va en la barra, fuera del scroll: las tarjetas no pasan bajo la barra de estado. */}
       <TopBar title={<PageTitle text="Descubre Antioquia" />} />
       <ScrollView
         testID="catalogo-scroll"
-        style={estilos.flex}
-        contentContainerStyle={estilos.crecer}
+        style={styles.flex}
+        contentContainerStyle={styles.grow}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[tema.colorScheme.primary]} tintColor={tema.colorScheme.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[theme.colorScheme.primary]} tintColor={theme.colorScheme.primary} />}
       >
-        <View style={estilos.cabecera}>
-          <View style={estilos.fila}>
+        <View style={styles.header}>
+          <View style={styles.row}>
             <TextField
-              style={estilos.flex}
-              value={vm.texto}
-              onChangeText={vm.setTexto}
-              onSubmitEditing={() => void vm.buscar()}
+              style={styles.flex}
+              value={vm.text}
+              onChangeText={vm.setText}
+              onSubmitEditing={() => void vm.search()}
               returnKeyType="search"
               hint="Guatapé, café, parapente…"
               accessibilityLabel="Buscar planes"
               icon="search_rounded"
               testID="buscador"
               suffix={
-                vm.texto === '' ? undefined : (
+                vm.text === '' ? undefined : (
                   <IconButton
                     icon="close_rounded"
                     iconSize={19}
                     tooltip="Borrar búsqueda"
                     onPress={() => {
-                      vm.setTexto('');
-                      void vm.buscar();
+                      vm.setText('');
+                      void vm.search();
                     }}
                   />
                 )
               }
             />
             <View style={{ width: 10 }} />
-            <BotonFiltros vm={vm} />
+            <FiltersButton vm={vm} />
           </View>
           <View style={{ height: 12 }} />
-          {vm.filtrosActivos > 0 ? (
+          {vm.activeFilterCount > 0 ? (
             <>
-              <View style={estilos.chips}>
-                {vm.destino !== null ? (
-                  <InputChip icon="location_on_outlined" iconSize={15} label={vm.destino} onDelete={() => void vm.setDestino(null)} />
+              <View style={styles.chips}>
+                {vm.destination !== null ? (
+                  <InputChip icon="location_on_outlined" iconSize={15} label={vm.destination} onDelete={() => void vm.setDestination(null)} />
                 ) : null}
-                {vm.fecha !== null ? (
-                  <InputChip icon="event_outlined" iconSize={15} label={formatShortDate(vm.fecha)} onDelete={() => void vm.setFecha(null)} />
+                {vm.date !== null ? (
+                  <InputChip icon="event_outlined" iconSize={15} label={formatShortDate(vm.date)} onDelete={() => void vm.setDate(null)} />
                 ) : null}
-                {vm.precioMax !== null ? (
+                {vm.maxPrice !== null ? (
                   <InputChip
                     icon="payments_outlined"
                     iconSize={15}
-                    label={`Hasta ${formatCOP(vm.precioMax)}`}
-                    onDelete={() => void vm.setPrecioMax(null)}
+                    label={`Hasta ${formatCOP(vm.maxPrice)}`}
+                    onDelete={() => void vm.setMaxPrice(null)}
                   />
                 ) : null}
               </View>
               <View style={{ height: 12 }} />
             </>
           ) : null}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 40 }} contentContainerStyle={estilos.categorias}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 40 }} contentContainerStyle={styles.categories}>
             {valuesOf(ExperienceCategory).map((c) => (
-              <CategoryChip key={c} category={c} selected={vm.categoria === c} onPress={() => void vm.toggleCategoria(c)} />
+              <CategoryChip key={c} category={c} selected={vm.category === c} onPress={() => void vm.toggleCategory(c)} />
             ))}
           </ScrollView>
           <View style={{ height: 6 }} />
         </View>
 
-        {vm.cargando ? (
-          <ResultsSkeleton isGrid={esGrid} usableWidth={width - LADOS_LISTA} />
+        {vm.loading ? (
+          <ResultsSkeleton isGrid={isGrid} usableWidth={width - LIST_SIDE_PADDING} />
         ) : vm.error !== null ? (
           <EmptyState
             icon="cloud_off_rounded"
             title="Sin conexión"
             message={vm.error}
-            details={vm.errorDetalle}
-            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+            details={vm.errorDetails}
+            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.load()} />}
           />
-        ) : vm.planes.length === 0 ? (
+        ) : vm.plans.length === 0 ? (
           <EmptyState icon="search_off_rounded" title="Sin resultados" message="Prueba con otro destino o quita algunos filtros." />
         ) : (
           <View testID="resultados" style={AppInsets.roomyList}>
-            {esGrid ? (
-              <Grid items={vm.planes} usableWidth={width - LADOS_LISTA} keyOf={(p) => p.id} render={tarjeta} />
+            {isGrid ? (
+              <Grid items={vm.plans} usableWidth={width - LIST_SIDE_PADDING} keyOf={(p) => p.id} render={renderCard} />
             ) : (
-              vm.planes.map((p) => (
+              vm.plans.map((p) => (
                 <View key={p.id} style={AppInsets.betweenCards}>
-                  {tarjeta(p)}
+                  {renderCard(p)}
                 </View>
               ))
             )}
@@ -151,24 +151,24 @@ export function CatalogView() {
       </ScrollView>
       {/* La bandeja va debajo de la lista, no encima: el último plan nunca queda tapado. */}
       <AnimatedCompareTray
-        selection={vm.seleccion}
+        selection={vm.selection}
         max={MAX_COMPARAR}
-        onRemove={vm.toggleComparar}
-        onClear={vm.limpiarComparar}
+        onRemove={vm.toggleCompare}
+        onClear={vm.clearCompare}
         onCompare={() => {
-          setPlansToCompare(vm.seleccion);
-          router.push(AppRoutes.compararPlanes(vm.seleccion.map((p) => p.id)) as Href);
+          setPlansToCompare(vm.selection);
+          router.push(AppRoutes.compararPlanes(vm.selection.map((p) => p.id)) as Href);
         }}
       />
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  crecer: { flexGrow: 1 },
-  cabecera: { paddingLeft: 20, paddingTop: 4, paddingRight: 20 },
-  fila: { flexDirection: 'row', alignItems: 'center' },
+  grow: { flexGrow: 1 },
+  header: { paddingLeft: 20, paddingTop: 4, paddingRight: 20 },
+  row: { flexDirection: 'row', alignItems: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  categorias: { gap: 8, alignItems: 'center', paddingRight: 8 },
+  categories: { gap: 8, alignItems: 'center', paddingRight: 8 },
 });

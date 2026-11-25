@@ -23,36 +23,36 @@ export interface ComparatorViewProps {
  * en memoria (el `extra`) solo evitan la espera si son exactamente los de la URL, en orden.
  */
 export function ComparatorView({ ids }: ComparatorViewProps) {
-  const tema = useTheme();
+  const theme = useTheme();
   const router = useRouter();
-  const { catalogo } = useDependencies();
+  const { catalogo: catalog } = useDependencies();
   // Los ids y el `extra` se fijan al montar (como el `initState` de Flutter).
-  const [inicio] = useState(() => ({ ids, planes: plansToCompare() }));
-  const vm = useComparatorViewModel({ catalogo, ids: inicio.ids, planesIniciales: inicio.planes });
-  const { cargar } = vm;
+  const [initial] = useState(() => ({ ids, plans: plansToCompare() }));
+  const vm = useComparatorViewModel({ catalog, ids: initial.ids, initialPlans: initial.plans });
+  const { load } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
-  let cuerpo;
-  if (vm.planes !== null) {
-    cuerpo = <PlanComparator plans={vm.planes} />;
+  let body;
+  if (vm.plans !== null) {
+    body = <PlanComparator plans={vm.plans} />;
   } else if (vm.error === null) {
-    cuerpo = (
-      <View style={estilos.centro}>
+    body = (
+      <View style={styles.center}>
         <CircularProgressIndicator />
       </View>
     );
   } else {
-    cuerpo = (
+    body = (
       <EmptyState
         icon="cloud_off_rounded"
         title="No pudimos cargar la comparación"
         message={vm.error}
         action={
-          <View style={estilos.acciones}>
-            <FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />
+          <View style={styles.actions}>
+            <FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.load()} />
             <TextButton text="Ir al catálogo" onPress={() => router.replace(AppRoutes.explorar as Href)} />
           </View>
         }
@@ -61,15 +61,15 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
   }
 
   return (
-    <View testID="pantalla-ComparatorView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-ComparatorView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Comparar planes" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
-      {cuerpo}
+      {body}
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  acciones: { alignItems: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  actions: { alignItems: 'center' },
 });
