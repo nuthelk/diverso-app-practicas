@@ -60,38 +60,29 @@ export function BookingsView() {
     router.push(AppRoutes.resena(b.id) as Href);
   };
 
-  const lista = (reservasDeLaPestana: Booking[], vacio: string, historial: boolean) => {
-    if (reservasDeLaPestana.length === 0) {
-      return (
-        <ScrollView contentContainerStyle={estilos.vacio}>
-          <Text style={{ color: cs.onSurfaceVariant, textAlign: 'center' }}>{vacio}</Text>
-        </ScrollView>
-      );
-    }
-    return (
-      <FlatList
-        testID="lista-reservas"
-        data={reservasDeLaPestana}
-        keyExtractor={(b) => b.id}
-        contentContainerStyle={estilos.lista}
-        refreshControl={<RefreshControl refreshing={false} onRefresh={() => void cargar()} colors={[cs.primary]} tintColor={cs.primary} />}
-        renderItem={({ item: b }) => {
-          const pendiente = b.estado === BookingStatus.pendientePago;
-          return (
-            <TarjetaReserva
-              booking={b}
-              historial={historial}
-              onAbrir={() => abrirDetalle(b)}
-              onResenar={vm.puedeResenar(b) ? () => resenar(b) : null}
-              onPagar={pendiente ? () => void completarPago(b) : null}
-              onVerificar={pendiente ? () => irA(router, AppRoutes.pagoDeReserva(b.id)) : null}
-              onCancelar={vm.puedeCancelar(b) ? () => void cancelarConConfirmacion(b) : null}
-            />
-          );
-        }}
-      />
-    );
-  };
+  const lista = (reservasDeLaPestana: Booking[], historial: boolean) => (
+    <FlatList
+      testID="lista-reservas"
+      data={reservasDeLaPestana}
+      keyExtractor={(b) => b.id}
+      contentContainerStyle={estilos.lista}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={() => void cargar()} colors={[cs.primary]} tintColor={cs.primary} />}
+      renderItem={({ item: b }) => {
+        const pendiente = b.estado === BookingStatus.pendientePago;
+        return (
+          <TarjetaReserva
+            booking={b}
+            historial={historial}
+            onAbrir={() => abrirDetalle(b)}
+            onResenar={vm.puedeResenar(b) ? () => resenar(b) : null}
+            onPagar={pendiente ? () => void completarPago(b) : null}
+            onVerificar={pendiente ? () => irA(router, AppRoutes.pagoDeReserva(b.id)) : null}
+            onCancelar={vm.puedeCancelar(b) ? () => void cancelarConConfirmacion(b) : null}
+          />
+        );
+      }}
+    />
+  );
 
   const cuerpo = vm.cargando ? (
     <ReservasSkeleton />
@@ -108,10 +99,30 @@ export function BookingsView() {
       titulo="Aún no tienes reservas"
       mensaje="Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario."
     />
+  ) : pestana === 0 && vm.activas.length === 0 ? (
+    // Sin viajes próximos: en vez de una línea suelta, invita a ir a «Explorar» (pestaña que ya
+    // existe: `navigate`, no se apila otra encima).
+    <EmptyState
+      icono="explore_rounded"
+      titulo="Sin viajes próximos"
+      mensaje="¡Hora de explorar!"
+      accion={
+        <FilledButton
+          variante="tonal"
+          texto="Explorar planes"
+          onPress={() => router.navigate(AppRoutes.explorar as Href)}
+          style={estilos.accion}
+        />
+      }
+    />
   ) : pestana === 0 ? (
-    lista(vm.activas, 'Sin viajes próximos — ¡hora de explorar!', false)
+    lista(vm.activas, false)
+  ) : vm.historial.length === 0 ? (
+    <ScrollView contentContainerStyle={estilos.vacio}>
+      <Text style={{ color: cs.onSurfaceVariant, textAlign: 'center' }}>Todavía no hay historial.</Text>
+    </ScrollView>
   ) : (
-    lista(vm.historial, 'Todavía no hay historial.', true)
+    lista(vm.historial, true)
   );
 
   return (

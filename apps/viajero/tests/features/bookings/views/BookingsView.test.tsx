@@ -240,10 +240,21 @@ test('PRESERVE: sin reservas muestra el estado vacío', async () => {
   ).toBeOnTheScreen();
 });
 
-test('pestaña vacía: «Sin viajes próximos — ¡hora de explorar!» y «Todavía no hay historial.»', async () => {
+test('«Próximas» vacía: estado vacío (ícono, «Sin viajes próximos», «¡Hora de explorar!») con «Explorar planes»', async () => {
   await abrir([reserva('PASADA', -5)]);
-  expect(screen.getByText('Sin viajes próximos — ¡hora de explorar!')).toBeOnTheScreen();
 
+  expect(screen.queryByTestId('empty-state-icono', { includeHiddenElements: true })).toBeOnTheScreen();
+  expect(screen.queryByText('Sin viajes próximos')).toBeOnTheScreen();
+  expect(screen.queryByText('¡Hora de explorar!')).toBeOnTheScreen();
+
+  const explorar = screen.queryByRole('button', { name: 'Explorar planes' });
+  expect(explorar).toBeOnTheScreen();
+  await fireEvent.press(explorar!);
+  // A la pestaña «Explorar» (que ya existe): `navigate`, no se apila otra encima.
+  expect(routerFalso.navigate).toHaveBeenCalledWith('/');
+});
+
+test('«Historial» vacía: «Todavía no hay historial.»', async () => {
   await abrir([reserva('FUTURA', 5)]);
   await tocar('Historial (0)');
   expect(screen.getByText('Todavía no hay historial.')).toBeOnTheScreen();
