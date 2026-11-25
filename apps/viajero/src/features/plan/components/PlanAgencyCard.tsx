@@ -11,11 +11,11 @@ import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
  * nombre, RNT y su vigencia, sello DEBAJO del texto (en celulares angostos a su lado le robaba el
  * ancho al nombre). Abre la página de la agencia.
  */
-export function TarjetaAgencia({ agency }: { agency: Agency }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+export function PlanAgencyCard({ agency }: { agency: Agency }) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const router = useRouter();
-  const resumen = new AgencySummary({ id: agency.id, name: agency.name, city: agency.city, logoUrl: agency.logoUrl });
+  const summary = new AgencySummary({ id: agency.id, name: agency.name, city: agency.city, logoUrl: agency.logoUrl });
   return (
     <Pressable
       testID="tarjeta-agencia"
@@ -23,15 +23,15 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
       accessibilityLabel={agency.name}
       onPress={() => router.push(AppRoutes.agencia(agency.id) as Href)}
       style={({ pressed }) => [
-        estilos.caja,
+        styles.box,
         AppInsets.card,
         { backgroundColor: cs.surfaceContainerLow },
         pressed ? { backgroundColor: withAlpha(cs.onSurface, 0.1) } : null,
       ]}
     >
-      <AgencyAvatar agency={resumen} size={44} />
+      <AgencyAvatar agency={summary} size={44} />
       <View style={{ width: 12 }} />
-      <View testID="tarjeta-agencia-textos" style={estilos.flex}>
+      <View testID="tarjeta-agencia-textos" style={styles.flex}>
         <Text style={{ fontWeight: '700', fontSize: AppText.emphasis }}>{agency.name}</Text>
         <View style={{ height: 2 }} />
         <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{`Agencia local · RNT ${agency.rntNumber}`}</Text>
@@ -41,7 +41,7 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
           </Text>
         ) : null}
         {agency.isVerified ? (
-          <View testID="sello-agencia" style={estilos.sello}>
+          <View testID="sello-agencia" style={styles.seal}>
             <VerifiedBadge />
           </View>
         ) : null}
@@ -51,9 +51,9 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
   );
 }
 
-const estilos = StyleSheet.create({
-  caja: { flexDirection: 'row', alignItems: 'center', borderRadius: AppRadii.card, overflow: 'hidden' },
+const styles = StyleSheet.create({
+  box: { flexDirection: 'row', alignItems: 'center', borderRadius: AppRadii.card, overflow: 'hidden' },
   flex: { flex: 1 },
   // FittedBox(scaleDown): con letra grande se achica en vez de desbordar.
-  sello: { marginTop: 6, alignSelf: 'flex-start', maxWidth: '100%' },
+  seal: { marginTop: 6, alignSelf: 'flex-start', maxWidth: '100%' },
 });

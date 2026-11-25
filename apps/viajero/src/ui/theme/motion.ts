@@ -50,7 +50,7 @@ export const Durations = {
   skeleton: 1100,
   /** `CategoryChip` (color/borde, easeOut). */
   categoryChip: 180,
-  /** Chips de fecha de `BarraReserva` (easeOut). */
+  /** Chips de fecha de `BookingBar` (easeOut). */
   dateChip: 160,
   /** Bandeja de comparar: entra easeOutCubic, sale easeInCubic (Size desde arriba + Fade). */
   compareTray: 220,

@@ -3,26 +3,26 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Icon, Skeleton, Text, type IconName } from '@/ui/components';
 import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
-/** Píldora de «Qué incluye»; un texto libre del plan ([textoLargo]) se recorta con «…». */
-export function IncluyePill({ icono, texto, textoLargo = false }: { icono: IconName; texto: string; textoLargo?: boolean }) {
+/** Píldora de «Qué incluye»; un texto libre del plan ([isLongText]) se recorta con «…». */
+export function IncludesPill({ icon, text, isLongText = false }: { icon: IconName; text: string; isLongText?: boolean }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="incluye-pill" style={[estilos.pildora, { backgroundColor: cs.surfaceContainerLow }]}>
-      <Icon name={icono} size={15} color={cs.primary} />
+    <View testID="incluye-pill" style={[styles.pill, { backgroundColor: cs.surfaceContainerLow }]}>
+      <Icon name={icon} size={15} color={cs.primary} />
       <View style={{ width: 6 }} />
       <Text
-        numberOfLines={textoLargo ? 1 : undefined}
+        numberOfLines={isLongText ? 1 : undefined}
         ellipsizeMode="tail"
         style={{ flexShrink: 1, fontSize: AppText.largeCaption, fontWeight: '600' }}
       >
-        {texto}
+        {text}
       </Text>
     </View>
   );
 }
 
 /** Marcador de la ficha mientras carga (`detalle_skeleton.dart`). */
-export function DetalleSkeleton() {
+export function PlanDetailSkeleton() {
   // AspectRatio(1.4) a todo el ancho.
   const { width } = useWindowDimensions();
   return (
@@ -41,8 +41,8 @@ export function DetalleSkeleton() {
   );
 }
 
-const estilos = StyleSheet.create({
-  pildora: {
+const styles = StyleSheet.create({
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: '100%',

@@ -7,43 +7,43 @@ import { FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, Curves, Durations, useTheme } from '@/ui/theme';
 
 /** Pocos cupos: desde aquí hacia abajo se avisa «¡Últimos N!». */
-const POCOS_CUPOS = 4;
+const FEW_SPOTS = 4;
 
 /**
  * Barra inferior de la ficha (`barra_reserva.dart`): fechas con sus cupos, precio y «Reservar» de
  * la fecha elegida. No guarda estado (la fecha la maneja el view model). Va DEBAJO del scroll y
  * respeta la barra de gestos (gotcha 14). Sin fechas, avisa y ofrece «Ver otros planes».
  */
-export function BarraReserva({
+export function BookingBar({
   plan,
-  fechas,
-  seleccionada,
-  onSeleccionar,
-  onReservar,
-  onVerOtros,
+  dates,
+  selectedDate,
+  onSelect,
+  onBook,
+  onSeeOtherPlans,
 }: {
   plan: Plan;
-  fechas: readonly PlanDate[];
+  dates: readonly PlanDate[];
   /** Null solo cuando no hay fechas. */
-  seleccionada: PlanDate | null;
-  onSeleccionar: (fecha: PlanDate) => void;
-  onReservar: (fecha: PlanDate) => void;
-  onVerOtros: () => void;
+  selectedDate: PlanDate | null;
+  onSelect: (planDate: PlanDate) => void;
+  onBook: (planDate: PlanDate) => void;
+  onSeeOtherPlans: () => void;
 }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const insets = useSafeAreaInsets();
-  const superficie = { backgroundColor: tema.pageBackground, borderTopColor: withAlpha(cs.outlineVariant, 0.5) };
+  const surface = { backgroundColor: theme.pageBackground, borderTopColor: withAlpha(cs.outlineVariant, 0.5) };
 
-  if (seleccionada === null) {
+  if (selectedDate === null) {
     return (
-      <View testID="barra-reserva" style={[estilos.superficie, superficie]}>
-        <View style={[estilos.sinFechas, { paddingBottom: 16 + insets.bottom }]}>
+      <View testID="barra-reserva" style={[styles.surface, surface]}>
+        <View style={[styles.noDates, { paddingBottom: 16 + insets.bottom }]}>
           <Icon name="event_busy_rounded" color={cs.onSurfaceVariant} />
           <View style={{ width: 10 }} />
           <Text style={{ flex: 1, fontWeight: '600' }}>Sin fechas disponibles por ahora</Text>
           {/* Se encoge: en celulares angostos o con letra grande parte su texto en vez de desbordar. */}
-          <TextButton text="Ver otros planes" onPress={onVerOtros} style={estilos.encogible} />
+          <TextButton text="Ver otros planes" onPress={onSeeOtherPlans} style={styles.shrinkable} />
         </View>
       </View>
     );
@@ -51,7 +51,7 @@ export function BarraReserva({
 
   // SafeArea(minimum: 20, 10, 20, 12): el mayor entre el inset del sistema y el mínimo.
   return (
-    <View testID="barra-reserva" style={[estilos.superficie, superficie]}>
+    <View testID="barra-reserva" style={[styles.surface, surface]}>
       <View
         style={{
           paddingLeft: Math.max(20, insets.left),
@@ -65,14 +65,14 @@ export function BarraReserva({
           horizontal
           showsHorizontalScrollIndicator={false}
           style={{ height: 62 }}
-          contentContainerStyle={estilos.fechas}
+          contentContainerStyle={styles.dates}
         >
-          {fechas.map((f) => (
-            <ChipFecha key={f.id} fecha={f} seleccionada={f.id === seleccionada.id} onPress={() => onSeleccionar(f)} />
+          {dates.map((f) => (
+            <DateChip key={f.id} planDate={f} selected={f.id === selectedDate.id} onPress={() => onSelect(f)} />
           ))}
         </ScrollView>
         <View style={{ height: 10 }} />
-        <View style={estilos.fila}>
+        <View style={styles.row}>
           <View>
             <Text style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
               {formatCOP(plan.priceCop)}
@@ -80,7 +80,7 @@ export function BarraReserva({
             <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>
           </View>
           <View style={{ flex: 1 }} />
-          <FilledButton icon="lock_outline_rounded" text="Reservar" onPress={() => onReservar(seleccionada)} style={estilos.reservar} />
+          <FilledButton icon="lock_outline_rounded" text="Reservar" onPress={() => onBook(selectedDate)} style={styles.book} />
         </View>
       </View>
     </View>
@@ -88,87 +88,87 @@ export function BarraReserva({
 }
 
 /** Chip de una fecha con sus cupos; el cambio de selección se anima 160 ms easeOut. */
-function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccionada: boolean; onPress: () => void }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const t = useRef(new Animated.Value(seleccionada ? 1 : 0)).current;
+function DateChip({ planDate, selected, onPress }: { planDate: PlanDate; selected: boolean; onPress: () => void }) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const t = useRef(new Animated.Value(selected ? 1 : 0)).current;
   useEffect(() => {
-    const animacion = Animated.timing(t, {
-      toValue: seleccionada ? 1 : 0,
+    const animation = Animated.timing(t, {
+      toValue: selected ? 1 : 0,
       duration: Durations.dateChip,
       easing: Curves.easeOut.fn,
       useNativeDriver: false,
     });
-    animacion.start();
-    return () => animacion.stop();
-  }, [seleccionada, t]);
-  const pocos = fecha.availableSpots <= POCOS_CUPOS;
-  const cupos = pocos ? `¡Últimos ${fecha.availableSpots}!` : `${fecha.availableSpots} cupos`;
+    animation.start();
+    return () => animation.stop();
+  }, [selected, t]);
+  const isFewSpots = planDate.availableSpots <= FEW_SPOTS;
+  const spotsText = isFewSpots ? `¡Últimos ${planDate.availableSpots}!` : `${planDate.availableSpots} cupos`;
   return (
     <Pressable
-      testID={`fecha-${fecha.id}`}
+      testID={`fecha-${planDate.id}`}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${formatShortDate(fecha.date)}, ${cupos}`}
-      accessibilityState={{ selected: seleccionada }}
+      accessibilityLabel={`${formatShortDate(planDate.date)}, ${spotsText}`}
+      accessibilityState={{ selected }}
     >
       <Animated.View
         style={[
-          estilos.chip,
+          styles.chip,
           { backgroundColor: t.interpolate({ inputRange: [0, 1], outputRange: [cs.surfaceContainerHigh, cs.primary] }) },
         ]}
       >
-        <TextoSinCorte estilo={{ fontSize: AppText.detail, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
-          {formatShortDate(fecha.date)}
-        </TextoSinCorte>
-        <TextoSinCorte
-          estilo={{
+        <NoLineBreakText style={{ fontSize: AppText.detail, fontWeight: '700', color: selected ? cs.onPrimary : cs.onSurface }}>
+          {formatShortDate(planDate.date)}
+        </NoLineBreakText>
+        <NoLineBreakText
+          style={{
             fontSize: AppText.note,
             fontWeight: '600',
-            color: seleccionada ? withAlpha(cs.onPrimary, 0.8) : pocos ? tema.diverso.fewSpots : cs.onSurfaceVariant,
+            color: selected ? withAlpha(cs.onPrimary, 0.8) : isFewSpots ? theme.diverso.fewSpots : cs.onSurfaceVariant,
           }}
         >
-          {cupos}
-        </TextoSinCorte>
+          {spotsText}
+        </NoLineBreakText>
       </Animated.View>
     </Pressable>
   );
 }
 
 /** Lo que el texto visible puede pasarse del ancho medido (cae sobre el padding de 14 del chip). */
-const HOLGURA = 8;
+const SLACK = 8;
 
 /**
  * Texto de una línea que no se corta aunque Android lo mida unos px más angosto de lo que lo dibuja
  * (pasaba con «jue, 26 nov»: partía «nov» a una segunda línea que el chip recortaba). Una copia
  * invisible y oculta a los lectores de pantalla da el ancho; la visible va encima en UNA línea, con
- * [HOLGURA] de más a la derecha. El tamaño no depende de la selección: solo cambia el color.
+ * [SLACK] de más a la derecha. El tamaño no depende de la selección: solo cambia el color.
  */
-function TextoSinCorte({ estilo, children }: { estilo: TextStyle; children: ReactNode }) {
+function NoLineBreakText({ style, children }: { style: TextStyle; children: ReactNode }) {
   return (
     <View>
       <Text
-        style={[estilo, estilos.medida]}
+        style={[style, styles.measure]}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
         {children}
       </Text>
-      <Text numberOfLines={1} style={[estilo, estilos.visible]}>
+      <Text numberOfLines={1} style={[style, styles.visible]}>
         {children}
       </Text>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  superficie: { borderTopWidth: 1 },
-  sinFechas: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16 },
-  encogible: { flexShrink: 1 },
-  fechas: { gap: 8, alignItems: 'stretch' },
+const styles = StyleSheet.create({
+  surface: { borderTopWidth: 1 },
+  noDates: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16 },
+  shrinkable: { flexShrink: 1 },
+  dates: { gap: 8, alignItems: 'stretch' },
   chip: { height: 62, justifyContent: 'center', paddingHorizontal: 14, borderRadius: AppRadii.field },
-  medida: { opacity: 0 },
-  visible: { position: 'absolute', left: 0, top: 0, right: -HOLGURA },
-  fila: { flexDirection: 'row', alignItems: 'center' },
-  reservar: { minWidth: 150, minHeight: 52 },
+  measure: { opacity: 0 },
+  visible: { position: 'absolute', left: 0, top: 0, right: -SLACK },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  book: { minWidth: 150, minHeight: 52 },
 });
