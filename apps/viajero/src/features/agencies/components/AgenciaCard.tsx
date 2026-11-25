@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { AgencySummary } from '@/core';
 import { AppRoutes } from '@/router';
-import { AgencyAvatar, Card, agencyColor, Icon, InsigniaNueva, Text, VerifiedBadge } from '@/ui/components';
+import { AgencyAvatar, Card, agencyColor, Icon, NewBadge, Text, VerifiedBadge } from '@/ui/components';
 import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /**
@@ -27,7 +27,7 @@ export function AgenciaCard({ agencia }: { agencia: AgencySummary }) {
       <View style={{ height: 128 }}>
         <PortadaAgencia agencia={agencia} />
         <View style={estilos.sello}>
-          <VerifiedBadge blanco compacto />
+          <VerifiedBadge onPhoto compact />
         </View>
       </View>
       <View style={estilos.pie}>
@@ -53,7 +53,7 @@ export function DatosAgencia({ agencia }: { agencia: AgencySummary }) {
   return (
     <View style={estilos.datos}>
       {agencia.isNew ? (
-        <InsigniaNueva texto={agencia.ratingText} />
+        <NewBadge text={agencia.ratingText} />
       ) : (
         <View style={estilos.fila}>
           <Icon name="star_rounded" size={17} color={tema.diverso.gold} />

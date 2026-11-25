@@ -263,9 +263,9 @@ describe('TextField con sufijo', () => {
     await renderWithTheme(
       <TextField value="" onChangeText={() => {}} label="Contraseña" suffix={<IconButton icon="clear" tooltip="Borrar" onPress={() => {}} />} />,
     );
-    const sufijo = StyleSheet.flatten(screen.getByTestId('sufijo').props.style);
+    const suffix = StyleSheet.flatten(screen.getByTestId('sufijo').props.style);
     // Con etiqueta la caja es 24 arriba + 24 de línea + 8 abajo: los márgenes negativos lo estiran a 56.
-    expect([sufijo.marginTop, sufijo.marginBottom]).toEqual([-24, -8]);
+    expect([suffix.marginTop, suffix.marginBottom]).toEqual([-24, -8]);
   });
 });
 

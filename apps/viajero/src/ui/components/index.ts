@@ -7,7 +7,7 @@ export {
   TextButton,
   type ButtonProps,
   type IconButtonProps,
-} from './material/Botones';
+} from './material/Buttons';
 export { fieldMetrics, TextField, type TextFieldProps } from './material/TextField';
 export {
   Card,
@@ -18,15 +18,15 @@ export {
   SegmentedButton,
   type ChipProps,
   type Segment,
-} from './material/Superficies';
+} from './material/Surfaces';
 export { AgencyAvatar, agencyColor, hashFnv1a, type AgencyAvatarData } from './AgencyAvatar';
 export { SectionLabel } from './SectionLabel';
 export { EmptyState } from './feedback/EmptyState';
 export { Skeleton } from './feedback/Skeleton';
 export { CollapsibleHeader, headerMetrics } from './page/CollapsibleHeader';
 export { pageTitleStyle, PageTitle } from './page/PageTitle';
-export { EstrellasCalificacion, InsigniaNueva, RatingStars } from './rating/Rating';
-export { PuntajePlan } from './rating/PuntajePlan';
+export { ReviewStars, NewBadge, RatingStars } from './rating/Rating';
+export { PlanScore } from './rating/PlanScore';
 export { PriceText } from './plan/PriceText';
-export { PasoItinerario, TarjetaCancelacion, VerifiedBadge, type PasoItinerarioDatos } from './plan/Plan';
+export { ItineraryStepRow, CancellationCard, VerifiedBadge, type ItineraryStepData } from './plan/Plan';
 export { DiversoLogo } from './DiversoLogo';

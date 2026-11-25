@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, useTheme } from '@/ui/theme';
 
-import { IconButton } from '../material/Botones';
+import { IconButton } from '../material/Buttons';
 import { Text } from '../Text';
 
 const BAR_HEIGHT = 56; // kToolbarHeight

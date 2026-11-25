@@ -10,7 +10,7 @@ import { useTheme } from '@/ui/theme';
  * página y sin tinte; título 15 w700 ls -0.2 onSurface a 20 del borde (o tras el botón atrás).
  * [onVolver] pinta el botón «Volver». Las pantallas a las que se puede llegar por enlace o recarga lo
  * pasan siempre con `volverSeguro` (atrás si hay historial; si no, a un destino lógico): en Flutter
- * solo aparecía con historial y la pantalla quedaba sin salida. [titulo] puede ser texto o un nodo (p.ej. `TituloPagina`).
+ * solo aparecía con historial y la pantalla quedaba sin salida. [titulo] puede ser texto o un nodo (p.ej. `PageTitle`).
  */
 export function BarraSuperior({
   titulo,

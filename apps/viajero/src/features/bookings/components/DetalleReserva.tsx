@@ -7,9 +7,9 @@ import {
   FilledButton,
   Icon,
   OutlinedButton,
-  PasoItinerario,
+  ItineraryStepRow,
   SectionLabel,
-  TarjetaCancelacion,
+  CancellationCard,
   Text,
   TextButton,
 } from '@/ui/components';
@@ -77,14 +77,14 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
             <View style={{ height: 24 }} />
             <SectionLabel text="Itinerario" />
             {plan.itinerary.map((paso, i) => (
-              <PasoItinerario key={i} paso={paso} ultimo={i === plan.itinerary.length - 1} />
+              <ItineraryStepRow key={i} step={paso} isLast={i === plan.itinerary.length - 1} />
             ))}
           </>
         ) : null}
         {plan !== null && plan.cancellationPolicy.length > 0 ? (
           <>
             <View style={{ height: 8 }} />
-            <TarjetaCancelacion texto={plan.cancellationPolicy} />
+            <CancellationCard text={plan.cancellationPolicy} />
           </>
         ) : null}
         <View style={{ height: 24 }} />

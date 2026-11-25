@@ -7,21 +7,21 @@ import { Text } from '../Text';
 
 /** Resumen «★ 4.8»: una estrella dorada (size+2) y, opcional, el valor con 1 decimal (size-1, w700). */
 export function RatingStars({
-  calificacion,
+  rating,
   size = 15,
-  mostrarNumero = false,
+  showNumber = false,
 }: {
-  calificacion: number;
+  rating: number;
   size?: number;
-  mostrarNumero?: boolean;
+  showNumber?: boolean;
 }) {
-  const tema = useTheme();
+  const theme = useTheme();
   return (
-    <View style={estilos.fila}>
-      <Icon name="star_rounded" size={size + 2} color={tema.diverso.gold} />
-      {mostrarNumero ? (
-        <Text style={{ fontSize: size - 1, fontWeight: '700', color: tema.colorScheme.onSurface }}>
-          {calificacion.toFixed(1)}
+    <View style={styles.row}>
+      <Icon name="star_rounded" size={size + 2} color={theme.diverso.gold} />
+      {showNumber ? (
+        <Text style={{ fontSize: size - 1, fontWeight: '700', color: theme.colorScheme.onSurface }}>
+          {rating.toFixed(1)}
         </Text>
       ) : null}
     </View>
@@ -29,18 +29,18 @@ export function RatingStars({
 }
 
 /**
- * Calificación de una reseña: cinco estrellas, llenas hasta [calificacion] (1 a 5). Para lectores
+ * Calificación de una reseña: cinco estrellas, llenas hasta [rating] (1 a 5). Para lectores
  * de pantalla es UN elemento: «N de 5 estrellas».
  */
-export function EstrellasCalificacion({ calificacion, size = 15 }: { calificacion: number; size?: number }) {
-  const tema = useTheme();
+export function ReviewStars({ rating, size = 15 }: { rating: number; size?: number }) {
+  const theme = useTheme();
   return (
-    <View accessible accessibilityLabel={`${calificacion} de 5 estrellas`} style={estilos.fila}>
+    <View accessible accessibilityLabel={`${rating} de 5 estrellas`} style={styles.row}>
       {[1, 2, 3, 4, 5].map((i) =>
-        i <= calificacion ? (
-          <Icon key={i} name="star_rounded" size={size} color={tema.diverso.gold} />
+        i <= rating ? (
+          <Icon key={i} name="star_rounded" size={size} color={theme.diverso.gold} />
         ) : (
-          <Icon key={i} name="star_outline_rounded" size={size} color={tema.colorScheme.outlineVariant} />
+          <Icon key={i} name="star_outline_rounded" size={size} color={theme.colorScheme.outlineVariant} />
         ),
       )}
     </View>
@@ -48,19 +48,19 @@ export function EstrellasCalificacion({ calificacion, size = 15 }: { calificacio
 }
 
 /** Píldora «Nueva» de lo que aún no tiene reseñas (planes y agencias). */
-export function InsigniaNueva({ texto = 'Nueva' }: { texto?: string }) {
+export function NewBadge({ text = 'Nueva' }: { text?: string }) {
   const cs = useTheme().colorScheme;
   return (
     <View
       testID="insignia-nueva"
-      style={[estilos.pildora, { backgroundColor: withAlpha(cs.primary, 0.1), paddingHorizontal: 8, paddingVertical: 2 }]}
+      style={[styles.pill, { backgroundColor: withAlpha(cs.primary, 0.1), paddingHorizontal: 8, paddingVertical: 2 }]}
     >
-      <Text style={{ fontSize: AppText.label, fontWeight: '700', color: cs.primary }}>{texto}</Text>
+      <Text style={{ fontSize: AppText.label, fontWeight: '700', color: cs.primary }}>{text}</Text>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  fila: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
-  pildora: { borderRadius: AppRadii.pill, alignSelf: 'flex-start' },
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
+  pill: { borderRadius: AppRadii.pill, alignSelf: 'flex-start' },
 });

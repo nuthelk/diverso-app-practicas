@@ -11,10 +11,10 @@ import {
   EmptyState,
   FilledButton,
   Icon,
-  PasoItinerario,
-  PuntajePlan,
+  ItineraryStepRow,
+  PlanScore,
   SectionLabel,
-  TarjetaCancelacion,
+  CancellationCard,
   Text,
 } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
@@ -105,7 +105,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
       <View style={{ height: 8 }} />
       <View style={estilos.fila}>
         <View style={estilos.encogible}>
-          <PuntajePlan plan={plan} detallado />
+          <PlanScore plan={plan} detailed />
         </View>
         <View style={estilos.flex} />
         <View style={[estilos.duracion, { backgroundColor: cs.secondaryContainer }]}>
@@ -149,7 +149,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <>
           <SectionLabel text="Itinerario" />
           {plan.itinerary.map((paso, i) => (
-            <PasoItinerario key={`${i}-${paso.time}`} paso={paso} ultimo={i === plan.itinerary.length - 1} />
+            <ItineraryStepRow key={`${i}-${paso.time}`} step={paso} isLast={i === plan.itinerary.length - 1} />
           ))}
           <View style={{ height: 24 }} />
         </>
@@ -166,7 +166,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         </>
       ) : null}
 
-      {plan.cancellationPolicy !== '' ? <TarjetaCancelacion texto={plan.cancellationPolicy} /> : null}
+      {plan.cancellationPolicy !== '' ? <CancellationCard text={plan.cancellationPolicy} /> : null}
 
       {resenas.length > 0 ? (
         <>

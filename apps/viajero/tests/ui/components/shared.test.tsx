@@ -33,7 +33,7 @@ describe('SectionLabel', () => {
   });
 });
 
-describe('TituloPagina', () => {
+describe('PageTitle', () => {
   it('28 w800 ls -1 altura 1.1 onSurface, una línea, encabezado', async () => {
     await renderWithTheme(<PageTitle text="Agencias" />, { mode: 'dark' });
     const title = screen.getByRole('header', { name: 'Agencias' });
@@ -74,17 +74,17 @@ describe('EmptyState', () => {
     // El título no fija color: hereda el del texto por defecto, como en Flutter.
     expect(title.color).toBe('#1D1B20');
 
-    const mensaje = styleOf(screen.getByText('No pudimos cargar los planes.'));
-    expect(mensaje.fontSize).toBe(13.5);
-    expect(mensaje.lineHeight).toBeCloseTo(13.5 * 1.45, 5);
-    expect(mensaje.textAlign).toBe('center');
-    expect(mensaje.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
+    const message = styleOf(screen.getByText('No pudimos cargar los planes.'));
+    expect(message.fontSize).toBe(13.5);
+    expect(message.lineHeight).toBeCloseTo(13.5 * 1.45, 5);
+    expect(message.textAlign).toBe('center');
+    expect(message.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
 
-    const detalle = styleOf(screen.getByText('SocketException: x'));
-    expect(detalle.fontSize).toBe(11);
-    expect(detalle.lineHeight).toBeCloseTo(11 * 1.35, 5);
-    expect(detalle.color).toBe('rgba(64, 73, 67, 0.75)');
-    expect(String(detalle.fontFamily)).toMatch(/mono|Menlo|Courier/i);
+    const details = styleOf(screen.getByText('SocketException: x'));
+    expect(details.fontSize).toBe(11);
+    expect(details.lineHeight).toBeCloseTo(11 * 1.35, 5);
+    expect(details.color).toBe('rgba(64, 73, 67, 0.75)');
+    expect(String(details.fontFamily)).toMatch(/mono|Menlo|Courier/i);
 
     expect(screen.getByText('Reintentar')).toBeOnTheScreen();
   });

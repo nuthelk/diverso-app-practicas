@@ -27,7 +27,7 @@ import { Text } from '../Text';
 export interface TextFieldProps
   extends Omit<TextInputProps, 'value' | 'onChangeText' | 'style' | 'placeholder' | 'editable' | 'multiline'> {
   value: string;
-  onChangeText: (texto: string) => void;
+  onChangeText: (text: string) => void;
   /** `labelText`. */
   label?: string;
   /** `hintText`. */

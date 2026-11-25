@@ -84,9 +84,9 @@ describe('CollapsibleHeader', () => {
         },
       });
     });
-    const titulo = screen.getByTestId('cabecera-titulo');
-    expect(titulo).toHaveTextContent('Rutas de Antioquia Cultural');
-    expect(titulo.props.numberOfLines).toBe(1);
+    const title = screen.getByTestId('cabecera-titulo');
+    expect(title).toHaveTextContent('Rutas de Antioquia Cultural');
+    expect(title.props.numberOfLines).toBe(1);
 
     const backButton = screen.getByRole('button', { name: 'Volver' });
     await fireEvent.press(backButton);

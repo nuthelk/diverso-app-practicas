@@ -5,7 +5,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
-import { Card, Icon, IconButton, PriceText, PuntajePlan, Text, VerifiedBadge } from '@/ui/components';
+import { Card, Icon, IconButton, PriceText, PlanScore, Text, VerifiedBadge } from '@/ui/components';
 import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Alto de la portada de la tarjeta (y de su esqueleto). */
@@ -78,7 +78,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         </View>
         {plan.agency?.isVerified === true ? (
           <View style={estilos.sello}>
-            <VerifiedBadge blanco compacto />
+            <VerifiedBadge onPhoto compact />
           </View>
         ) : null}
         <View style={estilos.destino}>
@@ -117,9 +117,9 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         </Text>
         <View style={{ height: 8 }} />
         <View style={estilos.fila}>
-          <PuntajePlan plan={plan} />
+          <PlanScore plan={plan} />
           <View style={estilos.flex} />
-          <PriceText monto={plan.priceCop} />
+          <PriceText amount={plan.priceCop} />
         </View>
       </View>
     </>
