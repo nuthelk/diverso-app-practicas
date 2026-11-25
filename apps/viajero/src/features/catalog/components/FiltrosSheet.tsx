@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatFechaCorta } from '@/core';
@@ -29,33 +29,33 @@ export interface FiltrosDelCatalogo {
  * Hoja de filtros (`filtros_sheet.dart`): fecha, precio máximo y destino. Su estado es local
  * (parte de los filtros activos, para que cambiar solo el precio no borre el destino) y «Aplicar
  * filtros» cierra la hoja y los envía juntos con UNA consulta. «Limpiar» solo limpia la hoja.
+ *
+ * Android edge-to-edge (SDK 58): el Modal dibuja bajo las barras del sistema
+ * (`statusBarTranslucent` + `navigationBarTranslucent`) y la hoja llega al borde inferior real; el
+ * inset inferior es relleno del pie «Limpiar / Aplicar filtros», FIJO fuera del scroll. Con
+ * teclado sube con `behavior="padding"` en ambas plataformas: la ventana no se achica sola.
  */
 export function FiltrosSheet({ visible, vm, onCerrar }: { visible: boolean; vm: FiltrosDelCatalogo; onCerrar: () => void }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const abajo = useSafeAreaInsets().bottom;
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCerrar}>
-      <View style={estilos.raiz}>
+    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent navigationBarTranslucent onRequestClose={onCerrar}>
+      <KeyboardAvoidingView testID="filtros-teclado" behavior="padding" style={estilos.raiz}>
         <Pressable accessibilityLabel="Cerrar" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.32)' }]} onPress={onCerrar} />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View
-            testID="filtros-sheet"
-            style={[estilos.hoja, { backgroundColor: cs.surfaceContainerLow, paddingBottom: abajo }]}
-          >
-            {/* showDragHandle: 32 × 4, onSurfaceVariant al 40 %, 22 de aire arriba y abajo. */}
-            <View style={estilos.asa}>
-              <View style={[estilos.asaBarra, { backgroundColor: conAlfa(cs.onSurfaceVariant, 0.4) }]} />
-            </View>
-            {visible ? <ContenidoFiltros vm={vm} onCerrar={onCerrar} /> : null}
+        <View testID="filtros-sheet" style={[estilos.hoja, { backgroundColor: cs.surfaceContainerLow }]}>
+          {/* showDragHandle: 32 × 4, onSurfaceVariant al 40 %, 22 de aire arriba y abajo. */}
+          <View style={estilos.asa}>
+            <View style={[estilos.asaBarra, { backgroundColor: conAlfa(cs.onSurfaceVariant, 0.4) }]} />
           </View>
-        </KeyboardAvoidingView>
-      </View>
+          {visible ? <ContenidoFiltros vm={vm} onCerrar={onCerrar} abajo={abajo} /> : null}
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
-function ContenidoFiltros({ vm, onCerrar }: { vm: FiltrosDelCatalogo; onCerrar: () => void }) {
+function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onCerrar: () => void; abajo: number }) {
   const cs = useTheme().colorScheme;
   const [precio, setPrecio] = useState<number | null>(vm.precioMax);
   const [fecha, setFecha] = useState<Date | null>(vm.fecha);
@@ -79,63 +79,65 @@ function ContenidoFiltros({ vm, onCerrar }: { vm: FiltrosDelCatalogo; onCerrar: 
 
   const ahora = new Date();
   return (
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={estilos.contenido}>
-      <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
-      <View style={{ height: 22 }} />
-      <SectionLabel texto="Fecha del plan" />
-      <View style={estilos.fila}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
-          onPress={() => setEligiendoFecha(true)}
-          style={[estilos.opcionFecha, { backgroundColor: cs.surfaceContainerHigh }]}
-        >
-          <Icono nombre="calendar_month_rounded" size={19} color={cs.primary} />
-          <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.cuerpo }}>
-            {fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
-          </Text>
-        </Pressable>
-        {fecha !== null ? (
-          <>
-            <View style={{ width: 8 }} />
-            <IconButton variante="outlined" icono="close_rounded" tamanoIcono={18} tooltip="Quitar fecha" onPress={() => setFecha(null)} />
-          </>
-        ) : null}
-      </View>
-      <View style={{ height: 20 }} />
-      <SectionLabel texto="Precio máximo por persona" />
-      <View style={estilos.fila}>
-        <View style={estilos.flex}>
-          <DeslizadorPrecio
-            accessibilityLabel="Precio máximo por persona"
-            valor={Math.min(Math.max(precio ?? PRECIO_MAXIMO, PRECIO_MINIMO), PRECIO_MAXIMO)}
-            min={PRECIO_MINIMO}
-            max={PRECIO_MAXIMO}
-            divisiones={DIVISIONES_PRECIO}
-            etiqueta={formatCOP}
-            onCambio={(v) => setPrecio(v >= PRECIO_MAXIMO ? null : v)}
-          />
+    <>
+      <ScrollView testID="filtros-scroll" keyboardShouldPersistTaps="handled" style={estilos.scroll} contentContainerStyle={estilos.contenido}>
+        <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
+        <View style={{ height: 22 }} />
+        <SectionLabel texto="Fecha del plan" />
+        <View style={estilos.fila}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
+            onPress={() => setEligiendoFecha(true)}
+            style={[estilos.opcionFecha, { backgroundColor: cs.surfaceContainerHigh }]}
+          >
+            <Icono nombre="calendar_month_rounded" size={19} color={cs.primary} />
+            <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.cuerpo }}>
+              {fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
+            </Text>
+          </Pressable>
+          {fecha !== null ? (
+            <>
+              <View style={{ width: 8 }} />
+              <IconButton variante="outlined" icono="close_rounded" tamanoIcono={18} tooltip="Quitar fecha" onPress={() => setFecha(null)} />
+            </>
+          ) : null}
         </View>
-        <Text
-          testID="valor-precio"
-          style={{ width: 110, textAlign: 'right', fontWeight: '700', fontSize: AppText.cuerpoChico }}
-        >
-          {precio === null || precio === 0 ? 'Sin límite' : formatCOP(precio)}
-        </Text>
-      </View>
-      <View style={{ height: 20 }} />
-      {/* Buscador + lista propia (el menú desplegable dentro de la hoja no recibía los gestos). */}
-      <SectionLabel texto="Destino" />
-      <TextField
-        valor={busqueda}
-        onChangeText={setBusqueda}
-        pista="Buscar destino…"
-        icono="search_rounded"
-        returnKeyType="search"
-        testID="buscar-destino"
-      />
-      <View style={{ height: 8 }} />
-      <ScrollView nestedScrollEnabled style={{ maxHeight: 192 }} keyboardShouldPersistTaps="handled">
+        <View style={{ height: 20 }} />
+        <SectionLabel texto="Precio máximo por persona" />
+        <View style={estilos.fila}>
+          <View style={estilos.flex}>
+            <DeslizadorPrecio
+              accessibilityLabel="Precio máximo por persona"
+              valor={Math.min(Math.max(precio ?? PRECIO_MAXIMO, PRECIO_MINIMO), PRECIO_MAXIMO)}
+              min={PRECIO_MINIMO}
+              max={PRECIO_MAXIMO}
+              divisiones={DIVISIONES_PRECIO}
+              etiqueta={formatCOP}
+              onCambio={(v) => setPrecio(v >= PRECIO_MAXIMO ? null : v)}
+            />
+          </View>
+          <Text
+            testID="valor-precio"
+            style={{ width: 110, textAlign: 'right', fontWeight: '700', fontSize: AppText.cuerpoChico }}
+          >
+            {precio === null || precio === 0 ? 'Sin límite' : formatCOP(precio)}
+          </Text>
+        </View>
+        <View style={{ height: 20 }} />
+        {/* Buscador + lista propia (el menú desplegable dentro de la hoja no recibía los gestos). La
+            lista NO es un scroll anidado: con uno propio, el gesto sobre los destinos solo movía esa
+            lista y no la hoja. */}
+        <SectionLabel texto="Destino" />
+        <TextField
+          valor={busqueda}
+          onChangeText={setBusqueda}
+          pista="Buscar destino…"
+          icono="search_rounded"
+          returnKeyType="search"
+          testID="buscar-destino"
+        />
+        <View style={{ height: 8 }} />
         {opciones.map((d, i) => {
           const esTodos = i === 0;
           const sel = destino === (esTodos ? '' : d);
@@ -170,8 +172,8 @@ function ContenidoFiltros({ vm, onCerrar }: { vm: FiltrosDelCatalogo; onCerrar: 
           );
         })}
       </ScrollView>
-      <View style={{ height: 24 }} />
-      <View style={estilos.fila}>
+      {/* Pie fijo: siempre visible por larga que sea la lista; el inset inferior es su relleno. */}
+      <View testID="filtros-pie" style={[estilos.pie, { paddingBottom: 16 + abajo, borderTopColor: conAlfa(cs.outlineVariant, 0.5) }]}>
         <OutlinedButton texto="Limpiar" onPress={limpiar} style={estilos.flex} />
         <View style={{ width: 12 }} />
         <FilledButton icono="check_rounded" texto="Aplicar filtros" onPress={aplicar} style={{ flex: 2 }} />
@@ -189,7 +191,7 @@ function ContenidoFiltros({ vm, onCerrar }: { vm: FiltrosDelCatalogo; onCerrar: 
           }}
         />
       ) : null}
-    </ScrollView>
+    </>
   );
 }
 
@@ -203,7 +205,10 @@ const estilos = StyleSheet.create({
   },
   asa: { paddingVertical: 22, alignItems: 'center' },
   asaBarra: { width: 32, height: 4, borderRadius: 2 },
-  contenido: { paddingLeft: 24, paddingRight: 24, paddingBottom: 24 },
+  // Se encoge (no crece) para que, con mucho contenido o el teclado abierto, el pie no salga de la hoja.
+  scroll: { flexGrow: 0, flexShrink: 1 },
+  contenido: { paddingLeft: 24, paddingRight: 24, paddingBottom: 16 },
+  pie: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 24, paddingTop: 12, borderTopWidth: 1 },
   fila: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
   opcionFecha: {
