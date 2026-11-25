@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
@@ -147,12 +147,10 @@ function PortadaPlan({ plan }: { plan: Plan }) {
 const CSS_DEGRADADO = 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)';
 
 /**
- * `LinearGradient` de Flutter: en nativo `experimental_backgroundImage` (RN ≥ 0.76, arquitectura
- * nueva); en web, el `background-image` de CSS. No hace falta una dependencia de degradados.
+ * `LinearGradient` de Flutter con `backgroundImage` (estable en React Native; la misma propiedad
+ * sirve en web). No hace falta una dependencia de degradados.
  */
-const DEGRADADO_PORTADA = (
-  Platform.OS === 'web' ? { backgroundImage: CSS_DEGRADADO } : { experimental_backgroundImage: CSS_DEGRADADO }
-) as ViewStyle;
+const DEGRADADO_PORTADA: ViewStyle = { backgroundImage: CSS_DEGRADADO };
 
 const estilos = StyleSheet.create({
   flex: { flex: 1 },

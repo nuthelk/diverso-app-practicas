@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type { Booking } from '@/core';
 import { Text } from '@/ui/components';
@@ -10,13 +10,11 @@ import { ChipCodigo, EstadoReservaPill } from './Insignias';
 const ALTURA = 132;
 
 /**
- * `LinearGradient` negro 38 % → transparente (stops 0 / .55): en nativo
- * `experimental_backgroundImage` (RN ≥ 0.76, arquitectura nueva); en web, el CSS.
+ * `LinearGradient` negro 38 % → transparente (stops 0 / .55) con `backgroundImage`, estable en
+ * React Native 0.88 (`experimental_backgroundImage` queda solo como alias); sirve igual en web.
  */
 const CSS_DEGRADADO = 'linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0) 55%)';
-const DEGRADADO = (
-  Platform.OS === 'web' ? { backgroundImage: CSS_DEGRADADO } : { experimental_backgroundImage: CSS_DEGRADADO }
-) as ViewStyle;
+const DEGRADADO: ViewStyle = { backgroundImage: CSS_DEGRADADO };
 
 /** Meses de la insignia: lista fija en mayúsculas sin punto. */
 const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'] as const;

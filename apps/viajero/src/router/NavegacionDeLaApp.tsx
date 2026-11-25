@@ -1,4 +1,4 @@
-import { Stack, useRouter, useUnstableGlobalHref, type Href } from 'expo-router';
+import { Stack, useRouter, type Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
@@ -9,6 +9,7 @@ import type { EstadoConsentimiento } from '@/features/legal/view-models/consent-
 import { opcionesDePantalla, useTheme } from '@/ui/theme';
 
 import { pantallaVisible, sesionRedirect } from './sesion-redirect';
+import { useUbicacion } from './ubicacion';
 
 /**
  * Aplica el guard (`redirect` de go_router): con la ubicación global (path + query) calcula
@@ -27,7 +28,7 @@ function useGuardia({
   const router = useRouter();
   // Privado/inestable en Expo Router, pero es la única API que da la URL con su query: el
   // `desde` de `/consentimiento` debe conservarla (`/comparar?ids=a,b`).
-  const ubicacion = useUnstableGlobalHref();
+  const ubicacion = useUbicacion();
   const destino = preparado ? sesionRedirect({ haySesion, consentimiento, ubicacion }) : null;
 
   useEffect(() => {
