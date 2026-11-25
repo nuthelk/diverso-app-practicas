@@ -11,44 +11,44 @@ import { Text } from '../Text';
  * (monospace, para soporte) y acción opcional.
  */
 export function EmptyState({
-  icono,
-  titulo,
-  mensaje,
-  detalle,
-  accion,
+  icon,
+  title,
+  message,
+  details,
+  action,
 }: {
-  icono: IconName;
-  titulo: string;
-  mensaje: string;
+  icon: IconName;
+  title: string;
+  message: string;
   /** Causa técnica (excepción cruda) en pequeño. */
-  detalle?: string | null;
-  accion?: ReactNode;
+  details?: string | null;
+  action?: ReactNode;
 }) {
   const cs = useTheme().colorScheme;
   return (
-    <View style={estilos.centro}>
-      <View style={estilos.columna}>
-        <View testID="empty-state-icono" style={[estilos.circulo, AppInsets.largeCard, { backgroundColor: cs.surfaceContainerHigh }]}>
-          <Icon name={icono} size={30} color={cs.onSurfaceVariant} />
+    <View style={styles.center}>
+      <View style={styles.column}>
+        <View testID="empty-state-icono" style={[styles.circle, AppInsets.largeCard, { backgroundColor: cs.surfaceContainerHigh }]}>
+          <Icon name={icon} size={30} color={cs.onSurfaceVariant} />
         </View>
         <View style={{ height: 16 }} />
         {/* Sin color propio: hereda el del texto por defecto, como en Flutter. */}
-        <Text style={{ fontSize: AppText.largeSubtitle, fontWeight: '700', letterSpacing: -0.3 }}>{titulo}</Text>
+        <Text style={{ fontSize: AppText.largeSubtitle, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
         <View style={{ height: 5 }} />
         <Text
           height={1.45}
-          style={[estilos.mensaje, { fontSize: AppText.smallBody, color: cs.onSurfaceVariant }]}
+          style={[styles.message, { fontSize: AppText.smallBody, color: cs.onSurfaceVariant }]}
         >
-          {mensaje}
+          {message}
         </Text>
-        {detalle != null ? (
+        {details != null ? (
           <>
             <View style={{ height: 8 }} />
             <Text
               testID="empty-state-detalle"
               height={1.35}
               style={[
-                estilos.detalle,
+                styles.details,
                 {
                   fontSize: AppText.note,
                   fontFamily: Platform.OS === 'ios' ? monospaceFamily.ios : monospaceFamily.others,
@@ -56,14 +56,14 @@ export function EmptyState({
                 },
               ]}
             >
-              {detalle}
+              {details}
             </Text>
           </>
         ) : null}
-        {accion ? (
+        {action ? (
           <>
             <View style={{ height: 18 }} />
-            {accion}
+            {action}
           </>
         ) : null}
       </View>
@@ -71,10 +71,10 @@ export function EmptyState({
   );
 }
 
-const estilos = StyleSheet.create({
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  columna: { padding: 36, alignItems: 'center' },
-  circulo: { borderRadius: 999 },
-  mensaje: { maxWidth: 300, textAlign: 'center' },
-  detalle: { maxWidth: 340, textAlign: 'center' },
+const styles = StyleSheet.create({
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  column: { padding: 36, alignItems: 'center' },
+  circle: { borderRadius: 999 },
+  message: { maxWidth: 300, textAlign: 'center' },
+  details: { maxWidth: 340, textAlign: 'center' },
 });

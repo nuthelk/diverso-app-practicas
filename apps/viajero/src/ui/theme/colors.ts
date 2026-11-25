@@ -160,7 +160,7 @@ const diversoLight: DiversoColorsTokens = {
 
 export const DiversoColors = {
   light: diversoLight,
-  /** Hoy iguales a `claro` (como en Flutter). */
+  /** Hoy iguales a `light` (como en Flutter). */
   dark: diversoLight,
   /** Círculo de iniciales de las agencias (todos con contraste con blanco). El orden importa. */
   agencyPalette: [

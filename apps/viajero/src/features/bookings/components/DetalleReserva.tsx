@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BookingStatus, formatCOP, type Booking } from '@/core';
 import {
-  CabeceraColapsable,
+  CollapsibleHeader,
   FilledButton,
   Icon,
   OutlinedButton,
@@ -46,11 +46,11 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
   const agencia = plan?.agency?.name ?? null;
 
   return (
-    <CabeceraColapsable
-      titulo={titulo}
-      alturaExpandida={240}
-      onVolver={onVolver}
-      fondo={<FotoReserva booking={booking} />}
+    <CollapsibleHeader
+      title={titulo}
+      expandedHeight={240}
+      onBack={onVolver}
+      background={<FotoReserva booking={booking} />}
     >
       <View style={{ paddingLeft: 22, paddingRight: 22, paddingTop: 20, paddingBottom: 28 + abajo }}>
         <Text height={1.15} style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.7 }}>
@@ -90,7 +90,7 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
         <View style={{ height: 24 }} />
         <AccionesDetalleReserva {...props} />
       </View>
-    </CabeceraColapsable>
+    </CollapsibleHeader>
   );
 }
 

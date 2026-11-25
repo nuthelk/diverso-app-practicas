@@ -8,7 +8,7 @@ import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotant
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
-import { Divider, Icon, OutlinedButton, SectionLabel, Text, TextButton, TituloPagina, type IconName } from '@/ui/components';
+import { Divider, Icon, OutlinedButton, SectionLabel, Text, TextButton, PageTitle, type IconName } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { SelectorApariencia } from '../components/SelectorApariencia';
@@ -38,7 +38,7 @@ export function ProfileView() {
 
   return (
     <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo={<TituloPagina texto="Perfil" />} />
+      <BarraSuperior titulo={<PageTitle text="Perfil" />} />
       <ScrollView contentContainerStyle={estilos.lista}>
         {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
         <View testID="columna-perfil" style={estilos.columna}>

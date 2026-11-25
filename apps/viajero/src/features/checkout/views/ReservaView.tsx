@@ -46,10 +46,10 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
     contenido = (
       <Estado>
         <EmptyState
-          icono="cloud_off_rounded"
-          titulo="No pudimos cargar la reserva"
-          mensaje={vm.error ?? ''}
-          accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
+          icon="cloud_off_rounded"
+          title="No pudimos cargar la reserva"
+          message={vm.error ?? ''}
+          action={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
         />
       </Estado>
     );
@@ -67,10 +67,10 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
         contenido = (
           <Estado>
             <EmptyState
-              icono="event_busy_rounded"
-              titulo="Reserva cancelada"
-              mensaje={noLineBreaks(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
-              accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
+              icon="event_busy_rounded"
+              title="Reserva cancelada"
+              message={noLineBreaks(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
+              action={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAReservas} />}
             />
           </Estado>
         );

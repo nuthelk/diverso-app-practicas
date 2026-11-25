@@ -47,10 +47,10 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
   } else {
     cuerpo = (
       <EmptyState
-        icono="cloud_off_rounded"
-        titulo="No pudimos cargar la comparación"
-        mensaje={vm.error}
-        accion={
+        icon="cloud_off_rounded"
+        title="No pudimos cargar la comparación"
+        message={vm.error}
+        action={
           <View style={estilos.acciones}>
             <FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />
             <TextButton text="Ir al catálogo" onPress={() => router.replace(AppRoutes.explorar as Href)} />

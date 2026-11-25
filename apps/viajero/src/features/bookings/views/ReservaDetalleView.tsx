@@ -116,10 +116,10 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   if (vm.error !== null) {
     return marco(
       <EmptyState
-        icono="cloud_off_rounded"
-        titulo="No pudimos cargar la reserva"
-        mensaje={vm.error}
-        accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.centro} />}
+        icon="cloud_off_rounded"
+        title="No pudimos cargar la reserva"
+        message={vm.error}
+        action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.centro} />}
       />,
     );
   }

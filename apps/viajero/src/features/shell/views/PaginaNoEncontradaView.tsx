@@ -13,11 +13,11 @@ export function PaginaNoEncontradaView({ ubicacion }: { ubicacion: string }) {
   return (
     <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <EmptyState
-        icono="explore_off_rounded"
-        titulo="No encontramos esta página"
-        mensaje="El enlace puede estar mal escrito o la página ya no existe."
-        detalle={ubicacion}
-        accion={<FilledButton text="Ir al inicio" onPress={() => router.replace(AppRoutes.explorar as Href)} />}
+        icon="explore_off_rounded"
+        title="No encontramos esta página"
+        message="El enlace puede estar mal escrito o la página ya no existe."
+        details={ubicacion}
+        action={<FilledButton text="Ir al inicio" onPress={() => router.replace(AppRoutes.explorar as Href)} />}
       />
     </SafeAreaView>
   );

@@ -23,8 +23,8 @@ export { AgencyAvatar, agencyColor, hashFnv1a, type AgencyAvatarData } from './A
 export { SectionLabel } from './SectionLabel';
 export { EmptyState } from './feedback/EmptyState';
 export { Skeleton } from './feedback/Skeleton';
-export { CabeceraColapsable, medidasCabecera } from './page/CabeceraColapsable';
-export { estiloTituloPagina, TituloPagina } from './page/TituloPagina';
+export { CollapsibleHeader, headerMetrics } from './page/CollapsibleHeader';
+export { pageTitleStyle, PageTitle } from './page/PageTitle';
 export { EstrellasCalificacion, InsigniaNueva, RatingStars } from './rating/Rating';
 export { PuntajePlan } from './rating/PuntajePlan';
 export { PriceText } from './plan/PriceText';

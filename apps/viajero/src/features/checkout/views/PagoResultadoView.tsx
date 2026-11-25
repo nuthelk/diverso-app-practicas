@@ -98,10 +98,10 @@ function ErrorVerificacion({
   const definitivo = falla.approvedLate || falla.code === 'MONTO_NO_COINCIDE';
   return (
     <EmptyState
-      icono={falla.approvedLate ? 'history_toggle_off_rounded' : 'error_outline_rounded'}
-      titulo={falla.approvedLate ? 'Tu reserva había vencido' : 'No pudimos verificar el pago'}
-      mensaje={falla.userMessage}
-      accion={
+      icon={falla.approvedLate ? 'history_toggle_off_rounded' : 'error_outline_rounded'}
+      title={falla.approvedLate ? 'Tu reserva había vencido' : 'No pudimos verificar el pago'}
+      message={falla.userMessage}
+      action={
         <Acciones>
           {!definitivo ? <FilledButton text="Reintentar" onPress={verificar} /> : null}
           <VerReservas principal={definitivo} onPress={irAReservas} />
@@ -131,11 +131,11 @@ function ResultadoNoAprobado({
       : `${r.userMessage} Tu reserva ya no está vigente; vuelve a reservar.`;
   return (
     <EmptyState
-      icono={pendiente ? 'hourglass_top_rounded' : 'credit_card_off_rounded'}
-      titulo={pendiente ? 'Pago pendiente' : 'El pago no se completó'}
-      mensaje={mensaje}
-      detalle={vm.errorReintento}
-      accion={
+      icon={pendiente ? 'hourglass_top_rounded' : 'credit_card_off_rounded'}
+      title={pendiente ? 'Pago pendiente' : 'El pago no se completó'}
+      message={mensaje}
+      details={vm.errorReintento}
+      action={
         <Acciones>
           {puedeReintentar ? (
             <FilledButton

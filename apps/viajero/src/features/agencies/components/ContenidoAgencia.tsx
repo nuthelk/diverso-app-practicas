@@ -4,7 +4,7 @@ import { RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-nat
 import type { AgencySummary, Plan } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
-import { AgencyAvatar, CabeceraColapsable, estiloTituloPagina, SectionLabel, Text, VerifiedBadge } from '@/ui/components';
+import { AgencyAvatar, CollapsibleHeader, pageTitleStyle, SectionLabel, Text, VerifiedBadge } from '@/ui/components';
 import { AppInsets, AppText, AppTheme, useTheme } from '@/ui/theme';
 
 import { DatosAgencia, PortadaAgencia } from './AgenciaCard';
@@ -41,11 +41,11 @@ export function ContenidoAgencia({
   };
 
   return (
-    <CabeceraColapsable
-      titulo={agencia.name}
-      alturaExpandida={220}
-      onVolver={onVolver}
-      fondo={<PortadaAgencia agencia={agencia} />}
+    <CollapsibleHeader
+      title={agencia.name}
+      expandedHeight={220}
+      onBack={onVolver}
+      background={<PortadaAgencia agencia={agencia} />}
       scrollViewProps={{
         refreshControl: <RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[cs.primary]} tintColor={cs.primary} />,
         alwaysBounceVertical: true,
@@ -56,7 +56,7 @@ export function ContenidoAgencia({
           <AgencyAvatar agency={agencia} size={64} />
           <View style={{ width: 14 }} />
           <View style={estilos.flex}>
-            <Text height={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.headingXl }]}>
+            <Text height={1.1} accessibilityRole="header" style={[pageTitleStyle(cs), { fontSize: AppText.headingXl }]}>
               {agencia.name}
             </Text>
             <View style={{ height: 8 }} />
@@ -100,7 +100,7 @@ export function ContenidoAgencia({
           )}
         </View>
       )}
-    </CabeceraColapsable>
+    </CollapsibleHeader>
   );
 }
 

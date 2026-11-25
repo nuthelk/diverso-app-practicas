@@ -4,13 +4,13 @@ import { AppText, useTheme, type ColorScheme } from '@/ui/theme';
 
 import { Text } from '../Text';
 
-/** `TituloPagina.estilo(cs)`: 28 w800 ls -1 onSurface (la altura 1.1 va con `altura`). */
-export function estiloTituloPagina(cs: ColorScheme): TextStyle {
+/** `TituloPagina.estilo(cs)`: 28 w800 ls -1 onSurface (la altura 1.1 va con `height`). */
+export function pageTitleStyle(cs: ColorScheme): TextStyle {
   return { fontSize: AppText.pageTitle, fontWeight: '800', letterSpacing: -1, color: cs.onSurface };
 }
 
 /** Título de pestaña (Explorar, Agencias, Reservas, Perfil): grande, una línea, encabezado. */
-export function TituloPagina({ texto }: { texto: string }) {
+export function PageTitle({ text }: { text: string }) {
   const cs = useTheme().colorScheme;
   return (
     <Text
@@ -18,9 +18,9 @@ export function TituloPagina({ texto }: { texto: string }) {
       numberOfLines={1}
       ellipsizeMode="tail"
       height={1.1}
-      style={estiloTituloPagina(cs)}
+      style={pageTitleStyle(cs)}
     >
-      {texto}
+      {text}
     </Text>
   );
 }

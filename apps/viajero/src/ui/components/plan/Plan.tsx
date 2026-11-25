@@ -57,7 +57,7 @@ export function TarjetaCancelacion({ texto }: { texto: string }) {
   );
 }
 
-/** Lo que el paso necesita de `ItinerarioPaso` (core). */
+/** Lo que el paso necesita de `ItineraryStep` (core). */
 export interface PasoItinerarioDatos {
   time: string;
   activity: string;

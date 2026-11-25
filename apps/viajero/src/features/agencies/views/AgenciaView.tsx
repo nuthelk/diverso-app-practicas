@@ -51,11 +51,11 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
     cuerpo = (
       <AvisoAgencia onVolver={volver}>
         <EmptyState
-          icono="cloud_off_rounded"
-          titulo="No pudimos cargar la agencia"
-          mensaje={vm.error}
-          detalle={vm.errorDetalle}
-          accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+          icon="cloud_off_rounded"
+          title="No pudimos cargar la agencia"
+          message={vm.error}
+          details={vm.errorDetalle}
+          action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
         />
       </AvisoAgencia>
     );
@@ -63,9 +63,9 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
     cuerpo = (
       <AvisoAgencia onVolver={volver}>
         <EmptyState
-          icono="storefront_outlined"
-          titulo="Agencia no disponible"
-          mensaje="Esta agencia no existe o ya no tiene planes publicados."
+          icon="storefront_outlined"
+          title="Agencia no disponible"
+          message="Esta agencia no existe o ya no tiene planes publicados."
         />
       </AvisoAgencia>
     );

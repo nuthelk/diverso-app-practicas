@@ -5,7 +5,7 @@ import { useDependencies } from '@/composition';
 import { LABEL_AGENCY_SORT, AgencySort, valuesOf } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { EmptyState, FilledButton, SegmentedButton, Skeleton, TituloPagina } from '@/ui/components';
+import { EmptyState, FilledButton, SegmentedButton, Skeleton, PageTitle } from '@/ui/components';
 import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
 
 import { AgenciaCard } from '../components/AgenciaCard';
@@ -42,7 +42,7 @@ export function AgenciasView() {
 
   return (
     <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo={<TituloPagina texto="Agencias" />} />
+      <BarraSuperior titulo={<PageTitle text="Agencias" />} />
       <ScrollView
         testID="agencias-scroll"
         style={estilos.flex}
@@ -65,17 +65,17 @@ export function AgenciasView() {
           </View>
         ) : vm.error !== null && !vm.hayAgencias ? (
           <EmptyState
-            icono="cloud_off_rounded"
-            titulo="Sin conexión"
-            mensaje={vm.error}
-            detalle={vm.errorDetalle}
-            accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+            icon="cloud_off_rounded"
+            title="Sin conexión"
+            message={vm.error}
+            details={vm.errorDetalle}
+            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
           />
         ) : !vm.hayAgencias ? (
           <EmptyState
-            icono="storefront_outlined"
-            titulo="Aún no hay agencias"
-            mensaje="Cuando una agencia verificada publique planes, la verás aquí."
+            icon="storefront_outlined"
+            title="Aún no hay agencias"
+            message="Cuando una agencia verificada publique planes, la verás aquí."
           />
         ) : (
           <View testID="lista-agencias" style={AppInsets.list}>

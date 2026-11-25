@@ -24,7 +24,7 @@ export function agencyColor(key: string): string {
   return palette[hashFnv1a(key) % palette.length];
 }
 
-/** Lo que el avatar necesita de `AgenciaResumen` (core). */
+/** Lo que el avatar necesita de `AgencySummary` (core). */
 export interface AgencyAvatarData {
   id: string;
   initials: string;

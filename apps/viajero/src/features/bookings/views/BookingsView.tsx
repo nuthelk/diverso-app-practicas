@@ -9,7 +9,7 @@ import { irA } from '@/features/checkout/ir-a';
 import { AvisoFlotante } from '@/features/compartido/aviso-flotante';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes } from '@/router';
-import { EmptyState, FilledButton, Text, TituloPagina } from '@/ui/components';
+import { EmptyState, FilledButton, Text, PageTitle } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
 import { useAccionesReserva } from '../acciones-reserva';
@@ -92,25 +92,25 @@ export function BookingsView() {
     <ReservasSkeleton />
   ) : vm.error !== null ? (
     <EmptyState
-      icono="cloud_off_rounded"
-      titulo="Sin conexión"
-      mensaje={vm.error}
-      accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.accion} />}
+      icon="cloud_off_rounded"
+      title="Sin conexión"
+      message={vm.error}
+      action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.accion} />}
     />
   ) : vm.reservas.length === 0 ? (
     <EmptyState
-      icono="luggage_rounded"
-      titulo="Aún no tienes reservas"
-      mensaje="Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario."
+      icon="luggage_rounded"
+      title="Aún no tienes reservas"
+      message="Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario."
     />
   ) : pestana === 0 && vm.activas.length === 0 ? (
     // Sin viajes próximos: en vez de una línea suelta, invita a ir a «Explorar» (pestaña que ya
     // existe: `navigate`, no se apila otra encima).
     <EmptyState
-      icono="explore_rounded"
-      titulo="Sin viajes próximos"
-      mensaje="¡Hora de explorar!"
-      accion={
+      icon="explore_rounded"
+      title="Sin viajes próximos"
+      message="¡Hora de explorar!"
+      action={
         <FilledButton
           variant="tonal"
           text="Explorar planes"
@@ -132,7 +132,7 @@ export function BookingsView() {
   return (
     <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
-      <BarraSuperior titulo={<TituloPagina texto="Mis reservas" />} />
+      <BarraSuperior titulo={<PageTitle text="Mis reservas" />} />
       <PestanasReservas
         pestanas={[`Próximas (${vm.activas.length})`, `Historial (${vm.historial.length})`]}
         seleccionada={pestana}

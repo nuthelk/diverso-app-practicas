@@ -74,7 +74,7 @@ export const AppText = {
   headingXl: 24,
   heading2xl: 25,
   heading3xl: 26,
-  /** Título de cada pestaña; ver `TituloPagina`. */
+  /** Título de cada pestaña; ver `PageTitle`. */
   pageTitle: 28,
   /** Cifras y códigos que son el dato de la pantalla. */
   figure: 30,
@@ -115,7 +115,7 @@ export function robotoFamily(weight: FontWeight | undefined): string {
   return robotoFiles[numericWeight(weight)];
 }
 
-/** Monospace de `EmptyState.detalle` (`fontFamily: 'monospace'`). */
+/** Monospace de `EmptyState.details` (`fontFamily: 'monospace'`). */
 export const monospaceFamily = { ios: 'Menlo', others: 'monospace' } as const;
 
 /** Lo que un `DefaultTextStyle` deja heredar. `height: null` = altura natural de la fuente. */

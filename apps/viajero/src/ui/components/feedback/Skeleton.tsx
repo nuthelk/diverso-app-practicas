@@ -17,19 +17,19 @@ export function Skeleton({
   radius?: number;
 }) {
   const base = useTheme().colorScheme.surfaceContainerHigh;
-  const opacidad = useRef(new Animated.Value(0.45)).current;
+  const opacity = useRef(new Animated.Value(0.45)).current;
   useEffect(() => {
-    const tramo = (hacia: number) =>
-      Animated.timing(opacidad, {
-        toValue: hacia,
+    const step = (target: number) =>
+      Animated.timing(opacity, {
+        toValue: target,
         duration: Durations.skeleton,
         easing: Curves.easeInOut.fn,
         useNativeDriver: true,
       });
-    const pulso = Animated.loop(Animated.sequence([tramo(1), tramo(0.45)]));
-    pulso.start();
-    return () => pulso.stop();
-  }, [opacidad]);
+    const pulse = Animated.loop(Animated.sequence([step(1), step(0.45)]));
+    pulse.start();
+    return () => pulse.stop();
+  }, [opacity]);
   return (
     <Animated.View
       testID="skeleton"
@@ -39,7 +39,7 @@ export function Skeleton({
         height,
         borderRadius: radius,
         backgroundColor: base,
-        opacity: opacidad,
+        opacity,
       }}
     />
   );

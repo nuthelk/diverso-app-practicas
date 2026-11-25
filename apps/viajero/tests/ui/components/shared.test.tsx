@@ -7,24 +7,24 @@ import {
   SectionLabel,
   Skeleton,
   Text,
-  TituloPagina,
+  PageTitle,
 } from '@/ui/components';
 import { Curves, lightTheme, darkTheme } from '@/ui/theme';
 
 import { icon, renderWithTheme } from '../support/render-with-theme';
 
-const estilo = (el: { props: { style?: unknown } }) =>
+const styleOf = (el: { props: { style?: unknown } }) =>
   StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
 
 describe('SectionLabel', () => {
   it('en mayúsculas 11.5 w700 ls 1.2 onSurfaceVariant con 10 abajo', async () => {
     await renderWithTheme(<SectionLabel text="Itinerario" />);
-    const s = estilo(screen.getByText('ITINERARIO'));
+    const s = styleOf(screen.getByText('ITINERARIO'));
     expect(s.fontSize).toBe(11.5);
     expect(s.fontWeight).toBe('700');
     expect(s.letterSpacing).toBe(1.2);
     expect(s.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
-    expect(estilo(screen.getByTestId('section-label')).paddingBottom).toBe(10);
+    expect(styleOf(screen.getByTestId('section-label')).paddingBottom).toBe(10);
   });
 
   it('con acción a la derecha', async () => {
@@ -35,17 +35,17 @@ describe('SectionLabel', () => {
 
 describe('TituloPagina', () => {
   it('28 w800 ls -1 altura 1.1 onSurface, una línea, encabezado', async () => {
-    await renderWithTheme(<TituloPagina texto="Agencias" />, { mode: 'dark' });
-    const titulo = screen.getByRole('header', { name: 'Agencias' });
-    const s = estilo(titulo);
+    await renderWithTheme(<PageTitle text="Agencias" />, { mode: 'dark' });
+    const title = screen.getByRole('header', { name: 'Agencias' });
+    const s = styleOf(title);
     expect(s.fontSize).toBe(28);
     expect(s.fontWeight).toBe('800');
     expect(s.letterSpacing).toBe(-1);
     expect(s.lineHeight).toBeCloseTo(30.8, 5);
     // Port de cabeceras_test: en oscuro el título se lee (onSurface del tema oscuro).
     expect(s.color).toBe(darkTheme.colorScheme.onSurface);
-    expect(titulo.props.numberOfLines).toBe(1);
-    expect(titulo.props.ellipsizeMode).toBe('tail');
+    expect(title.props.numberOfLines).toBe(1);
+    expect(title.props.ellipsizeMode).toBe('tail');
   });
 });
 
@@ -53,34 +53,34 @@ describe('EmptyState', () => {
   it('ícono en círculo, título, mensaje, detalle monospace y acción', async () => {
     await renderWithTheme(
       <EmptyState
-        icono="cloud_off_rounded"
-        titulo="Sin conexión"
-        mensaje="No pudimos cargar los planes."
-        detalle="SocketException: x"
-        accion={<Text>Reintentar</Text>}
+        icon="cloud_off_rounded"
+        title="Sin conexión"
+        message="No pudimos cargar los planes."
+        details="SocketException: x"
+        action={<Text>Reintentar</Text>}
       />,
     );
     const ic = icon('cloud_off_rounded');
     expect(ic.size).toBe(30);
     expect(ic.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
-    expect(estilo(screen.getByTestId('empty-state-icono')).backgroundColor).toBe(
+    expect(styleOf(screen.getByTestId('empty-state-icono')).backgroundColor).toBe(
       lightTheme.colorScheme.surfaceContainerHigh,
     );
 
-    const titulo = estilo(screen.getByText('Sin conexión'));
-    expect(titulo.fontSize).toBe(17);
-    expect(titulo.fontWeight).toBe('700');
-    expect(titulo.letterSpacing).toBe(-0.3);
+    const title = styleOf(screen.getByText('Sin conexión'));
+    expect(title.fontSize).toBe(17);
+    expect(title.fontWeight).toBe('700');
+    expect(title.letterSpacing).toBe(-0.3);
     // El título no fija color: hereda el del texto por defecto, como en Flutter.
-    expect(titulo.color).toBe('#1D1B20');
+    expect(title.color).toBe('#1D1B20');
 
-    const mensaje = estilo(screen.getByText('No pudimos cargar los planes.'));
+    const mensaje = styleOf(screen.getByText('No pudimos cargar los planes.'));
     expect(mensaje.fontSize).toBe(13.5);
     expect(mensaje.lineHeight).toBeCloseTo(13.5 * 1.45, 5);
     expect(mensaje.textAlign).toBe('center');
     expect(mensaje.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
 
-    const detalle = estilo(screen.getByText('SocketException: x'));
+    const detalle = styleOf(screen.getByText('SocketException: x'));
     expect(detalle.fontSize).toBe(11);
     expect(detalle.lineHeight).toBeCloseTo(11 * 1.35, 5);
     expect(detalle.color).toBe('rgba(64, 73, 67, 0.75)');
@@ -90,7 +90,7 @@ describe('EmptyState', () => {
   });
 
   it('sin detalle ni acción', async () => {
-    await renderWithTheme(<EmptyState icono="search_off_rounded" titulo="Nada" mensaje="Probá otro filtro." />);
+    await renderWithTheme(<EmptyState icon="search_off_rounded" title="Nada" message="Probá otro filtro." />);
     expect(screen.getByText('Nada')).toBeOnTheScreen();
     expect(screen.queryByTestId('empty-state-detalle')).toBeNull();
   });
@@ -101,7 +101,7 @@ describe('Skeleton', () => {
 
   it('caja surfaceContainerHigh 16 de alto y radio 10 por defecto, arranca en .45', async () => {
     await renderWithTheme(<Skeleton />);
-    const s = estilo(screen.getByTestId('skeleton'));
+    const s = styleOf(screen.getByTestId('skeleton'));
     expect(s.backgroundColor).toBe(lightTheme.colorScheme.surfaceContainerHigh);
     expect(s.height).toBe(16);
     expect(s.borderRadius).toBe(10);
@@ -112,8 +112,8 @@ describe('Skeleton', () => {
     const timing = jest.spyOn(Animated, 'timing');
     const loop = jest.spyOn(Animated, 'loop');
     await renderWithTheme(<Skeleton />);
-    const tramos = timing.mock.calls.map(([, config]) => config);
-    expect(tramos).toEqual([
+    const steps = timing.mock.calls.map(([, config]) => config);
+    expect(steps).toEqual([
       expect.objectContaining({ toValue: 1, duration: 1100, easing: Curves.easeInOut.fn }),
       expect.objectContaining({ toValue: 0.45, duration: 1100, easing: Curves.easeInOut.fn }),
     ]);
@@ -122,7 +122,7 @@ describe('Skeleton', () => {
 
   it('medidas propias', async () => {
     await renderWithTheme(<Skeleton width={120} height={22} radius={6} />);
-    const s = estilo(screen.getByTestId('skeleton'));
+    const s = styleOf(screen.getByTestId('skeleton'));
     expect([s.width, s.height, s.borderRadius]).toEqual([120, 22, 6]);
   });
 });
@@ -131,7 +131,7 @@ describe('DiversoLogo', () => {
   it('máscara del colibrí teñida, 48 por defecto, sin semántica', async () => {
     await renderWithTheme(<DiversoLogo />);
     const logo = screen.getByTestId('diverso-logo', { includeHiddenElements: true });
-    const s = estilo(logo);
+    const s = styleOf(logo);
     expect(s.width).toBe(48);
     expect(s.height).toBe(48);
     expect(s.tintColor).toBe('#FFFFFF');
@@ -140,7 +140,7 @@ describe('DiversoLogo', () => {
 
   it('color y tamaño del llamador', async () => {
     await renderWithTheme(<DiversoLogo color="#1F6A4F" size={64} />);
-    const s = estilo(screen.getByTestId('diverso-logo', { includeHiddenElements: true }));
+    const s = styleOf(screen.getByTestId('diverso-logo', { includeHiddenElements: true }));
     expect([s.width, s.tintColor]).toEqual([64, '#1F6A4F']);
   });
 });

@@ -6,7 +6,7 @@ import { useDependencies } from '@/composition';
 import { formatCOP, formatShortDate, valuesOf, ExperienceCategory } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes } from '@/router';
-import { EmptyState, FilledButton, IconButton, InputChip, TextField, TituloPagina } from '@/ui/components';
+import { EmptyState, FilledButton, IconButton, InputChip, TextField, PageTitle } from '@/ui/components';
 import { AppInsets, AppTheme, useTheme } from '@/ui/theme';
 
 import { BandejaAnimada } from '../components/BandejaComparar';
@@ -56,7 +56,7 @@ export function CatalogView() {
   return (
     <View testID="pantalla-CatalogView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* El título va en la barra, fuera del scroll: las tarjetas no pasan bajo la barra de estado. */}
-      <BarraSuperior titulo={<TituloPagina texto="Descubre Antioquia" />} />
+      <BarraSuperior titulo={<PageTitle text="Descubre Antioquia" />} />
       <ScrollView
         testID="catalogo-scroll"
         style={estilos.flex}
@@ -127,14 +127,14 @@ export function CatalogView() {
           <ResultadosSkeleton esGrid={esGrid} anchoUtil={width - LADOS_LISTA} />
         ) : vm.error !== null ? (
           <EmptyState
-            icono="cloud_off_rounded"
-            titulo="Sin conexión"
-            mensaje={vm.error}
-            detalle={vm.errorDetalle}
-            accion={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+            icon="cloud_off_rounded"
+            title="Sin conexión"
+            message={vm.error}
+            details={vm.errorDetalle}
+            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
           />
         ) : vm.planes.length === 0 ? (
-          <EmptyState icono="search_off_rounded" titulo="Sin resultados" mensaje="Prueba con otro destino o quita algunos filtros." />
+          <EmptyState icon="search_off_rounded" title="Sin resultados" message="Prueba con otro destino o quita algunos filtros." />
         ) : (
           <View testID="resultados" style={AppInsets.roomyList}>
             {esGrid ? (

@@ -7,7 +7,7 @@ import type { Plan, Review } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import {
-  CabeceraColapsable,
+  CollapsibleHeader,
   EmptyState,
   FilledButton,
   Icon,
@@ -57,10 +57,10 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
         {/* En Flutter el error no tenía cómo volver; abierta en frío dejaba al viajero atrapado. */}
         <BarraSuperior titulo="" onVolver={volver} />
         <EmptyState
-          icono="cloud_off_rounded"
-          titulo="No pudimos cargar el plan"
-          mensaje={vm.error ?? ''}
-          accion={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />}
+          icon="cloud_off_rounded"
+          title="No pudimos cargar el plan"
+          message={vm.error ?? ''}
+          action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />}
         />
       </>
     );
@@ -69,9 +69,9 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
     cuerpo = (
       <>
         <View testID="ficha-contenido" style={estilos.flex}>
-          <CabeceraColapsable titulo={plan.title} alturaExpandida={300} onVolver={volver} fondo={<GaleriaPlan fotos={plan.photos} />}>
+          <CollapsibleHeader title={plan.title} expandedHeight={300} onBack={volver} background={<GaleriaPlan fotos={plan.photos} />}>
             <ContenidoFicha plan={plan} resenas={vm.resenas} />
-          </CabeceraColapsable>
+          </CollapsibleHeader>
         </View>
         {/* Debajo del scroll, no encima: el contenido termina donde empieza la barra. */}
         <BarraReserva

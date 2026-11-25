@@ -62,10 +62,10 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   } else if (vm.error !== null) {
     cuerpo = (
       <EmptyState
-        icono="cloud_off_rounded"
-        titulo="No pudimos cargar la reserva"
-        mensaje={vm.error}
-        accion={
+        icon="cloud_off_rounded"
+        title="No pudimos cargar la reserva"
+        message={vm.error}
+        action={
           <View style={estilos.acciones}>
             <FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} />
             <TextButton text="Ver mis reservas" onPress={irAMisReservas} />
@@ -76,10 +76,10 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   } else if (!vm.puedeResenar) {
     cuerpo = (
       <EmptyState
-        icono="rate_review_outlined"
-        titulo="Esta reserva no se puede reseñar"
-        mensaje="Solo se reseñan los viajes ya realizados que aún no tienen reseña."
-        accion={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAMisReservas} />}
+        icon="rate_review_outlined"
+        title="Esta reserva no se puede reseñar"
+        message="Solo se reseñan los viajes ya realizados que aún no tienen reseña."
+        action={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAMisReservas} />}
       />
     );
   } else {

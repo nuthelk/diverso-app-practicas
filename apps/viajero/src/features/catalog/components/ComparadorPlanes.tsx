@@ -25,9 +25,9 @@ export function ComparadorPlanes({ planes }: { planes: readonly Plan[] }) {
   if (planes.length < 2) {
     return (
       <EmptyState
-        icono="compare_arrows_rounded"
-        titulo="Nada para comparar"
-        mensaje="Selecciona dos o tres planes en el catálogo con el ícono de comparar."
+        icon="compare_arrows_rounded"
+        title="Nada para comparar"
+        message="Selecciona dos o tres planes en el catálogo con el ícono de comparar."
       />
     );
   }
