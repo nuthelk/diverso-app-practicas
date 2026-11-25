@@ -67,8 +67,13 @@ export class AuthRepository {
       .throwOnError();
   }
 
+  /**
+   * Cierra la sesión de ESTE dispositivo (`scope: 'local'`, el default de supabase_flutter).
+   * supabase-js usa `global` por defecto: cerraría la sesión en todos los dispositivos del usuario
+   * y, sin red, fallaría dejándolo adentro.
+   */
   async signOut(): Promise<void> {
-    const { error } = await this.client.auth.signOut();
+    const { error } = await this.client.auth.signOut({ scope: 'local' });
     if (error) throw error;
   }
 

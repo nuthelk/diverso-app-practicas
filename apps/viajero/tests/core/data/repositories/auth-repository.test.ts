@@ -29,6 +29,17 @@ const crear = () => {
 };
 
 describe('sesión', () => {
+  test('signOut cierra SOLO la sesión de este dispositivo (scope local, como supabase_flutter)', async () => {
+    // supabase-js usa `global` por defecto: cerraría la sesión en todos los dispositivos (la web se
+    // cayó al cerrar sesión en el celular) y sin red fallaría dejando al usuario adentro.
+    const { repo, pedidos } = crear();
+    await repo.signIn({ email: 'ana@diverso.test', password: 'buena' });
+    await repo.signOut();
+    const logout = pedidos.find((p) => p.ruta === '/auth/v1/logout');
+    expect(logout?.params['scope']).toEqual(['local']);
+    expect(await repo.currentUserId()).toBeNull();
+  });
+
   test('signIn con email y contraseña deja la sesión: id, email y perfil', async () => {
     const { repo, pedidos } = crear();
     expect(await repo.currentUserId()).toBeNull();
