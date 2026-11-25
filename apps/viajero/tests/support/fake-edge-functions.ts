@@ -8,7 +8,7 @@ import { isRow, type Row } from '@/core/models/row';
  * devuelve cualquier otra cosa (p. ej. `httpError(409, {...})`), se lanza.
  */
 export class FakeEdgeFunctions implements EdgeFunctionsApi {
-  readonly calls: [funcion: string, cuerpo: Row][] = [];
+  readonly calls: [fn: string, body: Row][] = [];
 
   constructor(private readonly respond: (fn: string, body: Row) => unknown) {}
 

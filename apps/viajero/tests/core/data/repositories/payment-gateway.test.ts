@@ -48,19 +48,19 @@ describe('WompiPaymentGateway.iniciar', () => {
   });
 
   test('REDIRECT_NO_PERMITIDO, NO_ES_DUENO y ESTADO_INVALIDO tienen mensaje propio', async () => {
-    const casos: [number, string][] = [
+    const cases: [number, string][] = [
       [400, 'REDIRECT_NO_PERMITIDO'],
       [403, 'NO_ES_DUENO'],
       [409, 'ESTADO_INVALIDO'],
       [404, 'RESERVA_NO_EXISTE'],
       [401, 'NO_AUTENTICADO'],
     ];
-    for (const [status, codigo] of casos) {
-      const inv = new FakeEdgeFunctions(() => httpError(status, { error: codigo }));
+    for (const [status, code] of cases) {
+      const inv = new FakeEdgeFunctions(() => httpError(status, { error: code }));
       const e = await failure(() =>
         new WompiPaymentGateway({ edgeFunctions: inv }).start({ bookingId: 'b', redirectUrl: 'u' }),
       );
-      expect(e.code).toBe(codigo);
+      expect(e.code).toBe(code);
       expect(e.userMessage).not.toContain('Algo salió mal');
     }
   });
@@ -121,11 +121,11 @@ describe('WompiPaymentGateway.verificar', () => {
   });
 
   test('rechazado y error son resultados, no excepciones', async () => {
-    const casos: [string, VerifiedPaymentStatus][] = [
+    const cases: [string, VerifiedPaymentStatus][] = [
       ['rechazado', VerifiedPaymentStatus.rejected],
       ['error', VerifiedPaymentStatus.error],
     ];
-    for (const [raw, expected] of casos) {
+    for (const [raw, expected] of cases) {
       const r = await new WompiPaymentGateway({ edgeFunctions: new FakeEdgeFunctions(() => ok(raw)) }).verify({
         transactionId: 't',
       });
@@ -135,12 +135,12 @@ describe('WompiPaymentGateway.verificar', () => {
   });
 
   test('métodos bancolombia y otro se reconocen (no caen en PSE)', async () => {
-    const casos: [string, PaymentMethodOption][] = [
+    const cases: [string, PaymentMethodOption][] = [
       ['bancolombia', PaymentMethodOption.bancolombia],
       ['otro', PaymentMethodOption.other],
       ['pse', PaymentMethodOption.pse],
     ];
-    for (const [raw, expected] of casos) {
+    for (const [raw, expected] of cases) {
       const r = await new WompiPaymentGateway({
         edgeFunctions: new FakeEdgeFunctions(() => ok('aprobado', raw)),
       }).verify({ transactionId: 't' });

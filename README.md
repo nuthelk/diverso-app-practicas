@@ -183,7 +183,7 @@ cuentas ni claves). Los secretos viven solo en estas Edge Functions
   del viajero y de la agencia; la evidencia se guarda en `consents` con versión y
   fecha. Si cambia la versión (`version_documentos_legales()`), la app y el panel
   piden aceptar de nuevo. Textos en `apps/panel/src/features/legal/model/legal.ts` y
-  `apps/viajero/src/core/legal/documento-legal.ts` (**borradores** para revisión jurídica).
+  `apps/viajero/src/core/legal/legal-document.ts` (**borradores** para revisión jurídica).
 - **Seguridad:** el rol `admin` ya no se puede pedir desde los metadatos del registro
   (solo `raw_app_meta_data`), y los viajeros ya no ven correos ni teléfonos de agencias
   pendientes o rechazadas.

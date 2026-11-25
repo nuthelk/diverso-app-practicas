@@ -19,7 +19,7 @@ const hm = (h: number, m = 0) => h * 60 + m;
 const planDate = (day: Date, { spots = 5, id = 'pd' }: { spots?: number; id?: string } = {}) =>
   new PlanDate({ id, planId: 'p', date: day, totalSpots: 10, availableSpots: spots });
 
-const plan = (horaSalidaMinutos: number, dates: PlanDate[]) =>
+const plan = (departureMinutes: number, dates: PlanDate[]) =>
   new Plan({
     id: 'p',
     agencyId: 'a',
@@ -28,7 +28,7 @@ const plan = (horaSalidaMinutos: number, dates: PlanDate[]) =>
     category: ExperienceCategory.culture,
     priceCop: 100000,
     status: PlanStatus.published,
-    departureMinutes: horaSalidaMinutos,
+    departureMinutes,
     dates,
   });
 
