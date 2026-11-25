@@ -1,1 +1,1 @@
-export { AgenciasView as default } from '@/features/agencies/views/AgenciasView';
+export { AgenciesView as default } from '@/features/agencies/views/AgenciesView';

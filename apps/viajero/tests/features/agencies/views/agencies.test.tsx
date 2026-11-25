@@ -35,11 +35,11 @@ const cafe = new AgencySummary({
   reviewsTotal: 3,
 });
 
-const plan = (id: string, titulo: string) =>
+const plan = (id: string, title: string) =>
   new Plan({
     id,
     agencyId: 'ag-rutas',
-    title: titulo,
+    title,
     destination: 'Guatapé',
     category: ExperienceCategory.culture,
     priceCop: 120000,
@@ -48,26 +48,26 @@ const plan = (id: string, titulo: string) =>
     reviewsCount: 1,
   });
 
-function catalogoDePrueba(lista = [rutas, eco, cafe]) {
+function testCatalog(list = [rutas, eco, cafe]) {
   return new CatalogoFalso({
-    agenciasPublicas: lista,
+    agenciasPublicas: list,
     planesPorAgencia: { 'ag-rutas': [plan('plan-1', 'Comuna 13 y memoria'), plan('plan-2', 'Santa Fe de Antioquia')] },
     detalles: { 'plan-1': plan('plan-1', 'Comuna 13 y memoria') },
   });
 }
 
-async function abrir(catalogo: CatalogoFalso, url = '/agencias') {
+async function openAt(catalog: CatalogoFalso, url = '/agencias') {
   // 600 de ancho: lista de una columna.
   await fijarVentana(600, 1400);
-  return arrancarApp(url, dependenciasDePrueba({ catalogo, resenas: new ResenasFalsas() as never }));
+  return arrancarApp(url, dependenciasDePrueba({ catalogo: catalog, resenas: new ResenasFalsas() as never }));
 }
 
 /** Nombres de las agencias de la lista, de arriba abajo (orden en el árbol). */
-function ordenEnPantalla() {
-  const todas = [rutas, eco, cafe];
+function namesOnScreen() {
+  const all = [rutas, eco, cafe];
   return screen
     .getAllByTestId(/^agencia-card-/)
-    .map((el) => todas.find((a) => el.props.testID === `agencia-card-${a.id}`)?.name);
+    .map((el) => all.find((a) => el.props.testID === `agencia-card-${a.id}`)?.name);
 }
 
 beforeEach(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));
@@ -79,7 +79,7 @@ afterEach(async () => {
 
 describe('lista de agencias', () => {
   test('cada agencia muestra iniciales (sin logo), puntaje o «Nueva», ciudad, planes y sello', async () => {
-    await abrir(catalogoDePrueba());
+    await openAt(testCatalog());
 
     expect(screen.getAllByText('Agencias').length).toBeGreaterThanOrEqual(1); // título y destino de la barra
     expect(screen.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
@@ -99,46 +99,46 @@ describe('lista de agencias', () => {
   });
 
   test('por defecto va por puntaje y el control cambia el orden', async () => {
-    await abrir(catalogoDePrueba());
+    await openAt(testCatalog());
     // Puntaje: 5.0, 4.5 y al final la «Nueva».
-    expect(ordenEnPantalla()).toEqual(['Café y Montaña Tours', 'Rutas de Antioquia Cultural', 'EcoAndes Viajes']);
-    for (const etiqueta of ['Puntaje', 'Más planes', 'Nombre']) expect(screen.getByText(etiqueta)).toBeOnTheScreen();
+    expect(namesOnScreen()).toEqual(['Café y Montaña Tours', 'Rutas de Antioquia Cultural', 'EcoAndes Viajes']);
+    for (const label of ['Puntaje', 'Más planes', 'Nombre']) expect(screen.getByText(label)).toBeOnTheScreen();
     // Sin ✓ en el segmento elegido.
     expect(screen.queryByTestId('icono-check_rounded', { includeHiddenElements: true })).toBeNull();
 
     await fireEvent.press(screen.getByText('Más planes'));
-    expect(ordenEnPantalla()).toEqual(['EcoAndes Viajes', 'Café y Montaña Tours', 'Rutas de Antioquia Cultural']);
+    expect(namesOnScreen()).toEqual(['EcoAndes Viajes', 'Café y Montaña Tours', 'Rutas de Antioquia Cultural']);
 
     await fireEvent.press(screen.getByText('Nombre'));
-    expect(ordenEnPantalla()).toEqual(['Café y Montaña Tours', 'EcoAndes Viajes', 'Rutas de Antioquia Cultural']);
+    expect(namesOnScreen()).toEqual(['Café y Montaña Tours', 'EcoAndes Viajes', 'Rutas de Antioquia Cultural']);
   });
 
   test('muestra esqueletos mientras carga', async () => {
-    const catalogo = catalogoDePrueba([rutas]);
-    const puerta = (catalogo.compuerta = compuerta());
-    await abrir(catalogo);
+    const catalog = testCatalog([rutas]);
+    const gate = (catalog.compuerta = compuerta());
+    await openAt(catalog);
     expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
     expect(screen.queryByText('Rutas de Antioquia Cultural')).toBeNull();
 
-    await act(async () => puerta.completar());
+    await act(async () => gate.completar());
     await asentar();
     expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
     expect(screen.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
   });
 
   test('sin agencias muestra el estado vacío', async () => {
-    await abrir(catalogoDePrueba([]));
+    await openAt(testCatalog([]));
     expect(screen.getByText('Aún no hay agencias')).toBeOnTheScreen();
   });
 
   test('si falla muestra el error y «Reintentar» vuelve a cargar', async () => {
-    const catalogo = catalogoDePrueba();
-    catalogo.fallo = new Error('sin red');
-    await abrir(catalogo);
+    const catalog = testCatalog();
+    catalog.fallo = new Error('sin red');
+    await openAt(catalog);
     expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
     expect(screen.getByText(/No pudimos cargar las agencias/)).toBeOnTheScreen();
 
-    catalogo.fallo = null;
+    catalog.fallo = null;
     await fireEvent.press(screen.getByText('Reintentar'));
     await asentar();
     expect(screen.queryByText('Sin conexión')).toBeNull();
@@ -146,17 +146,17 @@ describe('lista de agencias', () => {
   });
 
   test('deslizar hacia abajo recarga la lista', async () => {
-    const catalogo = catalogoDePrueba();
-    await abrir(catalogo);
-    expect(catalogo.consultasAgencias).toBe(1);
+    const catalog = testCatalog();
+    await openAt(catalog);
+    expect(catalog.consultasAgencias).toBe(1);
 
-    const refresco = screen.getByTestId('agencias-scroll').props.refreshControl;
-    await act(async () => refresco.props.onRefresh());
-    expect(catalogo.consultasAgencias).toBe(2);
+    const refreshControl = screen.getByTestId('agencias-scroll').props.refreshControl;
+    await act(async () => refreshControl.props.onRefresh());
+    expect(catalog.consultasAgencias).toBe(2);
   });
 
   test('tocar una agencia abre su página', async () => {
-    const r = await abrir(catalogoDePrueba());
+    const r = await openAt(testCatalog());
     await fireEvent.press(screen.getByText('Rutas de Antioquia Cultural'));
     await asentar();
     expect(r.getPathname()).toBe('/agencia/ag-rutas');
@@ -166,53 +166,53 @@ describe('lista de agencias', () => {
 
 describe('página de agencia', () => {
   test('/agencia/:id carga por id y muestra sus datos y sus planes', async () => {
-    await abrir(catalogoDePrueba(), '/agencia/ag-rutas');
-    const pagina = within(screen.getByTestId('pantalla-AgenciaView'));
-    expect(pagina.getAllByText('Rutas de Antioquia Cultural').length).toBeGreaterThanOrEqual(1);
-    expect(pagina.getByText('RA')).toBeOnTheScreen();
-    expect(pagina.getByText('4.5')).toBeOnTheScreen();
-    expect(pagina.getByText('Medellín')).toBeOnTheScreen();
-    expect(pagina.getByText('Cultura, memoria y patrimonio de Antioquia.')).toBeOnTheScreen();
-    expect(pagina.getAllByText('Verificada RNT')).toHaveLength(1);
-    expect(pagina.getByText('PLANES PUBLICADOS (2)')).toBeOnTheScreen();
-    expect(pagina.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
-    expect(pagina.getByText('Santa Fe de Antioquia')).toBeOnTheScreen();
+    await openAt(testCatalog(), '/agencia/ag-rutas');
+    const page = within(screen.getByTestId('pantalla-AgenciaView'));
+    expect(page.getAllByText('Rutas de Antioquia Cultural').length).toBeGreaterThanOrEqual(1);
+    expect(page.getByText('RA')).toBeOnTheScreen();
+    expect(page.getByText('4.5')).toBeOnTheScreen();
+    expect(page.getByText('Medellín')).toBeOnTheScreen();
+    expect(page.getByText('Cultura, memoria y patrimonio de Antioquia.')).toBeOnTheScreen();
+    expect(page.getAllByText('Verificada RNT')).toHaveLength(1);
+    expect(page.getByText('PLANES PUBLICADOS (2)')).toBeOnTheScreen();
+    expect(page.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
+    expect(page.getByText('Santa Fe de Antioquia')).toBeOnTheScreen();
     // Aquí no se compara: el botón del comparador no aparece en las tarjetas.
-    expect(pagina.queryByRole('button', { name: 'Agregar al comparador' })).toBeNull();
+    expect(page.queryByRole('button', { name: 'Agregar al comparador' })).toBeNull();
   });
 
   test('tocar un plan abre /plan/:id como en el catálogo', async () => {
-    const r = await abrir(catalogoDePrueba(), '/agencia/ag-rutas');
+    const r = await openAt(testCatalog(), '/agencia/ag-rutas');
     await fireEvent.press(screen.getByText('Comuna 13 y memoria'));
     await asentar();
     expect(r.getPathname()).toBe('/plan/plan-1');
   });
 
   test('una agencia «Nueva» sin planes muestra «Nueva» y no se rompe', async () => {
-    await abrir(catalogoDePrueba(), '/agencia/ag-eco');
+    await openAt(testCatalog(), '/agencia/ag-eco');
     expect(screen.getByText('Nueva')).toBeOnTheScreen();
     expect(screen.getByText('Esta agencia no tiene planes disponibles por ahora.')).toBeOnTheScreen();
   });
 
   test('un id que no existe avisa en vez de quedar en blanco', async () => {
-    await abrir(catalogoDePrueba(), '/agencia/nope');
+    await openAt(testCatalog(), '/agencia/nope');
     expect(screen.getByText('Agencia no disponible')).toBeOnTheScreen();
     expect(screen.getByText('Esta agencia no existe o ya no tiene planes publicados.')).toBeOnTheScreen();
   });
 
   test('si falla la carga ofrece reintentar', async () => {
-    const catalogo = catalogoDePrueba();
-    catalogo.fallo = new Error('sin red');
-    await abrir(catalogo, '/agencia/ag-rutas');
+    const catalog = testCatalog();
+    catalog.fallo = new Error('sin red');
+    await openAt(catalog, '/agencia/ag-rutas');
     expect(screen.getByText('No pudimos cargar la agencia')).toBeOnTheScreen();
-    catalogo.fallo = null;
+    catalog.fallo = null;
     await fireEvent.press(screen.getByText('Reintentar'));
     await asentar();
     expect(screen.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
   });
 
   test('tras recargar (sin historial) «Volver» lleva a la lista de agencias', async () => {
-    const r = await abrir(catalogoDePrueba(), '/agencia/ag-rutas');
+    const r = await openAt(testCatalog(), '/agencia/ag-rutas');
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
     await asentar();
     expect(r.getPathname()).toBe('/agencias');
@@ -220,7 +220,7 @@ describe('página de agencia', () => {
   });
 
   test('desde la lista, «Volver» regresa a la lista', async () => {
-    const r = await abrir(catalogoDePrueba());
+    const r = await openAt(testCatalog());
     await fireEvent.press(screen.getByText('Rutas de Antioquia Cultural'));
     await asentar();
     expect(router.canGoBack()).toBe(true);

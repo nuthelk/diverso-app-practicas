@@ -8,10 +8,10 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, AppRadii, useTheme } from '@/ui/theme';
 
-import { ContenidoAgencia } from '../components/ContenidoAgencia';
-import { useAgenciaViewModel } from '../view-models/useAgenciaViewModel';
+import { AgencyContent } from '../components/AgencyContent';
+import { useAgencyViewModel } from '../view-models/useAgencyViewModel';
 
-export interface AgenciaViewProps {
+export interface AgencyViewProps {
   agencyId: string;
 }
 
@@ -20,22 +20,22 @@ export interface AgenciaViewProps {
  * nombre, puntaje, ciudad, descripción y sus planes publicados. Carga todo por id: sobrevive a
  * una recarga en web. «Volver» sin historial lleva a la lista de agencias.
  */
-export function AgenciaView({ agencyId }: AgenciaViewProps) {
-  const tema = useTheme();
+export function AgencyView({ agencyId }: AgencyViewProps) {
+  const theme = useTheme();
   const router = useRouter();
-  const { catalogo } = useDependencies();
-  const vm = useAgenciaViewModel({ catalogo, agencyId });
-  const { cargar } = vm;
-  const volver = () => volverSeguro(router, AppRoutes.agencias);
+  const { catalogo: catalog } = useDependencies();
+  const vm = useAgencyViewModel({ catalog, agencyId });
+  const { load } = vm;
+  const goBack = () => volverSeguro(router, AppRoutes.agencias);
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
-  let cuerpo: ReactNode;
-  if (vm.cargando && vm.agencia === null) {
-    cuerpo = (
-      <AvisoAgencia onVolver={volver}>
+  let body: ReactNode;
+  if (vm.loading && vm.agency === null) {
+    body = (
+      <AgencyNotice onBack={goBack}>
         <ScrollView contentContainerStyle={AppInsets.content}>
           <Skeleton height={160} radius={AppRadii.card} />
           <View style={{ height: 16 }} />
@@ -45,51 +45,51 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
           <View style={{ height: 24 }} />
           <Skeleton height={210} radius={AppRadii.card} />
         </ScrollView>
-      </AvisoAgencia>
+      </AgencyNotice>
     );
-  } else if (vm.error !== null && vm.agencia === null) {
-    cuerpo = (
-      <AvisoAgencia onVolver={volver}>
+  } else if (vm.error !== null && vm.agency === null) {
+    body = (
+      <AgencyNotice onBack={goBack}>
         <EmptyState
           icon="cloud_off_rounded"
           title="No pudimos cargar la agencia"
           message={vm.error}
-          details={vm.errorDetalle}
-          action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+          details={vm.errorDetails}
+          action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.load()} />}
         />
-      </AvisoAgencia>
+      </AgencyNotice>
     );
-  } else if (vm.agencia === null) {
-    cuerpo = (
-      <AvisoAgencia onVolver={volver}>
+  } else if (vm.agency === null) {
+    body = (
+      <AgencyNotice onBack={goBack}>
         <EmptyState
           icon="storefront_outlined"
           title="Agencia no disponible"
           message="Esta agencia no existe o ya no tiene planes publicados."
         />
-      </AvisoAgencia>
+      </AgencyNotice>
     );
   } else {
-    cuerpo = <ContenidoAgencia agencia={vm.agencia} planes={vm.planes} onRefresh={vm.cargar} onVolver={volver} />;
+    body = <AgencyContent agency={vm.agency} plans={vm.plans} onRefresh={vm.load} onBack={goBack} />;
   }
 
   return (
-    <View testID="pantalla-AgenciaView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      {cuerpo}
+    <View testID="pantalla-AgenciaView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+      {body}
     </View>
   );
 }
 
 /** Pantalla sin portada (cargando, error, no encontrada): solo la barra con «Volver». */
-function AvisoAgencia({ onVolver, children }: { onVolver: () => void; children: ReactNode }) {
+function AgencyNotice({ onBack, children }: { onBack: () => void; children: ReactNode }) {
   return (
-    <View style={estilos.flex}>
-      <TopBar title="" onBack={onVolver} />
-      <View style={estilos.flex}>{children}</View>
+    <View style={styles.flex}>
+      <TopBar title="" onBack={onBack} />
+      <View style={styles.flex}>{children}</View>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
 });

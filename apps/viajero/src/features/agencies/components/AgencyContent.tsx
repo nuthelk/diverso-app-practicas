@@ -7,92 +7,92 @@ import { PlanCard } from '@/features/catalog/components/PlanCard';
 import { AgencyAvatar, CollapsibleHeader, pageTitleStyle, SectionLabel, Text, VerifiedBadge } from '@/ui/components';
 import { AppInsets, AppText, AppTheme, useTheme } from '@/ui/theme';
 
-import { DatosAgencia, PortadaAgencia } from './AgenciaCard';
+import { AgencyInfo, AgencyCover } from './AgencyCard';
 
 /**
  * El cuerpo de la página de una agencia cargada (`contenido_agencia.dart`): cabecera colapsable
  * con la portada, logo, nombre, datos, sello, descripción y sus planes (sin botón de comparar).
  */
-export function ContenidoAgencia({
-  agencia,
-  planes,
+export function AgencyContent({
+  agency,
+  plans,
   onRefresh,
-  onVolver,
+  onBack,
 }: {
-  agencia: AgencySummary;
-  planes: readonly Plan[];
+  agency: AgencySummary;
+  plans: readonly Plan[];
   onRefresh: () => Promise<void>;
-  onVolver: () => void;
+  onBack: () => void;
 }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const { width } = useWindowDimensions();
-  const esGrid = width > AppTheme.bpCompact;
-  const [refrescando, setRefrescando] = useState(false);
-  const descripcion = agencia.description.trim();
+  const isGrid = width > AppTheme.bpCompact;
+  const [refreshing, setRefreshing] = useState(false);
+  const description = agency.description.trim();
 
-  const refrescar = async () => {
-    setRefrescando(true);
+  const refresh = async () => {
+    setRefreshing(true);
     try {
       await onRefresh();
     } finally {
-      setRefrescando(false);
+      setRefreshing(false);
     }
   };
 
   return (
     <CollapsibleHeader
-      title={agencia.name}
+      title={agency.name}
       expandedHeight={220}
-      onBack={onVolver}
-      background={<PortadaAgencia agencia={agencia} />}
+      onBack={onBack}
+      background={<AgencyCover agency={agency} />}
       scrollViewProps={{
-        refreshControl: <RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[cs.primary]} tintColor={cs.primary} />,
+        refreshControl: <RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[cs.primary]} tintColor={cs.primary} />,
         alwaysBounceVertical: true,
       }}
     >
-      <View style={estilos.bloque}>
-        <View style={estilos.fila}>
-          <AgencyAvatar agency={agencia} size={64} />
+      <View style={styles.block}>
+        <View style={styles.row}>
+          <AgencyAvatar agency={agency} size={64} />
           <View style={{ width: 14 }} />
-          <View style={estilos.flex}>
+          <View style={styles.flex}>
             <Text height={1.1} accessibilityRole="header" style={[pageTitleStyle(cs), { fontSize: AppText.headingXl }]}>
-              {agencia.name}
+              {agency.name}
             </Text>
             <View style={{ height: 8 }} />
-            <DatosAgencia agencia={agencia} />
+            <AgencyInfo agency={agency} />
           </View>
         </View>
         <View style={{ height: 14 }} />
-        <View style={estilos.inicio}>
+        <View style={styles.start}>
           <VerifiedBadge />
         </View>
-        {descripcion !== '' ? (
+        {description !== '' ? (
           <>
             <View style={{ height: 16 }} />
             <Text height={1.5} style={{ fontSize: AppText.largeBody, color: cs.onSurfaceVariant }}>
-              {descripcion}
+              {description}
             </Text>
           </>
         ) : null}
         <View style={{ height: 28 }} />
-        <SectionLabel text={`Planes publicados (${planes.length})`} />
+        <SectionLabel text={`Planes publicados (${plans.length})`} />
       </View>
-      {planes.length === 0 ? (
-        <View style={estilos.vacio}>
+      {plans.length === 0 ? (
+        <View style={styles.empty}>
           <Text>Esta agencia no tiene planes disponibles por ahora.</Text>
         </View>
       ) : (
         <View style={AppInsets.list}>
-          {esGrid ? (
+          {isGrid ? (
             <Grid
-              items={planes}
+              items={plans}
               usableWidth={width - 40}
               keyOf={(p) => p.id}
               render={(p) => <PlanCard plan={p} />}
             />
           ) : (
-            planes.map((p) => (
+            plans.map((p) => (
               <View key={p.id} style={AppInsets.betweenCards}>
                 <PlanCard plan={p} />
               </View>
@@ -104,10 +104,10 @@ export function ContenidoAgencia({
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  fila: { flexDirection: 'row', alignItems: 'flex-start' },
-  inicio: { alignItems: 'flex-start' },
-  bloque: { paddingLeft: 22, paddingTop: 20, paddingRight: 22, paddingBottom: 8 },
-  vacio: { paddingLeft: 22, paddingTop: 8, paddingRight: 22, paddingBottom: 32 },
+  row: { flexDirection: 'row', alignItems: 'flex-start' },
+  start: { alignItems: 'flex-start' },
+  block: { paddingLeft: 22, paddingTop: 20, paddingRight: 22, paddingBottom: 8 },
+  empty: { paddingLeft: 22, paddingTop: 8, paddingRight: 22, paddingBottom: 32 },
 });

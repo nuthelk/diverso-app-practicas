@@ -2,8 +2,8 @@ import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
-import { AgenciaView } from '@/features/agencies/views/AgenciaView';
-import { AgenciasView } from '@/features/agencies/views/AgenciasView';
+import { AgencyView } from '@/features/agencies/views/AgencyView';
+import { AgenciesView } from '@/features/agencies/views/AgenciesView';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 import { PlanDetailView } from '@/features/plan/views/PlanDetailView';
@@ -102,7 +102,7 @@ describe('ficha del plan', () => {
 describe('páginas con el título en la barra superior', () => {
   const pages: [string, () => React.JSX.Element, string, string][] = [
     ['Explorar', () => <CatalogView />, 'Descubre Antioquia', 'catalogo-scroll'],
-    ['Agencias', () => <AgenciasView />, 'Agencias', 'agencias-scroll'],
+    ['Agencias', () => <AgenciesView />, 'Agencias', 'agencias-scroll'],
   ];
   for (const [name, view, title, scroll] of pages) {
     test(`${name}: el título no está dentro del scroll y usa el título de página grande`, async () => {
@@ -118,7 +118,7 @@ describe('páginas con el título en la barra superior', () => {
   }
 
   test('en tema oscuro el título y la cabecera también se leen', async () => {
-    await renderPantalla(<AgenciasView />, { dependencias: testDependencies(), modo: 'dark' });
+    await renderPantalla(<AgenciesView />, { dependencias: testDependencies(), modo: 'dark' });
 
     const bar = screen.getByTestId('barra-superior');
     expect(StyleSheet.flatten(within(bar).getByText('Agencias').props.style).color).toBe(darkTheme.colorScheme.onSurface);
@@ -140,7 +140,7 @@ describe('cabecera colapsable', () => {
   });
 
   test('página de la agencia: sin nombre en la cabecera con la portada; al colapsar, sólida con nombre y «Volver»', async () => {
-    await renderPantalla(<AgenciaView agencyId="ag-rutas" />, { dependencias: testDependencies() });
+    await renderPantalla(<AgencyView agencyId="ag-rutas" />, { dependencias: testDependencies() });
 
     expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
     expect(screen.getByText(agency.name)).toBeOnTheScreen();

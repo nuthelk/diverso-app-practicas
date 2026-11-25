@@ -8,54 +8,54 @@ import { TopBar } from '@/features/shell/components/TopBar';
 import { EmptyState, FilledButton, SegmentedButton, Skeleton, PageTitle } from '@/ui/components';
 import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
 
-import { AgenciaCard } from '../components/AgenciaCard';
-import { useAgenciasViewModel } from '../view-models/useAgenciasViewModel';
+import { AgencyCard } from '../components/AgencyCard';
+import { useAgenciesViewModel } from '../view-models/useAgenciesViewModel';
 
-const SEGMENTOS = valuesOf(AgencySort).map((o) => ({ value: o, label: LABEL_AGENCY_SORT[o] }));
+const SORT_SEGMENTS = valuesOf(AgencySort).map((o) => ({ value: o, label: LABEL_AGENCY_SORT[o] }));
 
 /**
  * Pestaña «Agencias» (`agencias_view.dart`): agencias verificadas con puntaje, logo y portada,
  * ordenables por puntaje, número de planes o nombre. Cada una abre `/agencia/:id`. Se puede
  * tirar para recargar aunque la lista esté vacía.
  */
-export function AgenciasView() {
-  const tema = useTheme();
-  const { catalogo } = useDependencies();
-  const vm = useAgenciasViewModel({ catalogo });
+export function AgenciesView() {
+  const theme = useTheme();
+  const { catalogo: catalog } = useDependencies();
+  const vm = useAgenciesViewModel({ catalog });
   const { width } = useWindowDimensions();
-  const esGrid = width > AppTheme.bpCompact;
-  const [refrescando, setRefrescando] = useState(false);
-  const { cargar } = vm;
+  const isGrid = width > AppTheme.bpCompact;
+  const [refreshing, setRefreshing] = useState(false);
+  const { load } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
-  const refrescar = async () => {
-    setRefrescando(true);
+  const refresh = async () => {
+    setRefreshing(true);
     try {
-      await vm.cargar();
+      await vm.load();
     } finally {
-      setRefrescando(false);
+      setRefreshing(false);
     }
   };
 
   return (
-    <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-AgenciasView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title={<PageTitle text="Agencias" />} />
       <ScrollView
         testID="agencias-scroll"
-        style={estilos.flex}
-        contentContainerStyle={estilos.crecer}
+        style={styles.flex}
+        contentContainerStyle={styles.grow}
         alwaysBounceVertical
-        refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} colors={[tema.colorScheme.primary]} tintColor={tema.colorScheme.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[theme.colorScheme.primary]} tintColor={theme.colorScheme.primary} />}
       >
-        {vm.hayAgencias || vm.cargando ? (
-          <View style={estilos.orden}>
-            <SegmentedButton segments={SEGMENTOS} selected={vm.orden} onChange={vm.cambiarOrden} showSelectedIcon={false} />
+        {vm.hasAgencies || vm.loading ? (
+          <View style={styles.sortBar}>
+            <SegmentedButton segments={SORT_SEGMENTS} selected={vm.sort} onChange={vm.setSort} showSelectedIcon={false} />
           </View>
         ) : null}
-        {vm.cargando && !vm.hayAgencias ? (
+        {vm.loading && !vm.hasAgencies ? (
           <View style={AppInsets.list}>
             {[0, 1, 2].map((i) => (
               <View key={i} style={AppInsets.betweenCards}>
@@ -63,15 +63,15 @@ export function AgenciasView() {
               </View>
             ))}
           </View>
-        ) : vm.error !== null && !vm.hayAgencias ? (
+        ) : vm.error !== null && !vm.hasAgencies ? (
           <EmptyState
             icon="cloud_off_rounded"
             title="Sin conexión"
             message={vm.error}
-            details={vm.errorDetalle}
-            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.cargar()} />}
+            details={vm.errorDetails}
+            action={<FilledButton variant="tonal" icon="refresh_rounded" text="Reintentar" onPress={() => void vm.load()} />}
           />
-        ) : !vm.hayAgencias ? (
+        ) : !vm.hasAgencies ? (
           <EmptyState
             icon="storefront_outlined"
             title="Aún no hay agencias"
@@ -79,17 +79,17 @@ export function AgenciasView() {
           />
         ) : (
           <View testID="lista-agencias" style={AppInsets.list}>
-            {esGrid ? (
+            {isGrid ? (
               <Grid
-                items={vm.agencias}
+                items={vm.agencies}
                 usableWidth={width - 40}
                 keyOf={(a) => a.id}
-                render={(a) => <AgenciaCard agencia={a} />}
+                render={(a) => <AgencyCard agency={a} />}
               />
             ) : (
-              vm.agencias.map((a) => (
+              vm.agencies.map((a) => (
                 <View key={a.id} style={AppInsets.betweenCards}>
-                  <AgenciaCard agencia={a} />
+                  <AgencyCard agency={a} />
                 </View>
               ))
             )}
@@ -100,8 +100,8 @@ export function AgenciasView() {
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  crecer: { flexGrow: 1 },
-  orden: { paddingLeft: 20, paddingTop: 4, paddingRight: 20, paddingBottom: 12 },
+  grow: { flexGrow: 1 },
+  sortBar: { paddingLeft: 20, paddingTop: 4, paddingRight: 20, paddingBottom: 12 },
 });
