@@ -304,3 +304,14 @@ describe('medidasCampo (M3 filled)', () => {
     expect(m.topReposo).toBe(m.arriba + 4);
   });
 });
+
+describe('TextField: tocar la caja enfoca el campo', () => {
+  test('tocar cualquier parte del contenedor (p. ej. la franja de la etiqueta) enfoca el texto, como en M3', async () => {
+    // En Jest, TextInput es un mock cuyo focus() es el jest.fn compartido de MockNativeMethods.
+    const { focus } = jest.requireActual('@react-native/jest-preset/jest/MockNativeMethods').default as { focus: jest.Mock };
+    focus.mockClear();
+    await renderConTema(<TextField etiqueta="Contraseña" valor="" onChangeText={() => {}} />);
+    await fireEvent.press(screen.getByTestId('text-field'));
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+});

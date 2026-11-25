@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import {
   Animated,
   Platform,
+  Pressable,
   StyleSheet,
   TextInput,
   View,
@@ -92,6 +93,7 @@ export function TextField({
   const cs = tema.colorScheme;
   const input = tema.componentes.input;
   const [foco, setFoco] = useState(false);
+  const campo = useRef<ComponentRef<typeof TextInput>>(null);
   const hayError = !!error;
   const flota = foco || valor.length > 0;
   const multilinea = lineas > 1;
@@ -126,8 +128,12 @@ export function TextField({
 
   return (
     <View style={style}>
-      <View
+      {/* Toda la caja enfoca el campo (M3): con la etiqueta adentro, la franja de arriba es relleno
+          de la caja y tocarla no llegaba al TextInput. No accesible: el lector anuncia el campo. */}
+      <Pressable
         testID={testID}
+        accessible={false}
+        onPress={() => campo.current?.focus()}
         style={[
           estilos.caja,
           {
@@ -153,6 +159,7 @@ export function TextField({
         ) : null}
         <TextInput
           {...resto}
+          ref={campo}
           value={valor}
           onChangeText={onChangeText}
           editable={!deshabilitado}
@@ -223,7 +230,7 @@ export function TextField({
             </Animated.Text>
           </Animated.View>
         ) : null}
-      </View>
+      </Pressable>
       {hayError || maxLength !== undefined ? (
         <View style={estilos.pie}>
           {hayError ? (
