@@ -299,7 +299,7 @@ describe('guardia: mientras se verifica el consentimiento', () => {
     expect(screen.queryByText('Reintentar')).toBeNull();
 
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(ConsentViewModel.tiempoLimite);
+      await jest.advanceTimersByTimeAsync(ConsentViewModel.timeoutMs);
     });
     await asentar();
 

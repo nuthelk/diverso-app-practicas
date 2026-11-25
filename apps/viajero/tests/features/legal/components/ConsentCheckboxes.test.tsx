@@ -9,37 +9,37 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
 /** Casillas de autorización (Ley 1581): el aviso de error se alinea con el texto de las casillas. */
 
-const MENSAJE = 'Debes aceptar ambos documentos para crear tu cuenta.';
+const MESSAGE = 'Debes aceptar ambos documentos para crear tu cuenta.';
 
-async function abrir(props: { aceptaDatos?: boolean; aceptaTerminos?: boolean; mostrarError?: boolean } = {}) {
+async function renderCheckboxes(props: { acceptsDataPolicy?: boolean; acceptsTerms?: boolean; showError?: boolean } = {}) {
   await renderWithTheme(
     <ConsentCheckboxes
-      aceptaDatos={props.aceptaDatos ?? false}
-      aceptaTerminos={props.aceptaTerminos ?? false}
-      mostrarError={props.mostrarError ?? false}
-      onDatos={() => {}}
-      onTerminos={() => {}}
+      acceptsDataPolicy={props.acceptsDataPolicy ?? false}
+      acceptsTerms={props.acceptsTerms ?? false}
+      showError={props.showError ?? false}
+      onDataPolicyChange={() => {}}
+      onTermsChange={() => {}}
     />,
   );
 }
 
 test('sin intento de envío no hay aviso', async () => {
-  await abrir();
-  expect(screen.queryByText(MENSAJE)).toBeNull();
+  await renderCheckboxes();
+  expect(screen.queryByText(MESSAGE)).toBeNull();
 });
 
 test('el aviso empieza donde empieza el texto de las casillas (después del área de la casilla)', async () => {
-  await abrir({ mostrarError: true });
+  await renderCheckboxes({ showError: true });
 
   // El texto de cada fila arranca justo después del área táctil de la casilla.
-  const areaCasilla = screen.getAllByTestId('casilla', { includeHiddenElements: true })[0]!.parent!;
-  const anchoCasilla = StyleSheet.flatten(areaCasilla.props.style).width;
-  expect(anchoCasilla).toBe(48);
+  const checkboxArea = screen.getAllByTestId('casilla', { includeHiddenElements: true })[0]!.parent!;
+  const checkboxWidth = StyleSheet.flatten(checkboxArea.props.style).width;
+  expect(checkboxWidth).toBe(48);
 
-  expect(StyleSheet.flatten(screen.getByText(MENSAJE).props.style).paddingLeft).toBe(anchoCasilla);
+  expect(StyleSheet.flatten(screen.getByText(MESSAGE).props.style).paddingLeft).toBe(checkboxWidth);
 });
 
 test('con las dos casillas marcadas el aviso desaparece', async () => {
-  await abrir({ mostrarError: true, aceptaDatos: true, aceptaTerminos: true });
-  expect(screen.queryByText(MENSAJE)).toBeNull();
+  await renderCheckboxes({ showError: true, acceptsDataPolicy: true, acceptsTerms: true });
+  expect(screen.queryByText(MESSAGE)).toBeNull();
 });

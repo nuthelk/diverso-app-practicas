@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 
 import { useSession } from '@/features/auth/view-models/SessionProvider';
-import { useConsentimiento } from '@/features/legal/view-models/ConsentimientoProvider';
-import type { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
+import { useConsent } from '@/features/legal/view-models/ConsentProvider';
+import type { ConsentState } from '@/features/legal/view-models/consent-view-model';
 import { screenOptions, useTheme } from '@/ui/theme';
 
 import { pantallaVisible, sesionRedirect } from './sesion-redirect';
@@ -23,7 +23,7 @@ function useGuardia({
 }: {
   preparado: boolean;
   haySesion: boolean;
-  consentimiento: EstadoConsentimiento;
+  consentimiento: ConsentState;
 }) {
   const router = useRouter();
   // Privado/inestable en Expo Router, pero es la única API que da la URL con su query: el
@@ -70,7 +70,7 @@ const opcionesDeRuta = (nombre: string): OpcionesRuta | undefined => (OPCIONES_P
 export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
   const tema = useTheme();
   const sesion = useSession();
-  const { estado } = useConsentimiento();
+  const { state: estado } = useConsent();
   const preparado = listo && !sesion.loading;
   const haySesion = sesion.userId !== null;
 

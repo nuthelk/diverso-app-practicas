@@ -1,34 +1,34 @@
 import type { AuthRepository, Public } from '@/core';
 
 /** Si el usuario actual aceptó la versión vigente de los documentos legales. */
-export const EstadoConsentimiento = {
+export const ConsentState = {
   /** Aún no se sabe (consulta en curso o sin sesión). */
-  verificando: 'verificando',
+  checking: 'verificando',
   /** Falta aceptar algún documento: hay que pedir la autorización. */
-  pendiente: 'pendiente',
-  aceptado: 'aceptado',
+  pending: 'pendiente',
+  accepted: 'aceptado',
   /** La consulta falló: no se sabe si aceptó, así que se trata como pendiente hasta reintentar. */
   error: 'error',
 } as const;
-export type EstadoConsentimiento = (typeof EstadoConsentimiento)[keyof typeof EstadoConsentimiento];
+export type ConsentState = (typeof ConsentState)[keyof typeof ConsentState];
 
-export interface InstantaneaConsentimiento {
-  readonly estado: EstadoConsentimiento;
+export interface ConsentSnapshot {
+  readonly state: ConsentState;
   /** Documentos vigentes aún sin aceptar (`tratamiento_datos`, `terminos_viajero`…). */
-  readonly pendientes: readonly string[];
+  readonly pendingDocuments: readonly string[];
 }
 
-class TiempoAgotado extends Error {}
+class TimeoutError extends Error {}
 
 /**
  * Estado de consentimiento como estado de **enrutamiento** (Ley 1581 de 2012): el guard lo lee
  * (junto con la sesión) y manda a `/consentimiento` a quien no esté al día. Se vuelve a consultar
- * cuando cambia la sesión y a pedido ([reintentar], que la app llama al volver a primer plano y el
+ * cuando cambia la sesión y a pedido ([retry], que la app llama al volver a primer plano y el
  * botón «Reintentar»).
  *
- * Es el único view model que NO es un hook: es global (vive en `ConsentimientoProvider` durante
+ * Es el único view model que NO es un hook: es global (vive en `ConsentProvider` durante
  * toda la app) y escucha la sesión por su cuenta, como el `ChangeNotifier` de Flutter. Se lee con
- * `useSyncExternalStore` a través de [suscribir] / [instantanea].
+ * `useSyncExternalStore` a través de [subscribe] / [snapshot].
  *
  * Diferencia con Dart: supabase-js no da el usuario de forma síncrona; la sesión inicial se lee
  * con `currentUserId()` y, si antes llega un evento de `onAuthStateChanged`, gana el evento (es
@@ -39,124 +39,124 @@ export class ConsentViewModel {
    * Una consulta que no responde en este tiempo (ms) cuenta como fallida (`error`, con
    * «Reintentar»): sin esto una petición colgada dejaría la verificación abierta para siempre.
    */
-  static readonly tiempoLimite = 15_000;
+  static readonly timeoutMs = 15_000;
 
   private readonly auth: Public<AuthRepository>;
-  private readonly cancelarSesion: () => void;
-  private readonly escuchas = new Set<() => void>();
+  private readonly unsubscribeSession: () => void;
+  private readonly listeners = new Set<() => void>();
   /** `undefined` = todavía no se leyó la sesión inicial. */
-  private usuario: string | null | undefined = undefined;
-  private actual: InstantaneaConsentimiento = { estado: EstadoConsentimiento.verificando, pendientes: [] };
+  private userId: string | null | undefined = undefined;
+  private current: ConsentSnapshot = { state: ConsentState.checking, pendingDocuments: [] };
   /** Se incrementa en cada consulta o cambio de sesión: una respuesta vieja no pisa a una nueva. */
   private revision = 0;
-  private desechado = false;
+  private disposed = false;
 
   constructor({ auth }: { auth: Public<AuthRepository> }) {
     this.auth = auth;
-    this.cancelarSesion = auth.onAuthStateChanged((usuario) => this.alCambiarSesion(usuario));
+    this.unsubscribeSession = auth.onAuthStateChanged((userId) => this.onSessionChange(userId));
     auth.currentUserId().then(
-      (usuario) => this.alLeerSesionInicial(usuario),
-      () => this.alLeerSesionInicial(null),
+      (userId) => this.onInitialSession(userId),
+      () => this.onInitialSession(null),
     );
   }
 
-  get estado(): EstadoConsentimiento {
-    return this.actual.estado;
+  get state(): ConsentState {
+    return this.current.state;
   }
 
-  get pendientes(): readonly string[] {
-    return this.actual.pendientes;
+  get pendingDocuments(): readonly string[] {
+    return this.current.pendingDocuments;
   }
 
   /** Objeto inmutable que cambia en cada aviso (para `useSyncExternalStore`). */
-  get instantanea(): InstantaneaConsentimiento {
-    return this.actual;
+  get snapshot(): ConsentSnapshot {
+    return this.current;
   }
 
   /** `addListener`: devuelve la función para dejar de escuchar. */
-  suscribir = (escucha: () => void): (() => void) => {
-    this.escuchas.add(escucha);
+  subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener);
     return () => {
-      this.escuchas.delete(escucha);
+      this.listeners.delete(listener);
     };
   };
 
-  private cambiar(cambios: Partial<InstantaneaConsentimiento>): void {
-    this.actual = { ...this.actual, ...cambios };
+  private update(changes: Partial<ConsentSnapshot>): void {
+    this.current = { ...this.current, ...changes };
     // `NotificaSiVive`: tras dispose nadie escucha y no hay nada que actualizar.
-    if (this.desechado) return;
-    for (const escucha of [...this.escuchas]) escucha();
+    if (this.disposed) return;
+    for (const listener of [...this.listeners]) listener();
   }
 
-  private alLeerSesionInicial(usuario: string | null): void {
+  private onInitialSession(userId: string | null): void {
     // Un evento de sesión que ya llegó es más nuevo que esta lectura.
-    if (this.desechado || this.usuario !== undefined) return;
-    this.usuario = usuario;
-    if (usuario !== null) void this.revisar();
+    if (this.disposed || this.userId !== undefined) return;
+    this.userId = userId;
+    if (userId !== null) void this.check();
   }
 
-  private alCambiarSesion(usuario: string | null): void {
+  private onSessionChange(userId: string | null): void {
     // Los refrescos de token repiten el mismo usuario: no hay nada que volver a consultar.
-    if (this.desechado || usuario === this.usuario) return;
-    this.usuario = usuario;
+    if (this.disposed || userId === this.userId) return;
+    this.userId = userId;
     this.revision++;
-    this.cambiar({ estado: EstadoConsentimiento.verificando, pendientes: [] });
-    if (usuario !== null) void this.revisar();
+    this.update({ state: ConsentState.checking, pendingDocuments: [] });
+    if (userId !== null) void this.check();
   }
 
-  private async revisar(): Promise<void> {
+  private async check(): Promise<void> {
     const revision = ++this.revision;
-    if (this.actual.estado !== EstadoConsentimiento.verificando) {
-      this.cambiar({ estado: EstadoConsentimiento.verificando });
+    if (this.current.state !== ConsentState.checking) {
+      this.update({ state: ConsentState.checking });
     }
-    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const limite = new Promise<never>((_, rechazar) => {
-        temporizador = setTimeout(() => rechazar(new TiempoAgotado('consentimiento: tiempo agotado')), ConsentViewModel.tiempoLimite);
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new TimeoutError('consentimiento: tiempo agotado')), ConsentViewModel.timeoutMs);
       });
-      const pendientes = await Promise.race([this.auth.pendingConsents(), limite]);
-      if (this.desechado || revision !== this.revision) return;
-      this.cambiar({
-        pendientes,
-        estado: pendientes.length === 0 ? EstadoConsentimiento.aceptado : EstadoConsentimiento.pendiente,
+      const pendingDocuments = await Promise.race([this.auth.pendingConsents(), timeout]);
+      if (this.disposed || revision !== this.revision) return;
+      this.update({
+        pendingDocuments,
+        state: pendingDocuments.length === 0 ? ConsentState.accepted : ConsentState.pending,
       });
     } catch (e) {
-      if (this.desechado || revision !== this.revision) return;
+      if (this.disposed || revision !== this.revision) return;
       console.warn('ConsentViewModel: no se pudo verificar el consentimiento:', e);
-      this.cambiar({ estado: EstadoConsentimiento.error });
+      this.update({ state: ConsentState.error });
     } finally {
-      clearTimeout(temporizador);
+      clearTimeout(timer);
     }
   }
 
   /** Vuelve a consultar solo si la última consulta falló (si ya se sabe, no hay nada que repetir). */
-  reintentar = async (): Promise<void> => {
-    if (this.actual.estado === EstadoConsentimiento.error && this.usuario) await this.revisar();
+  retry = async (): Promise<void> => {
+    if (this.current.state === ConsentState.error && this.userId) await this.check();
   };
 
   /**
    * Registra la aceptación de los documentos pendientes y confirma con el servidor. `false` si
    * no se pudo guardar (el estado no cambia y el usuario puede intentar de nuevo).
    */
-  aceptar = async (): Promise<boolean> => {
-    if (this.actual.estado !== EstadoConsentimiento.pendiente) return false;
+  accept = async (): Promise<boolean> => {
+    if (this.current.state !== ConsentState.pending) return false;
     try {
-      for (const tipo of this.actual.pendientes) {
-        await this.auth.recordConsent(tipo);
+      for (const documentType of this.current.pendingDocuments) {
+        await this.auth.recordConsent(documentType);
       }
     } catch (e) {
       console.warn('ConsentViewModel: no se pudo guardar la autorización:', e);
       return false;
     }
-    await this.revisar();
+    await this.check();
     return true;
   };
 
-  cerrarSesion = (): Promise<void> => this.auth.signOut();
+  signOut = (): Promise<void> => this.auth.signOut();
 
   dispose(): void {
-    this.desechado = true;
-    this.escuchas.clear();
-    this.cancelarSesion();
+    this.disposed = true;
+    this.listeners.clear();
+    this.unsubscribeSession();
   }
 }

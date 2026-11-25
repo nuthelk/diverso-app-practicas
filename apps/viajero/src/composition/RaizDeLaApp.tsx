@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SessionProvider } from '@/features/auth/view-models/SessionProvider';
-import { ConsentimientoProvider } from '@/features/legal/view-models/ConsentimientoProvider';
+import { ConsentProvider } from '@/features/legal/view-models/ConsentProvider';
 import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
 import { ThemeProvider, useDiversoFonts, type ThemeMode } from '@/ui/theme';
 
@@ -28,7 +28,7 @@ export function ProveedoresDeLaApp({
       <DependenciesProvider dependencias={dependencias}>
         <ThemeProvider initialMode={modoTemaInicial}>
           <SessionProvider>
-            <ConsentimientoProvider>{children}</ConsentimientoProvider>
+            <ConsentProvider>{children}</ConsentProvider>
           </SessionProvider>
         </ThemeProvider>
       </DependenciesProvider>

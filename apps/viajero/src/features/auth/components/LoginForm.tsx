@@ -134,11 +134,11 @@ export function LoginForm({
         <>
           <View style={{ height: 16 }} />
           <ConsentCheckboxes
-            aceptaDatos={vm.acceptsDataPolicy}
-            aceptaTerminos={vm.acceptsTerms}
-            mostrarError={vm.signUpAttempted}
-            onDatos={vm.setAcceptsDataPolicy}
-            onTerminos={vm.setAcceptsTerms}
+            acceptsDataPolicy={vm.acceptsDataPolicy}
+            acceptsTerms={vm.acceptsTerms}
+            showError={vm.signUpAttempted}
+            onDataPolicyChange={vm.setAcceptsDataPolicy}
+            onTermsChange={vm.setAcceptsTerms}
           />
         </>
       ) : null}

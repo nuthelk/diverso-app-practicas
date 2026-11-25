@@ -8,8 +8,8 @@ import { CircularProgressIndicator, FilledButton, Icon, Text, TextButton } from 
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 import { ConsentCheckboxes } from '../components/ConsentCheckboxes';
-import { EstadoConsentimiento } from '../view-models/consent-view-model';
-import { useConsentimiento } from '../view-models/ConsentimientoProvider';
+import { ConsentState } from '../view-models/consent-view-model';
+import { useConsent } from '../view-models/ConsentProvider';
 
 /**
  * Pide la autorización vigente a cuentas que no la tienen (creadas antes de la versión actual o
@@ -21,37 +21,37 @@ import { useConsentimiento } from '../view-models/ConsentimientoProvider';
  * un aviso con «Reintentar» en vez de dejar pasar. Al aceptar, el guard saca al usuario de aquí.
  */
 export function ConsentView() {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const consentimiento = useConsentimiento();
-  const [datos, setDatos] = useState(false);
-  const [terminos, setTerminos] = useState(false);
-  const [intentado, setIntentado] = useState(false);
-  const [guardando, setGuardando] = useState(false);
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const consent = useConsent();
+  const [acceptsDataPolicy, setAcceptsDataPolicy] = useState(false);
+  const [acceptsTerms, setAcceptsTerms] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // `PopScope(canPop: false)`: el botón atrás de Android no cierra esta pantalla.
   useFocusEffect(
     useCallback(() => {
-      const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => true);
-      return () => suscripcion.remove();
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => true);
+      return () => subscription.remove();
     }, []),
   );
 
-  const aceptar = async () => {
-    setIntentado(true);
-    if (!datos || !terminos) return;
-    setGuardando(true);
+  const handleAccept = async () => {
+    setAttempted(true);
+    if (!acceptsDataPolicy || !acceptsTerms) return;
+    setSaving(true);
     setError(null);
-    const guardado = await consentimiento.aceptar();
-    setGuardando(false);
-    if (!guardado) setError('No pudimos guardar tu autorización. Intenta de nuevo.');
+    const saved = await consent.accept();
+    setSaving(false);
+    if (!saved) setError('No pudimos guardar tu autorización. Intenta de nuevo.');
   };
 
-  let contenido;
-  if (consentimiento.estado === EstadoConsentimiento.error) {
+  let content;
+  if (consent.state === ConsentState.error) {
     // No se pudo saber qué falta aceptar: no se deja pasar, se avisa y se ofrece reintentar.
-    contenido = (
+    content = (
       <>
         <View style={[AppInsets.card, { backgroundColor: cs.errorContainer, borderRadius: AppRadii.field }]}>
           <Text height={1.4} style={{ color: cs.onErrorContainer, fontSize: AppText.smallBody }}>
@@ -59,24 +59,24 @@ export function ConsentView() {
           </Text>
         </View>
         <View style={{ height: 16 }} />
-        <FilledButton text="Reintentar" onPress={() => void consentimiento.reintentar()} />
+        <FilledButton text="Reintentar" onPress={() => void consent.retry()} />
       </>
     );
-  } else if (consentimiento.estado === EstadoConsentimiento.verificando && !guardando) {
-    contenido = (
-      <View style={estilos.centro} testID="consentimiento-verificando">
+  } else if (consent.state === ConsentState.checking && !saving) {
+    content = (
+      <View style={styles.center} testID="consentimiento-verificando">
         <CircularProgressIndicator />
       </View>
     );
   } else {
-    contenido = (
+    content = (
       <>
         <ConsentCheckboxes
-          aceptaDatos={datos}
-          aceptaTerminos={terminos}
-          mostrarError={intentado}
-          onDatos={setDatos}
-          onTerminos={setTerminos}
+          acceptsDataPolicy={acceptsDataPolicy}
+          acceptsTerms={acceptsTerms}
+          showError={attempted}
+          onDataPolicyChange={setAcceptsDataPolicy}
+          onTermsChange={setAcceptsTerms}
         />
         {error !== null ? (
           <>
@@ -85,18 +85,18 @@ export function ConsentView() {
           </>
         ) : null}
         <View style={{ height: 24 }} />
-        <FilledButton accessibilityLabel="Aceptar y continuar" onPress={guardando ? null : () => void aceptar()}>
-          {guardando ? <ButtonSpinner /> : <Text>Aceptar y continuar</Text>}
+        <FilledButton accessibilityLabel="Aceptar y continuar" onPress={saving ? null : () => void handleAccept()}>
+          {saving ? <ButtonSpinner /> : <Text>Aceptar y continuar</Text>}
         </FilledButton>
       </>
     );
   }
 
   return (
-    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <View style={estilos.centro}>
-        <ScrollView style={estilos.ancho} contentContainerStyle={AppInsets.screen}>
-          <View style={[AppInsets.card, estilos.icono, { backgroundColor: cs.primaryContainer }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
+      <View style={styles.center}>
+        <ScrollView style={styles.column} contentContainerStyle={AppInsets.screen}>
+          <View style={[AppInsets.card, styles.icon, { backgroundColor: cs.primaryContainer }]}>
             <Icon name="privacy_tip_rounded" size={28} color={cs.onPrimaryContainer} />
           </View>
           <View style={{ height: 18 }} />
@@ -106,18 +106,18 @@ export function ConsentView() {
             Actualizamos nuestros documentos legales. Necesitamos tu autorización expresa para seguir gestionando tu cuenta y tus reservas.
           </Text>
           <View style={{ height: 20 }} />
-          {contenido}
+          {content}
           <View style={{ height: 8 }} />
-          <TextButton text="Cerrar sesión" onPress={guardando ? null : () => void consentimiento.cerrarSesion()} />
+          <TextButton text="Cerrar sesión" onPress={saving ? null : () => void consent.signOut()} />
         </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
-const estilos = StyleSheet.create({
-  pantalla: { flex: 1 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  ancho: { width: '100%', maxWidth: 460, flexGrow: 0 },
-  icono: { alignSelf: 'flex-start', borderRadius: 18 },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  column: { width: '100%', maxWidth: 460, flexGrow: 0 },
+  icon: { alignSelf: 'flex-start', borderRadius: 18 },
 });

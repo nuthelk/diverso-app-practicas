@@ -1,4 +1,4 @@
-import { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
+import { ConsentState } from '@/features/legal/view-models/consent-view-model';
 import { codificarComponenteQuery, destinoSeguro, pantallaVisible, sesionRedirect } from '@/router';
 
 /**
@@ -9,12 +9,12 @@ import { codificarComponenteQuery, destinoSeguro, pantallaVisible, sesionRedirec
 
 function redirect(
   ubicacion: string,
-  { sesion = true, consentimiento = EstadoConsentimiento.aceptado }: { sesion?: boolean; consentimiento?: EstadoConsentimiento } = {},
+  { sesion = true, consentimiento = ConsentState.accepted }: { sesion?: boolean; consentimiento?: ConsentState } = {},
 ) {
   return sesionRedirect({ haySesion: sesion, consentimiento, ubicacion });
 }
 
-const todos = Object.values(EstadoConsentimiento);
+const todos = Object.values(ConsentState);
 
 describe('sin sesión', () => {
   test('cualquier pantalla privada va a /login', () => {
@@ -52,7 +52,7 @@ describe('con sesión y consentimiento al día', () => {
 });
 
 describe('con sesión y consentimiento sin confirmar (verificando, pendiente o error)', () => {
-  for (const estado of [EstadoConsentimiento.verificando, EstadoConsentimiento.pendiente, EstadoConsentimiento.error]) {
+  for (const estado of [ConsentState.checking, ConsentState.pending, ConsentState.error]) {
     describe(estado, () => {
       test('todo lleva a /consentimiento recordando la ubicación original', () => {
         expect(redirect('/', { consentimiento: estado })).toBe('/consentimiento?desde=%2F');
@@ -130,10 +130,10 @@ describe('destinoSeguro', () => {
 });
 
 describe('pantallaVisible (qué pantallas del stack se montan)', () => {
-  const visible = (ruta: string, params: Record<string, unknown> = {}, opciones: { sesion?: boolean; consentimiento?: EstadoConsentimiento } = {}) =>
+  const visible = (ruta: string, params: Record<string, unknown> = {}, opciones: { sesion?: boolean; consentimiento?: ConsentState } = {}) =>
     pantallaVisible({
       haySesion: opciones.sesion ?? true,
-      consentimiento: opciones.consentimiento ?? EstadoConsentimiento.aceptado,
+      consentimiento: opciones.consentimiento ?? ConsentState.accepted,
       nombreRuta: ruta,
       params,
     });
@@ -148,7 +148,7 @@ describe('pantallaVisible (qué pantallas del stack se montan)', () => {
   });
 
   test('sin confirmar el consentimiento NINGUNA protegida se monta (gotcha 3)', () => {
-    for (const estado of [EstadoConsentimiento.verificando, EstadoConsentimiento.pendiente, EstadoConsentimiento.error]) {
+    for (const estado of [ConsentState.checking, ConsentState.pending, ConsentState.error]) {
       for (const ruta of ['(tabs)', 'plan/[id]', 'reservas/[bookingId]', 'comparar', '+not-found', 'login']) {
         expect([estado, ruta, visible(ruta, { id: 'x', bookingId: 'x' }, { consentimiento: estado })]).toEqual([estado, ruta, false]);
       }

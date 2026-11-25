@@ -1,4 +1,4 @@
-import { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
+import { ConsentState } from '@/features/legal/view-models/consent-view-model';
 
 import { AppRoutes, codificarComponenteQuery, decodificarComponenteQuery } from './rutas';
 
@@ -37,7 +37,7 @@ export function sesionRedirect({
   ubicacion,
 }: {
   haySesion: boolean;
-  consentimiento: EstadoConsentimiento;
+  consentimiento: ConsentState;
   ubicacion: string;
 }): string | null {
   const { path, query } = partir(ubicacion);
@@ -48,7 +48,7 @@ export function sesionRedirect({
   if (!haySesion) return enLogin || enLegal ? null : AppRoutes.login;
   if (enLegal) return null;
 
-  if (consentimiento === EstadoConsentimiento.aceptado) {
+  if (consentimiento === ConsentState.accepted) {
     if (enLogin) return AppRoutes.explorar;
     if (enConsentimiento) return destinoSeguro(parametroDeQuery(query, 'desde')) ?? AppRoutes.explorar;
     return null;
@@ -105,7 +105,7 @@ export function pantallaVisible({
   params,
 }: {
   haySesion: boolean;
-  consentimiento: EstadoConsentimiento;
+  consentimiento: ConsentState;
   nombreRuta: string;
   params?: Record<string, unknown>;
 }): boolean {

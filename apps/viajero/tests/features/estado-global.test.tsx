@@ -3,8 +3,8 @@ import { Text } from 'react-native';
 
 import { DependenciesProvider } from '@/composition';
 import { SessionProvider, useSession } from '@/features/auth/view-models/SessionProvider';
-import { ConsentimientoProvider, useConsentimiento } from '@/features/legal/view-models/ConsentimientoProvider';
-import { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
+import { ConsentProvider, useConsent } from '@/features/legal/view-models/ConsentProvider';
+import { ConsentState } from '@/features/legal/view-models/consent-view-model';
 
 import { controlarAppState } from '../support/app-state';
 import { AuthFalso } from '../support/auth-falso';
@@ -18,10 +18,10 @@ import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
 
 function Sonda() {
   const sesion = useSession();
-  const consentimiento = useConsentimiento();
+  const consentimiento = useConsent();
   return (
     <Text testID="sonda">
-      {sesion.loading ? 'cargando' : (sesion.userId ?? 'sin-sesion')}|{consentimiento.estado}
+      {sesion.loading ? 'cargando' : (sesion.userId ?? 'sin-sesion')}|{consentimiento.state}
     </Text>
   );
 }
@@ -30,9 +30,9 @@ async function montar(auth: AuthFalso) {
   const r = await render(
     <DependenciesProvider dependencias={dependenciasDePrueba({ auth })}>
       <SessionProvider>
-        <ConsentimientoProvider>
+        <ConsentProvider>
           <Sonda />
-        </ConsentimientoProvider>
+        </ConsentProvider>
       </SessionProvider>
     </DependenciesProvider>,
   );
@@ -47,7 +47,7 @@ beforeEach(() => {
 });
 afterEach(() => appState.restaurar());
 
-describe('SesionProvider', () => {
+describe('SessionProvider', () => {
   test('mientras no se lee la sesión guardada está «cargando»; luego da el usuario', async () => {
     const auth = new AuthFalso();
     let resolver!: (id: string | null) => void;
@@ -88,11 +88,11 @@ describe('SesionProvider', () => {
   });
 });
 
-describe('ConsentimientoProvider', () => {
+describe('ConsentProvider', () => {
   test('expone el estado del ConsentViewModel global', async () => {
     await montar(new AuthFalso({ consultas: [['tratamiento_datos']] }));
     await act(esperar);
-    expect(sonda()).toBe(`viajero-1|${EstadoConsentimiento.pendiente}`);
+    expect(sonda()).toBe(`viajero-1|${ConsentState.pending}`);
   });
 
   test('al volver a primer plano reintenta si la verificación falló (DiversoApp.didChangeAppLifecycleState)', async () => {

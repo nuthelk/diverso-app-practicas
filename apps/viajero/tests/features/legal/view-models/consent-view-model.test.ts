@@ -1,4 +1,4 @@
-import { ConsentViewModel, EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
+import { ConsentViewModel, ConsentState } from '@/features/legal/view-models/consent-view-model';
 
 import { AuthFalso } from '../../../support/auth-falso';
 import { compuerta, esperar, type Compuerta } from '../../../support/compuerta';
@@ -13,22 +13,22 @@ import { compuerta, esperar, type Compuerta } from '../../../support/compuerta';
  * `await esperar()` justo después de crearlo, donde Dart ya tenía la consulta en vuelo.
  */
 
-const pendientesDePrueba = ['tratamiento_datos', 'terminos_viajero'];
+const testPendingDocuments = ['tratamiento_datos', 'terminos_viajero'];
 
-const creados: ConsentViewModel[] = [];
-function crearVm(auth: AuthFalso): ConsentViewModel {
+const created: ConsentViewModel[] = [];
+function createVm(auth: AuthFalso): ConsentViewModel {
   const vm = new ConsentViewModel({ auth });
-  creados.push(vm);
+  created.push(vm);
   return vm;
 }
 
 afterEach(() => {
-  for (const vm of creados.splice(0)) vm.dispose();
+  for (const vm of created.splice(0)) vm.dispose();
   jest.useRealTimers();
 });
 
 /** Una consulta de consentimiento que nunca responde. */
-class AuthColgado extends AuthFalso {
+class HangingAuth extends AuthFalso {
   override pendingConsents(): Promise<string[]> {
     this.consultas++;
     return new Promise<string[]>(() => {});
@@ -36,263 +36,263 @@ class AuthColgado extends AuthFalso {
 }
 
 /** Una consulta de consentimiento que no responde hasta que el test lo decide (solo la primera). */
-class AuthLento extends AuthFalso {
-  private atendida = false;
+class SlowAuth extends AuthFalso {
+  private served = false;
 
-  constructor(private readonly primera: Compuerta<string[]>) {
+  constructor(private readonly first: Compuerta<string[]>) {
     super();
   }
 
   override pendingConsents(): Promise<string[]> {
-    if (this.atendida) return super.pendingConsents();
-    this.atendida = true;
-    return this.primera.promesa;
+    if (this.served) return super.pendingConsents();
+    this.served = true;
+    return this.first.promesa;
   }
 }
 
 test('sin sesión no consulta nada y queda verificándose', async () => {
   const auth = new AuthFalso({ usuario: null });
-  const vm = crearVm(auth);
+  const vm = createVm(auth);
   await esperar();
-  expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+  expect(vm.state).toBe(ConsentState.checking);
   expect(auth.consultas).toBe(0);
 });
 
 test('con sesión y al día: aceptado', async () => {
-  const vm = crearVm(new AuthFalso());
-  expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+  const vm = createVm(new AuthFalso());
+  expect(vm.state).toBe(ConsentState.checking);
   await esperar();
-  expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
-  expect(vm.pendientes).toEqual([]);
+  expect(vm.state).toBe(ConsentState.accepted);
+  expect(vm.pendingDocuments).toEqual([]);
 });
 
 test('con sesión y documentos sin aceptar: pendiente, con cuáles faltan', async () => {
-  const vm = crearVm(new AuthFalso({ consultas: [pendientesDePrueba] }));
+  const vm = createVm(new AuthFalso({ consultas: [testPendingDocuments] }));
   await esperar();
-  expect(vm.estado).toBe(EstadoConsentimiento.pendiente);
-  expect(vm.pendientes).toEqual(pendientesDePrueba);
+  expect(vm.state).toBe(ConsentState.pending);
+  expect(vm.pendingDocuments).toEqual(testPendingDocuments);
 });
 
 describe('cuando la consulta falla', () => {
   test('queda en error (nunca aceptado) y «reintentar» vuelve a consultar', async () => {
-    const auth = new AuthFalso({ consultas: [new Error('sin red'), pendientesDePrueba] });
-    const vm = crearVm(auth);
+    const auth = new AuthFalso({ consultas: [new Error('sin red'), testPendingDocuments] });
+    const vm = createVm(auth);
     await esperar();
-    expect(vm.estado).toBe(EstadoConsentimiento.error);
+    expect(vm.state).toBe(ConsentState.error);
 
-    await vm.reintentar();
+    await vm.retry();
 
     expect(auth.consultas).toBe(2);
-    expect(vm.estado).toBe(EstadoConsentimiento.pendiente);
-    expect(vm.pendientes).toEqual(pendientesDePrueba);
+    expect(vm.state).toBe(ConsentState.pending);
+    expect(vm.pendingDocuments).toEqual(testPendingDocuments);
   });
 
   test('si el reintento también falla sigue en error', async () => {
     const auth = new AuthFalso({ consultas: [new Error('sin red')] });
-    const vm = crearVm(auth);
+    const vm = createVm(auth);
     await esperar();
-    await vm.reintentar();
+    await vm.retry();
     expect(auth.consultas).toBe(2);
-    expect(vm.estado).toBe(EstadoConsentimiento.error);
+    expect(vm.state).toBe(ConsentState.error);
   });
 
   test('notifica al pasar por «verificando» y al terminar', async () => {
-    const vm = crearVm(new AuthFalso({ consultas: [new Error('sin red'), []] }));
+    const vm = createVm(new AuthFalso({ consultas: [new Error('sin red'), []] }));
     await esperar();
-    const vistos: EstadoConsentimiento[] = [];
-    vm.suscribir(() => vistos.push(vm.estado));
+    const seen: ConsentState[] = [];
+    vm.subscribe(() => seen.push(vm.state));
 
-    await vm.reintentar();
+    await vm.retry();
 
-    expect(vistos).toEqual([EstadoConsentimiento.verificando, EstadoConsentimiento.aceptado]);
+    expect(seen).toEqual([ConsentState.checking, ConsentState.accepted]);
   });
 });
 
 test('«reintentar» no repite la consulta si ya se sabe el estado', async () => {
-  const auth = new AuthFalso({ consultas: [pendientesDePrueba] });
-  const vm = crearVm(auth);
+  const auth = new AuthFalso({ consultas: [testPendingDocuments] });
+  const vm = createVm(auth);
   await esperar();
-  await vm.reintentar();
+  await vm.retry();
   expect(auth.consultas).toBe(1);
-  expect(vm.estado).toBe(EstadoConsentimiento.pendiente);
+  expect(vm.state).toBe(ConsentState.pending);
 });
 
 describe('sesión', () => {
   test('al iniciar sesión consulta el consentimiento de ese usuario', async () => {
-    const auth = new AuthFalso({ usuario: null, consultas: [pendientesDePrueba] });
-    const vm = crearVm(auth);
+    const auth = new AuthFalso({ usuario: null, consultas: [testPendingDocuments] });
+    const vm = createVm(auth);
     await esperar();
     auth.cambiarSesion('viajero-2');
     await esperar();
     expect(auth.consultas).toBe(1);
-    expect(vm.estado).toBe(EstadoConsentimiento.pendiente);
+    expect(vm.state).toBe(ConsentState.pending);
   });
 
   test('un refresco de token (mismo usuario) no vuelve a consultar', async () => {
     const auth = new AuthFalso();
-    const vm = crearVm(auth);
+    const vm = createVm(auth);
     await esperar();
-    let avisos = 0;
-    vm.suscribir(() => avisos++);
+    let notifications = 0;
+    vm.subscribe(() => notifications++);
 
     auth.cambiarSesion('viajero-1');
     await esperar();
 
     expect(auth.consultas).toBe(1);
-    expect(avisos).toBe(0);
+    expect(notifications).toBe(0);
   });
 
   test('al cambiar de usuario olvida el estado del anterior y consulta de nuevo', async () => {
-    const auth = new AuthFalso({ consultas: [[], pendientesDePrueba] });
-    const vm = crearVm(auth);
+    const auth = new AuthFalso({ consultas: [[], testPendingDocuments] });
+    const vm = createVm(auth);
     await esperar();
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
+    expect(vm.state).toBe(ConsentState.accepted);
 
-    const vistos: EstadoConsentimiento[] = [];
-    vm.suscribir(() => vistos.push(vm.estado));
+    const seen: ConsentState[] = [];
+    vm.subscribe(() => seen.push(vm.state));
     auth.cambiarSesion('viajero-2');
     await esperar();
 
-    expect(vistos).toEqual([EstadoConsentimiento.verificando, EstadoConsentimiento.pendiente]);
+    expect(seen).toEqual([ConsentState.checking, ConsentState.pending]);
   });
 
   test('al cerrar sesión vuelve a «verificando» y no consulta', async () => {
     const auth = new AuthFalso();
-    const vm = crearVm(auth);
+    const vm = createVm(auth);
     await esperar();
 
     auth.cambiarSesion(null);
     await esperar();
 
-    expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+    expect(vm.state).toBe(ConsentState.checking);
     expect(auth.consultas).toBe(1);
   });
 
   test('la respuesta tardía de un usuario anterior no pisa la del actual', async () => {
-    const tardia = compuerta<string[]>();
-    const auth = new AuthLento(tardia);
-    const vm = crearVm(auth);
+    const late = compuerta<string[]>();
+    const auth = new SlowAuth(late);
+    const vm = createVm(auth);
     await esperar();
     // La consulta de viajero-1 queda colgada; entra otro usuario, que sí está al día.
     auth.cambiarSesion('viajero-2');
     await esperar();
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
+    expect(vm.state).toBe(ConsentState.accepted);
 
-    tardia.completar(pendientesDePrueba);
+    late.completar(testPendingDocuments);
     await esperar();
 
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
-    expect(vm.pendientes).toEqual([]);
+    expect(vm.state).toBe(ConsentState.accepted);
+    expect(vm.pendingDocuments).toEqual([]);
   });
 
   test('un evento de sesión que llega antes que la lectura inicial gana (es más nuevo)', async () => {
-    const auth = new AuthFalso({ usuario: 'viajero-1', consultas: [pendientesDePrueba, []] });
-    const vm = crearVm(auth);
+    const auth = new AuthFalso({ usuario: 'viajero-1', consultas: [testPendingDocuments, []] });
+    const vm = createVm(auth);
     // Sin esperar: la lectura inicial (viajero-1) todavía no volvió.
     auth.cambiarSesion(null);
     await esperar();
     expect(auth.consultas).toBe(0);
-    expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+    expect(vm.state).toBe(ConsentState.checking);
   });
 });
 
 describe('aceptar', () => {
   test('registra cada documento pendiente y confirma con el servidor', async () => {
-    const auth = new AuthFalso({ consultas: [pendientesDePrueba, []] });
-    const vm = crearVm(auth);
+    const auth = new AuthFalso({ consultas: [testPendingDocuments, []] });
+    const vm = createVm(auth);
     await esperar();
 
-    const guardado = await vm.aceptar();
+    const saved = await vm.accept();
 
-    expect(guardado).toBe(true);
-    expect(auth.registrados).toEqual(pendientesDePrueba);
+    expect(saved).toBe(true);
+    expect(auth.registrados).toEqual(testPendingDocuments);
     expect(auth.consultas).toBe(2);
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
+    expect(vm.state).toBe(ConsentState.accepted);
   });
 
   test('si no se puede guardar devuelve false y sigue pendiente', async () => {
-    const auth = new AuthFalso({ consultas: [pendientesDePrueba] });
+    const auth = new AuthFalso({ consultas: [testPendingDocuments] });
     auth.falloAlRegistrar = true;
-    const vm = crearVm(auth);
+    const vm = createVm(auth);
     await esperar();
 
-    expect(await vm.aceptar()).toBe(false);
+    expect(await vm.accept()).toBe(false);
 
-    expect(vm.estado).toBe(EstadoConsentimiento.pendiente);
+    expect(vm.state).toBe(ConsentState.pending);
     expect(auth.registrados).toEqual([]);
     expect(auth.consultas).toBe(1);
   });
 
   test('si no hay nada pendiente (error o al día) no registra nada', async () => {
     const auth = new AuthFalso({ consultas: [new Error('sin red')] });
-    const vm = crearVm(auth);
+    const vm = createVm(auth);
     await esperar();
 
-    expect(await vm.aceptar()).toBe(false);
+    expect(await vm.accept()).toBe(false);
     expect(auth.registrados).toEqual([]);
   });
 });
 
 test('«cerrar sesión» cierra la sesión del repositorio', async () => {
   const auth = new AuthFalso();
-  const vm = crearVm(auth);
-  await vm.cerrarSesion();
+  const vm = createVm(auth);
+  await vm.signOut();
   expect(await auth.currentUserId()).toBeNull();
 });
 
 describe('una consulta que no responde', () => {
   test('pasado el tiempo límite queda en error y «reintentar» vuelve a consultar', async () => {
     jest.useFakeTimers();
-    const auth = new AuthColgado();
-    const vm = crearVm(auth);
+    const auth = new HangingAuth();
+    const vm = createVm(auth);
     await jest.advanceTimersByTimeAsync(0);
-    expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+    expect(vm.state).toBe(ConsentState.checking);
 
-    await jest.advanceTimersByTimeAsync(ConsentViewModel.tiempoLimite - 1000);
-    expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+    await jest.advanceTimersByTimeAsync(ConsentViewModel.timeoutMs - 1000);
+    expect(vm.state).toBe(ConsentState.checking);
 
     await jest.advanceTimersByTimeAsync(1000);
-    expect(vm.estado).toBe(EstadoConsentimiento.error);
+    expect(vm.state).toBe(ConsentState.error);
     expect(auth.consultas).toBe(1);
 
-    void vm.reintentar();
+    void vm.retry();
     await jest.advanceTimersByTimeAsync(0);
     expect(auth.consultas).toBe(2);
-    expect(vm.estado).toBe(EstadoConsentimiento.verificando);
+    expect(vm.state).toBe(ConsentState.checking);
     // La segunda consulta tampoco responde: se vence también y no queda ningún temporizador.
-    await jest.advanceTimersByTimeAsync(ConsentViewModel.tiempoLimite);
-    expect(vm.estado).toBe(EstadoConsentimiento.error);
+    await jest.advanceTimersByTimeAsync(ConsentViewModel.timeoutMs);
+    expect(vm.state).toBe(ConsentState.error);
     expect(jest.getTimerCount()).toBe(0);
   });
 
   test('si responde a tiempo no hay error', async () => {
     jest.useFakeTimers();
-    const tardia = compuerta<string[]>();
-    const vm = crearVm(new AuthLento(tardia));
-    await jest.advanceTimersByTimeAsync(ConsentViewModel.tiempoLimite - 1000);
+    const late = compuerta<string[]>();
+    const vm = createVm(new SlowAuth(late));
+    await jest.advanceTimersByTimeAsync(ConsentViewModel.timeoutMs - 1000);
 
-    tardia.completar([]);
+    late.completar([]);
     await jest.advanceTimersByTimeAsync(0);
 
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
+    expect(vm.state).toBe(ConsentState.accepted);
     expect(jest.getTimerCount()).toBe(0);
-    await jest.advanceTimersByTimeAsync(ConsentViewModel.tiempoLimite);
-    expect(vm.estado).toBe(EstadoConsentimiento.aceptado);
+    await jest.advanceTimersByTimeAsync(ConsentViewModel.timeoutMs);
+    expect(vm.state).toBe(ConsentState.accepted);
   });
 });
 
 test('tras dispose una respuesta tardía no notifica y deja de escuchar la sesión', async () => {
-  const tardia = compuerta<string[]>();
-  const auth = new AuthLento(tardia);
+  const late = compuerta<string[]>();
+  const auth = new SlowAuth(late);
   const vm = new ConsentViewModel({ auth });
   await esperar();
-  let avisos = 0;
-  vm.suscribir(() => avisos++);
+  let notifications = 0;
+  vm.subscribe(() => notifications++);
 
   vm.dispose();
-  tardia.completar(pendientesDePrueba);
+  late.completar(testPendingDocuments);
   await esperar();
 
-  expect(avisos).toBe(0);
+  expect(notifications).toBe(0);
   expect(auth.oyentes).toBe(0);
 });

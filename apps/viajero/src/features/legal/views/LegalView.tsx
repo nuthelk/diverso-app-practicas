@@ -15,20 +15,20 @@ import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
  * atrás solo aparece si hay historial (como el automático del `AppBar`).
  */
 export function LegalView({ docId }: { docId: string }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const router = useRouter();
   const doc = LegalDocument.byId(docId);
 
   return (
-    <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
+    <View style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Documentos legales" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
       {doc === null ? (
-        <View style={estilos.centro}>
+        <View style={styles.center}>
           <Text>Documento no encontrado.</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={estilos.lista}>
+        <ScrollView contentContainerStyle={styles.list}>
           <Text selectable style={{ fontSize: AppText.note, fontWeight: '700', letterSpacing: 1.2, color: cs.outline }}>
             {`VERSIÓN ${LEGAL_VERSION.toUpperCase()}`}
           </Text>
@@ -73,8 +73,8 @@ export function LegalView({ docId }: { docId: string }) {
   );
 }
 
-const estilos = StyleSheet.create({
-  pantalla: { flex: 1 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  lista: { paddingLeft: 22, paddingTop: 8, paddingRight: 22, paddingBottom: 48 },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  list: { paddingLeft: 22, paddingTop: 8, paddingRight: 22, paddingBottom: 48 },
 });
