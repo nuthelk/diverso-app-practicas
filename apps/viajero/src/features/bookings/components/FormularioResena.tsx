@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { formatFechaLarga } from '@/core';
 import { FilledButton, Icono, Text, TextField } from '@/ui/components';
@@ -26,88 +26,91 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
   const colorBotonDeshabilitado = conAlfa(cs.onSurface, 0.38);
 
   return (
-    <ScrollView contentContainerStyle={[AppInsets.pantalla, estilos.centro]} keyboardShouldPersistTaps="handled">
-      <View style={estilos.columna}>
-        {plan !== null ? (
-          <>
-            <Text
-              altura={1.2}
-              style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
-            >
-              {plan.titulo}
-            </Text>
-            {fecha !== null ? (
-              <>
-                <View style={{ height: 4 }} />
-                <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant, textAlign: 'center' }}>
-                  {formatFechaLarga(fecha)}
-                </Text>
-              </>
-            ) : null}
-          </>
-        ) : null}
-        <View style={{ height: 30 }} />
-        <Text style={{ fontSize: AppText.subtitulo, fontWeight: '700', color: cs.onSurface, textAlign: 'center' }}>
-          ¿Cómo estuvo tu experiencia?
-        </Text>
-        <View style={{ height: 18 }} />
-        <View style={estilos.estrellas}>
-          {Array.from({ length: MAX_ESTRELLAS }, (_, i) => {
-            const marcada = i < vm.calificacion;
-            return (
-              <Pressable
-                key={i}
-                accessibilityRole="button"
-                accessibilityLabel={`${i + 1} de 5 estrellas`}
-                accessibilityState={{ disabled: bloqueado, selected: marcada }}
-                disabled={bloqueado}
-                onPress={() => vm.calificar(i + 1)}
-                style={estilos.estrella}
+    // iOS no achica la ventana con el teclado: sin esto taparía el comentario y «Publicar reseña».
+    <KeyboardAvoidingView style={estilos.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={[AppInsets.pantalla, estilos.centro]} keyboardShouldPersistTaps="handled">
+        <View style={estilos.columna}>
+          {plan !== null ? (
+            <>
+              <Text
+                altura={1.2}
+                style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
               >
-                <Icono
-                  nombre={marcada ? 'star_rounded' : 'star_outline_rounded'}
-                  size={42}
-                  color={marcada ? tema.diverso.dorado : cs.outline}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
-        <EtiquetaCalificacion texto={etiquetaDe(vm.calificacion)} color={cs.primary} />
-        <View style={{ height: 28 }} />
-        <TextField
-          valor={comentario}
-          onChangeText={setComentario}
-          etiqueta="Cuenta cómo te fue (opcional)"
-          lineas={5}
-          maxLength={500}
-          deshabilitado={bloqueado}
-        />
-        <View style={{ height: 18 }} />
-        <FilledButton
-          accessibilityLabel="Publicar reseña"
-          onPress={bloqueado ? null : () => onEnviar(comentario)}
-          style={{ paddingLeft: 16 }}
-        >
-          {bloqueado ? (
-            <View style={estilos.indicador}>
-              <ActivityIndicator size="small" color={colorBotonDeshabilitado} style={{ transform: [{ scale: 0.85 }] }} />
-            </View>
-          ) : (
-            <Icono nombre="send_rounded" size={17} color={cs.onPrimary} />
-          )}
-          <Text>Publicar reseña</Text>
-        </FilledButton>
-        <View style={{ height: 14 }} />
-        <View style={estilos.pie}>
-          <Icono nombre="verified_rounded" size={13} color={cs.tertiary} />
-          <View style={{ width: 5 }} />
-          <Text style={[estilos.encoger, { fontSize: AppText.leyenda, color: cs.onSurfaceVariant }]}>
-            Reseña verificada: solo quien viajó puede opinar
+                {plan.titulo}
+              </Text>
+              {fecha !== null ? (
+                <>
+                  <View style={{ height: 4 }} />
+                  <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant, textAlign: 'center' }}>
+                    {formatFechaLarga(fecha)}
+                  </Text>
+                </>
+              ) : null}
+            </>
+          ) : null}
+          <View style={{ height: 30 }} />
+          <Text style={{ fontSize: AppText.subtitulo, fontWeight: '700', color: cs.onSurface, textAlign: 'center' }}>
+            ¿Cómo estuvo tu experiencia?
           </Text>
+          <View style={{ height: 18 }} />
+          <View style={estilos.estrellas}>
+            {Array.from({ length: MAX_ESTRELLAS }, (_, i) => {
+              const marcada = i < vm.calificacion;
+              return (
+                <Pressable
+                  key={i}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${i + 1} de 5 estrellas`}
+                  accessibilityState={{ disabled: bloqueado, selected: marcada }}
+                  disabled={bloqueado}
+                  onPress={() => vm.calificar(i + 1)}
+                  style={estilos.estrella}
+                >
+                  <Icono
+                    nombre={marcada ? 'star_rounded' : 'star_outline_rounded'}
+                    size={42}
+                    color={marcada ? tema.diverso.dorado : cs.outline}
+                  />
+                </Pressable>
+              );
+            })}
+          </View>
+          <EtiquetaCalificacion texto={etiquetaDe(vm.calificacion)} color={cs.primary} />
+          <View style={{ height: 28 }} />
+          <TextField
+            valor={comentario}
+            onChangeText={setComentario}
+            etiqueta="Cuenta cómo te fue (opcional)"
+            lineas={5}
+            maxLength={500}
+            deshabilitado={bloqueado}
+          />
+          <View style={{ height: 18 }} />
+          <FilledButton
+            accessibilityLabel="Publicar reseña"
+            onPress={bloqueado ? null : () => onEnviar(comentario)}
+            style={{ paddingLeft: 16 }}
+          >
+            {bloqueado ? (
+              <View style={estilos.indicador}>
+                <ActivityIndicator size="small" color={colorBotonDeshabilitado} style={{ transform: [{ scale: 0.85 }] }} />
+              </View>
+            ) : (
+              <Icono nombre="send_rounded" size={17} color={cs.onPrimary} />
+            )}
+            <Text>Publicar reseña</Text>
+          </FilledButton>
+          <View style={{ height: 14 }} />
+          <View style={estilos.pie}>
+            <Icono nombre="verified_rounded" size={13} color={cs.tertiary} />
+            <View style={{ width: 5 }} />
+            <Text style={[estilos.encoger, { fontSize: AppText.leyenda, color: cs.onSurfaceVariant }]}>
+              Reseña verificada: solo quien viajó puede opinar
+            </Text>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -135,6 +138,7 @@ function EtiquetaCalificacion({ texto, color }: { texto: string; color: string }
 }
 
 const estilos = StyleSheet.create({
+  flex: { flex: 1 },
   centro: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
   columna: { width: '100%', maxWidth: 460, alignItems: 'stretch' },
   estrellas: { flexDirection: 'row', justifyContent: 'center' },
