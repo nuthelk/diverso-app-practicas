@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import type { Review } from '@/core';
-import { EstrellasCalificacion, Icono, Text } from '@/ui/components';
+import { EstrellasCalificacion, Icon, Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Primer grafema completo (no parte emojis); sin `Intl.Segmenter`, el primer punto de código. */
@@ -37,11 +37,11 @@ export function ResenaItem({ review }: { review: Review }) {
         <EstrellasCalificacion calificacion={review.rating} size={14} />
         <View style={{ width: 5 }} />
         <View accessible accessibilityLabel="Reseña verificada: solo quien compró puede opinar">
-          <Icono nombre="verified_rounded" size={14} color={cs.tertiary} />
+          <Icon name="verified_rounded" size={14} color={cs.tertiary} />
         </View>
       </View>
       {comentario !== '' ? (
-        <Text altura={1.45} style={{ marginTop: 10, fontSize: AppText.smallBody }}>
+        <Text height={1.45} style={{ marginTop: 10, fontSize: AppText.smallBody }}>
           {comentario}
         </Text>
       ) : null}

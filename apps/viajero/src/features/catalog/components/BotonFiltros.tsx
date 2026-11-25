@@ -27,7 +27,7 @@ export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos
       />
       {vm.filtrosActivos > 0 ? (
         <View testID="insignia-filtros" pointerEvents="none" style={[estilos.insignia, { backgroundColor: tema.colorScheme.error }]}>
-          <Text style={{ color: tema.colorScheme.onError, fontSize: 11, fontWeight: '500', letterSpacing: 0.5 }} altura={null}>
+          <Text style={{ color: tema.colorScheme.onError, fontSize: 11, fontWeight: '500', letterSpacing: 0.5 }} height={null}>
             {String(vm.filtrosActivos)}
           </Text>
         </View>

@@ -12,9 +12,9 @@ import { useTheme } from '@/ui/theme';
  * - `*_outlined` → el `-outline` de MaterialIcons si existe; si no, el equivalente de
  *   MaterialCommunityIcons (MCI); si tampoco, el filled (anotado abajo).
  */
-type Familia = 'MI' | 'MCI';
+type IconFamily = 'MI' | 'MCI';
 
-const mapa = {
+const iconMap = {
   account_balance_rounded: ['MI', 'account-balance'],
   account_balance_wallet_rounded: ['MI', 'account-balance-wallet'],
   add_rounded: ['MI', 'add'],
@@ -96,13 +96,13 @@ const mapa = {
   // Nuevos de la app Expo (no venían de Flutter).
   visibility_off_outlined: ['MCI', 'eye-off-outline'],
   visibility_outlined: ['MCI', 'eye-outline'],
-} as const satisfies Record<string, readonly [Familia, string]>;
+} as const satisfies Record<string, readonly [IconFamily, string]>;
 
 /** Íconos de la app: los de la versión Flutter más los nuevos (nombres al estilo de Flutter). */
-export type IconoNombre = keyof typeof mapa;
+export type IconName = keyof typeof iconMap;
 
-export interface IconoProps {
-  nombre: IconoNombre;
+export interface IconProps {
+  name: IconName;
   /** 24 por defecto (IconTheme de Material). */
   size?: number;
   /** Por defecto `onSurfaceVariant`, como los íconos sueltos de M3 (prefijos de campos, etc.). */
@@ -113,26 +113,26 @@ export interface IconoProps {
 }
 
 /** Ícono decorativo (oculto a lectores de pantalla, como `Icon` sin `semanticLabel`). */
-export function Icono({ nombre, size = 24, color, style, testID }: IconoProps) {
-  const tema = useTheme();
-  const [familia, glifo] = mapa[nombre];
+export function Icon({ name, size = 24, color, style, testID }: IconProps) {
+  const theme = useTheme();
+  const [family, glyph] = iconMap[name];
   const props = {
     size,
-    color: color ?? tema.colorScheme.onSurfaceVariant,
+    color: color ?? theme.colorScheme.onSurfaceVariant,
     style,
-    testID: testID ?? `icono-${nombre}`,
+    testID: testID ?? `icono-${name}`,
     accessible: false,
     importantForAccessibility: 'no' as const,
     accessibilityElementsHidden: true,
   };
-  return familia === 'MCI' ? (
-    <MaterialCommunityIcons name={glifo as never} {...props} />
+  return family === 'MCI' ? (
+    <MaterialCommunityIcons name={glyph as never} {...props} />
   ) : (
-    <MaterialIcons name={glifo as never} {...props} />
+    <MaterialIcons name={glyph as never} {...props} />
   );
 }
 
 /** Familia y glifo de @expo/vector-icons de un ícono de Flutter. */
-export function glifoDe(nombre: IconoNombre): readonly [Familia, string] {
-  return mapa[nombre];
+export function glyphOf(name: IconName): readonly [IconFamily, string] {
+  return iconMap[name];
 }

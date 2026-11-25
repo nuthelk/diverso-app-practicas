@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, formatCOP, type ComparisonRow, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
-import { FilledButton, Icono, Text } from '@/ui/components';
+import { FilledButton, Icon, Text } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 export const ANCHO_ETIQUETA = 92;
@@ -74,7 +74,7 @@ export function TablaComparacion({
         return (
           <View key={fila.icon} style={[estilos.fila, { borderTopWidth: 1, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
             <View style={{ width: ANCHO_ETIQUETA, paddingTop: 12, paddingRight: 8, paddingBottom: 12 }}>
-              <Text altura={1.3} style={{ fontSize: AppText.caption, fontWeight: '600', color: cs.onSurfaceVariant }}>
+              <Text height={1.3} style={{ fontSize: AppText.caption, fontWeight: '600', color: cs.onSurfaceVariant }}>
                 {fila.title}
               </Text>
             </View>
@@ -112,7 +112,7 @@ export function TablaComparacion({
   return (
     <View>
       <View style={[estilos.fila, { alignItems: 'center' }]}>
-        <Icono nombre="swipe_left_rounded" size={16} color={cs.onSurfaceVariant} />
+        <Icon name="swipe_left_rounded" size={16} color={cs.onSurfaceVariant} />
         <Text style={{ marginLeft: 6, flex: 1, fontSize: AppText.caption, color: cs.onSurfaceVariant }}>
           Desliza la tabla para ver todos los planes
         </Text>
@@ -139,7 +139,7 @@ function CabeceraPlan({ plan, mejorPrecio }: { plan: Plan; mejorPrecio: boolean 
         )}
       </View>
       <View style={{ height: 8 }} />
-      <Text numberOfLines={3} ellipsizeMode="tail" altura={1.25} style={{ fontWeight: '700', fontSize: AppText.smallBody }}>
+      <Text numberOfLines={3} ellipsizeMode="tail" height={1.25} style={{ fontWeight: '700', fontSize: AppText.smallBody }}>
         {plan.title}
       </Text>
       {mejorPrecio ? (
@@ -179,7 +179,7 @@ function ValorComparado({ valor, esPrecio, destacado }: { valor: string; esPreci
   const vacio = valor === '—';
   return (
     <Text
-      altura={1.4}
+      height={1.4}
       style={{
         fontSize: AppText.detail,
         fontWeight: incluido ? '700' : '500',

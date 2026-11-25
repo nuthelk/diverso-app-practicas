@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
-import { FilledButton, Icono, IconButton, Text, TextButton } from '@/ui/components';
+import { FilledButton, Icon, IconButton, Text, TextButton } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, Curves, Durations, Shadows, useTheme } from '@/ui/theme';
 
 /** Desde cuántos planes se puede comparar. */
@@ -154,7 +154,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
         </View>
       </View>
       <View style={{ height: 4 }} />
-      <Text numberOfLines={1} altura={1.2} style={{ fontSize: AppText.label, fontWeight: '600' }}>
+      <Text numberOfLines={1} height={1.2} style={{ fontSize: AppText.label, fontWeight: '600' }}>
         {plan.title}
       </Text>
     </View>
@@ -179,7 +179,7 @@ function Hueco() {
           },
         ]}
       >
-        <Icono nombre="add_rounded" size={20} color={cs.outline} />
+        <Icon name="add_rounded" size={20} color={cs.outline} />
       </View>
       <View style={{ height: 4 + 14 }} />
     </View>

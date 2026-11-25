@@ -1,14 +1,14 @@
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Icono, Skeleton, Text, type IconoNombre } from '@/ui/components';
+import { Icon, Skeleton, Text, type IconName } from '@/ui/components';
 import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Píldora de «Qué incluye»; un texto libre del plan ([textoLargo]) se recorta con «…». */
-export function IncluyePill({ icono, texto, textoLargo = false }: { icono: IconoNombre; texto: string; textoLargo?: boolean }) {
+export function IncluyePill({ icono, texto, textoLargo = false }: { icono: IconName; texto: string; textoLargo?: boolean }) {
   const cs = useTheme().colorScheme;
   return (
     <View testID="incluye-pill" style={[estilos.pildora, { backgroundColor: cs.surfaceContainerLow }]}>
-      <Icono nombre={icono} size={15} color={cs.primary} />
+      <Icon name={icono} size={15} color={cs.primary} />
       <View style={{ width: 6 }} />
       <Text
         numberOfLines={textoLargo ? 1 : undefined}

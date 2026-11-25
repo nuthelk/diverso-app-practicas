@@ -53,10 +53,10 @@ export function ContenidoAgencia({
     >
       <View style={estilos.bloque}>
         <View style={estilos.fila}>
-          <AgencyAvatar agencia={agencia} size={64} />
+          <AgencyAvatar agency={agencia} size={64} />
           <View style={{ width: 14 }} />
           <View style={estilos.flex}>
-            <Text altura={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.headingXl }]}>
+            <Text height={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.headingXl }]}>
               {agencia.name}
             </Text>
             <View style={{ height: 8 }} />
@@ -70,13 +70,13 @@ export function ContenidoAgencia({
         {descripcion !== '' ? (
           <>
             <View style={{ height: 16 }} />
-            <Text altura={1.5} style={{ fontSize: AppText.largeBody, color: cs.onSurfaceVariant }}>
+            <Text height={1.5} style={{ fontSize: AppText.largeBody, color: cs.onSurfaceVariant }}>
               {descripcion}
             </Text>
           </>
         ) : null}
         <View style={{ height: 28 }} />
-        <SectionLabel texto={`Planes publicados (${planes.length})`} />
+        <SectionLabel text={`Planes publicados (${planes.length})`} />
       </View>
       {planes.length === 0 ? (
         <View style={estilos.vacio}>

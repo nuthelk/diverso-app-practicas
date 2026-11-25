@@ -33,11 +33,11 @@ export function LegalView({ docId }: { docId: string }) {
             {`VERSIÓN ${LEGAL_VERSION.toUpperCase()}`}
           </Text>
           <View style={{ height: 8 }} />
-          <Text selectable altura={1.2} style={{ fontSize: AppText.heading2xl, fontWeight: '800', letterSpacing: -0.6 }}>
+          <Text selectable height={1.2} style={{ fontSize: AppText.heading2xl, fontWeight: '800', letterSpacing: -0.6 }}>
             {doc.title}
           </Text>
           <View style={{ height: 8 }} />
-          <Text selectable altura={1.5} style={{ fontSize: AppText.emphasis, color: cs.onSurfaceVariant }}>
+          <Text selectable height={1.5} style={{ fontSize: AppText.emphasis, color: cs.onSurfaceVariant }}>
             {doc.summary}
           </Text>
           <View style={{ height: 18 }} />
@@ -47,7 +47,7 @@ export function LegalView({ docId }: { docId: string }) {
               { backgroundColor: withAlpha(cs.tertiaryContainer, 0.55), borderRadius: AppRadii.field },
             ]}
           >
-            <Text selectable altura={1.5} style={{ fontSize: AppText.largeCaption, color: cs.onTertiaryContainer }}>
+            <Text selectable height={1.5} style={{ fontSize: AppText.largeCaption, color: cs.onTertiaryContainer }}>
               Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del responsable antes del lanzamiento comercial.
             </Text>
           </View>
@@ -60,7 +60,7 @@ export function LegalView({ docId }: { docId: string }) {
               {s.paragraphs.map((p) => (
                 <Fragment key={p}>
                   <View style={{ height: 10 }} />
-                  <Text selectable altura={1.65} style={{ fontSize: AppText.largeBody, color: cs.onSurface }}>
+                  <Text selectable height={1.65} style={{ fontSize: AppText.largeBody, color: cs.onSurface }}>
                     {p}
                   </Text>
                 </Fragment>

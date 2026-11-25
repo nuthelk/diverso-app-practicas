@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Booking } from '@/core';
 import { AppRoutes } from '@/router';
-import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
+import { FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppText, useTheme } from '@/ui/theme';
 
 import { Aparecer, EscalaElastica } from '../components/Aparecer';
@@ -32,7 +32,7 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
         <View style={estilos.columna}>
           <EscalaElastica>
             <View style={[estilos.circulo, { backgroundColor: cs.primaryContainer }]}>
-              <Icono nombre="check_rounded" size={46} color={cs.primary} />
+              <Icon name="check_rounded" size={46} color={cs.primary} />
             </View>
           </EscalaElastica>
           <View style={{ height: 20 }} />

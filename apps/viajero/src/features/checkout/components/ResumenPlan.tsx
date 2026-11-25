@@ -22,7 +22,7 @@ export function ResumenPlan({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
       </View>
       <View style={{ width: 14 }} />
       <View style={estilos.textos}>
-        <Text numberOfLines={2} altura={1.25} style={{ fontWeight: '700', fontSize: AppText.emphasis }}>
+        <Text numberOfLines={2} height={1.25} style={{ fontWeight: '700', fontSize: AppText.emphasis }}>
           {plan.title}
         </Text>
         <View style={{ height: 5 }} />

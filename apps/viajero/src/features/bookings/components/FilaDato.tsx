@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { noLineBreaks } from '@/core';
-import { Icono, Text, type IconoNombre } from '@/ui/components';
+import { Icon, Text, type IconName } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
 /**
@@ -16,7 +16,7 @@ export function FilaDato({
   color,
   compacto = false,
 }: {
-  icono: IconoNombre;
+  icono: IconName;
   texto: string;
   acento?: string | null;
   color?: string;
@@ -27,11 +27,11 @@ export function FilaDato({
   return (
     <View style={estilos.fila}>
       <View style={estilos.icono}>
-        <Icono nombre={icono} size={compacto ? 16 : 19} color={color ?? cs.onSurfaceVariant} />
+        <Icon name={icono} size={compacto ? 16 : 19} color={color ?? cs.onSurfaceVariant} />
       </View>
       <View style={{ width: compacto ? 8 : 10 }} />
       <Text
-        altura={1.3}
+        height={1.3}
         style={[estilos.texto, { fontSize: compacto ? AppText.detail : AppText.largeBody, color: color ?? cs.onSurface }]}
       >
         {noLineBreaks(texto)}

@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
-import { Icono } from '../Icono';
+import { Icon } from '../Icon';
 import { Text } from '../Text';
 
 /** Resumen «★ 4.8»: una estrella dorada (size+2) y, opcional, el valor con 1 decimal (size-1, w700). */
@@ -18,7 +18,7 @@ export function RatingStars({
   const tema = useTheme();
   return (
     <View style={estilos.fila}>
-      <Icono nombre="star_rounded" size={size + 2} color={tema.diverso.gold} />
+      <Icon name="star_rounded" size={size + 2} color={tema.diverso.gold} />
       {mostrarNumero ? (
         <Text style={{ fontSize: size - 1, fontWeight: '700', color: tema.colorScheme.onSurface }}>
           {calificacion.toFixed(1)}
@@ -38,9 +38,9 @@ export function EstrellasCalificacion({ calificacion, size = 15 }: { calificacio
     <View accessible accessibilityLabel={`${calificacion} de 5 estrellas`} style={estilos.fila}>
       {[1, 2, 3, 4, 5].map((i) =>
         i <= calificacion ? (
-          <Icono key={i} nombre="star_rounded" size={size} color={tema.diverso.gold} />
+          <Icon key={i} name="star_rounded" size={size} color={tema.diverso.gold} />
         ) : (
-          <Icono key={i} nombre="star_outline_rounded" size={size} color={tema.colorScheme.outlineVariant} />
+          <Icon key={i} name="star_outline_rounded" size={size} color={tema.colorScheme.outlineVariant} />
         ),
       )}
     </View>

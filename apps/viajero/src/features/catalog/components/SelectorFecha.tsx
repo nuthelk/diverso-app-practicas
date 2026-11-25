@@ -55,7 +55,7 @@ export function SelectorFecha({
         <Pressable testID="selector-fecha" style={[estilos.dialogo, { backgroundColor: cs.surfaceContainerHigh }]}>
           <View style={estilos.cabecera}>
             <Text style={{ fontSize: AppText.caption, fontWeight: '500', color: cs.onSurfaceVariant }}>Seleccionar fecha</Text>
-            <Text style={{ fontSize: 32, fontWeight: '400', marginTop: 20, color: cs.onSurfaceVariant }} altura={1.25}>
+            <Text style={{ fontSize: 32, fontWeight: '400', marginTop: 20, color: cs.onSurfaceVariant }} height={1.25}>
               {formatShortDate(elegida)}
             </Text>
           </View>

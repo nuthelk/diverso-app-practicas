@@ -13,7 +13,7 @@ import {
 
 import { Curves, Durations, robotoFamily, textTheme, useTheme } from '@/ui/theme';
 
-import { Icono, type IconoNombre } from '../Icono';
+import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
 
 /**
@@ -33,7 +33,7 @@ export interface TextFieldProps
   /** `hintText`. */
   pista?: string;
   /** `prefixIcon`. */
-  icono?: IconoNombre;
+  icono?: IconName;
   /** `suffixIcon` (p.ej. un IconButton «Borrar búsqueda»). */
   sufijo?: ReactNode;
   /** `errorText`: si hay texto, el campo se pinta en error. */
@@ -154,7 +154,7 @@ export function TextField({
       >
         {icono ? (
           <View style={[estilos.prefijo, { marginLeft: -anchoBorde, marginRight: 4 }, multilinea ? null : estirar(arriba, abajo, anchoBorde)]}>
-            <Icono nombre={icono} size={24} color={cs.onSurfaceVariant} />
+            <Icon name={icono} size={24} color={cs.onSurfaceVariant} />
           </View>
         ) : null}
         <TextInput
@@ -234,14 +234,14 @@ export function TextField({
       {hayError || maxLength !== undefined ? (
         <View style={estilos.pie}>
           {hayError ? (
-            <Text variante="bodySmall" style={[estilos.flex, { color: cs.error }]}>
+            <Text variant="bodySmall" style={[estilos.flex, { color: cs.error }]}>
               {error}
             </Text>
           ) : (
             <View style={estilos.flex} />
           )}
           {maxLength !== undefined ? (
-            <Text variante="bodySmall" style={{ color: cs.onSurfaceVariant }}>
+            <Text variant="bodySmall" style={{ color: cs.onSurfaceVariant }}>
               {`${valor.length}/${maxLength}`}
             </Text>
           ) : null}

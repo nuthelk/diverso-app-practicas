@@ -6,24 +6,24 @@ import { AppText, useTheme } from '@/ui/theme';
 import { Text } from './Text';
 
 /** Etiqueta de sección: pequeña, mayúsculas, espaciada (11.5 w700 ls 1.2 onSurfaceVariant). */
-export function SectionLabel({ texto, accion }: { texto: string; accion?: ReactNode }) {
+export function SectionLabel({ text, action }: { text: string; action?: ReactNode }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="section-label" style={estilos.fila}>
+    <View testID="section-label" style={styles.row}>
       <Text
         style={[
-          estilos.texto,
+          styles.text,
           { fontSize: AppText.label, fontWeight: '700', letterSpacing: 1.2, color: cs.onSurfaceVariant },
         ]}
       >
-        {texto.toUpperCase()}
+        {text.toUpperCase()}
       </Text>
-      {accion}
+      {action}
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  fila: { flexDirection: 'row', alignItems: 'center', paddingBottom: 10 },
-  texto: { flex: 1 },
+const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', paddingBottom: 10 },
+  text: { flex: 1 },
 });

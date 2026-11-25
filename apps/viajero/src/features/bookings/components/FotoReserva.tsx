@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Booking } from '@/core';
-import { Icono, Text } from '@/ui/components';
+import { Icon, Text } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
 /**
@@ -27,7 +27,7 @@ export function FotoReserva({ booking, apagado = false }: { booking: Booking; ap
   const respaldo = (testID?: string) => (
     <View testID={testID} style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
       {plan === null ? (
-        <Icono nombre="luggage_rounded" size={40} color={cs.onPrimaryContainer} />
+        <Icon name="luggage_rounded" size={40} color={cs.onPrimaryContainer} />
       ) : (
         <Text style={{ fontSize: AppText.photoEmoji }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       )}

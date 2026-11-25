@@ -3,7 +3,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 
 import { AppInsets, AppText, withAlpha, monospaceFamily, useTheme } from '@/ui/theme';
 
-import { Icono, type IconoNombre } from '../Icono';
+import { Icon, type IconName } from '../Icon';
 import { Text } from '../Text';
 
 /**
@@ -17,7 +17,7 @@ export function EmptyState({
   detalle,
   accion,
 }: {
-  icono: IconoNombre;
+  icono: IconName;
   titulo: string;
   mensaje: string;
   /** Causa técnica (excepción cruda) en pequeño. */
@@ -29,14 +29,14 @@ export function EmptyState({
     <View style={estilos.centro}>
       <View style={estilos.columna}>
         <View testID="empty-state-icono" style={[estilos.circulo, AppInsets.largeCard, { backgroundColor: cs.surfaceContainerHigh }]}>
-          <Icono nombre={icono} size={30} color={cs.onSurfaceVariant} />
+          <Icon name={icono} size={30} color={cs.onSurfaceVariant} />
         </View>
         <View style={{ height: 16 }} />
         {/* Sin color propio: hereda el del texto por defecto, como en Flutter. */}
         <Text style={{ fontSize: AppText.largeSubtitle, fontWeight: '700', letterSpacing: -0.3 }}>{titulo}</Text>
         <View style={{ height: 5 }} />
         <Text
-          altura={1.45}
+          height={1.45}
           style={[estilos.mensaje, { fontSize: AppText.smallBody, color: cs.onSurfaceVariant }]}
         >
           {mensaje}
@@ -46,7 +46,7 @@ export function EmptyState({
             <View style={{ height: 8 }} />
             <Text
               testID="empty-state-detalle"
-              altura={1.35}
+              height={1.35}
               style={[
                 estilos.detalle,
                 {

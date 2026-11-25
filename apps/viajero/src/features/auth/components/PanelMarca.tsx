@@ -13,7 +13,7 @@ export function PanelMarca() {
     <View testID="panel-marca" style={[estilos.panel, { backgroundColor: cs.primary }]}>
       <DiversoLogo size={120} color={cs.onPrimary} />
       <View style={{ height: 28 }} />
-      <Text altura={1.55} style={[estilos.promesa, { fontSize: AppText.subtitle, color: withAlpha(cs.onPrimary, 0.85) }]}>
+      <Text height={1.55} style={[estilos.promesa, { fontSize: AppText.subtitle, color: withAlpha(cs.onPrimary, 0.85) }]}>
         Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.
       </Text>
     </View>

@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes';
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
-import { FilledButton, Icono, IconButton, OutlinedButton, Text, TextButton, TextField } from '@/ui/components';
+import { FilledButton, Icon, IconButton, OutlinedButton, Text, TextButton, TextField } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
 import type { LoginViewModel } from '../view-models/useLoginViewModel';
@@ -144,7 +144,7 @@ export function FormularioLogin({
       ) : null}
       {vm.error !== null ? (
         <View accessibilityRole="alert" style={[estilos.aviso, { backgroundColor: cs.errorContainer }]}>
-          <Icono nombre="error_outline_rounded" size={20} color={cs.onErrorContainer} />
+          <Icon name="error_outline_rounded" size={20} color={cs.onErrorContainer} />
           <Text style={{ flex: 1, color: cs.onErrorContainer, fontSize: AppText.smallBody }}>{vm.error}</Text>
         </View>
       ) : null}
@@ -166,7 +166,7 @@ export function FormularioLogin({
         <>
           <View style={{ height: 12 }} />
           <OutlinedButton accessibilityLabel="Usar cuenta demo" onPress={onUsarCuentaDemo} style={estilos.demo}>
-            <Icono nombre="science_outlined" size={18} color={cs.onSurfaceVariant} />
+            <Icon name="science_outlined" size={18} color={cs.onSurfaceVariant} />
             <Text style={{ color: cs.onSurfaceVariant }}>Usar cuenta demo</Text>
           </OutlinedButton>
         </>

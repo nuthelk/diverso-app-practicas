@@ -51,7 +51,7 @@ function InsigniaFecha({ fecha }: { fecha: Date }) {
   return (
     <View testID="insignia-fecha" style={[estilos.insignia, Shadows.badge, { backgroundColor: cs.surface }]}>
       <Text
-        altura={1}
+        height={1}
         style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5, color: cs.primary }}
       >
         {String(fecha.getDate())}

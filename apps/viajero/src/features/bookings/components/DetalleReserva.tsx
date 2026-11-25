@@ -5,7 +5,7 @@ import { BookingStatus, formatCOP, type Booking } from '@/core';
 import {
   CabeceraColapsable,
   FilledButton,
-  Icono,
+  Icon,
   OutlinedButton,
   PasoItinerario,
   SectionLabel,
@@ -53,12 +53,12 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
       fondo={<FotoReserva booking={booking} />}
     >
       <View style={{ paddingLeft: 22, paddingRight: 22, paddingTop: 20, paddingBottom: 28 + abajo }}>
-        <Text altura={1.15} style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.7 }}>
+        <Text height={1.15} style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.7 }}>
           {titulo}
         </Text>
         {agencia !== null ? (
           <View style={[estilos.fila, { marginTop: 8 }]}>
-            <Icono nombre="storefront_outlined" size={16} color={cs.onSurfaceVariant} />
+            <Icon name="storefront_outlined" size={16} color={cs.onSurfaceVariant} />
             <View style={{ width: 6 }} />
             <Text style={[estilos.flex, { fontSize: AppText.body, fontWeight: '600', color: cs.onSurfaceVariant }]}>
               {agencia}
@@ -75,7 +75,7 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
         {plan !== null && plan.itinerary.length > 0 ? (
           <>
             <View style={{ height: 24 }} />
-            <SectionLabel texto="Itinerario" />
+            <SectionLabel text="Itinerario" />
             {plan.itinerary.map((paso, i) => (
               <PasoItinerario key={i} paso={paso} ultimo={i === plan.itinerary.length - 1} />
             ))}
@@ -171,7 +171,7 @@ function AccionesDetalleReserva({
       ) : booking.hasReview ? (
         <>
           <View style={estilos.fila}>
-            <Icono nombre="rate_review_rounded" size={15} color={cs.primary} />
+            <Icon name="rate_review_rounded" size={15} color={cs.primary} />
             <View style={{ width: 6 }} />
             <Text style={{ fontSize: AppText.detail, color: cs.primary }}>Ya dejaste tu reseña</Text>
           </View>

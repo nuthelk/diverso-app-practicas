@@ -4,7 +4,7 @@ import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
-import { CircularProgressIndicator, FilledButton, Icono, Text, TextButton } from '@/ui/components';
+import { CircularProgressIndicator, FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 import { ConsentCheckboxes } from '../components/ConsentCheckboxes';
@@ -54,7 +54,7 @@ export function ConsentView() {
     contenido = (
       <>
         <View style={[AppInsets.card, { backgroundColor: cs.errorContainer, borderRadius: AppRadii.field }]}>
-          <Text altura={1.4} style={{ color: cs.onErrorContainer, fontSize: AppText.smallBody }}>
+          <Text height={1.4} style={{ color: cs.onErrorContainer, fontSize: AppText.smallBody }}>
             No pudimos verificar tu autorización. Revisa tu conexión e intenta de nuevo.
           </Text>
         </View>
@@ -97,12 +97,12 @@ export function ConsentView() {
       <View style={estilos.centro}>
         <ScrollView style={estilos.ancho} contentContainerStyle={AppInsets.screen}>
           <View style={[AppInsets.card, estilos.icono, { backgroundColor: cs.primaryContainer }]}>
-            <Icono nombre="privacy_tip_rounded" size={28} color={cs.onPrimaryContainer} />
+            <Icon name="privacy_tip_rounded" size={28} color={cs.onPrimaryContainer} />
           </View>
           <View style={{ height: 18 }} />
           <Text style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.6 }}>Antes de continuar</Text>
           <View style={{ height: 8 }} />
-          <Text altura={1.5} style={{ fontSize: AppText.body, color: cs.onSurfaceVariant }}>
+          <Text height={1.5} style={{ fontSize: AppText.body, color: cs.onSurfaceVariant }}>
             Actualizamos nuestros documentos legales. Necesitamos tu autorización expresa para seguir gestionando tu cuenta y tus reservas.
           </Text>
           <View style={{ height: 20 }} />

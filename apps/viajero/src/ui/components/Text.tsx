@@ -17,7 +17,7 @@ import {
 } from '@/ui/theme';
 
 /** Estilo heredable (como `DefaultTextStyle` de Flutter). */
-const ContextoEstilo = createContext<BaseTextStyle | null>(null);
+const StyleContext = createContext<BaseTextStyle | null>(null);
 
 /**
  * Reemplaza la base que heredan los `Text` de adentro. Es lo que hacen en Flutter los botones,
@@ -25,64 +25,64 @@ const ContextoEstilo = createContext<BaseTextStyle | null>(null);
  * sin letter-spacing). Los campos que no se pasan salen del texto por defecto del tema.
  */
 export function DefaultTextStyle({
-  estilo,
+  style,
   children,
 }: {
-  estilo: Partial<BaseTextStyle>;
+  style: Partial<BaseTextStyle>;
   children: ReactNode;
 }) {
-  const tema = useTheme();
-  const valor = useMemo<BaseTextStyle>(
+  const theme = useTheme();
+  const value = useMemo<BaseTextStyle>(
     () => ({
-      fontSize: estilo.fontSize ?? 14,
-      fontWeight: estilo.fontWeight ?? '400',
-      height: estilo.height === undefined ? null : estilo.height,
-      letterSpacing: estilo.letterSpacing ?? 0,
-      color: estilo.color ?? tema.textColor,
-      fontFamily: estilo.fontFamily,
+      fontSize: style.fontSize ?? 14,
+      fontWeight: style.fontWeight ?? '400',
+      height: style.height === undefined ? null : style.height,
+      letterSpacing: style.letterSpacing ?? 0,
+      color: style.color ?? theme.textColor,
+      fontFamily: style.fontFamily,
     }),
-    [estilo.fontSize, estilo.fontWeight, estilo.height, estilo.letterSpacing, estilo.color, estilo.fontFamily, tema.textColor],
+    [style.fontSize, style.fontWeight, style.height, style.letterSpacing, style.color, style.fontFamily, theme.textColor],
   );
-  return <ContextoEstilo.Provider value={valor}>{children}</ContextoEstilo.Provider>;
+  return <StyleContext.Provider value={value}>{children}</StyleContext.Provider>;
 }
 
 export interface TextProps extends RNTextProps {
   /** Estilo de la escala M3 (`Theme.of(context).textTheme.<variante>`). */
-  variante?: TypographyStyleName;
+  variant?: TypographyStyleName;
   /**
    * `TextStyle.height` de Flutter: multiplicador del tamaño. `null` = altura natural de la
    * fuente. Sin definir: la heredada (1.43 del bodyMedium, o la de la variante).
    */
-  altura?: number | null;
+  height?: number | null;
 }
 
-const plataforma = Platform.OS as PlatformName;
+const platform = Platform.OS as PlatformName;
 
 /**
  * Texto base de la app (gotcha 1). Aplica lo que Flutter hereda a TODO texto: color
  * #1D1B20/#E6E0E9, Roboto 14, lineHeight ×1.43 y letterSpacing 0.25; un tamaño propio sigue
  * heredando la altura y el interletraje. Un `Text` anidado hereda del padre, como un TextSpan.
  */
-export function Text({ variante, altura, style, children, ...resto }: TextProps) {
-  const tema = useTheme();
-  const heredado = useContext(ContextoEstilo);
-  const base: BaseTextStyle = heredado ?? {
+export function Text({ variant, height, style, children, ...rest }: TextProps) {
+  const theme = useTheme();
+  const inherited = useContext(StyleContext);
+  const base: BaseTextStyle = inherited ?? {
     ...textTheme.bodyMedium,
-    color: tema.textColor,
+    color: theme.textColor,
   };
-  const plano = (StyleSheet.flatten(style) ?? {}) as TextStyle;
-  const resuelto = resolveTextStyle({ base, variant: variante, style: plano, height: altura, platform: plataforma });
-  const paraHijos: BaseTextStyle = {
-    fontSize: resuelto.fontSize,
-    fontWeight: plano.fontWeight ?? (variante ? textTheme[variante].fontWeight : base.fontWeight),
-    height: altura !== undefined ? altura : variante ? textTheme[variante].height : base.height,
-    letterSpacing: resuelto.letterSpacing ?? base.letterSpacing,
-    color: (resuelto.color as string | undefined) ?? base.color,
-    fontFamily: plano.fontFamily ?? base.fontFamily,
+  const flat = (StyleSheet.flatten(style) ?? {}) as TextStyle;
+  const resolved = resolveTextStyle({ base, variant, style: flat, height, platform });
+  const forChildren: BaseTextStyle = {
+    fontSize: resolved.fontSize,
+    fontWeight: flat.fontWeight ?? (variant ? textTheme[variant].fontWeight : base.fontWeight),
+    height: height !== undefined ? height : variant ? textTheme[variant].height : base.height,
+    letterSpacing: resolved.letterSpacing ?? base.letterSpacing,
+    color: (resolved.color as string | undefined) ?? base.color,
+    fontFamily: flat.fontFamily ?? base.fontFamily,
   };
   return (
-    <RNText {...resto} style={resuelto}>
-      <ContextoEstilo.Provider value={paraHijos}>{children}</ContextoEstilo.Provider>
+    <RNText {...rest} style={resolved}>
+      <StyleContext.Provider value={forChildren}>{children}</StyleContext.Provider>
     </RNText>
   );
 }

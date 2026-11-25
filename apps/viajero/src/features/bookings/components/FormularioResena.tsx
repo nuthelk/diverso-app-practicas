@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { formatLongDate } from '@/core';
-import { FilledButton, Icono, Text, TextField } from '@/ui/components';
+import { FilledButton, Icon, Text, TextField } from '@/ui/components';
 import { AppInsets, AppText, withAlpha, Durations, useTheme } from '@/ui/theme';
 
 import { MAX_ESTRELLAS, type ReviewViewModel } from '../view-models/useReviewViewModel';
@@ -34,7 +34,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
           {plan !== null ? (
             <>
               <Text
-                altura={1.2}
+                height={1.2}
                 style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
               >
                 {plan.title}
@@ -67,8 +67,8 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
                   onPress={() => vm.calificar(i + 1)}
                   style={estilos.estrella}
                 >
-                  <Icono
-                    nombre={marcada ? 'star_rounded' : 'star_outline_rounded'}
+                  <Icon
+                    name={marcada ? 'star_rounded' : 'star_outline_rounded'}
                     size={42}
                     color={marcada ? tema.diverso.gold : cs.outline}
                   />
@@ -97,13 +97,13 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
                 <ActivityIndicator size="small" color={colorBotonDeshabilitado} style={{ transform: [{ scale: 0.85 }] }} />
               </View>
             ) : (
-              <Icono nombre="send_rounded" size={17} color={cs.onPrimary} />
+              <Icon name="send_rounded" size={17} color={cs.onPrimary} />
             )}
             <Text>Publicar reseña</Text>
           </FilledButton>
           <View style={{ height: 14 }} />
           <View style={estilos.pie}>
-            <Icono nombre="verified_rounded" size={13} color={cs.tertiary} />
+            <Icon name="verified_rounded" size={13} color={cs.tertiary} />
             <View style={{ width: 5 }} />
             <Text style={[estilos.encoger, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
               Reseña verificada: solo quien viajó puede opinar

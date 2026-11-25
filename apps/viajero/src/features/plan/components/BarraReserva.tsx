@@ -3,7 +3,7 @@ import { Animated, Pressable, ScrollView, StyleSheet, View, type TextStyle } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatShortDate, type Plan, type PlanDate } from '@/core';
-import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
+import { FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, Curves, Durations, useTheme } from '@/ui/theme';
 
 /** Pocos cupos: desde aquí hacia abajo se avisa «¡Últimos N!». */
@@ -39,7 +39,7 @@ export function BarraReserva({
     return (
       <View testID="barra-reserva" style={[estilos.superficie, superficie]}>
         <View style={[estilos.sinFechas, { paddingBottom: 16 + insets.bottom }]}>
-          <Icono nombre="event_busy_rounded" color={cs.onSurfaceVariant} />
+          <Icon name="event_busy_rounded" color={cs.onSurfaceVariant} />
           <View style={{ width: 10 }} />
           <Text style={{ flex: 1, fontWeight: '600' }}>Sin fechas disponibles por ahora</Text>
           {/* Se encoge: en celulares angostos o con letra grande parte su texto en vez de desbordar. */}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Chip, Icono, Text, type IconoNombre } from '@/ui/components';
+import { Chip, Icon, Text, type IconName } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** Datos de prueba del sandbox de Wompi (docs.wompi.co): con ellos se simula cada desenlace. */
@@ -14,7 +14,7 @@ export const datosPruebaWompi = [
   'Bancolombia: el estado final se elige en la pantalla de prueba de Wompi',
 ] as const;
 
-const medios: readonly [IconoNombre, string][] = [
+const medios: readonly [IconName, string][] = [
   ['credit_card_rounded', 'Tarjeta'],
   ['account_balance_rounded', 'PSE'],
   ['smartphone_rounded', 'Nequi'],
@@ -38,14 +38,14 @@ export function PagoWompiCard() {
         ]}
       >
         <View style={estilos.fila}>
-          <Icono nombre="lock_rounded" size={20} color={cs.primary} />
+          <Icon name="lock_rounded" size={20} color={cs.primary} />
           <View style={{ width: 10 }} />
           <Text style={[estilos.flexible, { fontSize: AppText.largeEmphasis, fontWeight: '700', color: cs.onPrimaryContainer }]}>
             Pagar con Wompi
           </Text>
         </View>
         <View style={{ height: 8 }} />
-        <Text altura={1.35} style={{ fontSize: AppText.largeCaption, color: cs.onPrimaryContainer }}>
+        <Text height={1.35} style={{ fontSize: AppText.largeCaption, color: cs.onPrimaryContainer }}>
           Eliges el medio en la página segura de Wompi; nosotros nunca vemos los datos de tu tarjeta o cuenta. Medios aceptados:
         </Text>
         <View style={{ height: 10 }} />
@@ -67,7 +67,7 @@ export function PagoWompiCard() {
       <DatosDePrueba />
       <View style={{ height: 8 }} />
       <View style={[estilos.fila, { paddingLeft: 4 }]}>
-        <Icono nombre="shield_outlined" size={14} color={cs.tertiary} />
+        <Icon name="shield_outlined" size={14} color={cs.tertiary} />
         <View style={{ width: 6 }} />
         <Text style={[estilos.flexible, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
           Retenemos tus cupos 30 minutos mientras pagas. Reembolso según la política de cancelación.
@@ -101,7 +101,7 @@ function DatosDePrueba() {
                 style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, tema.components.pressedOpacity) }]}
               />
             ) : null}
-            <Icono nombre="science_outlined" color={cs.onTertiaryContainer} />
+            <Icon name="science_outlined" color={cs.onTertiaryContainer} />
             <View style={{ width: 16 }} />
             <View style={estilos.flexible}>
               <Text style={{ fontSize: AppText.smallBody, fontWeight: '700', color: cs.onTertiaryContainer }}>
@@ -112,7 +112,7 @@ function DatosDePrueba() {
             <View style={{ width: 16 }} />
             {/* `expand_more` = chevron a la derecha girado un cuarto de vuelta; abierto, tres cuartos. */}
             <View style={{ transform: [{ rotate: abierto ? '270deg' : '90deg' }] }}>
-              <Icono nombre="chevron_right_rounded" color={abierto ? cs.primary : cs.onSurfaceVariant} />
+              <Icon name="chevron_right_rounded" color={abierto ? cs.primary : cs.onSurfaceVariant} />
             </View>
           </>
         )}
@@ -120,7 +120,7 @@ function DatosDePrueba() {
       {abierto ? (
         <View style={estilos.datos}>
           {datosPruebaWompi.map((dato) => (
-            <Text key={dato} altura={1.35} style={{ fontSize: AppText.caption, color: cs.onTertiaryContainer, marginBottom: 6 }}>
+            <Text key={dato} height={1.35} style={{ fontSize: AppText.caption, color: cs.onTertiaryContainer, marginBottom: 6 }}>
               {`• ${dato}`}
             </Text>
           ))}

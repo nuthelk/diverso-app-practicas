@@ -69,7 +69,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
         />
         <View style={{ height: 22 }} />
         {/* Pago con Wompi (modo prueba). */}
-        <SectionLabel texto="Pago" />
+        <SectionLabel text="Pago" />
         <PagoWompiCard />
         <View style={{ height: 22 }} />
         <ResumenPago precioPorPersona={plan.priceCop} pax={vm.pax} total={vm.total(plan)} />

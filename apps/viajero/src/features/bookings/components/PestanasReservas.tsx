@@ -43,7 +43,7 @@ export function PestanasReservas({
                   />
                 ) : null}
                 <View style={estilos.etiqueta}>
-                  <Text numberOfLines={1} altura={null} style={{ fontSize: 14, fontWeight: '500', letterSpacing: 0.1, color }}>
+                  <Text numberOfLines={1} height={null} style={{ fontSize: 14, fontWeight: '500', letterSpacing: 0.1, color }}>
                     {texto}
                   </Text>
                   {activa ? <View style={[estilos.indicador, { backgroundColor: cs.primary }]} /> : null}

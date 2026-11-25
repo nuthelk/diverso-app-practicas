@@ -1,5 +1,5 @@
 export { DefaultTextStyle, Text, type TextProps } from './Text';
-export { glifoDe, Icono, type IconoNombre, type IconoProps } from './Icono';
+export { glyphOf, Icon, type IconName, type IconProps } from './Icon';
 export {
   FilledButton,
   IconButton,
@@ -19,7 +19,7 @@ export {
   type ChipProps,
   type Segmento,
 } from './material/Superficies';
-export { AgencyAvatar, colorDeAgencia, hashFnv1a, type AgenciaAvatarDatos } from './AgencyAvatar';
+export { AgencyAvatar, agencyColor, hashFnv1a, type AgencyAvatarData } from './AgencyAvatar';
 export { SectionLabel } from './SectionLabel';
 export { EmptyState } from './feedback/EmptyState';
 export { Skeleton } from './feedback/Skeleton';

@@ -8,7 +8,7 @@ import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotant
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
-import { Divider, Icono, OutlinedButton, SectionLabel, Text, TextButton, TituloPagina, type IconoNombre } from '@/ui/components';
+import { Divider, Icon, OutlinedButton, SectionLabel, Text, TextButton, TituloPagina, type IconName } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { SelectorApariencia } from '../components/SelectorApariencia';
@@ -44,10 +44,10 @@ export function ProfileView() {
         <View testID="columna-perfil" style={estilos.columna}>
           <Identidad vm={vm} />
           <View style={{ height: 28 }} />
-          <SectionLabel texto="Apariencia" />
+          <SectionLabel text="Apariencia" />
           <SelectorApariencia />
           <View style={{ height: 24 }} />
-          <SectionLabel texto="Confianza" />
+          <SectionLabel text="Confianza" />
           <TarjetaInfo
             icono="verified_user_rounded"
             titulo="Compra protegida"
@@ -60,7 +60,7 @@ export function ProfileView() {
             cuerpo="Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, actualizar o pedir la supresión de tus datos en cualquier momento."
           />
           <View style={{ height: 24 }} />
-          <SectionLabel texto="Documentos legales" />
+          <SectionLabel text="Documentos legales" />
           <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card, overflow: 'hidden' }}>
             <FilaLegal
               icono="shield_outlined"
@@ -80,7 +80,7 @@ export function ProfileView() {
             onPress={vm.cerrandoSesion ? null : () => void cerrarSesion()}
             style={{ paddingLeft: 16 }}
           >
-            {vm.cerrandoSesion ? <GiradorDeBoton /> : <Icono nombre="logout_rounded" size={18} color={cs.error} />}
+            {vm.cerrandoSesion ? <GiradorDeBoton /> : <Icon name="logout_rounded" size={18} color={cs.error} />}
             <Text style={{ color: vm.cerrandoSesion ? undefined : cs.error }}>Cerrar sesión</Text>
           </OutlinedButton>
         </View>
@@ -117,7 +117,7 @@ function Identidad({ vm }: { vm: ProfileViewModel }) {
  * `ListTile` de un documento legal: ícono, título (16), «Versión …» (14 onSurfaceVariant) y
  * chevron; dos líneas → alto 72.
  */
-function FilaLegal({ icono, titulo, onPress }: { icono: IconoNombre; titulo: string; onPress: () => void }) {
+function FilaLegal({ icono, titulo, onPress }: { icono: IconName; titulo: string; onPress: () => void }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   return (
@@ -130,16 +130,16 @@ function FilaLegal({ icono, titulo, onPress }: { icono: IconoNombre; titulo: str
               style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, tema.components.pressedOpacity) }]}
             />
           ) : null}
-          <Icono nombre={icono} size={24} color={cs.onSurfaceVariant} />
+          <Icon name={icono} size={24} color={cs.onSurfaceVariant} />
           <View style={{ width: 16 }} />
           <View style={estilos.flex}>
-            <Text altura={1.5} style={{ fontSize: AppText.subtitle, letterSpacing: 0.5, color: cs.onSurface }}>
+            <Text height={1.5} style={{ fontSize: AppText.subtitle, letterSpacing: 0.5, color: cs.onSurface }}>
               {titulo}
             </Text>
             <Text style={{ color: cs.onSurfaceVariant }}>{`Versión ${LEGAL_VERSION}`}</Text>
           </View>
           <View style={{ width: 16 }} />
-          <Icono nombre="chevron_right_rounded" size={24} color={cs.onSurfaceVariant} />
+          <Icon name="chevron_right_rounded" size={24} color={cs.onSurfaceVariant} />
         </>
       )}
     </Pressable>

@@ -13,7 +13,7 @@ import {
   VerificationStatus,
 } from '@/core';
 import { PlanDetailView } from '@/features/plan/views/PlanDetailView';
-import { colorDeAgencia } from '@/ui/components';
+import { agencyColor } from '@/ui/components';
 
 import { CatalogoFalso, fechaDePrueba, planDePrueba, ResenasFalsas } from '../../../support/catalogo-falso';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
@@ -206,7 +206,7 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
 
     expect(tarjeta().getByText('RA')).toBeOnTheScreen();
     expect(tarjeta().queryByTestId('agency-avatar-logo')).toBeNull();
-    expect(tarjeta().getByTestId('agency-avatar-iniciales')).toHaveStyle({ backgroundColor: colorDeAgencia('ag-rutas') });
+    expect(tarjeta().getByTestId('agency-avatar-iniciales')).toHaveStyle({ backgroundColor: agencyColor('ag-rutas') });
   });
 
   test('con logo_url: muestra la imagen', async () => {

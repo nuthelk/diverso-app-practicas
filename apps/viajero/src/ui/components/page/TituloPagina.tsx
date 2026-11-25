@@ -17,7 +17,7 @@ export function TituloPagina({ texto }: { texto: string }) {
       accessibilityRole="header"
       numberOfLines={1}
       ellipsizeMode="tail"
-      altura={1.1}
+      height={1.1}
       style={estiloTituloPagina(cs)}
     >
       {texto}

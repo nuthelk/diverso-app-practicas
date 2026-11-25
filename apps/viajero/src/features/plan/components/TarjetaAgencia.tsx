@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AgencySummary, formatDateInText, type Agency } from '@/core';
 import { AppRoutes } from '@/router';
-import { AgencyAvatar, Icono, Text, VerifiedBadge } from '@/ui/components';
+import { AgencyAvatar, Icon, Text, VerifiedBadge } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /**
@@ -29,7 +29,7 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
         pressed ? { backgroundColor: withAlpha(cs.onSurface, 0.1) } : null,
       ]}
     >
-      <AgencyAvatar agencia={resumen} size={44} />
+      <AgencyAvatar agency={resumen} size={44} />
       <View style={{ width: 12 }} />
       <View testID="tarjeta-agencia-textos" style={estilos.flex}>
         <Text style={{ fontWeight: '700', fontSize: AppText.emphasis }}>{agency.name}</Text>
@@ -46,7 +46,7 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
           </View>
         ) : null}
       </View>
-      <Icono nombre="chevron_right_rounded" color={cs.onSurfaceVariant} />
+      <Icon name="chevron_right_rounded" color={cs.onSurfaceVariant} />
     </Pressable>
   );
 }

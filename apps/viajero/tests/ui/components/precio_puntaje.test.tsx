@@ -100,7 +100,7 @@ describe('AgencyAvatar con el modelo de core', () => {
       rating: 4.5,
       reviewsTotal: 2,
     });
-    await renderWithTheme(<AgencyAvatar agencia={agencia} />);
+    await renderWithTheme(<AgencyAvatar agency={agencia} />);
     expect(screen.getByText(agencia.initials)).toBeOnTheScreen();
   });
 });

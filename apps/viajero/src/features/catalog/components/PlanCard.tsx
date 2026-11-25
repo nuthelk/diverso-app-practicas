@@ -5,7 +5,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
-import { Card, Icono, IconButton, PriceText, PuntajePlan, Text, VerifiedBadge } from '@/ui/components';
+import { Card, Icon, IconButton, PriceText, PuntajePlan, Text, VerifiedBadge } from '@/ui/components';
 import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Alto de la portada de la tarjeta (y de su esqueleto). */
@@ -82,7 +82,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           </View>
         ) : null}
         <View style={estilos.destino}>
-          <Icono nombre="location_on_rounded" size={14} color="#FFFFFF" />
+          <Icon name="location_on_rounded" size={14} color="#FFFFFF" />
           <View style={{ width: 3 }} />
           <Text numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: AppText.detail, flexShrink: 1 }}>
             {plan.destination}
@@ -98,7 +98,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         </View>
         {proxima ? (
           <View style={[estilos.cupos, estilos.pildora, { backgroundColor: '#FFFFFF' }]}>
-            <Icono nombre="event_available_rounded" size={12} color={cs.primary} />
+            <Icon name="event_available_rounded" size={12} color={cs.primary} />
             <View style={{ width: 3 }} />
             <Text style={{ fontSize: AppText.note, fontWeight: '700', color: cs.primary }}>
               {`${proxima.availableSpots} cupos`}
@@ -110,7 +110,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         <Text
           numberOfLines={2}
           ellipsizeMode="tail"
-          altura={1.25}
+          height={1.25}
           style={{ fontSize: AppText.largeEmphasis, fontWeight: '700', letterSpacing: -0.3 }}
         >
           {plan.title}

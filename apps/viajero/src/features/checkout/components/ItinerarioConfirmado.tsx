@@ -21,7 +21,7 @@ export function ItinerarioConfirmado({ pasos }: { pasos: readonly ItineraryStep[
           <View style={estilos.hora}>
             <Text style={{ fontWeight: '800', fontSize: AppText.largeCaption, color: cs.primary }}>{paso.time}</Text>
           </View>
-          <Text altura={1.4} style={[estilos.flexible, { fontSize: AppText.detail }]}>
+          <Text height={1.4} style={[estilos.flexible, { fontSize: AppText.detail }]}>
             {paso.activity}
           </Text>
         </View>

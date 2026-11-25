@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { formatCOP } from '@/core';
-import { Divider, Icono, SectionLabel, Text } from '@/ui/components';
+import { Divider, Icon, SectionLabel, Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** «Resumen» del checkout: precio por persona, personas y total a pagar. */
@@ -9,7 +9,7 @@ export function ResumenPago({ precioPorPersona, pax, total }: { precioPorPersona
   const cs = useTheme().colorScheme;
   return (
     <View>
-      <SectionLabel texto="Resumen" />
+      <SectionLabel text="Resumen" />
       <View style={[AppInsets.wideCard, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
         <LineaPago etiqueta="Precio por persona" valor={formatCOP(precioPorPersona)} />
         <LineaPago etiqueta="Personas" valor={String(pax)} />
@@ -24,7 +24,7 @@ export function ResumenPago({ precioPorPersona, pax, total }: { precioPorPersona
         </View>
         <View style={{ height: 6 }} />
         <View style={estilos.fila}>
-          <Icono nombre="lock_outline_rounded" size={12} color={cs.outline} />
+          <Icon name="lock_outline_rounded" size={12} color={cs.outline} />
           <View style={{ width: 5 }} />
           <Text style={{ fontSize: AppText.label, color: cs.outline }}>Precio final, sin cargos ocultos</Text>
         </View>

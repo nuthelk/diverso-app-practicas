@@ -3,7 +3,7 @@ import { ActivityIndicator, Keyboard, Platform, StyleSheet, View } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP } from '@/core';
-import { FilledButton, Icono, Text } from '@/ui/components';
+import { FilledButton, Icon, Text } from '@/ui/components';
 import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 const ANCHO_BOTON = 220;
@@ -84,7 +84,7 @@ export function BarraPagar({
             <ActivityIndicator testID="pagar-progreso" size="small" color={contenido} style={estilos.indicador} />
           </View>
         ) : (
-          <Icono nombre="lock_rounded" size={17} color={contenido} />
+          <Icon name="lock_rounded" size={17} color={contenido} />
         )}
         <Text style={estilos.centrado}>{procesando ? 'Procesando…' : 'Pagar con Wompi'}</Text>
       </FilledButton>

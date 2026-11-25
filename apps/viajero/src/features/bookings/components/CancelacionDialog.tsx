@@ -35,7 +35,7 @@ export function CancelacionDialog({
           accessibilityViewIsModal
           style={[estilos.dialogo, { backgroundColor: cs.surfaceContainerHigh, borderRadius: tema.components.dialog.radius }]}
         >
-          <Text accessibilityRole="header" style={{ fontSize: 24, color: cs.onSurface, letterSpacing: 0 }} altura={1.33}>
+          <Text accessibilityRole="header" style={{ fontSize: 24, color: cs.onSurface, letterSpacing: 0 }} height={1.33}>
             ¿Cancelar reserva?
           </Text>
           <View style={{ height: 16 }} />

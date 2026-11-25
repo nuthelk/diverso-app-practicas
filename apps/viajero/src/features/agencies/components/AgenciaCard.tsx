@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 import type { AgencySummary } from '@/core';
 import { AppRoutes } from '@/router';
-import { AgencyAvatar, Card, colorDeAgencia, Icono, InsigniaNueva, Text, VerifiedBadge } from '@/ui/components';
+import { AgencyAvatar, Card, agencyColor, Icon, InsigniaNueva, Text, VerifiedBadge } from '@/ui/components';
 import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /**
@@ -31,7 +31,7 @@ export function AgenciaCard({ agencia }: { agencia: AgencySummary }) {
         </View>
       </View>
       <View style={estilos.pie}>
-        <AgencyAvatar agencia={agencia} />
+        <AgencyAvatar agency={agencia} />
         <View style={{ width: 12 }} />
         <View style={estilos.flex}>
           <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: AppText.largeEmphasis, fontWeight: '700', letterSpacing: -0.3 }}>
@@ -56,14 +56,14 @@ export function DatosAgencia({ agencia }: { agencia: AgencySummary }) {
         <InsigniaNueva texto={agencia.ratingText} />
       ) : (
         <View style={estilos.fila}>
-          <Icono nombre="star_rounded" size={17} color={tema.diverso.gold} />
+          <Icon name="star_rounded" size={17} color={tema.diverso.gold} />
           <Text style={{ marginLeft: 2, fontSize: AppText.detail, fontWeight: '700', color: cs.onSurface }}>{agencia.ratingText}</Text>
           <Text style={[suave, { marginLeft: 3 }]}>{`(${agencia.reviewsTotal})`}</Text>
         </View>
       )}
       {agencia.city !== '' ? (
         <View style={estilos.fila}>
-          <Icono nombre="location_on_outlined" size={14} color={cs.onSurfaceVariant} />
+          <Icon name="location_on_outlined" size={14} color={cs.onSurfaceVariant} />
           <Text style={[suave, { marginLeft: 2 }]}>{agencia.city}</Text>
         </View>
       ) : null}
@@ -75,12 +75,12 @@ export function DatosAgencia({ agencia }: { agencia: AgencySummary }) {
 /** Portada: la foto del plan mejor puntuado; sin foto (o si falla), el color de la agencia. */
 export function PortadaAgencia({ agencia }: { agencia: AgencySummary }) {
   const [fallo, setFallo] = useState(false);
-  const color = colorDeAgencia(agencia.id);
+  const color = agencyColor(agencia.id);
   const url = agencia.coverUrl;
   if (!url || fallo) {
     return (
       <View testID="portada-agencia-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: withAlpha(color, 0.16) }]}>
-        <Icono nombre="storefront_rounded" size={40} color={withAlpha(color, 0.55)} />
+        <Icon name="storefront_rounded" size={40} color={withAlpha(color, 0.55)} />
       </View>
     );
   }

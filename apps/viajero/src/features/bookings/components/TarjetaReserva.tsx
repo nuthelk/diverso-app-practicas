@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { RefundStatus, formatCOP, type Booking } from '@/core';
-import { Card, Divider, FilledButton, Icono, Text, TextButton } from '@/ui/components';
+import { Card, Divider, FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppText, withAlpha, useTheme, type ColorScheme } from '@/ui/theme';
 
 import { cuentaRegresiva, textoPersonas, textoSalida } from '../reserva-formato';
@@ -65,7 +65,7 @@ export function TarjetaReserva({
                 <Text
                   numberOfLines={2}
                   ellipsizeMode="tail"
-                  altura={1.25}
+                  height={1.25}
                   style={{ fontWeight: '700', fontSize: AppText.subtitle, color: colorTexto }}
                 >
                   {booking.plan?.title ?? 'Plan'}
@@ -74,7 +74,7 @@ export function TarjetaReserva({
                   <>
                     <View style={{ height: 4 }} />
                     <View style={estilos.fila}>
-                      <Icono nombre="storefront_outlined" size={14} color={cs.onSurfaceVariant} />
+                      <Icon name="storefront_outlined" size={14} color={cs.onSurfaceVariant} />
                       <View style={{ width: 5 }} />
                       <Text
                         numberOfLines={1}
@@ -113,7 +113,7 @@ export function TarjetaReserva({
                 {/* Se parte en dos líneas con letra muy grande en vez de desbordar. */}
                 <View style={estilos.pie}>
                   <View style={estilos.fila}>
-                    <Icono nombre="group_outlined" size={16} color={cs.onSurfaceVariant} />
+                    <Icon name="group_outlined" size={16} color={cs.onSurfaceVariant} />
                     <View style={{ width: 6 }} />
                     <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant }}>
                       {textoPersonas(booking.pax)}
@@ -154,7 +154,7 @@ export function TarjetaReserva({
                     accessibilityLabel="Reseñar"
                     style={[estilos.boton38, { paddingHorizontal: 14 }]}
                   >
-                    <Icono nombre="star_outline_rounded" size={16} color={cs.onSecondaryContainer} />
+                    <Icon name="star_outline_rounded" size={16} color={cs.onSecondaryContainer} />
                     <Text>Reseñar</Text>
                   </FilledButton>
                 ) : null}
@@ -166,7 +166,7 @@ export function TarjetaReserva({
               </View>
             ) : booking.hasReview ? (
               <View style={[estilos.fila, { marginTop: 8 }]}>
-                <Icono nombre="rate_review_rounded" size={13} color={cs.primary} />
+                <Icon name="rate_review_rounded" size={13} color={cs.primary} />
                 <View style={{ width: 4 }} />
                 <Text style={{ fontSize: AppText.caption, color: cs.primary }}>Ya dejaste tu reseña</Text>
               </View>

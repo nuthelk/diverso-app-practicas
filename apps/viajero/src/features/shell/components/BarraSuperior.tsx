@@ -36,7 +36,7 @@ export function BarraSuperior({
           </View>
         ) : null}
         <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>
-          <DefaultTextStyle estilo={{ ...appBar.title, height: null }}>
+          <DefaultTextStyle style={{ ...appBar.title, height: null }}>
             {typeof titulo === 'string' ? (
               <Text accessibilityRole="header" numberOfLines={1}>
                 {titulo}

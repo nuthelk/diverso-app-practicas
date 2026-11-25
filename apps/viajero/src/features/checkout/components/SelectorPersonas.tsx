@@ -25,7 +25,7 @@ export function SelectorPersonas({
   const cs = useTheme().colorScheme;
   return (
     <View>
-      <SectionLabel texto="Personas" />
+      <SectionLabel text="Personas" />
       <View style={[estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
         <View style={estilos.pregunta}>
           <Text style={{ fontWeight: '600' }}>¿Cuántos viajan?</Text>

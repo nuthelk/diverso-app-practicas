@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatShortDate } from '@/core';
-import { FilledButton, Icono, IconButton, OutlinedButton, SectionLabel, Text, TextField } from '@/ui/components';
+import { FilledButton, Icon, IconButton, OutlinedButton, SectionLabel, Text, TextField } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { DeslizadorPrecio } from './DeslizadorPrecio';
@@ -83,7 +83,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
       <ScrollView testID="filtros-scroll" keyboardShouldPersistTaps="handled" style={estilos.scroll} contentContainerStyle={estilos.contenido}>
         <Text style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
         <View style={{ height: 22 }} />
-        <SectionLabel texto="Fecha del plan" />
+        <SectionLabel text="Fecha del plan" />
         <View style={estilos.fila}>
           <Pressable
             accessibilityRole="button"
@@ -91,7 +91,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
             onPress={() => setEligiendoFecha(true)}
             style={[estilos.opcionFecha, { backgroundColor: cs.surfaceContainerHigh }]}
           >
-            <Icono nombre="calendar_month_rounded" size={19} color={cs.primary} />
+            <Icon name="calendar_month_rounded" size={19} color={cs.primary} />
             <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.body }}>
               {fecha === null ? 'Cualquier fecha' : formatShortDate(fecha)}
             </Text>
@@ -104,7 +104,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
           ) : null}
         </View>
         <View style={{ height: 20 }} />
-        <SectionLabel texto="Precio máximo por persona" />
+        <SectionLabel text="Precio máximo por persona" />
         <View style={estilos.fila}>
           <View style={estilos.flex}>
             <DeslizadorPrecio
@@ -128,7 +128,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
         {/* Buscador + lista propia (el menú desplegable dentro de la hoja no recibía los gestos). La
             lista NO es un scroll anidado: con uno propio, el gesto sobre los destinos solo movía esa
             lista y no la hoja. */}
-        <SectionLabel texto="Destino" />
+        <SectionLabel text="Destino" />
         <TextField
           valor={busqueda}
           onChangeText={setBusqueda}
@@ -151,8 +151,8 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
               onPress={() => setDestino(esTodos ? '' : d)}
               style={({ pressed }) => [estilos.destino, pressed ? { backgroundColor: withAlpha(cs.onSurface, 0.1) } : null]}
             >
-              <Icono
-                nombre={esTodos ? 'travel_explore_outlined' : sel ? 'check_circle_rounded' : 'location_on_outlined'}
+              <Icon
+                name={esTodos ? 'travel_explore_outlined' : sel ? 'check_circle_rounded' : 'location_on_outlined'}
                 size={19}
                 color={sel ? cs.primary : cs.onSurfaceVariant}
               />

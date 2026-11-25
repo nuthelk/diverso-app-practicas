@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppRoutes } from '@/router';
-import { Icono, Text } from '@/ui/components';
+import { Icon, Text } from '@/ui/components';
 import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** Área táctil de la casilla (M3: 48): el texto de cada fila, y el aviso, empiezan después. */
@@ -26,7 +26,7 @@ function Casilla({ valor, error }: { valor: boolean; error: boolean }) {
           { borderColor: color, backgroundColor: valor ? (error ? cs.error : cs.primary) : 'transparent' },
         ]}
       >
-        {valor ? <Icono nombre="check_rounded" size={16} color={error ? cs.onError : cs.onPrimary} /> : null}
+        {valor ? <Icon name="check_rounded" size={16} color={error ? cs.onError : cs.onPrimary} /> : null}
       </View>
     </View>
   );
@@ -57,7 +57,7 @@ function Fila({
     >
       <Casilla valor={valor} error={error} />
       <View style={estilos.texto}>
-        <Text altura={1.45} style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant }}>
+        <Text height={1.45} style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant }}>
           {children}
         </Text>
       </View>

@@ -18,7 +18,7 @@ const estilo = (el: { props: { style?: unknown } }) =>
 
 describe('SectionLabel', () => {
   it('en mayúsculas 11.5 w700 ls 1.2 onSurfaceVariant con 10 abajo', async () => {
-    await renderWithTheme(<SectionLabel texto="Itinerario" />);
+    await renderWithTheme(<SectionLabel text="Itinerario" />);
     const s = estilo(screen.getByText('ITINERARIO'));
     expect(s.fontSize).toBe(11.5);
     expect(s.fontWeight).toBe('700');
@@ -28,7 +28,7 @@ describe('SectionLabel', () => {
   });
 
   it('con acción a la derecha', async () => {
-    await renderWithTheme(<SectionLabel texto="Reseñas" accion={<Text>Ver todas</Text>} />);
+    await renderWithTheme(<SectionLabel text="Reseñas" action={<Text>Ver todas</Text>} />);
     expect(screen.getByText('Ver todas')).toBeOnTheScreen();
   });
 });

@@ -2,10 +2,10 @@ import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 
 import { LABEL_EXPERIENCE_CATEGORY, type ExperienceCategory } from '@/core';
-import { Icono, Text, type IconoNombre } from '@/ui/components';
+import { Icon, Text, type IconName } from '@/ui/components';
 import { AppRadii, AppText, Curves, Durations, useTheme } from '@/ui/theme';
 
-const ICONOS: Record<ExperienceCategory, IconoNombre> = {
+const ICONOS: Record<ExperienceCategory, IconName> = {
   aventura: 'hiking_rounded',
   naturaleza: 'forest_rounded',
   cultura: 'account_balance_rounded',
@@ -60,7 +60,7 @@ export function ChipCategoria({
           },
         ]}
       >
-        <Icono nombre={ICONOS[categoria]} size={16} color={contenido} />
+        <Icon name={ICONOS[categoria]} size={16} color={contenido} />
         <Text style={{ marginLeft: 6, fontSize: AppText.detail, fontWeight: '600', color: contenido }}>{etiqueta}</Text>
       </Animated.View>
     </Pressable>

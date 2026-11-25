@@ -11,7 +11,7 @@ import {
 
 import { withAlpha, useTheme } from '@/ui/theme';
 
-import { Icono, type IconoNombre } from '../Icono';
+import { Icon, type IconName } from '../Icon';
 import { DefaultTextStyle, Text } from '../Text';
 
 /** `Card` del tema: elevación 0, margen 0, radio 20; color por instancia (surfaceContainerLow). */
@@ -77,7 +77,7 @@ export function Divider({ color, style, testID = 'divider' }: { color?: string; 
 export interface ChipProps {
   etiqueta: ReactNode;
   /** `avatar` (ícono a la izquierda). */
-  icono?: IconoNombre;
+  icono?: IconName;
   tamanoIcono?: number;
   colorIcono?: string;
   /** `onDeleted`: muestra la ✕ (`Icons.clear` 18, onSurfaceVariant). */
@@ -124,10 +124,10 @@ export function Chip({
     >
       {icono ? (
         <View style={estilos.caja16}>
-          <Icono nombre={icono} size={tamanoIcono} color={colorIcono ?? chip.avatarColor} />
+          <Icon name={icono} size={tamanoIcono} color={colorIcono ?? chip.avatarColor} />
         </View>
       ) : null}
-      <DefaultTextStyle estilo={{ ...chip.label, height: null, letterSpacing: 0 }}>
+      <DefaultTextStyle style={{ ...chip.label, height: null, letterSpacing: 0 }}>
         {typeof etiqueta === 'string' ? (
           <Text numberOfLines={1} style={estiloEtiqueta}>
             {etiqueta}
@@ -144,7 +144,7 @@ export function Chip({
           hitSlop={{ top: 16, bottom: 16, left: 4, right: 8 }}
           style={estilos.caja16}
         >
-          <Icono nombre="clear" size={18} color={chip.deleteIconColor} />
+          <Icon name="clear" size={18} color={chip.deleteIconColor} />
         </Pressable>
       ) : null}
     </View>
@@ -163,7 +163,7 @@ export function InputChip({ style, ...props }: ChipProps) {
 export interface Segmento<T extends string> {
   valor: T;
   etiqueta: string;
-  icono?: IconoNombre;
+  icono?: IconName;
 }
 
 /**
@@ -210,8 +210,8 @@ export function SegmentedButton<T extends string>({
               },
             ]}
           >
-            {icono ? <Icono nombre={icono} size={18} color={colorContenido} /> : null}
-            <DefaultTextStyle estilo={{ fontSize: 13.5, fontWeight: '600', color: colorContenido, height: null, letterSpacing: 0 }}>
+            {icono ? <Icon name={icono} size={18} color={colorContenido} /> : null}
+            <DefaultTextStyle style={{ fontSize: 13.5, fontWeight: '600', color: colorContenido, height: null, letterSpacing: 0 }}>
               <Text numberOfLines={1}>{s.etiqueta}</Text>
             </DefaultTextStyle>
           </Pressable>

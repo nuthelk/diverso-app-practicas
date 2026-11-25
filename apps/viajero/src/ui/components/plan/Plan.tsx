@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
-import { Icono } from '../Icono';
+import { Icon } from '../Icon';
 import { Text } from '../Text';
 
 /**
@@ -23,7 +23,7 @@ export function VerifiedBadge({ compacto = false, blanco = false }: { compacto?:
         { backgroundColor: bg, paddingHorizontal: compacto ? 7 : 10, paddingVertical: compacto ? 2.5 : 5 },
       ]}
     >
-      <Icono nombre="verified_rounded" size={compacto ? 13 : 15} color={fg} />
+      <Icon name="verified_rounded" size={compacto ? 13 : 15} color={fg} />
       <View style={{ width: 4 }} />
       <Text style={{ fontSize: compacto ? AppText.micro : AppText.note, fontWeight: '700', color: fg }}>
         Verificada RNT
@@ -44,12 +44,12 @@ export function TarjetaCancelacion({ texto }: { texto: string }) {
         { backgroundColor: withAlpha(cs.tertiaryContainer, 0.45), borderRadius: AppRadii.card, alignItems: 'flex-start' },
       ]}
     >
-      <Icono nombre="shield_outlined" size={19} color={cs.onTertiaryContainer} />
+      <Icon name="shield_outlined" size={19} color={cs.onTertiaryContainer} />
       <View style={{ width: 10 }} />
       <View style={estilos.flex}>
         <Text style={{ fontWeight: '700', fontSize: AppText.smallBody }}>Política de cancelación</Text>
         <View style={{ height: 3 }} />
-        <Text altura={1.45} style={{ fontSize: AppText.detail, color: withAlpha(cs.onSurface, 0.8) }}>
+        <Text height={1.45} style={{ fontSize: AppText.detail, color: withAlpha(cs.onSurface, 0.8) }}>
           {texto}
         </Text>
       </View>
@@ -72,7 +72,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
   return (
     <View style={estilos.fila}>
       <Text
-        altura={1.35}
+        height={1.35}
         style={{ width: 62, textAlign: 'right', fontWeight: '800', fontSize: AppText.detail, color: cs.primary }}
       >
         {paso.time}
@@ -86,7 +86,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
       </View>
       <View style={{ width: 14 }} />
       <View style={[estilos.flex, { paddingBottom: 16 }]}>
-        <Text altura={1.45} style={{ fontSize: AppText.body }}>
+        <Text height={1.45} style={{ fontSize: AppText.body }}>
           {paso.activity}
         </Text>
       </View>

@@ -1,11 +1,11 @@
 import type { BottomTabBarProps } from 'expo-router/tabs';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Divider, Icono, Text, type IconoNombre } from '@/ui/components';
+import { Divider, Icon, Text, type IconName } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
 /** Destinos del shell, en orden (los nombres son los archivos de `src/app/(tabs)`). */
-export const DESTINOS: readonly { ruta: string; etiqueta: string; icono: IconoNombre; iconoActivo: IconoNombre }[] = [
+export const DESTINOS: readonly { ruta: string; etiqueta: string; icono: IconName; iconoActivo: IconName }[] = [
   { ruta: 'index', etiqueta: 'Explorar', icono: 'explore_outlined', iconoActivo: 'explore_rounded' },
   { ruta: 'agencias', etiqueta: 'Agencias', icono: 'storefront_outlined', iconoActivo: 'storefront_rounded' },
   { ruta: 'reservas', etiqueta: 'Reservas', icono: 'receipt_long_outlined', iconoActivo: 'receipt_long_rounded' },
@@ -54,11 +54,11 @@ export function BarraInferior({ state, emitter, navigateToTab, insets }: BottomT
                 {activo ? (
                   <View testID="indicador" style={[estilos.indicador, { backgroundColor: nav.indicatorColor }]} />
                 ) : null}
-                <Icono nombre={activo ? destino.iconoActivo : destino.icono} size={nav.iconSize} color={color} />
+                <Icon name={activo ? destino.iconoActivo : destino.icono} size={nav.iconSize} color={color} />
               </View>
               <Text
                 numberOfLines={1}
-                altura={null}
+                height={null}
                 style={{
                   marginTop: 4,
                   fontSize: AppText.caption,

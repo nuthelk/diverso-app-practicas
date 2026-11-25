@@ -11,7 +11,7 @@ import {
 
 import { withAlpha, useTheme, type FontWeight } from '@/ui/theme';
 
-import { Icono, type IconoNombre } from '../Icono';
+import { Icon, type IconName } from '../Icon';
 import { DefaultTextStyle, Text } from '../Text';
 
 /**
@@ -32,7 +32,7 @@ export interface BotonProps {
   /** Texto del botón (atajo de `children`). */
   texto?: string;
   children?: ReactNode;
-  icono?: IconoNombre;
+  icono?: IconName;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -97,8 +97,8 @@ function BotonBase({
               style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(contenido, tema.components.pressedOpacity) }]}
             />
           ) : null}
-          {icono ? <Icono nombre={icono} size={18} color={contenido} /> : null}
-          <DefaultTextStyle estilo={{ ...a.texto, color: contenido, height: null }}>
+          {icono ? <Icon name={icono} size={18} color={contenido} /> : null}
+          <DefaultTextStyle style={{ ...a.texto, color: contenido, height: null }}>
             {texto !== undefined ? <Text style={estilos.centrado}>{texto}</Text> : children}
           </DefaultTextStyle>
         </>
@@ -175,7 +175,7 @@ export function TextButton({ testID = 'text-button', ...props }: BotonProps) {
 }
 
 export interface IconButtonProps {
-  icono: IconoNombre;
+  icono: IconName;
   /** Texto del tooltip de Flutter: es la etiqueta accesible (lo que verifican los tests). */
   tooltip: string;
   onPress?: (() => void) | null;
@@ -244,7 +244,7 @@ export function IconButton({
               style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, tema.components.pressedOpacity) }]}
             />
           ) : null}
-          <Icono nombre={icono} size={tamanoIcono} color={color} />
+          <Icon name={icono} size={tamanoIcono} color={color} />
         </>
       )}
     </Pressable>

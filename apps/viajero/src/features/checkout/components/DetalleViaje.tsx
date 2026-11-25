@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { formatCOP, formatLongDate, type Booking } from '@/core';
-import { Divider, Icono, Text, type IconoNombre } from '@/ui/components';
+import { Divider, Icon, Text, type IconName } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /**
@@ -16,7 +16,7 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
   const puntoEncuentro = plan?.meetingPoint ?? '';
   return (
     <View style={[AppInsets.largeCard, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
-      <Text altura={1.25} style={{ fontWeight: '700', fontSize: AppText.largeEmphasis }}>
+      <Text height={1.25} style={{ fontWeight: '700', fontSize: AppText.largeEmphasis }}>
         {plan?.title ?? 'Tu plan'}
       </Text>
       <View style={{ height: 12 }} />
@@ -31,7 +31,7 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
       {pago !== null ? <Fila icono="receipt_rounded" texto={pago.referenceText} /> : null}
       <View style={{ height: 8 }} />
       <View style={estilos.fila}>
-        <Icono nombre="verified_user_rounded" size={14} color={cs.tertiary} />
+        <Icon name="verified_user_rounded" size={14} color={cs.tertiary} />
         <View style={{ width: 6 }} />
         <Text style={[estilos.flexible, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
           Compra protegida: reembolso según la política de cancelación.
@@ -41,11 +41,11 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
   );
 }
 
-function Fila({ icono, texto }: { icono: IconoNombre; texto: string }) {
+function Fila({ icono, texto }: { icono: IconName; texto: string }) {
   const cs = useTheme().colorScheme;
   return (
     <View style={[estilos.fila, { paddingVertical: 4 }]}>
-      <Icono nombre={icono} size={16} color={cs.onSurfaceVariant} />
+      <Icon name={icono} size={16} color={cs.onSurfaceVariant} />
       <View style={{ width: 10 }} />
       <Text style={[estilos.flexible, { fontSize: AppText.smallBody }]}>{texto}</Text>
     </View>

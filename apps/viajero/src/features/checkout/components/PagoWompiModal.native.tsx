@@ -88,7 +88,7 @@ export function PagoWompiPage({
             />
           </View>
           <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>
-            <DefaultTextStyle estilo={{ ...appBar.title, height: null }}>
+            <DefaultTextStyle style={{ ...appBar.title, height: null }}>
               <Text accessibilityRole="header" numberOfLines={1}>
                 Pago de prueba con Wompi
               </Text>
