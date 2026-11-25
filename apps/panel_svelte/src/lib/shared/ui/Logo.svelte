@@ -1,5 +1,5 @@
 <script lang="ts">
-  /** Colibrí de Diverso: la máscara de la app Flutter teñida con `currentColor`. */
+  /** Colibrí de Diverso: la máscara de la app del viajero teñida con `currentColor`. */
   let { size = 22, clase = '' }: { size?: number; clase?: string } = $props();
 </script>
 

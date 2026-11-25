@@ -12,7 +12,7 @@ viajero demo) se borra al final; imprime los conteos antes y después.
 Uso (desde la raíz del repo):
     python -I apps/viajero/scripts/smoke_pago_mock.py            # humo y salir
     python -I apps/viajero/scripts/smoke_pago_mock.py --servir   # solo deja mock + funciones servidos
-                                                                  # (para `flutter test` de integración); Ctrl+C
+                                                                  # (para las pruebas de integración); Ctrl+C
 """
 import importlib.util
 import sys

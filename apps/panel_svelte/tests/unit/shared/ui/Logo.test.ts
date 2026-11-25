@@ -31,9 +31,9 @@ describe('Logo', () => {
     expect(estilo).toContain('mask: url(/logo_diverso.png)');
   });
 
-  it('la máscara servida es la misma que la de la app Flutter', () => {
+  it('la máscara servida es la misma que la de la app del viajero', () => {
     const panel = readFileSync('static/logo_diverso.png');
-    const maestra = readFileSync('../../packages/diverso_core/assets/logo_diverso.png');
+    const maestra = readFileSync('../viajero/assets/logo_diverso.png');
     expect(panel.equals(maestra)).toBe(true);
   });
 

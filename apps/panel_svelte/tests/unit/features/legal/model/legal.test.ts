@@ -6,6 +6,8 @@ import { DOCUMENTOS, VERSION_LEGAL } from '$lib/features/legal/model/legal';
 // Raíz del repo (el cwd de `npm test` es apps/panel_svelte).
 const RAIZ = resolve(process.cwd(), '../..');
 const leer = (...ruta: string[]) => readFileSync(resolve(RAIZ, ...ruta), 'utf-8');
+// Textos legales de la app del viajero (Expo).
+const MOVIL = 'apps/viajero/src/core/legal/documento-legal.ts';
 
 const textos = (id: keyof typeof DOCUMENTOS) =>
   DOCUMENTOS[id].secciones.flatMap((s) => [s.titulo, ...s.parrafos]).join('\n');
@@ -15,9 +17,9 @@ describe('versión de los documentos legales', () => {
     expect(VERSION_LEGAL).toBe('v2-2026-10');
   });
 
-  it('coincide con la app móvil (legal.dart) y con la función SQL version_documentos_legales()', () => {
-    const dart = leer('packages/diverso_core/lib/legal/documento_legal.dart');
-    expect(dart).toContain(`const String kVersionLegal = '${VERSION_LEGAL}';`);
+  it('coincide con la app móvil (documento-legal.ts) y con la función SQL version_documentos_legales()', () => {
+    const movil = leer(MOVIL);
+    expect(movil).toContain(`export const VERSION_LEGAL = '${VERSION_LEGAL}';`);
 
     // La última migración que redefine la función manda.
     const migraciones = readdirSync(resolve(RAIZ, 'supabase/migrations')).filter((f) => f.endsWith('.sql')).sort();
@@ -54,14 +56,14 @@ describe('textos de pagos en los términos', () => {
     expect(t).toMatch(/no mueve dinero real/);
   });
 
-  it('el texto de pagos es el mismo que el de la app móvil (legal.dart)', () => {
-    const dart = leer('packages/diverso_core/lib/legal/documento_legal.dart');
+  it('el texto de pagos es el mismo que el de la app móvil (documento-legal.ts)', () => {
+    const movil = leer(MOVIL);
     const parrafos = [
       ...DOCUMENTOS['terminos-viajeros'].secciones.filter((s) => s.titulo.startsWith('5.')).flatMap((s) => [s.titulo, ...s.parrafos]),
       ...DOCUMENTOS['terminos-agencias'].secciones.filter((s) => s.titulo.startsWith('3.')).flatMap((s) => [s.titulo, ...s.parrafos]),
     ];
     for (const p of parrafos) {
-      expect(dart, `legal.dart debe contener «${p}»`).toContain(p);
+      expect(movil, `documento-legal.ts debe contener «${p}»`).toContain(p);
     }
   });
 });

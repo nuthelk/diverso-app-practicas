@@ -1,4 +1,4 @@
-/** Formateo idéntico al de la app Flutter (es-CO). */
+/** Formateo idéntico al de la app del viajero (es-CO). */
 
 const copFmt = new Intl.NumberFormat('es-CO', {
   style: 'currency',

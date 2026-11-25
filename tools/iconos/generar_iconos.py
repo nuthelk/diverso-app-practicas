@@ -1,37 +1,36 @@
 """Genera todos los íconos de Diverso a partir de la máscara maestra del colibrí.
 
-Fuente única: packages/diverso_core/assets/logo_diverso.png (1024x1024, negro + alfa;
-la misma que dibuja `DiversoLogo`). No se redibuja ni se vuelve a trazar.
+Fuente única: apps/viajero/assets/logo_diverso.png (1024x1024, negro + alfa; la misma que
+dibuja `DiversoLogo`). No se redibuja ni se vuelve a trazar.
 
-Resultado: ave blanca sobre #0E6E4F (el `ic_launcher_background` de la app) en
-  - apps/viajero Android: primer plano adaptativo (mipmap-*/ic_launcher_foreground.png)
-    e íconos heredados (mipmap-*/ic_launcher.png);
-  - apps/viajero iOS: AppIcon.appiconset, todos los tamaños de su Contents.json, opacos;
-  - apps/viajero Android, pantalla de arranque: solo el ave, sin fondo, en
-    drawable-*/splash_colibri.png (verde de marca) y drawable-night-*/splash_colibri.png
-    (menta);
-  - apps/viajero web y apps/panel_svelte/static: favicon.png, icons/Icon-{192,512}.png y
-    los maskable;
+Resultado (ave blanca sobre #0E6E4F, el verde de marca, salvo donde se dice otra cosa):
+  - apps/viajero/assets (Expo, los lee app.json):
+      icon.png                 ícono opaco 1024 (iOS y el resto de plataformas);
+      adaptive-icon.png        primer plano adaptativo de Android, sobre fondo #0E6E4F;
+      splash-colibri.png       pantalla de arranque: solo el ave, verde de marca, sin fondo;
+      splash-colibri-oscuro.png  la misma en menta, para el modo oscuro;
+      favicon.png              favicon web;
+  - apps/panel_svelte/static: favicon.png, icons/Icon-{192,512}.png y los maskable;
   - apps/panel_svelte/static/logo_diverso.png: copia de la máscara para `Logo.svelte`.
 
 Márgenes: cada ícono se escala para que el punto más lejano del ave (medido desde el centro
 de su caja) quede dentro de un círculo de radio fijo; la caja del ave queda centrada.
   - adaptativo Android: círculo de 66 dp sobre el lienzo de 108 dp;
-  - arranque Android 12+ (ícono sin fondo): círculo de 192 dp sobre el lienzo de 288 dp;
+  - arranque (ícono sin fondo): círculo de 192 dp sobre el lienzo de 288 dp (`imageWidth: 288`);
   - maskable web: círculo de seguridad del 80 % del lado;
   - resto: círculo del 88 % del lado (el ave ocupa ~65 % de la altura).
 
 Uso (desde cualquier carpeta; solo requiere Pillow):
     python -I -B tools/iconos/generar_iconos.py
 """
-import json
 import shutil
 from pathlib import Path
 
 from PIL import Image
 
 RAIZ = Path(__file__).resolve().parents[2]
-MAESTRO = RAIZ / "packages/diverso_core/assets/logo_diverso.png"
+VIAJERO_ASSETS = RAIZ / "apps/viajero/assets"
+MAESTRO = VIAJERO_ASSETS / "logo_diverso.png"
 FONDO = (0x0E, 0x6E, 0x4F)  # ic_launcher_background
 TINTA = (255, 255, 255)
 MENTA = (0xA8, 0xF2, 0xCE)  # primaryContainer claro = onPrimaryContainer oscuro (logo del login)
@@ -43,11 +42,7 @@ R_ARRANQUE = 96 / 288 * 0.98  # círculo de 192 dp (ícono de arranque sin fondo
 R_MASCABLE = 0.40 * 0.98  # círculo de seguridad del 80 %
 R_ICONO = 0.44  # resto de íconos
 
-VIAJERO = RAIZ / "apps/viajero"
-RES = VIAJERO / "android/app/src/main/res"
-APPICON = VIAJERO / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
 PANEL_STATIC = RAIZ / "apps/panel_svelte/static"
-DENSIDADES = {"mdpi": 1.0, "hdpi": 1.5, "xhdpi": 2.0, "xxhdpi": 3.0, "xxxhdpi": 4.0}
 
 
 def cargar_maestro():
@@ -101,25 +96,14 @@ def guardar(imagen, ruta):
     print(ruta.relative_to(RAIZ).as_posix(), imagen.size, imagen.mode)
 
 
-def android():
-    for dpi, factor in DENSIDADES.items():
-        carpeta = RES / f"mipmap-{dpi}"
-        guardar(primer_plano(round(108 * factor), R_ADAPTATIVO), carpeta / "ic_launcher_foreground.png")
-        guardar(icono_opaco(round(48 * factor), R_ICONO), carpeta / "ic_launcher.png")
-
-
-def arranque():
-    for dpi, factor in DENSIDADES.items():
-        lado = round(288 * factor)
-        guardar(primer_plano(lado, R_ARRANQUE, FONDO), RES / f"drawable-{dpi}" / "splash_colibri.png")
-        guardar(primer_plano(lado, R_ARRANQUE, MENTA), RES / f"drawable-night-{dpi}" / "splash_colibri.png")
-
-
-def ios():
-    contenido = json.loads((APPICON / "Contents.json").read_text(encoding="utf-8"))
-    for entrada in contenido["images"]:
-        lado = round(float(entrada["size"].split("x")[0]) * int(entrada["scale"].rstrip("x")))
-        guardar(icono_opaco(lado, R_ICONO), APPICON / entrada["filename"])
+def viajero():
+    """Assets de Expo: los mismos íconos y arranque que tenía la app Flutter."""
+    guardar(icono_opaco(1024, R_ICONO), VIAJERO_ASSETS / "icon.png")
+    guardar(primer_plano(1024, R_ADAPTATIVO), VIAJERO_ASSETS / "adaptive-icon.png")
+    lado = 288 * 4  # lienzo de 288 dp a 4x
+    guardar(primer_plano(lado, R_ARRANQUE, FONDO), VIAJERO_ASSETS / "splash-colibri.png")
+    guardar(primer_plano(lado, R_ARRANQUE, MENTA), VIAJERO_ASSETS / "splash-colibri-oscuro.png")
+    guardar(icono_opaco(48, R_ICONO), VIAJERO_ASSETS / "favicon.png")
 
 
 def web(carpeta):
@@ -130,10 +114,7 @@ def web(carpeta):
 
 
 def main():
-    android()
-    arranque()
-    ios()
-    web(VIAJERO / "web")
+    viajero()
     web(PANEL_STATIC)
     destino = PANEL_STATIC / "logo_diverso.png"
     shutil.copyfile(MAESTRO, destino)
