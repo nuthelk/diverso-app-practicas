@@ -306,3 +306,17 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
     expect(screen.getByText('Parque de Santa Fe')).toBeOnTheScreen();
   });
 });
+
+describe('pantallas anchas', () => {
+  test('en web ancha (1280) el contenido va en una columna centrada de 720 como máximo', async () => {
+    await abrir(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba() } }), new ResenasFalsas(), 1280);
+
+    expect(screen.getByTestId('ficha-columna')).toHaveStyle({ maxWidth: 720, width: '100%', alignSelf: 'center' });
+  });
+
+  test('PRESERVE: en el celular (375) la columna ocupa el ancho con los mismos márgenes de 22', async () => {
+    await abrir(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba() } }), new ResenasFalsas(), 375);
+
+    expect(screen.getByTestId('ficha-columna')).toHaveStyle({ paddingLeft: 22, paddingRight: 22, paddingTop: 20 });
+  });
+});

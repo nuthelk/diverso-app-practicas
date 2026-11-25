@@ -98,7 +98,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
   const cs = useTheme().colorScheme;
   const incluyeAlgo = plan.incluye.length > 0 || plan.incluyeTransporte || plan.incluyeComida || plan.incluyeHospedaje;
   return (
-    <View style={estilos.contenido}>
+    <View testID="ficha-columna" style={estilos.contenido}>
       <Text altura={1.15} accessibilityRole="header" style={{ fontSize: AppText.encabezado3xl, fontWeight: '800', letterSpacing: -0.8 }}>
         {plan.titulo}
       </Text>
@@ -187,11 +187,24 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
   );
 }
 
+/** Ancho máximo de la columna de texto de la ficha (lectura cómoda en web). */
+const ANCHO_MAXIMO_FICHA = 720;
+
 const estilos = StyleSheet.create({
   flex: { flex: 1 },
   encogible: { flexShrink: 1 },
   fila: { flexDirection: 'row', alignItems: 'center' },
-  contenido: { paddingLeft: 22, paddingTop: 20, paddingRight: 22, paddingBottom: 24 },
+  // En pantallas anchas (web) una columna de lectura centrada: sin esto las líneas cruzaban toda la
+  // ventana. La foto de la cabecera sigue a todo el ancho; en el celular el tope no se nota.
+  contenido: {
+    width: '100%',
+    maxWidth: ANCHO_MAXIMO_FICHA,
+    alignSelf: 'center',
+    paddingLeft: 22,
+    paddingTop: 20,
+    paddingRight: 22,
+    paddingBottom: 24,
+  },
   duracion: {
     flexDirection: 'row',
     alignItems: 'center',
