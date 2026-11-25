@@ -6,108 +6,108 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDependencies } from '@/composition';
 import { AppInsets, AppTheme, useTheme } from '@/ui/theme';
 
-import { FormularioLogin, type CamposLogin, type ErroresLogin } from '../components/FormularioLogin';
-import { PanelMarca } from '../components/PanelMarca';
-import { CLAVE_DEMO, CORREO_DEMO, useLoginViewModel } from '../view-models/useLoginViewModel';
+import { LoginForm, type LoginFields, type LoginErrors } from '../components/LoginForm';
+import { BrandPanel } from '../components/BrandPanel';
+import { DEMO_PASSWORD, DEMO_EMAIL, useLoginViewModel } from '../view-models/useLoginViewModel';
 
 /**
  * Acceso del viajero (`/login`): en pantallas anchas (> 640) muestra el panel de marca a la
  * izquierda. El estado vive en `useLoginViewModel` (MVVM); los campos y su validación, aquí.
  *
- * [mostrarCuentaDemo] ofrece «Usar cuenta demo»; por defecto solo en desarrollo (`__DEV__`): en
+ * [showDemoAccount] ofrece «Usar cuenta demo»; por defecto solo en desarrollo (`__DEV__`): en
  * producción la clave de la cuenta de pruebas no debe estar a un toque.
  */
-export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?: boolean }) {
-  const tema = useTheme();
+export function LoginView({ showDemoAccount = __DEV__ }: { showDemoAccount?: boolean }) {
+  const theme = useTheme();
   const { auth } = useDependencies();
-  const vm = useLoginViewModel({ auth, cuentaDemo: mostrarCuentaDemo });
+  const vm = useLoginViewModel({ auth, demoAccount: showDemoAccount });
   const { width } = useWindowDimensions();
-  const [campos, setCampos] = useState<CamposLogin>({ nombre: '', email: '', password: '' });
-  const [errores, setErrores] = useState<ErroresLogin>({});
+  const [fields, setFields] = useState<LoginFields>({ name: '', email: '', password: '' });
+  const [errors, setErrors] = useState<LoginErrors>({});
   /**
    * Tras un envío fallido los avisos se recalculan al escribir (`AutovalidateMode.onUserInteraction`
    * después del submit): corregir un campo quita su aviso. Antes del primer envío no se avisa nada.
    */
-  const [autovalidar, setAutovalidar] = useState(false);
+  const [autoValidate, setAutoValidate] = useState(false);
 
   /** Cambia los campos y, si ya hubo un envío fallido, revalida con los valores nuevos. */
-  const actualizar = (cambios: Partial<CamposLogin>) => {
-    const nuevos = { ...campos, ...cambios };
-    setCampos(nuevos);
-    if (autovalidar) setErrores(validarCampos(nuevos, vm.esRegistro));
+  const updateFields = (changes: Partial<LoginFields>) => {
+    const next = { ...fields, ...changes };
+    setFields(next);
+    if (autoValidate) setErrors(validateFields(next, vm.isSignUp));
   };
 
   /** `Form.validate()`: valida los campos visibles; si algo falla, pasa a revalidar al escribir. */
-  const validar = (): boolean => {
-    const nuevos = validarCampos(campos, vm.esRegistro);
-    setErrores(nuevos);
-    const valido = !nuevos.nombre && !nuevos.email && !nuevos.password;
-    if (!valido) setAutovalidar(true);
-    return valido;
+  const validate = (): boolean => {
+    const next = validateFields(fields, vm.isSignUp);
+    setErrors(next);
+    const isValid = !next.name && !next.email && !next.password;
+    if (!isValid) setAutoValidate(true);
+    return isValid;
   };
 
-  const enviar = () =>
-    void vm.enviar({ formularioValido: validar(), nombre: campos.nombre, email: campos.email, password: campos.password });
+  const submit = () =>
+    void vm.submit({ isFormValid: validate(), name: fields.name, email: fields.email, password: fields.password });
 
   /** Otro modo, otro formulario: los avisos del intento anterior no aplican. */
-  const alternarModo = () => {
-    setErrores({});
-    setAutovalidar(false);
-    vm.alternarModo();
+  const toggleMode = () => {
+    setErrors({});
+    setAutoValidate(false);
+    vm.toggleMode();
   };
 
   // «Crea tu cuenta» es un modo de esta misma pantalla, no otra en la pila: el atrás de Android
   // vuelve a «Entrar» en vez de cerrar la app. En «Entrar» no se toca (el sistema hace lo suyo).
-  const volverAEntrar = useEffectEvent(alternarModo);
-  const { esRegistro } = vm;
+  const backToSignIn = useEffectEvent(toggleMode);
+  const { isSignUp } = vm;
   useFocusEffect(
     useCallback(() => {
-      if (!esRegistro) return;
-      const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => {
-        volverAEntrar();
+      if (!isSignUp) return;
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        backToSignIn();
         return true;
       });
-      return () => suscripcion.remove();
-    }, [esRegistro]),
+      return () => subscription.remove();
+    }, [isSignUp]),
   );
 
-  const ancha = width > AppTheme.bpCompact;
-  const formulario = (
-    <FormularioLogin
+  const isWide = width > AppTheme.bpCompact;
+  const form = (
+    <LoginForm
       vm={vm}
-      conMarca={!ancha}
-      campos={campos}
-      errores={errores}
-      onCampo={(campo, valor) => actualizar({ [campo]: valor })}
-      onEnviar={enviar}
-      onAlternarModo={alternarModo}
-      onUsarCuentaDemo={() => actualizar({ email: CORREO_DEMO, password: CLAVE_DEMO })}
+      withBrand={!isWide}
+      fields={fields}
+      errors={errors}
+      onFieldChange={(field, value) => updateFields({ [field]: value })}
+      onSubmit={submit}
+      onToggleMode={toggleMode}
+      onUseDemoAccount={() => updateFields({ email: DEMO_EMAIL, password: DEMO_PASSWORD })}
     />
   );
 
-  if (ancha) {
+  if (isWide) {
     return (
-      <View style={[estilos.fila, { backgroundColor: tema.pageBackground }]}>
-        <View style={estilos.mitad}>
-          <PanelMarca />
+      <View style={[styles.row, { backgroundColor: theme.pageBackground }]}>
+        <View style={styles.half}>
+          <BrandPanel />
         </View>
-        <ScrollView style={estilos.mitad} contentContainerStyle={estilos.centrado}>
-          {formulario}
+        <ScrollView style={styles.half} contentContainerStyle={styles.centered}>
+          {form}
         </ScrollView>
       </View>
     );
   }
   return (
-    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       {/* Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
           esto el teclado taparía «Entrar». `padding` en ambas: con `height` el KAV pierde el flex. */}
-      <KeyboardAvoidingView testID="teclado-login" style={estilos.pantalla} behavior="padding">
+      <KeyboardAvoidingView testID="teclado-login" style={styles.screen} behavior="padding">
         <ScrollView
-          contentContainerStyle={[AppInsets.screen, estilos.centrado]}
+          contentContainerStyle={[AppInsets.screen, styles.centered]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {formulario}
+          {form}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -115,17 +115,17 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
 }
 
 /** Avisos de cada campo visible (`validator` de cada `TextFormField`); `null` si está bien. */
-function validarCampos(campos: CamposLogin, esRegistro: boolean): ErroresLogin {
+function validateFields(fields: LoginFields, isSignUp: boolean): LoginErrors {
   return {
-    nombre: esRegistro && campos.nombre.trim().length < 2 ? 'Escribe tu nombre' : null,
-    email: !campos.email.includes('@') ? 'Correo inválido' : null,
-    password: campos.password.length < 6 ? 'Mínimo 6 caracteres' : null,
+    name: isSignUp && fields.name.trim().length < 2 ? 'Escribe tu nombre' : null,
+    email: !fields.email.includes('@') ? 'Correo inválido' : null,
+    password: fields.password.length < 6 ? 'Mínimo 6 caracteres' : null,
   };
 }
 
-const estilos = StyleSheet.create({
-  pantalla: { flex: 1 },
-  fila: { flex: 1, flexDirection: 'row' },
-  mitad: { flex: 1 },
-  centrado: { flexGrow: 1, justifyContent: 'center' },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  row: { flex: 1, flexDirection: 'row' },
+  half: { flex: 1 },
+  centered: { flexGrow: 1, justifyContent: 'center' },
 });

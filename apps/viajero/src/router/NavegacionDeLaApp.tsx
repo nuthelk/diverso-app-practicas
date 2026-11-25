@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 
-import { useSesion } from '@/features/auth/view-models/SesionProvider';
+import { useSession } from '@/features/auth/view-models/SessionProvider';
 import { useConsentimiento } from '@/features/legal/view-models/ConsentimientoProvider';
 import type { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
 import { screenOptions, useTheme } from '@/ui/theme';
@@ -69,10 +69,10 @@ const opcionesDeRuta = (nombre: string): OpcionesRuta | undefined => (OPCIONES_P
 
 export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
   const tema = useTheme();
-  const sesion = useSesion();
+  const sesion = useSession();
   const { estado } = useConsentimiento();
-  const preparado = listo && !sesion.cargando;
-  const haySesion = sesion.usuarioId !== null;
+  const preparado = listo && !sesion.loading;
+  const haySesion = sesion.userId !== null;
 
   useGuardia({ preparado, haySesion, consentimiento: estado });
 

@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { DependenciesProvider } from '@/composition';
-import { SesionProvider, useSesion } from '@/features/auth/view-models/SesionProvider';
+import { SessionProvider, useSession } from '@/features/auth/view-models/SessionProvider';
 import { ConsentimientoProvider, useConsentimiento } from '@/features/legal/view-models/ConsentimientoProvider';
 import { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
 
@@ -17,11 +17,11 @@ import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
  */
 
 function Sonda() {
-  const sesion = useSesion();
+  const sesion = useSession();
   const consentimiento = useConsentimiento();
   return (
     <Text testID="sonda">
-      {sesion.cargando ? 'cargando' : (sesion.usuarioId ?? 'sin-sesion')}|{consentimiento.estado}
+      {sesion.loading ? 'cargando' : (sesion.userId ?? 'sin-sesion')}|{consentimiento.estado}
     </Text>
   );
 }
@@ -29,11 +29,11 @@ function Sonda() {
 async function montar(auth: AuthFalso) {
   const r = await render(
     <DependenciesProvider dependencias={dependenciasDePrueba({ auth })}>
-      <SesionProvider>
+      <SessionProvider>
         <ConsentimientoProvider>
           <Sonda />
         </ConsentimientoProvider>
-      </SesionProvider>
+      </SessionProvider>
     </DependenciesProvider>,
   );
   return r;

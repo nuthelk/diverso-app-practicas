@@ -3,26 +3,26 @@ import { useRef, useState } from 'react';
 import type { AuthRepository, Public } from '@/core';
 
 /** Credenciales de la cuenta de pruebas del seed. */
-export const CORREO_DEMO = 'viajero@demo.com';
-export const CLAVE_DEMO = 'demo1234';
+export const DEMO_EMAIL = 'viajero@demo.com';
+export const DEMO_PASSWORD = 'demo1234';
 
-interface EstadoLogin {
-  esRegistro: boolean;
-  cargando: boolean;
-  aceptaDatos: boolean;
-  aceptaTerminos: boolean;
+interface LoginState {
+  isSignUp: boolean;
+  loading: boolean;
+  acceptsDataPolicy: boolean;
+  acceptsTerms: boolean;
   /** Ya se intentó crear la cuenta: las casillas sin marcar se resaltan. */
-  intentoRegistro: boolean;
+  signUpAttempted: boolean;
   /** Mensaje para el usuario si el último envío falló. */
   error: string | null;
 }
 
-const inicial: EstadoLogin = {
-  esRegistro: false,
-  cargando: false,
-  aceptaDatos: false,
-  aceptaTerminos: false,
-  intentoRegistro: false,
+const initialState: LoginState = {
+  isSignUp: false,
+  loading: false,
+  acceptsDataPolicy: false,
+  acceptsTerms: false,
+  signUpAttempted: false,
   error: null,
 };
 
@@ -31,7 +31,7 @@ const inicial: EstadoLogin = {
  * casillas de autorización (Ley 1581) y envía el formulario. Los campos de texto y su validación
  * viven en la vista.
  *
- * [cuentaDemo] decide si se ofrece «Usar cuenta demo»; por defecto solo en desarrollo (`__DEV__`,
+ * [demoAccount] decide si se ofrece «Usar cuenta demo»; por defecto solo en desarrollo (`__DEV__`,
  * el `kDebugMode` de Flutter): en producción la clave de la cuenta de pruebas no debe estar a un
  * toque.
  *
@@ -42,78 +42,78 @@ const inicial: EstadoLogin = {
  */
 export function useLoginViewModel({
   auth,
-  cuentaDemo = __DEV__,
+  demoAccount = __DEV__,
 }: {
   auth: Public<AuthRepository>;
-  cuentaDemo?: boolean;
+  demoAccount?: boolean;
 }) {
-  const [estado, setEstado] = useState<EstadoLogin>(inicial);
-  const actual = useRef<EstadoLogin>(inicial);
+  const [state, setState] = useState<LoginState>(initialState);
+  const latest = useRef<LoginState>(initialState);
 
-  const cambiar = (cambios: Partial<EstadoLogin>) => {
-    actual.current = { ...actual.current, ...cambios };
-    setEstado(actual.current);
+  const update = (changes: Partial<LoginState>) => {
+    latest.current = { ...latest.current, ...changes };
+    setState(latest.current);
   };
 
-  const alternarModo = () => cambiar({ esRegistro: !actual.current.esRegistro, error: null, intentoRegistro: false });
-  const cambiarAceptaDatos = (valor: boolean) => cambiar({ aceptaDatos: valor });
-  const cambiarAceptaTerminos = (valor: boolean) => cambiar({ aceptaTerminos: valor });
+  const toggleMode = () => update({ isSignUp: !latest.current.isSignUp, error: null, signUpAttempted: false });
+  const setAcceptsDataPolicy = (value: boolean) => update({ acceptsDataPolicy: value });
+  const setAcceptsTerms = (value: boolean) => update({ acceptsTerms: value });
 
   /**
    * Entra o crea la cuenta con lo escrito en el formulario. Al crear cuenta la autorización debe
    * ser expresa: sin las dos casillas no se envía nada. En éxito no navega: el guard saca al
    * usuario de aquí al cambiar la sesión.
    */
-  const enviar = async ({
-    formularioValido,
-    nombre,
+  const submit = async ({
+    isFormValid,
+    name,
     email,
     password,
   }: {
-    formularioValido: boolean;
-    nombre: string;
+    isFormValid: boolean;
+    name: string;
     email: string;
     password: string;
   }): Promise<void> => {
-    const e = actual.current;
-    if (e.cargando) return;
-    if (e.esRegistro) {
-      cambiar({ intentoRegistro: true });
-      if (!e.aceptaDatos || !e.aceptaTerminos) return;
+    const e = latest.current;
+    if (e.loading) return;
+    if (e.isSignUp) {
+      update({ signUpAttempted: true });
+      if (!e.acceptsDataPolicy || !e.acceptsTerms) return;
     }
-    if (!formularioValido) return;
-    cambiar({ cargando: true, error: null });
+    if (!isFormValid) return;
+    update({ loading: true, error: null });
     try {
-      if (e.esRegistro) {
+      if (e.isSignUp) {
         await auth.signUpTraveler({
-          name: nombre.trim(),
+          name: name.trim(),
           email: email.trim(),
           password,
-          acceptsDocuments: e.aceptaDatos && e.aceptaTerminos,
+          acceptsDocuments: e.acceptsDataPolicy && e.acceptsTerms,
         });
       } else {
         await auth.signIn({ email: email.trim(), password });
       }
     } catch (error) {
-      console.warn('LoginViewModel.enviar:', error);
-      cambiar({
-        error: e.esRegistro
+      console.warn('LoginViewModel.submit:', error);
+      update({
+        error: e.isSignUp
           ? 'No pudimos crear la cuenta. ¿Ese correo ya está registrado?'
           : 'Correo o contraseña incorrectos, o no hay conexión.',
       });
     } finally {
-      cambiar({ cargando: false });
+      update({ loading: false });
     }
   };
 
   return {
-    ...estado,
+    ...state,
     /** «Usar cuenta demo» solo se ofrece al entrar, y solo si el flag lo permite. */
-    ofreceCuentaDemo: cuentaDemo && !estado.esRegistro,
-    alternarModo,
-    cambiarAceptaDatos,
-    cambiarAceptaTerminos,
-    enviar,
+    offersDemoAccount: demoAccount && !state.isSignUp,
+    toggleMode,
+    setAcceptsDataPolicy,
+    setAcceptsTerms,
+    submit,
   };
 }
 

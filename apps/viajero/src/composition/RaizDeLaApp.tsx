@@ -2,7 +2,7 @@ import { SplashScreen } from 'expo-router';
 import { useEffect, type ReactNode } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { SesionProvider } from '@/features/auth/view-models/SesionProvider';
+import { SessionProvider } from '@/features/auth/view-models/SessionProvider';
 import { ConsentimientoProvider } from '@/features/legal/view-models/ConsentimientoProvider';
 import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
 import { ThemeProvider, useDiversoFonts, type ThemeMode } from '@/ui/theme';
@@ -27,9 +27,9 @@ export function ProveedoresDeLaApp({
     <SafeAreaProvider>
       <DependenciesProvider dependencias={dependencias}>
         <ThemeProvider initialMode={modoTemaInicial}>
-          <SesionProvider>
+          <SessionProvider>
             <ConsentimientoProvider>{children}</ConsentimientoProvider>
-          </SesionProvider>
+          </SessionProvider>
         </ThemeProvider>
       </DependenciesProvider>
     </SafeAreaProvider>

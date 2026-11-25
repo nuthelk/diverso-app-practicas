@@ -17,45 +17,45 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * (+ enlaces legales y diseño ancho).
  */
 
-async function abrir({ cuentaDemo, auth = new AuthFalso() }: { cuentaDemo?: boolean; auth?: AuthFalso } = {}) {
+async function renderLogin({ demoAccount, auth = new AuthFalso() }: { demoAccount?: boolean; auth?: AuthFalso } = {}) {
   await fijarVentana(420, 1000);
-  await renderPantalla(<LoginView mostrarCuentaDemo={cuentaDemo} />, { dependencias: dependenciasDePrueba({ auth }) });
+  await renderPantalla(<LoginView showDemoAccount={demoAccount} />, { dependencias: dependenciasDePrueba({ auth }) });
   return auth;
 }
 
-const escribir = (etiqueta: string, texto: string) => fireEvent.changeText(screen.getByLabelText(etiqueta), texto);
-const tocar = (texto: string) => fireEvent.press(screen.getByText(texto));
+const typeInto = (label: string, text: string) => fireEvent.changeText(screen.getByLabelText(label), text);
+const tap = (text: string) => fireEvent.press(screen.getByText(text));
 
 beforeEach(reiniciarRouterFalso);
 afterEach(restaurarVentana);
 
 describe('bug A: «Usar cuenta demo»', () => {
   test('con el flag apagado (producción) el botón no existe', async () => {
-    await abrir({ cuentaDemo: false });
+    await renderLogin({ demoAccount: false });
 
     expect(screen.queryByText('Usar cuenta demo')).toBeNull();
     expect(screen.getByText('Entrar')).toBeOnTheScreen();
   });
 
   test('con el flag encendido (desarrollo) rellena el correo y la clave de la cuenta demo', async () => {
-    await abrir({ cuentaDemo: true });
+    await renderLogin({ demoAccount: true });
 
     expect(screen.getByText('Usar cuenta demo')).toBeOnTheScreen();
-    await tocar('Usar cuenta demo');
+    await tap('Usar cuenta demo');
 
     expect(screen.getByLabelText('Correo').props.value).toBe('viajero@demo.com');
     expect(screen.getByLabelText('Contraseña').props.value).toBe('demo1234');
   });
 
   test('por defecto sigue a __DEV__', async () => {
-    await abrir();
+    await renderLogin();
     expect(screen.getByText('Usar cuenta demo')).toBeOnTheScreen();
   });
 
   test('al pasar a «Crear cuenta nueva» el botón demo desaparece', async () => {
-    await abrir({ cuentaDemo: true });
+    await renderLogin({ demoAccount: true });
 
-    await tocar('Crear cuenta nueva');
+    await tap('Crear cuenta nueva');
 
     expect(screen.queryByText('Usar cuenta demo')).toBeNull();
   });
@@ -63,19 +63,19 @@ describe('bug A: «Usar cuenta demo»', () => {
 
 describe('entrar y crear cuenta', () => {
   test('entrar con datos válidos llama a signIn con el correo recortado', async () => {
-    const auth = await abrir({ cuentaDemo: false });
+    const auth = await renderLogin({ demoAccount: false });
 
-    await escribir('Correo', ' ana@correo.test ');
-    await escribir('Contraseña', 'secreto1');
-    await tocar('Entrar');
+    await typeInto('Correo', ' ana@correo.test ');
+    await typeInto('Contraseña', 'secreto1');
+    await tap('Entrar');
 
     expect(auth.entradas).toEqual([{ email: 'ana@correo.test', password: 'secreto1' }]);
   });
 
   test('datos inválidos muestran los avisos del formulario y no llaman a nada', async () => {
-    const auth = await abrir({ cuentaDemo: false });
+    const auth = await renderLogin({ demoAccount: false });
 
-    await tocar('Entrar');
+    await tap('Entrar');
 
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
     expect(screen.getByText('Mínimo 6 caracteres')).toBeOnTheScreen();
@@ -85,11 +85,11 @@ describe('entrar y crear cuenta', () => {
   test('credenciales rechazadas: se ve el mensaje y el botón vuelve a estar activo', async () => {
     const auth = new AuthFalso();
     auth.falloAlEntrar = new Error('Invalid login credentials');
-    await abrir({ cuentaDemo: false, auth });
+    await renderLogin({ demoAccount: false, auth });
 
-    await escribir('Correo', 'ana@correo.test');
-    await escribir('Contraseña', 'secreto1');
-    await tocar('Entrar');
+    await typeInto('Correo', 'ana@correo.test');
+    await typeInto('Contraseña', 'secreto1');
+    await tap('Entrar');
     await act(async () => {});
 
     expect(screen.getByText('Correo o contraseña incorrectos, o no hay conexión.')).toBeOnTheScreen();
@@ -97,27 +97,27 @@ describe('entrar y crear cuenta', () => {
   });
 
   test('crear cuenta sin marcar las casillas no registra y las resalta', async () => {
-    const auth = await abrir({ cuentaDemo: false });
+    const auth = await renderLogin({ demoAccount: false });
 
-    await tocar('Crear cuenta nueva');
-    await escribir('Tu nombre', 'Ana');
-    await escribir('Correo', 'ana@correo.test');
-    await escribir('Contraseña', 'secreto1');
-    await tocar('Crear cuenta');
+    await tap('Crear cuenta nueva');
+    await typeInto('Tu nombre', 'Ana');
+    await typeInto('Correo', 'ana@correo.test');
+    await typeInto('Contraseña', 'secreto1');
+    await tap('Crear cuenta');
 
     expect(auth.registros).toEqual([]);
     expect(screen.getByText('Debes aceptar ambos documentos para crear tu cuenta.')).toBeOnTheScreen();
   });
 
   test('crear cuenta con las dos casillas registra con autorización expresa', async () => {
-    const auth = await abrir({ cuentaDemo: false });
+    const auth = await renderLogin({ demoAccount: false });
 
-    await tocar('Crear cuenta nueva');
-    await escribir('Tu nombre', 'Ana');
-    await escribir('Correo', 'ana@correo.test');
-    await escribir('Contraseña', 'secreto1');
-    for (const casilla of screen.getAllByRole('checkbox')) await fireEvent.press(casilla);
-    await tocar('Crear cuenta');
+    await tap('Crear cuenta nueva');
+    await typeInto('Tu nombre', 'Ana');
+    await typeInto('Correo', 'ana@correo.test');
+    await typeInto('Contraseña', 'secreto1');
+    for (const checkbox of screen.getAllByRole('checkbox')) await fireEvent.press(checkbox);
+    await tap('Crear cuenta');
 
     expect(auth.registros).toEqual([
       { name: 'Ana', email: 'ana@correo.test', password: 'secreto1', acceptsDocuments: true },
@@ -125,22 +125,22 @@ describe('entrar y crear cuenta', () => {
   });
 
   test('un nombre de menos de 2 letras avisa «Escribe tu nombre»', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Crear cuenta nueva');
-    await escribir('Tu nombre', ' A ');
-    await tocar('Crear cuenta');
+    await renderLogin({ demoAccount: false });
+    await tap('Crear cuenta nueva');
+    await typeInto('Tu nombre', ' A ');
+    await tap('Crear cuenta');
     expect(screen.getByText('Escribe tu nombre')).toBeOnTheScreen();
   });
 });
 
 describe('textos y enlaces', () => {
   test('entrar no lleva título (solo el colibrí y la frase); crear cuenta sí, para marcar el cambio de modo', async () => {
-    await abrir({ cuentaDemo: false });
+    await renderLogin({ demoAccount: false });
     expect(screen.queryByText('Bienvenido de vuelta')).toBeNull();
     expect(screen.queryByRole('header')).toBeNull();
     expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();
 
-    await tocar('Crear cuenta nueva');
+    await tap('Crear cuenta nueva');
 
     expect(screen.getByText('Crea tu cuenta')).toBeOnTheScreen();
     expect(screen.getByText('Explora y reserva planes de agencias verificadas.')).toBeOnTheScreen();
@@ -148,26 +148,26 @@ describe('textos y enlaces', () => {
   });
 
   test('el pie abre la política de datos y los términos', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Política de datos');
-    await tocar('Términos y condiciones');
+    await renderLogin({ demoAccount: false });
+    await tap('Política de datos');
+    await tap('Términos y condiciones');
     expect(routerFalso.push.mock.calls).toEqual([['/legal/privacidad'], ['/legal/terminos-viajeros']]);
   });
 
   test('el logo es solo el colibrí, centrado y sin la palabra «Diverso»; en pantallas anchas pasa al panel', async () => {
-    const promesa =
+    const tagline =
       'Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.';
-    await abrir({ cuentaDemo: false });
+    await renderLogin({ demoAccount: false });
     // Angosta: el colibrí grande, sin caja ni nombre, centrado; la promesa no.
     expect(screen.getByTestId('colibri-bienvenida')).toBeOnTheScreen();
     expect(StyleSheet.flatten(screen.getByTestId('marca-login').props.style).alignItems).toBe('center');
     expect(screen.queryByText('Diverso')).toBeNull();
-    expect(screen.queryByText(promesa)).toBeNull();
+    expect(screen.queryByText(tagline)).toBeNull();
 
     await fijarVentana(1024, 800);
 
     expect(screen.getByTestId('panel-marca')).toBeOnTheScreen();
-    expect(screen.getByText(promesa)).toBeOnTheScreen();
+    expect(screen.getByText(tagline)).toBeOnTheScreen();
     expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.getAllByTestId('diverso-logo', { includeHiddenElements: true })).toHaveLength(1);
   });
@@ -175,7 +175,7 @@ describe('textos y enlaces', () => {
 
 describe('contraseña', () => {
   test('el ojo muestra y oculta la contraseña', async () => {
-    await abrir({ cuentaDemo: false });
+    await renderLogin({ demoAccount: false });
     expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(true);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña' }));
@@ -188,68 +188,68 @@ describe('contraseña', () => {
 
 describe('avisos de los campos', () => {
   test('antes del primer envío escribir no muestra avisos', async () => {
-    await abrir({ cuentaDemo: false });
+    await renderLogin({ demoAccount: false });
 
-    await escribir('Correo', 'ana');
-    await escribir('Contraseña', '12');
+    await typeInto('Correo', 'ana');
+    await typeInto('Contraseña', '12');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
     expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
   });
 
   test('tras un envío fallido, corregir un campo quita su aviso (y romperlo lo vuelve a mostrar)', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Entrar');
+    await renderLogin({ demoAccount: false });
+    await tap('Entrar');
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
 
-    await escribir('Correo', 'ana@correo.test');
+    await typeInto('Correo', 'ana@correo.test');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
     expect(screen.getByText('Mínimo 6 caracteres')).toBeOnTheScreen();
 
-    await escribir('Contraseña', 'secreto1');
+    await typeInto('Contraseña', 'secreto1');
     expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
 
-    await escribir('Correo', 'ana');
+    await typeInto('Correo', 'ana');
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
   });
 
   test('tras un envío fallido, «Usar cuenta demo» rellena y quita los avisos', async () => {
-    await abrir({ cuentaDemo: true });
-    await tocar('Entrar');
+    await renderLogin({ demoAccount: true });
+    await tap('Entrar');
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
 
-    await tocar('Usar cuenta demo');
+    await tap('Usar cuenta demo');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
     expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
   });
 
   test('cambiar entre «Entrar» y «Crear cuenta» limpia los avisos del intento anterior', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Entrar');
+    await renderLogin({ demoAccount: false });
+    await tap('Entrar');
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
 
-    await tocar('Crear cuenta nueva');
+    await tap('Crear cuenta nueva');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
     expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
 
-    await tocar('Crear cuenta');
+    await tap('Crear cuenta');
     expect(screen.getByText('Escribe tu nombre')).toBeOnTheScreen();
 
-    await tocar('Ya tengo cuenta — entrar');
+    await tap('Ya tengo cuenta — entrar');
 
     expect(screen.queryByText('Escribe tu nombre')).toBeNull();
     expect(screen.queryByText('Correo inválido')).toBeNull();
   });
 
   test('tras cambiar de modo, escribir vuelve a no mostrar avisos hasta el próximo envío', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Entrar');
-    await tocar('Crear cuenta nueva');
+    await renderLogin({ demoAccount: false });
+    await tap('Entrar');
+    await tap('Crear cuenta nueva');
 
-    await escribir('Correo', 'ana');
+    await typeInto('Correo', 'ana');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
   });
@@ -257,33 +257,33 @@ describe('avisos de los campos', () => {
 
 describe('atrás del sistema (Android)', () => {
   // «Crea tu cuenta» es un modo de la misma pantalla: sin esto el atrás cerraría la app.
-  type Escucha = Parameters<typeof BackHandler.addEventListener>[1];
-  let escuchas: Escucha[] = [];
-  let espia: jest.SpyInstance;
+  type Listener = Parameters<typeof BackHandler.addEventListener>[1];
+  let listeners: Listener[] = [];
+  let spy: jest.SpyInstance;
   beforeEach(() => {
-    escuchas = [];
-    espia = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_evento, escucha) => {
-      escuchas.push(escucha);
-      return { remove: () => void escuchas.splice(escuchas.indexOf(escucha), 1) };
+    listeners = [];
+    spy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, listener) => {
+      listeners.push(listener);
+      return { remove: () => void listeners.splice(listeners.indexOf(listener), 1) };
     });
   });
-  afterEach(() => espia.mockRestore());
+  afterEach(() => spy.mockRestore());
 
   /** Lo que hace Android: avisa a las escuchas de la más nueva a la más vieja hasta que una lo consume. */
-  const atras = async () => {
-    let consumido = false;
+  const pressBack = async () => {
+    let consumed = false;
     await act(async () => {
-      consumido = [...escuchas].reverse().some((e) => (e as () => unknown)() === true);
+      consumed = [...listeners].reverse().some((e) => (e as () => unknown)() === true);
     });
-    return consumido;
+    return consumed;
   };
 
   test('en «Crea tu cuenta» vuelve a «Entrar» en vez de cerrar la app', async () => {
-    await abrir({ cuentaDemo: false });
-    await tocar('Crear cuenta nueva');
+    await renderLogin({ demoAccount: false });
+    await tap('Crear cuenta nueva');
     expect(screen.getByText('Crea tu cuenta')).toBeOnTheScreen();
 
-    expect(await atras()).toBe(true);
+    expect(await pressBack()).toBe(true);
 
     expect(screen.queryByText('Crea tu cuenta')).toBeNull();
     expect(screen.getByText('Crear cuenta nueva')).toBeOnTheScreen();
@@ -291,13 +291,13 @@ describe('atrás del sistema (Android)', () => {
   });
 
   test('en «Entrar» no lo intercepta: el sistema hace lo de siempre', async () => {
-    await abrir({ cuentaDemo: false });
-    expect(await atras()).toBe(false);
+    await renderLogin({ demoAccount: false });
+    expect(await pressBack()).toBe(false);
 
     // Tras ir y volver de «Crea tu cuenta» tampoco queda ninguna escucha que lo consuma.
-    await tocar('Crear cuenta nueva');
-    await tocar('Ya tengo cuenta — entrar');
-    expect(await atras()).toBe(false);
+    await tap('Crear cuenta nueva');
+    await tap('Ya tengo cuenta — entrar');
+    expect(await pressBack()).toBe(false);
   });
 });
 
@@ -307,19 +307,19 @@ describe('teclado', () => {
   test.each([
     ['ios', 'keyboardWillShow'],
     ['android', 'keyboardDidShow'],
-  ] as const)('en %s el formulario deja sitio al teclado (relleno inferior)', async (so, evento) => {
+  ] as const)('en %s el formulario deja sitio al teclado (relleno inferior)', async (os, event) => {
     const original = Platform.OS;
-    Object.defineProperty(Platform, 'OS', { configurable: true, get: () => so });
+    Object.defineProperty(Platform, 'OS', { configurable: true, get: () => os });
     try {
-      await abrir({ cuentaDemo: false });
-      const contenedor = screen.getByTestId('teclado-login');
-      await fireEvent(contenedor, 'layout', {
+      await renderLogin({ demoAccount: false });
+      const container = screen.getByTestId('teclado-login');
+      await fireEvent(container, 'layout', {
         persist: () => {},
         nativeEvent: { layout: { x: 0, y: 0, width: 420, height: 1000 } },
       });
 
       await act(async () => {
-        DeviceEventEmitter.emit(evento, {
+        DeviceEventEmitter.emit(event, {
           duration: 0,
           easing: 'keyboard',
           endCoordinates: { screenX: 0, screenY: 700, width: 420, height: 300 },
