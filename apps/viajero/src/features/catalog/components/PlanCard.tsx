@@ -26,18 +26,46 @@ export function PlanCard({
   comparada?: boolean;
   onToggleComparar?: ((plan: Plan) => void) | null;
 }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const cs = useTheme().colorScheme;
   const router = useRouter();
-  const proxima = plan.fechasDisponibles[0];
 
+  // El botón de comparar va como HERMANO de la tarjeta, superpuesto: en web un Pressable es un
+  // <button> y un <button> dentro de otro es HTML inválido (y el teclado/lector no lo alcanza).
+  // En Flutter el IconButton vivía dentro del InkWell; visualmente queda en el mismo lugar.
+  // flexGrow: en la grilla la tarjeta llena la celda como en SliverGrid; en la lista no cambia nada.
   return (
-    <Card
-      testID={`plan-card-${plan.id}`}
-      color={cs.surfaceContainerLow}
-      onPress={() => router.push(AppRoutes.plan(plan.id) as Href)}
-      accessibilityLabel={plan.titulo}
-    >
+    <View style={estilos.envoltura}>
+      <Card
+        testID={`plan-card-${plan.id}`}
+        color={cs.surfaceContainerLow}
+        onPress={() => router.push(AppRoutes.plan(plan.id) as Href)}
+        accessibilityLabel={plan.titulo}
+        style={estilos.envoltura}
+      >
+        <ContenidoPlanCard plan={plan} />
+      </Card>
+      {onToggleComparar ? (
+        <View style={estilos.comparar}>
+          <IconButton
+            icono={comparada ? 'check_rounded' : 'compare_arrows_rounded'}
+            tamanoIcono={19}
+            tooltip={comparada ? 'Quitar del comparador' : 'Agregar al comparador'}
+            colorFondo={comparada ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
+            colorIcono={comparada ? cs.onPrimary : '#FFFFFF'}
+            style={estilos.compacto}
+            onPress={() => onToggleComparar(plan)}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function ContenidoPlanCard({ plan }: { plan: Plan }) {
+  const cs = useTheme().colorScheme;
+  const proxima = plan.fechasDisponibles[0];
+  return (
+    <>
       <View style={{ height: ALTO_PORTADA_PLAN }}>
         <PortadaPlan plan={plan} />
         {/* Degradado negro 22 % → transparente (45 %) → 45 %, en dos tramos. */}
@@ -47,19 +75,6 @@ export function PlanCard({
         {plan.agency?.verificada === true ? (
           <View style={estilos.sello}>
             <VerifiedBadge blanco compacto />
-          </View>
-        ) : null}
-        {onToggleComparar ? (
-          <View style={estilos.comparar}>
-            <IconButton
-              icono={comparada ? 'check_rounded' : 'compare_arrows_rounded'}
-              tamanoIcono={19}
-              tooltip={comparada ? 'Quitar del comparador' : 'Agregar al comparador'}
-              colorFondo={comparada ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
-              colorIcono={comparada ? cs.onPrimary : '#FFFFFF'}
-              style={estilos.compacto}
-              onPress={() => onToggleComparar(plan)}
-            />
           </View>
         ) : null}
         <View style={estilos.destino}>
@@ -99,7 +114,7 @@ export function PlanCard({
           <PriceText monto={plan.precioCop} />
         </View>
       </View>
-    </Card>
+    </>
   );
 }
 
@@ -141,6 +156,7 @@ const DEGRADADO_PORTADA = (
 
 const estilos = StyleSheet.create({
   flex: { flex: 1 },
+  envoltura: { flexGrow: 1 },
   centro: { alignItems: 'center', justifyContent: 'center' },
   fila: { flexDirection: 'row', alignItems: 'center' },
   sello: { position: 'absolute', top: 10, left: 10 },

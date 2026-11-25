@@ -12,8 +12,13 @@ export function medidasGrilla(anchoUtil: number, { maxAncho = 430, espacio = 14,
 }
 
 /**
- * Rejilla de tarjetas en pantallas anchas (> 640): filas de [columnas] celdas de alto fijo. El
- * ancho útil se calcula con el de la VENTANA (estable al hacer scroll), como en Flutter.
+ * Rejilla de tarjetas en pantallas anchas (> 640): filas de [columnas] celdas. El ancho útil se
+ * calcula con el de la VENTANA (estable al hacer scroll), como en Flutter.
+ *
+ * Alto: el de Flutter (ancho / aspecto) como MÍNIMO. En Flutter era fijo y, si el contenido no
+ * entraba (p. ej. la fila «★ ciudad · N planes» de una agencia partida en dos líneas), la tarjeta
+ * desbordaba y se recortaba. Aquí la fila crece; cuando el contenido entra, mide lo mismo.
+ * Las celdas se estiran al alto de la fila (las tarjetas usan flexGrow) para que la fila quede pareja.
  */
 export function Grilla<T>({
   items,
@@ -34,10 +39,10 @@ export function Grilla<T>({
   return (
     <View testID="grilla" style={{ gap: m.espacio }}>
       {filas.map((fila, f) => (
-        <View key={f} style={{ flexDirection: 'row', gap: m.espacio, height: m.alto }}>
+        <View key={f} style={{ flexDirection: 'row', gap: m.espacio, minHeight: m.alto }}>
           {fila.map((item, c) => (
             <Fragment key={clave(item, f * m.columnas + c)}>
-              <View style={{ width: m.ancho, height: m.alto }}>{render(item, f * m.columnas + c)}</View>
+              <View style={{ width: m.ancho }}>{render(item, f * m.columnas + c)}</View>
             </Fragment>
           ))}
         </View>
