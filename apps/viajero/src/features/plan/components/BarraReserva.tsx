@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, View, type TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatFechaCorta, type Plan, type PlanDate } from '@/core';
@@ -118,20 +118,46 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
           { backgroundColor: t.interpolate({ inputRange: [0, 1], outputRange: [cs.surfaceContainerHigh, cs.primary] }) },
         ]}
       >
-        <Text style={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
+        <TextoSinCorte estilo={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
           {formatFechaCorta(fecha.fecha)}
-        </Text>
-        <Text
-          style={{
+        </TextoSinCorte>
+        <TextoSinCorte
+          estilo={{
             fontSize: AppText.nota,
             fontWeight: '600',
             color: seleccionada ? conAlfa(cs.onPrimary, 0.8) : pocos ? tema.diverso.pocosCupos : cs.onSurfaceVariant,
           }}
         >
           {cupos}
-        </Text>
+        </TextoSinCorte>
       </Animated.View>
     </Pressable>
+  );
+}
+
+/** Lo que el texto visible puede pasarse del ancho medido (cae sobre el padding de 14 del chip). */
+const HOLGURA = 8;
+
+/**
+ * Texto de una línea que no se corta aunque Android lo mida unos px más angosto de lo que lo dibuja
+ * (pasaba con «jue, 26 nov»: partía «nov» a una segunda línea que el chip recortaba). Una copia
+ * invisible y oculta a los lectores de pantalla da el ancho; la visible va encima en UNA línea, con
+ * [HOLGURA] de más a la derecha. El tamaño no depende de la selección: solo cambia el color.
+ */
+function TextoSinCorte({ estilo, children }: { estilo: TextStyle; children: ReactNode }) {
+  return (
+    <View>
+      <Text
+        style={[estilo, estilos.medida]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {children}
+      </Text>
+      <Text numberOfLines={1} style={[estilo, estilos.visible]}>
+        {children}
+      </Text>
+    </View>
   );
 }
 
@@ -141,6 +167,8 @@ const estilos = StyleSheet.create({
   encogible: { flexShrink: 1 },
   fechas: { gap: 8, alignItems: 'stretch' },
   chip: { height: 62, justifyContent: 'center', paddingHorizontal: 14, borderRadius: AppRadios.field },
+  medida: { opacity: 0 },
+  visible: { position: 'absolute', left: 0, top: 0, right: -HOLGURA },
   fila: { flexDirection: 'row', alignItems: 'center' },
   reservar: { minWidth: 150, minHeight: 52 },
 });

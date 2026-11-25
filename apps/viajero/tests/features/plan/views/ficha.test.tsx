@@ -1,8 +1,10 @@
 import { fireEvent, screen, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import {
   Agency,
   ExperienceCategory,
+  formatFechaCorta,
   ItinerarioPaso,
   Plan,
   PlanDate,
@@ -81,6 +83,54 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     await fireEvent.press(screen.getByText('Reservar'));
 
     expect(routerFalso.push).toHaveBeenCalledWith('/checkout/plan-1/f-2');
+  });
+
+  // En el emulador el chip de «jue, 26 nov» se comía «nov»: Android midió el texto unos px más
+  // angosto de lo que lo dibuja y partió la última palabra a una segunda línea (recortada). Una
+  // copia invisible da el ancho del chip y la visible se dibuja encima en UNA línea con holgura.
+  const estiloDe = (el: { props: { style?: unknown } }) =>
+    StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
+
+  test('los textos del chip de fecha no se cortan: una línea con holgura sobre el ancho medido', async () => {
+    const fechas = [fechaDePrueba('f-1', { dias: 3 }), fechaDePrueba('f-2', { dias: 5, cupos: 2 })];
+    await abrir(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba({ dates: fechas }) } }));
+
+    for (const [id, textos] of [
+      ['f-1', [formatFechaCorta(fechas[0]!.fecha), '10 cupos']],
+      ['f-2', [formatFechaCorta(fechas[1]!.fecha), '¡Últimos 2!']],
+    ] as const) {
+      const chip = within(screen.getByTestId(`fecha-${id}`));
+      for (const texto of textos) {
+        const visible = chip.getByText(texto);
+        expect(visible.props.numberOfLines).toBe(1);
+        expect(estiloDe(visible)).toMatchObject({ position: 'absolute', left: 0, top: 0 });
+        expect(estiloDe(visible).right as number).toBeLessThan(0);
+        // La copia que mide existe, no se ve ni se anuncia.
+        const copias = chip.getAllByText(texto, { includeHiddenElements: true });
+        expect(copias).toHaveLength(2);
+        const medida = copias.find((c) => c !== visible)!;
+        expect(estiloDe(medida).opacity).toBe(0);
+        expect(medida.props.accessibilityElementsHidden).toBe(true);
+      }
+    }
+  });
+
+  test('elegir una fecha no cambia el tamaño de ningún chip (solo colores)', async () => {
+    await abrir(conTresFechas());
+    const forma = () =>
+      ['f-1', 'f-2', 'f-3'].map((id) =>
+        within(screen.getByTestId(`fecha-${id}`))
+          .getAllByText(/./, { includeHiddenElements: true })
+          .map((t) => {
+            const { color: _color, ...resto } = estiloDe(t);
+            return resto;
+          }),
+      );
+    const antes = forma();
+
+    await fireEvent.press(screen.getByText('¡Últimos 2!'));
+
+    expect(forma()).toEqual(antes);
   });
 
   test('plan sin fechas: avisa y no ofrece «Reservar»; «Ver otros planes» vuelve seguro', async () => {
