@@ -1,4 +1,6 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   StyleSheet,
@@ -15,6 +17,15 @@ import { IconButton } from '../material/Botones';
 import { Text } from '../Text';
 
 const ALTO_BARRA = 56; // kToolbarHeight
+
+/**
+ * Scrim superior: negro 35 % → transparente detrás de la barra de estado y de «Volver», para que
+ * la hora, la batería y el botón se lean sobre fotos claras (cielo). `backgroundImage` es estable
+ * en React Native 0.88 y sirve igual en web (como en `PlanCard`).
+ */
+const CSS_SCRIM = 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 100%)';
+/** Lo que baja el degradado por debajo de la fila de «Volver» para fundirse sin corte. */
+const COLA_SCRIM = 16;
 
 /** Medidas de la cabecera para un desplazamiento dado (`_FondoSolido` + `FlexibleSpaceBar`). */
 export function medidasCabecera(desplazamiento: number, alturaExpandida: number, alturaMinima: number) {
@@ -41,6 +52,10 @@ export function medidasCabecera(desplazamiento: number, alturaExpandida: number,
  * al desplazarse termina SÓLIDA del color de la página, con [titulo] (19 w800 ls -.4, de 64 a
  * 20, una línea) y un divisor outlineVariant abajo. La capa sólida aparece desde el 60 % de
  * colapso. Es dueña del scroll: el contenido va en `children` y arranca bajo la cabecera.
+ *
+ * Mientras la foto está a la vista hay un scrim arriba y la barra de estado pasa a contenido
+ * CLARO (solo con la pantalla enfocada: si otra pantalla se apila encima, vuelve la de la app);
+ * al colapsar, la cabecera queda sólida y la barra de estado vuelve a la del tema.
  */
 export function CabeceraColapsable({
   titulo,
@@ -64,6 +79,17 @@ export function CabeceraColapsable({
   const rango = Math.max(alturaExpandida - alturaMinima, 1);
   const y = useRef(new Animated.Value(0)).current;
   const [conCapaSolida, setConCapaSolida] = useState(false);
+  const [fotoALaVista, setFotoALaVista] = useState(true);
+  const [enfocada, setEnfocada] = useState(false);
+
+  // La barra de estado de RN es una pila: si esta pantalla queda debajo de otra (p. ej. el
+  // checkout sobre la ficha), su barra clara no puede seguir mandando.
+  useFocusEffect(
+    useCallback(() => {
+      setEnfocada(true);
+      return () => setEnfocada(false);
+    }, []),
+  );
 
   const desplazado = y.interpolate({ inputRange: [0, rango], outputRange: [0, rango], extrapolate: 'clamp' });
   const subir = Animated.multiply(desplazado, -1);
@@ -78,8 +104,12 @@ export function CabeceraColapsable({
   const alDesplazar = Animated.event([{ nativeEvent: { contentOffset: { y } } }], {
     useNativeDriver: true,
     listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const solida = medidasCabecera(e.nativeEvent.contentOffset.y, alturaExpandida, alturaMinima).solido > 0;
+      const { solido } = medidasCabecera(e.nativeEvent.contentOffset.y, alturaExpandida, alturaMinima);
+      const solida = solido > 0;
       setConCapaSolida((antes) => (antes === solida ? antes : solida));
+      // Hasta la mitad del fundido a sólido manda la foto (iconos claros); después, el tema.
+      const foto = solido < 0.5;
+      setFotoALaVista((antes) => (antes === foto ? antes : foto));
     },
   });
 
@@ -87,6 +117,7 @@ export function CabeceraColapsable({
 
   return (
     <View style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+      {enfocada && fotoALaVista ? <StatusBar style="light" /> : null}
       <Animated.ScrollView
         testID="cabecera-scroll"
         scrollEventThrottle={16}
@@ -117,6 +148,19 @@ export function CabeceraColapsable({
         >
           {fondo}
         </Animated.View>
+        {/* Scrim fijo arriba (compensa lo que sube la cabecera); se funde con la foto y la capa
+            sólida lo tapa al colapsar. */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            estilos.scrim,
+            {
+              height: insets.top + ALTO_BARRA + COLA_SCRIM,
+              opacity: opacidadFoto,
+              transform: [{ translateY: desplazado }],
+            },
+          ]}
+        />
         {conCapaSolida ? (
           <Animated.View
             pointerEvents="none"
@@ -162,5 +206,6 @@ const estilos = StyleSheet.create({
   flex: { flex: 1 },
   cabecera: { position: 'absolute', top: 0, left: 0, right: 0, overflow: 'hidden' },
   divisor: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1 },
+  scrim: { position: 'absolute', top: 0, left: 0, right: 0, backgroundImage: CSS_SCRIM },
   volver: { position: 'absolute', left: 8 },
 });

@@ -1,9 +1,19 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { CabeceraColapsable, Text, medidasCabecera } from '@/ui/components';
 
 import { insetSuperiorDePrueba, renderConTema } from '../support/conTema';
+
+// La cabecera sigue el foco de la pantalla (la barra de estado clara es solo de la pantalla
+// visible); sin navegador, el doble la da por enfocada mientras esté montada.
+jest.mock('expo-router', () => require('../../support/expo-router-falso'));
+// `StatusBar` de expo-status-bar no pinta nada: el doble deja ver qué estilo pide.
+jest.mock('expo-status-bar', () => {
+  const { createElement } = require('react');
+  const { View: Vista } = require('react-native');
+  return { StatusBar: ({ style }: { style?: string }) => createElement(Vista, { testID: 'barra-de-estado', estilo: style }) };
+});
 
 /** Lo que calcula `_FondoSolido` + `FlexibleSpaceBar` de Flutter a partir del desplazamiento. */
 describe('medidasCabecera', () => {
@@ -97,4 +107,45 @@ describe('CabeceraColapsable', () => {
     const caja = screen.getByTestId('cabecera-titulo-caja');
     expect(caja.props.style).toMatchObject({ left: 64, right: 20, top: insetSuperiorDePrueba, height: 56 });
   });
+
+  const colapsar = async () => {
+    await act(async () => {
+      fireEvent.scroll(screen.getByTestId('cabecera-scroll'), {
+        nativeEvent: {
+          contentOffset: { x: 0, y: 2500 },
+          contentSize: { width: 400, height: 3000 },
+          layoutMeasurement: { width: 400, height: 800 },
+        },
+      });
+    });
+  };
+
+  /** Capas con el degradado negro 35 % → transparente (el scrim de arriba). */
+  const scrims = () =>
+    screen.container.queryAll((n) =>
+      String(StyleSheet.flatten(n.props.style)?.backgroundImage ?? '').includes('rgba(0,0,0,0.35)'),
+    );
+
+  it('con la foto a la vista: scrim arriba (barra de estado + «Volver») que no ataja toques', async () => {
+    await montar();
+    const [scrim, ...otros] = scrims();
+    expect(otros).toHaveLength(0);
+    expect(scrim).toBeDefined();
+    const estilo = StyleSheet.flatten(scrim.props.style);
+    expect(estilo.backgroundImage).toMatch(/^linear-gradient\(to bottom, rgba\(0,0,0,0\.35\)/);
+    expect(estilo.backgroundImage).toContain('rgba(0,0,0,0)');
+    expect(estilo).toMatchObject({ position: 'absolute', top: 0, left: 0, right: 0 });
+    // Cubre la barra de estado y la fila de «Volver» (inset + 56).
+    expect(estilo.height).toBeGreaterThanOrEqual(insetSuperiorDePrueba + 56);
+    expect(scrim.props.pointerEvents).toBe('none');
+  });
+
+  it('con la foto a la vista la barra de estado es clara; al colapsar vuelve a la de la app', async () => {
+    await montar();
+    expect(screen.queryByTestId('barra-de-estado', { includeHiddenElements: true })?.props.estilo).toBe('light');
+
+    await colapsar();
+    expect(screen.queryByTestId('barra-de-estado', { includeHiddenElements: true })).toBeNull();
+  });
 });
+
