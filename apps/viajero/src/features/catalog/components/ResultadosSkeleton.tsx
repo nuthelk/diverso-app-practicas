@@ -11,7 +11,7 @@ export function TarjetaSkeleton() {
   return (
     <Card testID="tarjeta-skeleton">
       <Skeleton height={ALTO_PORTADA_PLAN} radius={0} />
-      <View style={AppInsets.tarjeta}>
+      <View style={AppInsets.card}>
         <Skeleton width={200} height={16} />
         <View style={{ height: 10 }} />
         <Skeleton width={120} height={12} />
@@ -27,12 +27,12 @@ export function ResultadosSkeleton({ esGrid, anchoUtil }: { esGrid: boolean; anc
   const n = esGrid ? 4 : 3;
   const items = Array.from({ length: n }, (_, i) => i);
   return (
-    <View style={AppInsets.listaConAire}>
+    <View style={AppInsets.roomyList}>
       {esGrid ? (
         <Grilla items={items} anchoUtil={anchoUtil} clave={(i) => String(i)} render={() => <TarjetaSkeleton />} />
       ) : (
         items.map((i) => (
-          <View key={i} style={AppInsets.entreTarjetas}>
+          <View key={i} style={AppInsets.betweenCards}>
             <TarjetaSkeleton />
           </View>
         ))

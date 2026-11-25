@@ -77,7 +77,7 @@ function EstadoCheckout({ children, volverA }: { children: ReactNode; volverA: s
   const tema = useTheme();
   const router = useRouter();
   return (
-    <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Confirmar y pagar" onVolver={() => volverSeguro(router, volverA)} />
       {children}
     </View>

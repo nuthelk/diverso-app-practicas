@@ -2,7 +2,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type { Booking } from '@/core';
 import { Text } from '@/ui/components';
-import { AppRadios, AppText, Sombras, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, Shadows, useTheme } from '@/ui/theme';
 
 import { FotoReserva } from './FotoReserva';
 import { ChipCodigo, EstadoReservaPill } from './Insignias';
@@ -49,15 +49,15 @@ export function EncabezadoReserva({ booking, apagado }: { booking: Booking; apag
 function InsigniaFecha({ fecha }: { fecha: Date }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="insignia-fecha" style={[estilos.insignia, Sombras.insignia, { backgroundColor: cs.surface }]}>
+    <View testID="insignia-fecha" style={[estilos.insignia, Shadows.badge, { backgroundColor: cs.surface }]}>
       <Text
         altura={1}
-        style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5, color: cs.primary }}
+        style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5, color: cs.primary }}
       >
         {String(fecha.getDate())}
       </Text>
       <View style={{ height: 3 }} />
-      <Text style={{ fontSize: AppText.nota, fontWeight: '700', letterSpacing: 0.8, color: cs.onSurfaceVariant }}>
+      <Text style={{ fontSize: AppText.note, fontWeight: '700', letterSpacing: 0.8, color: cs.onSurfaceVariant }}>
         {MESES[fecha.getMonth()]}
       </Text>
     </View>
@@ -69,5 +69,5 @@ const estilos = StyleSheet.create({
   arribaIzquierda: { position: 'absolute', top: 12, left: 12 },
   arribaDerecha: { position: 'absolute', top: 12, right: 12 },
   abajo: { position: 'absolute', left: 12, right: 12, bottom: 10, alignItems: 'flex-start' },
-  insignia: { width: 52, paddingVertical: 6, borderRadius: AppRadios.field, alignItems: 'center' },
+  insignia: { width: 52, paddingVertical: 6, borderRadius: AppRadii.field, alignItems: 'center' },
 });

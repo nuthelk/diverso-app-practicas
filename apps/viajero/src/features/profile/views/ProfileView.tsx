@@ -9,7 +9,7 @@ import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
 import { Divider, Icono, OutlinedButton, SectionLabel, Text, TextButton, TituloPagina, type IconoNombre } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { SelectorApariencia } from '../components/SelectorApariencia';
 import { TarjetaInfo } from '../components/TarjetaInfo';
@@ -37,7 +37,7 @@ export function ProfileView() {
   };
 
   return (
-    <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo={<TituloPagina texto="Perfil" />} />
       <ScrollView contentContainerStyle={estilos.lista}>
         {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
@@ -61,13 +61,13 @@ export function ProfileView() {
           />
           <View style={{ height: 24 }} />
           <SectionLabel texto="Documentos legales" />
-          <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card, overflow: 'hidden' }}>
+          <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card, overflow: 'hidden' }}>
             <FilaLegal
               icono="shield_outlined"
               titulo="Política de tratamiento de datos"
               onPress={() => router.push(AppRoutes.legal('privacidad') as Href)}
             />
-            <Divider color={conAlfa(cs.outlineVariant, 0.5)} style={{ marginLeft: 56 }} />
+            <Divider color={withAlpha(cs.outlineVariant, 0.5)} style={{ marginLeft: 56 }} />
             <FilaLegal
               icono="description_outlined"
               titulo="Términos y condiciones"
@@ -96,16 +96,16 @@ function Identidad({ vm }: { vm: ProfileViewModel }) {
   return (
     <View style={estilos.identidad}>
       <View style={[estilos.avatar, { backgroundColor: cs.primaryContainer }]}>
-        <Text style={{ fontSize: AppText.encabezado3xl, fontWeight: '800', color: cs.onPrimaryContainer }}>{vm.inicial}</Text>
+        <Text style={{ fontSize: AppText.heading3xl, fontWeight: '800', color: cs.onPrimaryContainer }}>{vm.inicial}</Text>
       </View>
       <View style={{ height: 12 }} />
-      <Text style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}>
+      <Text style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}>
         {vm.nombre}
       </Text>
-      <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant, textAlign: 'center' }}>{vm.email}</Text>
+      <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant, textAlign: 'center' }}>{vm.email}</Text>
       {vm.error !== null ? (
         <View style={estilos.error}>
-          <Text style={{ fontSize: AppText.detalle, color: cs.error, textAlign: 'center' }}>{vm.error}</Text>
+          <Text style={{ fontSize: AppText.detail, color: cs.error, textAlign: 'center' }}>{vm.error}</Text>
           <TextButton texto="Reintentar" onPress={() => void vm.cargar()} />
         </View>
       ) : null}
@@ -127,13 +127,13 @@ function FilaLegal({ icono, titulo, onPress }: { icono: IconoNombre; titulo: str
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(cs.onSurface, tema.componentes.opacidadPresionado) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, tema.components.pressedOpacity) }]}
             />
           ) : null}
           <Icono nombre={icono} size={24} color={cs.onSurfaceVariant} />
           <View style={{ width: 16 }} />
           <View style={estilos.flex}>
-            <Text altura={1.5} style={{ fontSize: AppText.subtitulo, letterSpacing: 0.5, color: cs.onSurface }}>
+            <Text altura={1.5} style={{ fontSize: AppText.subtitle, letterSpacing: 0.5, color: cs.onSurface }}>
               {titulo}
             </Text>
             <Text style={{ color: cs.onSurfaceVariant }}>{`Versión ${LEGAL_VERSION}`}</Text>

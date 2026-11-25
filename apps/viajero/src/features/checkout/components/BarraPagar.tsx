@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP } from '@/core';
 import { FilledButton, Icono, Text } from '@/ui/components';
-import { AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 const ANCHO_BOTON = 220;
 
@@ -51,7 +51,7 @@ export function BarraPagar({
   const teclado = useAlturaTeclado();
   const gestos = useSafeAreaInsets().bottom;
   const habilitado = onPagar !== null;
-  const contenido = habilitado ? cs.onPrimary : conAlfa(cs.onSurface, 0.38);
+  const contenido = habilitado ? cs.onPrimary : withAlpha(cs.onSurface, 0.38);
   return (
     <View
       testID="barra-pagar"
@@ -59,16 +59,16 @@ export function BarraPagar({
         estilos.barra,
         {
           paddingBottom: 14 + Math.max(teclado, gestos),
-          backgroundColor: tema.fondoPagina,
-          borderTopColor: conAlfa(cs.outlineVariant, 0.5),
+          backgroundColor: tema.pageBackground,
+          borderTopColor: withAlpha(cs.outlineVariant, 0.5),
         },
       ]}
     >
       <View style={estilos.total}>
-        <Text style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
+        <Text style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
           {formatCOP(total)}
         </Text>
-        <Text style={{ fontSize: AppText.nota, color: cs.onSurfaceVariant }}>
+        <Text style={{ fontSize: AppText.note, color: cs.onSurfaceVariant }}>
           {`total por ${pax} ${pax === 1 ? 'persona' : 'personas'}`}
         </Text>
       </View>

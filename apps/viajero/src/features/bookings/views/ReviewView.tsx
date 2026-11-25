@@ -87,7 +87,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   }
 
   return (
-    <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Tu reseña" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       <View style={estilos.flex}>{cuerpo}</View>
       <AvisoFlotante />

@@ -54,7 +54,7 @@ export function CatalogView() {
   );
 
   return (
-    <View testID="pantalla-CatalogView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-CatalogView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* El título va en la barra, fuera del scroll: las tarjetas no pasan bajo la barra de estado. */}
       <BarraSuperior titulo={<TituloPagina texto="Descubre Antioquia" />} />
       <ScrollView
@@ -136,12 +136,12 @@ export function CatalogView() {
         ) : vm.planes.length === 0 ? (
           <EmptyState icono="search_off_rounded" titulo="Sin resultados" mensaje="Prueba con otro destino o quita algunos filtros." />
         ) : (
-          <View testID="resultados" style={AppInsets.listaConAire}>
+          <View testID="resultados" style={AppInsets.roomyList}>
             {esGrid ? (
               <Grilla items={vm.planes} anchoUtil={width - LADOS_LISTA} clave={(p) => p.id} render={tarjeta} />
             ) : (
               vm.planes.map((p) => (
-                <View key={p.id} style={AppInsets.entreTarjetas}>
+                <View key={p.id} style={AppInsets.betweenCards}>
                   {tarjeta(p)}
                 </View>
               ))

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatShortDate, type Plan, type PlanDate } from '@/core';
 import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, Curvas, Duraciones, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, Curves, Durations, useTheme } from '@/ui/theme';
 
 /** Pocos cupos: desde aquí hacia abajo se avisa «¡Últimos N!». */
 const POCOS_CUPOS = 4;
@@ -33,7 +33,7 @@ export function BarraReserva({
   const tema = useTheme();
   const cs = tema.colorScheme;
   const insets = useSafeAreaInsets();
-  const superficie = { backgroundColor: tema.fondoPagina, borderTopColor: conAlfa(cs.outlineVariant, 0.5) };
+  const superficie = { backgroundColor: tema.pageBackground, borderTopColor: withAlpha(cs.outlineVariant, 0.5) };
 
   if (seleccionada === null) {
     return (
@@ -74,7 +74,7 @@ export function BarraReserva({
         <View style={{ height: 10 }} />
         <View style={estilos.fila}>
           <View>
-            <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
+            <Text style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
               {formatCOP(plan.priceCop)}
             </Text>
             <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>
@@ -95,8 +95,8 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
   useEffect(() => {
     const animacion = Animated.timing(t, {
       toValue: seleccionada ? 1 : 0,
-      duration: Duraciones.chipFecha,
-      easing: Curvas.easeOut.fn,
+      duration: Durations.dateChip,
+      easing: Curves.easeOut.fn,
       useNativeDriver: false,
     });
     animacion.start();
@@ -118,14 +118,14 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
           { backgroundColor: t.interpolate({ inputRange: [0, 1], outputRange: [cs.surfaceContainerHigh, cs.primary] }) },
         ]}
       >
-        <TextoSinCorte estilo={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
+        <TextoSinCorte estilo={{ fontSize: AppText.detail, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
           {formatShortDate(fecha.date)}
         </TextoSinCorte>
         <TextoSinCorte
           estilo={{
-            fontSize: AppText.nota,
+            fontSize: AppText.note,
             fontWeight: '600',
-            color: seleccionada ? conAlfa(cs.onPrimary, 0.8) : pocos ? tema.diverso.pocosCupos : cs.onSurfaceVariant,
+            color: seleccionada ? withAlpha(cs.onPrimary, 0.8) : pocos ? tema.diverso.fewSpots : cs.onSurfaceVariant,
           }}
         >
           {cupos}
@@ -166,7 +166,7 @@ const estilos = StyleSheet.create({
   sinFechas: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16 },
   encogible: { flexShrink: 1 },
   fechas: { gap: 8, alignItems: 'stretch' },
-  chip: { height: 62, justifyContent: 'center', paddingHorizontal: 14, borderRadius: AppRadios.field },
+  chip: { height: 62, justifyContent: 'center', paddingHorizontal: 14, borderRadius: AppRadii.field },
   medida: { opacity: 0 },
   visible: { position: 'absolute', left: 0, top: 0, right: -HOLGURA },
   fila: { flexDirection: 'row', alignItems: 'center' },

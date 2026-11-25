@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { RefundStatus, formatCOP, type Booking } from '@/core';
 import { Card, Divider, FilledButton, Icono, Text, TextButton } from '@/ui/components';
-import { AppInsets, AppText, conAlfa, useTheme, type ColorScheme } from '@/ui/theme';
+import { AppInsets, AppText, withAlpha, useTheme, type ColorScheme } from '@/ui/theme';
 
 import { cuentaRegresiva, textoPersonas, textoSalida } from '../reserva-formato';
 import { EncabezadoReserva } from './EncabezadoReserva';
@@ -45,13 +45,13 @@ export function TarjetaReserva({
   const agencia = booking.plan?.agency?.name ?? null;
   const salida = textoSalida(booking);
   const puntoEncuentro = booking.plan?.meetingPoint ?? '';
-  const colorTexto = historial ? conAlfa(cs.onSurface, 0.72) : cs.onSurface;
+  const colorTexto = historial ? withAlpha(cs.onSurface, 0.72) : cs.onSurface;
   const etiquetaReembolso = booking.refundLabel;
   const conPago = !!onPagar || !!onVerificar;
   const conAcciones = !!onResenar || !!onCancelar;
 
   return (
-    <View style={AppInsets.entreTarjetas}>
+    <View style={AppInsets.betweenCards}>
       <Card color={cs.surfaceContainerLow}>
         <Pressable
           onPress={onAbrir}
@@ -66,7 +66,7 @@ export function TarjetaReserva({
                   numberOfLines={2}
                   ellipsizeMode="tail"
                   altura={1.25}
-                  style={{ fontWeight: '700', fontSize: AppText.subtitulo, color: colorTexto }}
+                  style={{ fontWeight: '700', fontSize: AppText.subtitle, color: colorTexto }}
                 >
                   {booking.plan?.title ?? 'Plan'}
                 </Text>
@@ -79,7 +79,7 @@ export function TarjetaReserva({
                       <Text
                         numberOfLines={1}
                         ellipsizeMode="tail"
-                        style={[estilos.flex, { fontSize: AppText.leyendaGrande, fontWeight: '600', color: cs.onSurfaceVariant }]}
+                        style={[estilos.flex, { fontSize: AppText.largeCaption, fontWeight: '600', color: cs.onSurfaceVariant }]}
                       >
                         {agencia}
                       </Text>
@@ -115,12 +115,12 @@ export function TarjetaReserva({
                   <View style={estilos.fila}>
                     <Icono nombre="group_outlined" size={16} color={cs.onSurfaceVariant} />
                     <View style={{ width: 6 }} />
-                    <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant }}>
+                    <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant }}>
                       {textoPersonas(booking.pax)}
                     </Text>
                   </View>
                   <Text
-                    style={{ fontSize: AppText.subtituloGrande, fontWeight: '800', letterSpacing: -0.3, color: colorTexto }}
+                    style={{ fontSize: AppText.largeSubtitle, fontWeight: '800', letterSpacing: -0.3, color: colorTexto }}
                   >
                     {formatCOP(booking.totalAmount)}
                   </Text>
@@ -129,7 +129,7 @@ export function TarjetaReserva({
               {pressed ? (
                 <View
                   pointerEvents="none"
-                  style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(cs.onSurface, tema.componentes.opacidadPresionado) }]}
+                  style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, tema.components.pressedOpacity) }]}
                 />
               ) : null}
             </>
@@ -168,7 +168,7 @@ export function TarjetaReserva({
               <View style={[estilos.fila, { marginTop: 8 }]}>
                 <Icono nombre="rate_review_rounded" size={13} color={cs.primary} />
                 <View style={{ width: 4 }} />
-                <Text style={{ fontSize: AppText.leyenda, color: cs.primary }}>Ya dejaste tu reseña</Text>
+                <Text style={{ fontSize: AppText.caption, color: cs.primary }}>Ya dejaste tu reseña</Text>
               </View>
             ) : null}
           </View>

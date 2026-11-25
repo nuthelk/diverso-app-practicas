@@ -7,7 +7,7 @@ import { AgenciasView } from '@/features/agencies/views/AgenciasView';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 import { PlanDetailView } from '@/features/plan/views/PlanDetailView';
-import { temaOscuro } from '@/ui/theme';
+import { darkTheme } from '@/ui/theme';
 
 import { CatalogoFalso, ResenasFalsas } from '../../../support/catalogo-falso';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
@@ -121,8 +121,8 @@ describe('páginas con el título en la barra superior', () => {
     await renderPantalla(<AgenciasView />, { dependencias: dependencias(), modo: 'dark' });
 
     const barra = screen.getByTestId('barra-superior');
-    expect(StyleSheet.flatten(within(barra).getByText('Agencias').props.style).color).toBe(temaOscuro.colorScheme.onSurface);
-    expect(StyleSheet.flatten(barra.props.style).backgroundColor).toBe(temaOscuro.fondoPagina);
+    expect(StyleSheet.flatten(within(barra).getByText('Agencias').props.style).color).toBe(darkTheme.colorScheme.onSurface);
+    expect(StyleSheet.flatten(barra.props.style).backgroundColor).toBe(darkTheme.pageBackground);
   });
 });
 

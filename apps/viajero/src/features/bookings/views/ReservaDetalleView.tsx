@@ -85,7 +85,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
 
   /** Marco de las pantallas sin reserva (cargando / error): barra con «Volver». */
   const marco = (cuerpo: ReactNode) => (
-    <View testID="pantalla-ReservaDetalleView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-ReservaDetalleView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo={null} onVolver={volver} />
       <View style={estilos.flex}>{cuerpo}</View>
       <AvisoFlotante />
@@ -124,7 +124,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
     );
   }
   return marco(
-    <ScrollView contentContainerStyle={AppInsets.contenido} scrollEnabled={false}>
+    <ScrollView contentContainerStyle={AppInsets.content} scrollEnabled={false}>
       <Skeleton height={190} radius={20} />
       <View style={{ height: 16 }} />
       <Skeleton height={28} width={220} />

@@ -4,7 +4,7 @@ import { StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppShell } from '@/features/shell/views/AppShell';
-import { temaClaro, ThemeProvider } from '@/ui/theme';
+import { lightTheme, ThemeProvider } from '@/ui/theme';
 
 /**
  * Barra inferior: fija al borde, sólida, con línea superior y cuatro destinos (Explorar,
@@ -13,14 +13,14 @@ import { temaClaro, ThemeProvider } from '@/ui/theme';
  */
 
 const estilo = (el: { props: { style?: unknown } }) => StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
-const cs = temaClaro.colorScheme;
+const cs = lightTheme.colorScheme;
 
 function Envoltura({ children }: { children: ReactNode }) {
   return (
     <SafeAreaProvider
       initialMetrics={{ frame: { x: 0, y: 0, width: 400, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
     >
-      <ThemeProvider modoInicial="light">{children}</ThemeProvider>
+      <ThemeProvider initialMode="light">{children}</ThemeProvider>
     </SafeAreaProvider>
   );
 }
@@ -90,10 +90,10 @@ test('está pegada al borde inferior y ocupa todo el ancho (no flota)', async ()
 test('es sólida, con línea superior sutil', async () => {
   await abrir();
   const barraNav = estilo(screen.getByTestId('navigation-bar'));
-  expect(barraNav.backgroundColor).toBe(temaClaro.componentes.navigationBar.backgroundColor);
+  expect(barraNav.backgroundColor).toBe(lightTheme.components.navigationBar.backgroundColor);
   expect(barraNav.backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
   expect(within(barra()).getByTestId('divider')).toBeOnTheScreen();
-  expect(estilo(within(barra()).getByTestId('divider')).backgroundColor).toBe(temaClaro.componentes.navigationBar.divisor);
+  expect(estilo(within(barra()).getByTestId('divider')).backgroundColor).toBe(lightTheme.components.navigationBar.divider);
 });
 
 test('íconos más grandes y el activo en verde con su píldora', async () => {

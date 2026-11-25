@@ -2,7 +2,7 @@ import { act, screen } from '@testing-library/react-native';
 
 import { AvisoFlotante, DURACION_AVISO_MS, mostrarAviso, ocultarAviso } from '@/features/compartido/aviso-flotante';
 
-import { renderConTema } from '../../ui/support/conTema';
+import { renderWithTheme } from '../../ui/support/render-with-theme';
 import { textoCrudo } from '../../support/texto-crudo';
 
 jest.mock('expo-router', () => require('../../support/expo-router-falso'));
@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 test('sin aviso no pinta nada; con aviso lo anuncia como alerta', async () => {
-  await renderConTema(<AvisoFlotante />);
+  await renderWithTheme(<AvisoFlotante />);
   expect(screen.queryByTestId('aviso-flotante')).toBeNull();
 
   await act(async () => mostrarAviso('Hola'));
@@ -26,7 +26,7 @@ test('sin aviso no pinta nada; con aviso lo anuncia como alerta', async () => {
 });
 
 test('un monto o porcentaje del aviso no se separa de su signo al partirse la línea', async () => {
-  await renderConTema(<AvisoFlotante />);
+  await renderWithTheme(<AvisoFlotante />);
   await act(async () => mostrarAviso('Reembolso de prueba aprobado: $ 190.000 (100 %).'));
 
   expect(textoCrudo(screen.getByText(/Reembolso de prueba aprobado/))).toBe(
@@ -35,7 +35,7 @@ test('un monto o porcentaje del aviso no se separa de su signo al partirse la l�
 });
 
 test('dura 4 s', async () => {
-  await renderConTema(<AvisoFlotante />);
+  await renderWithTheme(<AvisoFlotante />);
   await act(async () => mostrarAviso('Hola'));
 
   await act(async () => {
@@ -50,7 +50,7 @@ test('dura 4 s', async () => {
 });
 
 test('uno nuevo reemplaza al anterior y reinicia el tiempo', async () => {
-  await renderConTema(<AvisoFlotante />);
+  await renderWithTheme(<AvisoFlotante />);
   await act(async () => mostrarAviso('Primero'));
   await act(async () => {
     jest.advanceTimersByTime(3000);
@@ -66,6 +66,6 @@ test('uno nuevo reemplaza al anterior y reinicia el tiempo', async () => {
 
 test('un aviso mostrado antes de montar la pantalla se ve al montarla (sobrevive a la navegación)', async () => {
   mostrarAviso('¡Gracias!');
-  await renderConTema(<AvisoFlotante />);
+  await renderWithTheme(<AvisoFlotante />);
   expect(screen.getByText('¡Gracias!')).toBeOnTheScreen();
 });

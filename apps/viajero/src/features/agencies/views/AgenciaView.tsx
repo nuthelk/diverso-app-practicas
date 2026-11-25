@@ -6,7 +6,7 @@ import { useDependencies } from '@/composition';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
-import { AppInsets, AppRadios, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, useTheme } from '@/ui/theme';
 
 import { ContenidoAgencia } from '../components/ContenidoAgencia';
 import { useAgenciaViewModel } from '../view-models/useAgenciaViewModel';
@@ -36,14 +36,14 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
   if (vm.cargando && vm.agencia === null) {
     cuerpo = (
       <AvisoAgencia onVolver={volver}>
-        <ScrollView contentContainerStyle={AppInsets.contenido}>
-          <Skeleton height={160} radius={AppRadios.card} />
+        <ScrollView contentContainerStyle={AppInsets.content}>
+          <Skeleton height={160} radius={AppRadii.card} />
           <View style={{ height: 16 }} />
           <Skeleton width={220} height={22} />
           <View style={{ height: 10 }} />
           <Skeleton width={140} height={14} />
           <View style={{ height: 24 }} />
-          <Skeleton height={210} radius={AppRadios.card} />
+          <Skeleton height={210} radius={AppRadii.card} />
         </ScrollView>
       </AvisoAgencia>
     );
@@ -74,7 +74,7 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
   }
 
   return (
-    <View testID="pantalla-AgenciaView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-AgenciaView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {cuerpo}
     </View>
   );

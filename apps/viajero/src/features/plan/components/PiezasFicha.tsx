@@ -1,7 +1,7 @@
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Icono, Skeleton, Text, type IconoNombre } from '@/ui/components';
-import { AppRadios, AppText, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Píldora de «Qué incluye»; un texto libre del plan ([textoLargo]) se recorta con «…». */
 export function IncluyePill({ icono, texto, textoLargo = false }: { icono: IconoNombre; texto: string; textoLargo?: boolean }) {
@@ -13,7 +13,7 @@ export function IncluyePill({ icono, texto, textoLargo = false }: { icono: Icono
       <Text
         numberOfLines={textoLargo ? 1 : undefined}
         ellipsizeMode="tail"
-        style={{ flexShrink: 1, fontSize: AppText.leyendaGrande, fontWeight: '600' }}
+        style={{ flexShrink: 1, fontSize: AppText.largeCaption, fontWeight: '600' }}
       >
         {texto}
       </Text>
@@ -46,7 +46,7 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: '100%',
-    borderRadius: AppRadios.pill,
+    borderRadius: AppRadii.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },

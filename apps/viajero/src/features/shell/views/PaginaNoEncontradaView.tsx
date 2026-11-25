@@ -11,7 +11,7 @@ export function PaginaNoEncontradaView({ ubicacion }: { ubicacion: string }) {
   const tema = useTheme();
   const router = useRouter();
   return (
-    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <EmptyState
         icono="explore_off_rounded"
         titulo="No encontramos esta página"

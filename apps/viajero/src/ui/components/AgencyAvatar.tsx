@@ -20,7 +20,7 @@ export function hashFnv1a(clave: string): number {
 
 /** Color estable de una agencia (`colorDeAgencia` de agency_avatar.dart). */
 export function colorDeAgencia(clave: string): string {
-  const paleta = DiversoColors.paletaAgencias;
+  const paleta = DiversoColors.agencyPalette;
   return paleta[hashFnv1a(clave) % paleta.length];
 }
 

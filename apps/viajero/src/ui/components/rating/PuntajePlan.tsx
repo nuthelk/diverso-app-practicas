@@ -19,7 +19,7 @@ export function PuntajePlan({
 }) {
   const cs = useTheme().colorScheme;
   if (plan.isNew) return <InsigniaNueva />;
-  const suave = { fontSize: detallado ? AppText.detalle : AppText.leyenda, color: cs.onSurfaceVariant };
+  const suave = { fontSize: detallado ? AppText.detail : AppText.caption, color: cs.onSurfaceVariant };
   return (
     <View style={estilos.fila}>
       <RatingStars calificacion={plan.averageRating} mostrarNumero />

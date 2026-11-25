@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton, Text } from '@/ui/components';
-import { AppRadios, useTheme } from '@/ui/theme';
+import { AppRadii, useTheme } from '@/ui/theme';
 
 import { FiltrosSheet, type FiltrosDelCatalogo } from './FiltrosSheet';
 
@@ -20,7 +20,7 @@ export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos
         variante="filledTonal"
         icono="tune_rounded"
         tooltip="Filtros y orden"
-        colorFondo={tema.componentes.input.fillColor}
+        colorFondo={tema.components.input.fillColor}
         colorIcono={tema.colorScheme.onSurface}
         style={estilos.boton}
         onPress={() => setAbierta(true)}
@@ -38,7 +38,7 @@ export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos
 }
 
 const estilos = StyleSheet.create({
-  boton: { width: 52, height: 52, borderRadius: AppRadios.field },
+  boton: { width: 52, height: 52, borderRadius: AppRadii.field },
   // Badge de M3 con etiqueta: alto 16, píldora, padding 4, anclado arriba a la derecha.
   insignia: {
     position: 'absolute',

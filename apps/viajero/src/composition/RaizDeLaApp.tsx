@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SesionProvider } from '@/features/auth/view-models/SesionProvider';
 import { ConsentimientoProvider } from '@/features/legal/view-models/ConsentimientoProvider';
 import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
-import { ThemeProvider, useFuentesDiverso, type ModoTema } from '@/ui/theme';
+import { ThemeProvider, useDiversoFonts, type ThemeMode } from '@/ui/theme';
 
 import { DependenciesProvider, type Dependencias } from './DependenciesProvider';
 
@@ -20,13 +20,13 @@ export function ProveedoresDeLaApp({
   children,
 }: {
   dependencias: Dependencias;
-  modoTemaInicial?: ModoTema;
+  modoTemaInicial?: ThemeMode;
   children: ReactNode;
 }) {
   return (
     <SafeAreaProvider>
       <DependenciesProvider dependencias={dependencias}>
-        <ThemeProvider modoInicial={modoTemaInicial}>
+        <ThemeProvider initialMode={modoTemaInicial}>
           <SesionProvider>
             <ConsentimientoProvider>{children}</ConsentimientoProvider>
           </SesionProvider>
@@ -43,7 +43,7 @@ export function ProveedoresDeLaApp({
  * fallaron: entonces RN usa la del sistema).
  */
 export function RaizDeLaApp({ dependencias }: { dependencias: Dependencias }) {
-  const [fuentesListas, errorFuentes] = useFuentesDiverso();
+  const [fuentesListas, errorFuentes] = useDiversoFonts();
   const listo = fuentesListas || errorFuentes !== null;
 
   useEffect(() => {

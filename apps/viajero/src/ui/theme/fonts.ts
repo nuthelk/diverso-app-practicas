@@ -24,7 +24,7 @@ const roboto = {
   Roboto_900Black,
 };
 
-export const fuentesDeLaApp = {
+export const appFonts = {
   ...(Platform.OS === 'ios' ? {} : roboto),
   ...MaterialIcons.font,
   ...MaterialCommunityIcons.font,
@@ -35,6 +35,6 @@ export const fuentesDeLaApp = {
  * la raíz no debería pintar texto hasta que `listas` sea true (o haya error: entonces RN usa la
  * fuente del sistema).
  */
-export function useFuentesDiverso(): [boolean, Error | null] {
-  return useFonts(fuentesDeLaApp);
+export function useDiversoFonts(): [boolean, Error | null] {
+  return useFonts(appFonts);
 }

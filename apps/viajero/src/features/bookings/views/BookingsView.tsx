@@ -130,7 +130,7 @@ export function BookingsView() {
   );
 
   return (
-    <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
       <BarraSuperior titulo={<TituloPagina texto="Mis reservas" />} />
       <PestanasReservas

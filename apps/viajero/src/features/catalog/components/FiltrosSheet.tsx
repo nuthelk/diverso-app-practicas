@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { formatCOP, formatShortDate } from '@/core';
 import { FilledButton, Icono, IconButton, OutlinedButton, SectionLabel, Text, TextField } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { DeslizadorPrecio } from './DeslizadorPrecio';
 import { SelectorFecha } from './SelectorFecha';
@@ -46,7 +46,7 @@ export function FiltrosSheet({ visible, vm, onCerrar }: { visible: boolean; vm: 
         <View testID="filtros-sheet" style={[estilos.hoja, { backgroundColor: cs.surfaceContainerLow }]}>
           {/* showDragHandle: 32 × 4, onSurfaceVariant al 40 %, 22 de aire arriba y abajo. */}
           <View style={estilos.asa}>
-            <View style={[estilos.asaBarra, { backgroundColor: conAlfa(cs.onSurfaceVariant, 0.4) }]} />
+            <View style={[estilos.asaBarra, { backgroundColor: withAlpha(cs.onSurfaceVariant, 0.4) }]} />
           </View>
           {visible ? <ContenidoFiltros vm={vm} onCerrar={onCerrar} abajo={abajo} /> : null}
         </View>
@@ -81,7 +81,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
   return (
     <>
       <ScrollView testID="filtros-scroll" keyboardShouldPersistTaps="handled" style={estilos.scroll} contentContainerStyle={estilos.contenido}>
-        <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
+        <Text style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
         <View style={{ height: 22 }} />
         <SectionLabel texto="Fecha del plan" />
         <View style={estilos.fila}>
@@ -92,7 +92,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
             style={[estilos.opcionFecha, { backgroundColor: cs.surfaceContainerHigh }]}
           >
             <Icono nombre="calendar_month_rounded" size={19} color={cs.primary} />
-            <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.cuerpo }}>
+            <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.body }}>
               {fecha === null ? 'Cualquier fecha' : formatShortDate(fecha)}
             </Text>
           </Pressable>
@@ -119,7 +119,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
           </View>
           <Text
             testID="valor-precio"
-            style={{ width: 110, textAlign: 'right', fontWeight: '700', fontSize: AppText.cuerpoChico }}
+            style={{ width: 110, textAlign: 'right', fontWeight: '700', fontSize: AppText.smallBody }}
           >
             {precio === null || precio === 0 ? 'Sin límite' : formatCOP(precio)}
           </Text>
@@ -149,7 +149,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
               accessibilityLabel={d}
               accessibilityState={{ selected: sel }}
               onPress={() => setDestino(esTodos ? '' : d)}
-              style={({ pressed }) => [estilos.destino, pressed ? { backgroundColor: conAlfa(cs.onSurface, 0.1) } : null]}
+              style={({ pressed }) => [estilos.destino, pressed ? { backgroundColor: withAlpha(cs.onSurface, 0.1) } : null]}
             >
               <Icono
                 nombre={esTodos ? 'travel_explore_outlined' : sel ? 'check_circle_rounded' : 'location_on_outlined'}
@@ -161,7 +161,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
                 style={{
                   marginLeft: 16,
                   flex: 1,
-                  fontSize: AppText.cuerpo,
+                  fontSize: AppText.body,
                   fontWeight: sel ? '700' : '500',
                   color: sel ? cs.primary : cs.onSurface,
                 }}
@@ -173,7 +173,7 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
         })}
       </ScrollView>
       {/* Pie fijo: siempre visible por larga que sea la lista; el inset inferior es su relleno. */}
-      <View testID="filtros-pie" style={[estilos.pie, { paddingBottom: 16 + abajo, borderTopColor: conAlfa(cs.outlineVariant, 0.5) }]}>
+      <View testID="filtros-pie" style={[estilos.pie, { paddingBottom: 16 + abajo, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
         <OutlinedButton texto="Limpiar" onPress={limpiar} style={estilos.flex} />
         <View style={{ width: 12 }} />
         <FilledButton icono="check_rounded" texto="Aplicar filtros" onPress={aplicar} style={{ flex: 2 }} />
@@ -198,8 +198,8 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
 const estilos = StyleSheet.create({
   raiz: { flex: 1, justifyContent: 'flex-end' },
   hoja: {
-    borderTopLeftRadius: AppRadios.sheet,
-    borderTopRightRadius: AppRadios.sheet,
+    borderTopLeftRadius: AppRadii.sheet,
+    borderTopRightRadius: AppRadii.sheet,
     maxHeight: '92%',
     overflow: 'hidden',
   },
@@ -217,7 +217,7 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 13,
-    borderRadius: AppRadios.field,
+    borderRadius: AppRadii.field,
   },
   destino: { flexDirection: 'row', alignItems: 'center', minHeight: 40, paddingHorizontal: 16, borderRadius: 12 },
 });

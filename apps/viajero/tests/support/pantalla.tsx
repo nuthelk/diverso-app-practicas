@@ -3,10 +3,10 @@ import type { ReactElement } from 'react';
 import { Dimensions } from 'react-native';
 
 import { DependenciesProvider, type Dependencias } from '@/composition';
-import type { ModoTema } from '@/ui/theme';
+import type { ThemeMode } from '@/ui/theme';
 
 import { dependenciasDePrueba } from './dependencias-de-prueba';
-import { renderConTema } from '../ui/support/conTema';
+import { renderWithTheme } from '../ui/support/render-with-theme';
 
 /**
  * Monta una pantalla suelta (sin router) con el tema y la raíz de composición: el
@@ -15,9 +15,9 @@ import { renderConTema } from '../ui/support/conTema';
  */
 export function renderPantalla(
   ui: ReactElement,
-  { dependencias = dependenciasDePrueba(), modo = 'light' }: { dependencias?: Dependencias; modo?: ModoTema } = {},
+  { dependencias = dependenciasDePrueba(), modo = 'light' }: { dependencias?: Dependencias; modo?: ThemeMode } = {},
 ) {
-  return renderConTema(<DependenciesProvider dependencias={dependencias}>{ui}</DependenciesProvider>, { modo });
+  return renderWithTheme(<DependenciesProvider dependencias={dependencias}>{ui}</DependenciesProvider>, { mode: modo });
 }
 
 const ventanaOriginal = Dimensions.get('window');

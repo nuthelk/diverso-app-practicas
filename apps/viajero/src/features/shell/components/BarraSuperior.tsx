@@ -22,7 +22,7 @@ export function BarraSuperior({
   acciones?: ReactNode;
 }) {
   const tema = useTheme();
-  const appBar = tema.componentes.appBar;
+  const appBar = tema.components.appBar;
   const arriba = useSafeAreaInsets().top;
   return (
     <View
@@ -36,7 +36,7 @@ export function BarraSuperior({
           </View>
         ) : null}
         <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>
-          <DefaultTextStyle estilo={{ ...appBar.titulo, altura: null }}>
+          <DefaultTextStyle estilo={{ ...appBar.title, height: null }}>
             {typeof titulo === 'string' ? (
               <Text accessibilityRole="header" numberOfLines={1}>
                 {titulo}

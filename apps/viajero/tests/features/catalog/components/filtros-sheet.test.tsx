@@ -4,7 +4,7 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { FiltrosSheet, type FiltrosDelCatalogo } from '@/features/catalog/components/FiltrosSheet';
 
-import { renderConTema } from '../../../ui/support/conTema';
+import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
 /**
  * Disposición de la hoja «Filtros» en Android edge-to-edge (SDK 58): llega al borde inferior real,
@@ -20,7 +20,7 @@ const DESTINOS = Array.from({ length: 30 }, (_, i) => `Destino ${i + 1}`);
 async function abrir() {
   jest.replaceProperty(Platform, 'OS', 'android');
   const vm: FiltrosDelCatalogo = { destino: null, precioMax: null, fecha: null, destinos: DESTINOS, aplicarFiltros: jest.fn() };
-  await renderConTema(
+  await renderWithTheme(
     <SafeAreaInsetsContext.Provider value={INSETS}>
       <FiltrosSheet visible vm={vm} onCerrar={jest.fn()} />
     </SafeAreaInsetsContext.Provider>,

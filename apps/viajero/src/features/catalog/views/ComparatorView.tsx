@@ -61,7 +61,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
   }
 
   return (
-    <View testID="pantalla-ComparatorView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-ComparatorView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Comparar planes" onVolver={() => volverSeguro(router, AppRoutes.explorar)} />
       {cuerpo}
     </View>

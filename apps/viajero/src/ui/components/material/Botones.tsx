@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { conAlfa, useTheme, type PesoFuente } from '@/ui/theme';
+import { withAlpha, useTheme, type FontWeight } from '@/ui/theme';
 
 import { Icono, type IconoNombre } from '../Icono';
 import { DefaultTextStyle, Text } from '../Text';
@@ -46,7 +46,7 @@ interface Apariencia {
   minHeight: number;
   padding: number;
   paddingConIcono: [number, number];
-  texto: { fontSize: number; fontWeight: PesoFuente; letterSpacing: number };
+  texto: { fontSize: number; fontWeight: FontWeight; letterSpacing: number };
   hitSlop?: Insets;
 }
 
@@ -94,11 +94,11 @@ function BotonBase({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(contenido, tema.componentes.opacidadPresionado) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(contenido, tema.components.pressedOpacity) }]}
             />
           ) : null}
           {icono ? <Icono nombre={icono} size={18} color={contenido} /> : null}
-          <DefaultTextStyle estilo={{ ...a.texto, color: contenido, altura: null }}>
+          <DefaultTextStyle estilo={{ ...a.texto, color: contenido, height: null }}>
             {texto !== undefined ? <Text style={estilos.centrado}>{texto}</Text> : children}
           </DefaultTextStyle>
         </>
@@ -108,7 +108,7 @@ function BotonBase({
 }
 
 /** Contenido deshabilitado (onSurface 38 %). */
-const deshabilitado = (onSurface: string) => conAlfa(onSurface, 0.38);
+const deshabilitado = (onSurface: string) => withAlpha(onSurface, 0.38);
 
 export function FilledButton({
   variante = 'filled',
@@ -123,7 +123,7 @@ export function FilledButton({
       {...props}
       testID={testID}
       apariencia={{
-        fondo: habilitado ? (tonal ? cs.secondaryContainer : cs.primary) : conAlfa(cs.onSurface, 0.12),
+        fondo: habilitado ? (tonal ? cs.secondaryContainer : cs.primary) : withAlpha(cs.onSurface, 0.12),
         contenido: habilitado ? (tonal ? cs.onSecondaryContainer : cs.onPrimary) : deshabilitado(cs.onSurface),
         minHeight: 52,
         padding: 24,
@@ -144,7 +144,7 @@ export function OutlinedButton({ testID = 'outlined-button', ...props }: BotonPr
       apariencia={{
         fondo: 'transparent',
         contenido: habilitado ? cs.primary : deshabilitado(cs.onSurface),
-        borde: habilitado ? cs.outlineVariant : conAlfa(cs.onSurface, 0.12),
+        borde: habilitado ? cs.outlineVariant : withAlpha(cs.onSurface, 0.12),
         minHeight: 48,
         padding: 24,
         paddingConIcono: [16, 24],
@@ -206,7 +206,7 @@ export function IconButton({
   const fondoPorDefecto = !lleno
     ? 'transparent'
     : !habilitado
-      ? conAlfa(cs.onSurface, 0.12)
+      ? withAlpha(cs.onSurface, 0.12)
       : variante === 'filled'
         ? cs.primary
         : cs.secondaryContainer;
@@ -231,7 +231,7 @@ export function IconButton({
         estilos.iconButton,
         { backgroundColor: colorFondo ?? fondoPorDefecto },
         variante === 'outlined'
-          ? { borderWidth: 1, borderColor: habilitado ? cs.outline : conAlfa(cs.onSurface, 0.12) }
+          ? { borderWidth: 1, borderColor: habilitado ? cs.outline : withAlpha(cs.onSurface, 0.12) }
           : null,
         style,
       ]}
@@ -241,7 +241,7 @@ export function IconButton({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(color, tema.componentes.opacidadPresionado) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, tema.components.pressedOpacity) }]}
             />
           ) : null}
           <Icono nombre={icono} size={tamanoIcono} color={color} />

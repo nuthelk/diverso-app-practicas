@@ -1,12 +1,12 @@
 import { StyleSheet, View } from 'react-native';
 
-import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { Icono } from '../Icono';
 import { Text } from '../Text';
 
 /**
- * Sello «Verificada RNT». [blanco] es la versión sobre foto (fondo `selloSobreFoto`, texto
+ * Sello «Verificada RNT». [blanco] es la versión sobre foto (fondo `sealOverPhoto`, texto
  * blanco); normal: primary al 10 % con texto primary. Compacto: padding 7/2.5, texto 10.5,
  * ícono 13; normal: 10/5, 11, 15.
  */
@@ -14,7 +14,7 @@ export function VerifiedBadge({ compacto = false, blanco = false }: { compacto?:
   const tema = useTheme();
   const cs = tema.colorScheme;
   const fg = blanco ? '#FFFFFF' : cs.primary;
-  const bg = blanco ? tema.diverso.selloSobreFoto : conAlfa(cs.primary, 0.1);
+  const bg = blanco ? tema.diverso.sealOverPhoto : withAlpha(cs.primary, 0.1);
   return (
     <View
       testID="verified-badge"
@@ -25,7 +25,7 @@ export function VerifiedBadge({ compacto = false, blanco = false }: { compacto?:
     >
       <Icono nombre="verified_rounded" size={compacto ? 13 : 15} color={fg} />
       <View style={{ width: 4 }} />
-      <Text style={{ fontSize: compacto ? AppText.micro : AppText.nota, fontWeight: '700', color: fg }}>
+      <Text style={{ fontSize: compacto ? AppText.micro : AppText.note, fontWeight: '700', color: fg }}>
         Verificada RNT
       </Text>
     </View>
@@ -40,16 +40,16 @@ export function TarjetaCancelacion({ texto }: { texto: string }) {
       testID="tarjeta-cancelacion"
       style={[
         estilos.fila,
-        AppInsets.tarjeta,
-        { backgroundColor: conAlfa(cs.tertiaryContainer, 0.45), borderRadius: AppRadios.card, alignItems: 'flex-start' },
+        AppInsets.card,
+        { backgroundColor: withAlpha(cs.tertiaryContainer, 0.45), borderRadius: AppRadii.card, alignItems: 'flex-start' },
       ]}
     >
       <Icono nombre="shield_outlined" size={19} color={cs.onTertiaryContainer} />
       <View style={{ width: 10 }} />
       <View style={estilos.flex}>
-        <Text style={{ fontWeight: '700', fontSize: AppText.cuerpoChico }}>Política de cancelación</Text>
+        <Text style={{ fontWeight: '700', fontSize: AppText.smallBody }}>Política de cancelación</Text>
         <View style={{ height: 3 }} />
-        <Text altura={1.45} style={{ fontSize: AppText.detalle, color: conAlfa(cs.onSurface, 0.8) }}>
+        <Text altura={1.45} style={{ fontSize: AppText.detail, color: withAlpha(cs.onSurface, 0.8) }}>
           {texto}
         </Text>
       </View>
@@ -73,7 +73,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
     <View style={estilos.fila}>
       <Text
         altura={1.35}
-        style={{ width: 62, textAlign: 'right', fontWeight: '800', fontSize: AppText.detalle, color: cs.primary }}
+        style={{ width: 62, textAlign: 'right', fontWeight: '800', fontSize: AppText.detail, color: cs.primary }}
       >
         {paso.time}
       </Text>
@@ -86,7 +86,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
       </View>
       <View style={{ width: 14 }} />
       <View style={[estilos.flex, { paddingBottom: 16 }]}>
-        <Text altura={1.45} style={{ fontSize: AppText.cuerpo }}>
+        <Text altura={1.45} style={{ fontSize: AppText.body }}>
           {paso.activity}
         </Text>
       </View>
@@ -95,7 +95,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
 }
 
 const estilos = StyleSheet.create({
-  pildora: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', borderRadius: AppRadios.pill },
+  pildora: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', borderRadius: AppRadii.pill },
   fila: { flexDirection: 'row', alignItems: 'stretch' },
   flex: { flex: 1 },
   linea: { alignItems: 'center' },

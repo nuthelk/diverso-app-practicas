@@ -86,7 +86,7 @@ function Estado({ children }: { children: ReactNode }) {
   const tema = useTheme();
   const router = useRouter();
   return (
-    <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       {children}
     </View>

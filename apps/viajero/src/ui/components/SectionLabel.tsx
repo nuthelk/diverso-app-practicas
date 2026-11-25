@@ -13,7 +13,7 @@ export function SectionLabel({ texto, accion }: { texto: string; accion?: ReactN
       <Text
         style={[
           estilos.texto,
-          { fontSize: AppText.etiqueta, fontWeight: '700', letterSpacing: 1.2, color: cs.onSurfaceVariant },
+          { fontSize: AppText.label, fontWeight: '700', letterSpacing: 1.2, color: cs.onSurfaceVariant },
         ]}
       >
         {texto.toUpperCase()}

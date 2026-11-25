@@ -3,7 +3,7 @@ import { ActivityIndicator, Animated, KeyboardAvoidingView, Pressable, ScrollVie
 
 import { formatLongDate } from '@/core';
 import { FilledButton, Icono, Text, TextField } from '@/ui/components';
-import { AppInsets, AppText, conAlfa, Duraciones, useTheme } from '@/ui/theme';
+import { AppInsets, AppText, withAlpha, Durations, useTheme } from '@/ui/theme';
 
 import { MAX_ESTRELLAS, type ReviewViewModel } from '../view-models/useReviewViewModel';
 
@@ -23,26 +23,26 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
   const plan = vm.reserva?.plan ?? null;
   const fecha = vm.reserva?.planDate?.date ?? null;
   const bloqueado = vm.enviando || vm.publicada;
-  const colorBotonDeshabilitado = conAlfa(cs.onSurface, 0.38);
+  const colorBotonDeshabilitado = withAlpha(cs.onSurface, 0.38);
 
   return (
     // Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
     // `padding` en AMBAS taparía el comentario y «Publicar reseña». En web no hace nada.
     <KeyboardAvoidingView testID="resena-teclado" style={estilos.flex} behavior="padding">
-      <ScrollView contentContainerStyle={[AppInsets.pantalla, estilos.centro]} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[AppInsets.screen, estilos.centro]} keyboardShouldPersistTaps="handled">
         <View style={estilos.columna}>
           {plan !== null ? (
             <>
               <Text
                 altura={1.2}
-                style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
+                style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
               >
                 {plan.title}
               </Text>
               {fecha !== null ? (
                 <>
                   <View style={{ height: 4 }} />
-                  <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant, textAlign: 'center' }}>
+                  <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant, textAlign: 'center' }}>
                     {formatLongDate(fecha)}
                   </Text>
                 </>
@@ -50,7 +50,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
             </>
           ) : null}
           <View style={{ height: 30 }} />
-          <Text style={{ fontSize: AppText.subtitulo, fontWeight: '700', color: cs.onSurface, textAlign: 'center' }}>
+          <Text style={{ fontSize: AppText.subtitle, fontWeight: '700', color: cs.onSurface, textAlign: 'center' }}>
             ¿Cómo estuvo tu experiencia?
           </Text>
           <View style={{ height: 18 }} />
@@ -70,7 +70,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
                   <Icono
                     nombre={marcada ? 'star_rounded' : 'star_outline_rounded'}
                     size={42}
-                    color={marcada ? tema.diverso.dorado : cs.outline}
+                    color={marcada ? tema.diverso.gold : cs.outline}
                   />
                 </Pressable>
               );
@@ -105,7 +105,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
           <View style={estilos.pie}>
             <Icono nombre="verified_rounded" size={13} color={cs.tertiary} />
             <View style={{ width: 5 }} />
-            <Text style={[estilos.encoger, { fontSize: AppText.leyenda, color: cs.onSurfaceVariant }]}>
+            <Text style={[estilos.encoger, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
               Reseña verificada: solo quien viajó puede opinar
             </Text>
           </View>
@@ -125,7 +125,7 @@ function EtiquetaCalificacion({ texto, color }: { texto: string; color: string }
     opacidad.setValue(0);
     const animacion = Animated.timing(opacidad, {
       toValue: 1,
-      duration: Duraciones.etiquetaEstrellas,
+      duration: Durations.starsLabel,
       useNativeDriver: true,
     });
     animacion.start();
@@ -133,7 +133,7 @@ function EtiquetaCalificacion({ texto, color }: { texto: string; color: string }
   }, [texto, opacidad]);
   return (
     <Animated.View style={[estilos.etiqueta, { opacity: opacidad }]}>
-      <Text style={{ color, fontWeight: '700', fontSize: AppText.enfasis }}>{texto}</Text>
+      <Text style={{ color, fontWeight: '700', fontSize: AppText.emphasis }}>{texto}</Text>
     </Animated.View>
   );
 }

@@ -15,7 +15,7 @@ export function PriceText({ monto, alineado = 'start' }: { monto: number; alinea
   const cs = useTheme().colorScheme;
   return (
     <View testID="price-text" style={{ alignItems: alineaciones[alineado] }}>
-      <Text style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
+      <Text style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
         {formatCOP(monto)}
       </Text>
       <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>

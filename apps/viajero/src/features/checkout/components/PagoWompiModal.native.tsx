@@ -45,7 +45,7 @@ export function PagoWompiPage({
 }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
-  const appBar = tema.componentes.appBar;
+  const appBar = tema.components.appBar;
   const arriba = useSafeAreaInsets().top;
   const [progreso, setProgreso] = useState(0);
   const WebView = webView();
@@ -76,7 +76,7 @@ export function PagoWompiPage({
   };
 
   return (
-    <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <View style={{ paddingTop: arriba, backgroundColor: appBar.backgroundColor }}>
         <View style={[estilos.barra, { height: appBar.toolbarHeight }]}>
           <View style={estilos.inicio}>
@@ -88,7 +88,7 @@ export function PagoWompiPage({
             />
           </View>
           <View style={[estilos.titulo, { marginLeft: appBar.titleSpacing }]}>
-            <DefaultTextStyle estilo={{ ...appBar.titulo, altura: null }}>
+            <DefaultTextStyle estilo={{ ...appBar.title, height: null }}>
               <Text accessibilityRole="header" numberOfLines={1}>
                 Pago de prueba con Wompi
               </Text>

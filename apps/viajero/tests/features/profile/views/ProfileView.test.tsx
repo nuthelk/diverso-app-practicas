@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import { LEGAL_VERSION } from '@/core';
 import { ocultarAviso } from '@/features/compartido/aviso-flotante';
 import { ProfileView } from '@/features/profile/views/ProfileView';
-import { temaClaro } from '@/ui/theme';
+import { lightTheme } from '@/ui/theme';
 
 import { AuthFalso } from '../../../support/auth-falso';
 import { compuerta } from '../../../support/compuerta';
@@ -60,7 +60,7 @@ test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el 
   expect(screen.getByText('ana@correo.test')).toBeOnTheScreen();
   expect(screen.getByText('No pudimos cargar tu perfil.')).toBeOnTheScreen();
   expect(StyleSheet.flatten(screen.getByText('No pudimos cargar tu perfil.').props.style).color).toBe(
-    temaClaro.colorScheme.error,
+    lightTheme.colorScheme.error,
   );
 
   auth.falloAlCargarPerfil = null;
@@ -123,12 +123,12 @@ test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia 
   expect(segmento('Oscuro')).toBeSelected();
   expect(segmento('Sistema')).not.toBeSelected();
   // El tema efectivo cambió: el título usa el onSurface del modo oscuro.
-  expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).not.toBe(temaClaro.colorScheme.onSurface);
+  expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).not.toBe(lightTheme.colorScheme.onSurface);
 
   await fireEvent.press(segmento('Claro'));
   await asentarPantalla();
   expect(segmento('Claro')).toBeSelected();
-  expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).toBe(temaClaro.colorScheme.onSurface);
+  expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).toBe(lightTheme.colorScheme.onSurface);
 });
 
 test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos toques, una sola llamada', async () => {

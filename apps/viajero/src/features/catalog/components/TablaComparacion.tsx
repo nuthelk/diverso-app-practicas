@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { EMOJI_EXPERIENCE_CATEGORY, formatCOP, type ComparisonRow, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
 import { FilledButton, Icono, Text } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 export const ANCHO_ETIQUETA = 92;
 export const ANCHO_MIN_COLUMNA = 132;
@@ -49,7 +49,7 @@ export function TablaComparacion({
         paddingRight: 8,
         paddingTop: arriba ? 8 : 12,
         paddingBottom: abajo ? 10 : 12,
-        backgroundColor: esBarato(i) ? conAlfa(cs.primary, 0.07) : undefined,
+        backgroundColor: esBarato(i) ? withAlpha(cs.primary, 0.07) : undefined,
         borderTopLeftRadius: arriba ? 16 : 0,
         borderTopRightRadius: arriba ? 16 : 0,
         borderBottomLeftRadius: abajo ? 16 : 0,
@@ -72,9 +72,9 @@ export function TablaComparacion({
       {filas.map((fila) => {
         const esPrecio = fila.icon === 'precio' || fila.icon === 'total';
         return (
-          <View key={fila.icon} style={[estilos.fila, { borderTopWidth: 1, borderTopColor: conAlfa(cs.outlineVariant, 0.5) }]}>
+          <View key={fila.icon} style={[estilos.fila, { borderTopWidth: 1, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
             <View style={{ width: ANCHO_ETIQUETA, paddingTop: 12, paddingRight: 8, paddingBottom: 12 }}>
-              <Text altura={1.3} style={{ fontSize: AppText.leyenda, fontWeight: '600', color: cs.onSurfaceVariant }}>
+              <Text altura={1.3} style={{ fontSize: AppText.caption, fontWeight: '600', color: cs.onSurfaceVariant }}>
                 {fila.title}
               </Text>
             </View>
@@ -113,7 +113,7 @@ export function TablaComparacion({
     <View>
       <View style={[estilos.fila, { alignItems: 'center' }]}>
         <Icono nombre="swipe_left_rounded" size={16} color={cs.onSurfaceVariant} />
-        <Text style={{ marginLeft: 6, flex: 1, fontSize: AppText.leyenda, color: cs.onSurfaceVariant }}>
+        <Text style={{ marginLeft: 6, flex: 1, fontSize: AppText.caption, color: cs.onSurfaceVariant }}>
           Desliza la tabla para ver todos los planes
         </Text>
       </View>
@@ -133,13 +133,13 @@ function CabeceraPlan({ plan, mejorPrecio }: { plan: Plan; mejorPrecio: boolean 
     <View>
       <View style={[estilos.foto, { backgroundColor: cs.primaryContainer }]}>
         {foto === null ? (
-          <Text style={{ fontSize: AppText.encabezado3xl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
+          <Text style={{ fontSize: AppText.heading3xl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
         ) : (
           <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} accessible={false} />
         )}
       </View>
       <View style={{ height: 8 }} />
-      <Text numberOfLines={3} ellipsizeMode="tail" altura={1.25} style={{ fontWeight: '700', fontSize: AppText.cuerpoChico }}>
+      <Text numberOfLines={3} ellipsizeMode="tail" altura={1.25} style={{ fontWeight: '700', fontSize: AppText.smallBody }}>
         {plan.title}
       </Text>
       {mejorPrecio ? (
@@ -166,7 +166,7 @@ function ValorComparado({ valor, esPrecio, destacado }: { valor: string; esPreci
         adjustsFontSizeToFit
         minimumFontScale={0.5}
         style={{
-          fontSize: destacado ? AppText.subtitulo : AppText.cuerpoGrande,
+          fontSize: destacado ? AppText.subtitle : AppText.largeBody,
           fontWeight: destacado ? '800' : '600',
           color: destacado ? cs.primary : cs.onSurface,
         }}
@@ -181,7 +181,7 @@ function ValorComparado({ valor, esPrecio, destacado }: { valor: string; esPreci
     <Text
       altura={1.4}
       style={{
-        fontSize: AppText.detalle,
+        fontSize: AppText.detail,
         fontWeight: incluido ? '700' : '500',
         color: incluido ? cs.primary : vacio ? cs.outline : cs.onSurface,
       }}
@@ -193,6 +193,6 @@ function ValorComparado({ valor, esPrecio, destacado }: { valor: string; esPreci
 
 const estilos = StyleSheet.create({
   fila: { flexDirection: 'row', alignItems: 'stretch' },
-  foto: { aspectRatio: 1.5, borderRadius: AppRadios.control, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  sello: { marginTop: 6, alignSelf: 'flex-start', borderRadius: AppRadios.pill, paddingHorizontal: 8, paddingVertical: 3 },
+  foto: { aspectRatio: 1.5, borderRadius: AppRadii.control, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  sello: { marginTop: 6, alignSelf: 'flex-start', borderRadius: AppRadii.pill, paddingHorizontal: 8, paddingVertical: 3 },
 });

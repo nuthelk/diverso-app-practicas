@@ -29,7 +29,7 @@ export function FotoReserva({ booking, apagado = false }: { booking: Booking; ap
       {plan === null ? (
         <Icono nombre="luggage_rounded" size={40} color={cs.onPrimaryContainer} />
       ) : (
-        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
+        <Text style={{ fontSize: AppText.photoEmoji }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       )}
     </View>
   );

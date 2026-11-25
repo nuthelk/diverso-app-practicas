@@ -1,38 +1,38 @@
 export {
-  colorSchemeClaro,
-  colorSchemeOscuro,
-  colorTextoPorDefecto,
-  conAlfa,
+  lightColorScheme,
+  darkColorScheme,
+  defaultTextColor,
+  withAlpha,
   DiversoColors,
-  fondoPagina,
+  pageBackground,
   type ColorScheme,
   type DiversoColorsTokens,
-} from './colores';
-export { AppInsets, AppRadios, AppTheme } from './medidas';
+} from './colors';
+export { AppInsets, AppRadii, AppTheme } from './metrics';
 export {
   AppText,
-  familiaMonospace,
-  familiaRoboto,
-  pesoNumerico,
-  resolverEstiloTexto,
+  monospaceFamily,
+  robotoFamily,
+  numericWeight,
+  resolveTextStyle,
   textTheme,
-  type EstiloBaseTexto,
-  type EstiloTipografico,
-  type NombreEstiloTipografico,
-  type PesoFuente,
-  type Plataforma,
-} from './tipografia';
-export { blurCssDesdeFlutter, Sombras } from './sombras';
+  type BaseTextStyle,
+  type TypographyStyle,
+  type TypographyStyleName,
+  type FontWeight,
+  type PlatformName,
+} from './typography';
+export { cssBlurFromFlutter, Shadows } from './shadows';
 export {
-  Curvas,
-  Duraciones,
-  intervalo,
-  opcionesDePantalla,
-  TransicionesDePagina,
-  type Curva,
-  type MarcoTransicion,
-  type TransicionDePagina,
-} from './movimiento';
-export { temaClaro, temaOscuro, temaPara, type Brillo, type ComponentesDelTema, type Tema } from './tema';
-export { ThemeProvider, useTheme, useThemeMode, type ModoTema } from './ThemeProvider';
-export { fuentesDeLaApp, useFuentesDiverso } from './fuentes';
+  Curves,
+  Durations,
+  interval,
+  screenOptions,
+  PageTransitions,
+  type Curve,
+  type TransitionFrame,
+  type PageTransition,
+} from './motion';
+export { lightTheme, darkTheme, themeFor, type Brightness, type ThemeComponents, type Theme } from './theme';
+export { ThemeProvider, useTheme, useThemeMode, type ThemeMode } from './ThemeProvider';
+export { appFonts, useDiversoFonts } from './fonts';

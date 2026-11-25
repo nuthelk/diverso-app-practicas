@@ -8,7 +8,7 @@ import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes
 import { ConsentView } from '@/features/legal/views/ConsentView';
 import { AppRoutes } from '@/router';
 import { LegalView } from '@/features/legal/views/LegalView';
-import { temaClaro } from '@/ui/theme';
+import { lightTheme } from '@/ui/theme';
 
 import { AuthFalso } from '../../../support/auth-falso';
 import { esperar } from '../../../support/compuerta';
@@ -74,7 +74,7 @@ describe('ConsentCheckboxes', () => {
   test('los enlaces en primary, w700 y subrayados', async () => {
     await renderPantalla(<Casillas />);
     const s = screen.getByText('términos y condiciones').props.style;
-    expect(s).toMatchObject({ color: temaClaro.colorScheme.primary, fontWeight: '700', textDecorationLine: 'underline' });
+    expect(s).toMatchObject({ color: lightTheme.colorScheme.primary, fontWeight: '700', textDecorationLine: 'underline' });
   });
 
   test('con mostrarError y alguna sin marcar avisa (y deja de avisar al marcar las dos)', async () => {

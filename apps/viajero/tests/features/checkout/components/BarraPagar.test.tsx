@@ -3,7 +3,7 @@ import { Keyboard, Platform, StyleSheet, type KeyboardEvent } from 'react-native
 
 import { BarraPagar } from '@/features/checkout/components/BarraPagar';
 
-import { renderConTema } from '../../../ui/support/conTema';
+import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
 /**
  * La barra de pagar sube con el teclado. En iOS llegan `keyboardWill*`; en Android SOLO
@@ -39,7 +39,7 @@ const teclado = (alto: number) => ({ endCoordinates: { height: alto, screenX: 0,
 const relleno = () => StyleSheet.flatten(screen.getByTestId('barra-pagar').props.style).paddingBottom;
 
 async function montar() {
-  await renderConTema(<BarraPagar total={190000} pax={2} procesando={false} onPagar={() => {}} />);
+  await renderWithTheme(<BarraPagar total={190000} pax={2} procesando={false} onPagar={() => {}} />);
 }
 
 test.each([

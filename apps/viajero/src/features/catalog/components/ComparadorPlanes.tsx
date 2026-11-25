@@ -33,11 +33,11 @@ export function ComparadorPlanes({ planes }: { planes: readonly Plan[] }) {
   }
   return (
     <ScrollView testID="comparador-scroll" contentContainerStyle={estilos.lista}>
-      <Text style={{ fontSize: AppText.encabezadoXl, fontWeight: '800', letterSpacing: -0.8, color: cs.onSurface }}>
+      <Text style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.8, color: cs.onSurface }}>
         Elige con toda la información
       </Text>
       <View style={{ height: 4 }} />
-      <Text style={{ color: cs.onSurfaceVariant, fontSize: AppText.cuerpoChico }}>Precio final por persona, sin cargos ocultos.</Text>
+      <Text style={{ color: cs.onSurfaceVariant, fontSize: AppText.smallBody }}>Precio final por persona, sin cargos ocultos.</Text>
       <View style={{ height: 16 }} />
       <SelectorViajeros pax={pax} onCambio={setPax} min={MIN_VIAJEROS} max={MAX_VIAJEROS} />
       <View style={{ height: 20 }} />
@@ -51,9 +51,9 @@ function SelectorViajeros({ pax, onCambio, min, max }: { pax: number; onCambio: 
   const cs = useTheme().colorScheme;
   return (
     <View style={estilos.fila}>
-      <Text style={{ flex: 1, fontSize: AppText.cuerpo, fontWeight: '600', color: cs.onSurface }}>¿Cuántos viajan?</Text>
+      <Text style={{ flex: 1, fontSize: AppText.body, fontWeight: '600', color: cs.onSurface }}>¿Cuántos viajan?</Text>
       <IconButton variante="outlined" icono="remove_rounded" tooltip="Menos viajeros" onPress={pax > min ? () => onCambio(pax - 1) : null} />
-      <Text testID="viajeros" style={{ width: 40, textAlign: 'center', fontSize: AppText.subtituloGrande, fontWeight: '800' }}>
+      <Text testID="viajeros" style={{ width: 40, textAlign: 'center', fontSize: AppText.largeSubtitle, fontWeight: '800' }}>
         {String(pax)}
       </Text>
       <IconButton variante="outlined" icono="add_rounded" tooltip="Más viajeros" onPress={pax < max ? () => onCambio(pax + 1) : null} />

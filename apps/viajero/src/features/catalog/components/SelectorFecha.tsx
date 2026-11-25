@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { LONG_MONTH_NAMES, formatShortDate } from '@/core';
 import { IconButton, Text, TextButton } from '@/ui/components';
-import { AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 const DIAS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
@@ -54,14 +54,14 @@ export function SelectorFecha({
       <Pressable accessibilityLabel="Cerrar" style={[estilos.scrim, { backgroundColor: 'rgba(0,0,0,0.54)' }]} onPress={onCerrar}>
         <Pressable testID="selector-fecha" style={[estilos.dialogo, { backgroundColor: cs.surfaceContainerHigh }]}>
           <View style={estilos.cabecera}>
-            <Text style={{ fontSize: AppText.leyenda, fontWeight: '500', color: cs.onSurfaceVariant }}>Seleccionar fecha</Text>
+            <Text style={{ fontSize: AppText.caption, fontWeight: '500', color: cs.onSurfaceVariant }}>Seleccionar fecha</Text>
             <Text style={{ fontSize: 32, fontWeight: '400', marginTop: 20, color: cs.onSurfaceVariant }} altura={1.25}>
               {formatShortDate(elegida)}
             </Text>
           </View>
           <View style={[estilos.divisor, { backgroundColor: cs.outlineVariant }]} />
           <View style={estilos.mes}>
-            <Text style={{ flex: 1, fontSize: AppText.cuerpo, fontWeight: '600', color: cs.onSurfaceVariant }}>
+            <Text style={{ flex: 1, fontSize: AppText.body, fontWeight: '600', color: cs.onSurfaceVariant }}>
               {`${LONG_MONTH_NAMES[mes.getMonth()]} de ${mes.getFullYear()}`}
             </Text>
             {/* Sin `chevron_left` en el mapa de íconos: el mismo glifo girado. */}
@@ -72,7 +72,7 @@ export function SelectorFecha({
           </View>
           <View style={estilos.semana}>
             {DIAS.map((d, i) => (
-              <Text key={i} style={[estilos.celdaTexto, { color: cs.onSurface, fontSize: AppText.leyenda }]}>
+              <Text key={i} style={[estilos.celdaTexto, { color: cs.onSurface, fontSize: AppText.caption }]}>
                 {d}
               </Text>
             ))}
@@ -101,8 +101,8 @@ export function SelectorFecha({
                   >
                     <Text
                       style={{
-                        fontSize: AppText.cuerpo,
-                        color: sel ? cs.onPrimary : !habilitado ? conAlfa(cs.onSurface, 0.38) : esHoy ? cs.primary : cs.onSurface,
+                        fontSize: AppText.body,
+                        color: sel ? cs.onPrimary : !habilitado ? withAlpha(cs.onSurface, 0.38) : esHoy ? cs.primary : cs.onSurface,
                       }}
                     >
                       {String(dia.getDate())}

@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { formatCOP, noLineBreaks, type Booking } from '@/core';
 import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
-import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** «Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 330.000). Vence a las 14:35.» */
 export function textoReservaPendiente(reserva: Booking): string {
@@ -35,11 +35,11 @@ export function ReservaPendienteAviso({
 }) {
   const cs = useTheme().colorScheme;
   return (
-    <View style={[AppInsets.tarjetaAmplia, estilos.caja, { backgroundColor: cs.secondaryContainer }]}>
+    <View style={[AppInsets.wideCard, estilos.caja, { backgroundColor: cs.secondaryContainer }]}>
       <View style={estilos.fila}>
         <Icono nombre="hourglass_top_rounded" size={20} color={cs.onSecondaryContainer} />
         <View style={{ width: 10 }} />
-        <Text altura={1.4} style={[estilos.texto, { fontSize: AppText.cuerpoChico, color: cs.onSecondaryContainer }]}>
+        <Text altura={1.4} style={[estilos.texto, { fontSize: AppText.smallBody, color: cs.onSecondaryContainer }]}>
           {noLineBreaks(textoReservaPendiente(reserva))}
         </Text>
       </View>
@@ -49,7 +49,7 @@ export function ReservaPendienteAviso({
         <TextButton texto="Ya pagué, verificar" onPress={ocupado ? null : onVerificar} />
         {/* `TextButton.styleFrom(foregroundColor: error)`: deshabilitado vuelve al onSurface 38 %. */}
         <TextButton accessibilityLabel="Cancelar y empezar de nuevo" onPress={ocupado ? null : onCancelar}>
-          <Text style={[estilos.centrado, { color: ocupado ? conAlfa(cs.onSurface, 0.38) : cs.error }]}>
+          <Text style={[estilos.centrado, { color: ocupado ? withAlpha(cs.onSurface, 0.38) : cs.error }]}>
             Cancelar y empezar de nuevo
           </Text>
         </TextButton>
@@ -59,7 +59,7 @@ export function ReservaPendienteAviso({
 }
 
 const estilos = StyleSheet.create({
-  caja: { borderRadius: AppRadios.card },
+  caja: { borderRadius: AppRadii.card },
   fila: { flexDirection: 'row', alignItems: 'flex-start' },
   texto: { flex: 1, minWidth: 0 },
   // `Wrap(spacing: 8, runSpacing: 4)`: cada botón con su ancho propio.

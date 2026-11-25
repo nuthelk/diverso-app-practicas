@@ -6,7 +6,7 @@ import { View } from 'react-native';
 import { useSesion } from '@/features/auth/view-models/SesionProvider';
 import { useConsentimiento } from '@/features/legal/view-models/ConsentimientoProvider';
 import type { EstadoConsentimiento } from '@/features/legal/view-models/consent-view-model';
-import { opcionesDePantalla, useTheme } from '@/ui/theme';
+import { screenOptions, useTheme } from '@/ui/theme';
 
 import { pantallaVisible, sesionRedirect } from './sesion-redirect';
 import { useUbicacion } from './ubicacion';
@@ -57,12 +57,12 @@ function useGuardia({
  */
 /** Transición de cada ruta del stack raíz (las demás: sharedAxisX). */
 const OPCIONES_POR_RUTA = {
-  login: opcionesDePantalla.fadeThrough,
+  login: screenOptions.fadeThrough,
   // `PopScope(canPop: false)`: sin gesto atrás en iOS (el botón de Android lo bloquea la vista).
-  consentimiento: { ...opcionesDePantalla.fadeThrough, gestureEnabled: false },
-  '(tabs)': opcionesDePantalla.fadeThrough,
-  'pago/resultado': opcionesDePantalla.fadeThrough,
-  'reserva/[bookingId]': opcionesDePantalla.zoomIn,
+  consentimiento: { ...screenOptions.fadeThrough, gestureEnabled: false },
+  '(tabs)': screenOptions.fadeThrough,
+  'pago/resultado': screenOptions.fadeThrough,
+  'reserva/[bookingId]': screenOptions.zoomIn,
 };
 type OpcionesRuta = (typeof OPCIONES_POR_RUTA)[keyof typeof OPCIONES_POR_RUTA];
 const opcionesDeRuta = (nombre: string): OpcionesRuta | undefined => (OPCIONES_POR_RUTA as Record<string, OpcionesRuta>)[nombre];
@@ -83,8 +83,8 @@ export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
         // canónico de Expo Router despachaba ROUTE_NAMES_CHANGED en cada arranque (error rojo).
         screenOptions={({ route }) => ({
           headerShown: false,
-          contentStyle: { backgroundColor: tema.fondoPagina },
-          ...opcionesDePantalla.sharedAxisX,
+          contentStyle: { backgroundColor: tema.pageBackground },
+          ...screenOptions.sharedAxisX,
           ...opcionesDeRuta(route.name),
         })}
         screenLayout={({ route, children }) =>
@@ -97,11 +97,11 @@ export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
           }) ? (
             children
           ) : (
-            <View style={{ flex: 1, backgroundColor: tema.fondoPagina }} />
+            <View style={{ flex: 1, backgroundColor: tema.pageBackground }} />
           )
         }
       />
-      <StatusBar style={tema.brillo === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={tema.brightness === 'dark' ? 'light' : 'dark'} />
     </>
   );
 }

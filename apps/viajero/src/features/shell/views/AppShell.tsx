@@ -27,7 +27,7 @@ export function AppShell() {
       screenOptions={{
         headerShown: false,
         animation: 'fade',
-        sceneStyle: { backgroundColor: tema.fondoPagina },
+        sceneStyle: { backgroundColor: tema.pageBackground },
       }}
     >
       {ORDEN_DEL_NAVEGADOR.map((ruta) => (

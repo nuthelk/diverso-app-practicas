@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton, SectionLabel, Text } from '@/ui/components';
-import { AppRadios, AppText, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 const LADO = 38;
 
@@ -32,12 +32,12 @@ export function SelectorPersonas({
         </View>
         <BotonPersonas quitar habilitado={puedeQuitar} onTap={() => onCambiar(pax - 1)} />
         <View style={estilos.numero}>
-          <Text style={{ fontSize: AppText.encabezadoXs, fontWeight: '800', textAlign: 'center' }}>{String(pax)}</Text>
+          <Text style={{ fontSize: AppText.headingXs, fontWeight: '800', textAlign: 'center' }}>{String(pax)}</Text>
         </View>
         <BotonPersonas habilitado={puedeAgregar} onTap={() => onCambiar(pax + 1)} />
       </View>
       <View style={{ height: 6 }} />
-      <Text style={{ fontSize: AppText.leyenda, color: cs.onSurfaceVariant }}>
+      <Text style={{ fontSize: AppText.caption, color: cs.onSurfaceVariant }}>
         {`${cupos} cupos disponibles para esta fecha`}
       </Text>
     </View>
@@ -64,7 +64,7 @@ const estilos = StyleSheet.create({
   caja: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: AppRadios.card,
+    borderRadius: AppRadii.card,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },

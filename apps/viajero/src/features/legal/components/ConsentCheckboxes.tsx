@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppRoutes } from '@/router';
 import { Icono, Text } from '@/ui/components';
-import { AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** Área táctil de la casilla (M3: 48): el texto de cada fila, y el aviso, empiezan después. */
 const AREA_CASILLA = 48;
@@ -57,7 +57,7 @@ function Fila({
     >
       <Casilla valor={valor} error={error} />
       <View style={estilos.texto}>
-        <Text altura={1.45} style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant }}>
+        <Text altura={1.45} style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant }}>
           {children}
         </Text>
       </View>
@@ -95,7 +95,7 @@ export function ConsentCheckboxes({
         color: cs.primary,
         fontWeight: '700',
         textDecorationLine: 'underline',
-        textDecorationColor: conAlfa(cs.primary, 0.5),
+        textDecorationColor: withAlpha(cs.primary, 0.5),
       }}
     >
       {texto}
@@ -123,7 +123,7 @@ export function ConsentCheckboxes({
         Acepto los {enlace('términos y condiciones', AppRoutes.legal('terminos-viajeros'))}.
       </Fila>
       {mostrarError && (!aceptaDatos || !aceptaTerminos) ? (
-        <Text style={[estilos.aviso, { fontSize: AppText.leyendaGrande, color: cs.error }]}>
+        <Text style={[estilos.aviso, { fontSize: AppText.largeCaption, color: cs.error }]}>
           Debes aceptar ambos documentos para crear tu cuenta.
         </Text>
       ) : null}

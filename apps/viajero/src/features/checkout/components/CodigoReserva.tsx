@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** Tarjeta con el código de la reserva, seleccionable para copiarlo (`SelectableText`). */
 export function CodigoReserva({ codigo }: { codigo: string }) {
@@ -13,7 +13,7 @@ export function CodigoReserva({ codigo }: { codigo: string }) {
           fontSize: AppText.micro,
           fontWeight: '700',
           letterSpacing: 1.6,
-          color: conAlfa(cs.onPrimaryContainer, 0.75),
+          color: withAlpha(cs.onPrimaryContainer, 0.75),
         }}
       >
         CÓDIGO DE RESERVA
@@ -21,7 +21,7 @@ export function CodigoReserva({ codigo }: { codigo: string }) {
       <View style={{ height: 6 }} />
       <Text
         selectable
-        style={{ fontSize: AppText.cifra, fontWeight: '900', letterSpacing: 3, color: cs.onPrimaryContainer }}
+        style={{ fontSize: AppText.figure, fontWeight: '900', letterSpacing: 3, color: cs.onPrimaryContainer }}
       >
         {codigo}
       </Text>
@@ -30,5 +30,5 @@ export function CodigoReserva({ codigo }: { codigo: string }) {
 }
 
 const estilos = StyleSheet.create({
-  caja: { paddingVertical: 18, borderRadius: AppRadios.card, alignItems: 'center' },
+  caja: { paddingVertical: 18, borderRadius: AppRadii.card, alignItems: 'center' },
 });

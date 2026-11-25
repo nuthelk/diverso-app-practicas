@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, type DimensionValue } from 'react-native';
 
-import { Curvas, Duraciones, useTheme } from '@/ui/theme';
+import { Curves, Durations, useTheme } from '@/ui/theme';
 
 /**
  * Placeholder de carga con pulso: caja surfaceContainerHigh que va de opacidad .45 a 1 y vuelve
@@ -22,8 +22,8 @@ export function Skeleton({
     const tramo = (hacia: number) =>
       Animated.timing(opacidad, {
         toValue: hacia,
-        duration: Duraciones.skeleton,
-        easing: Curvas.easeInOut.fn,
+        duration: Durations.skeleton,
+        easing: Curves.easeInOut.fn,
         useNativeDriver: true,
       });
     const pulso = Animated.loop(Animated.sequence([tramo(1), tramo(0.45)]));

@@ -1,20 +1,20 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { temaPara, type Brillo, type Tema } from './tema';
+import { themeFor, type Brightness, type Theme } from './theme';
 
 /** `ThemeMode` de Flutter. */
-export type ModoTema = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark';
 
-interface ValorModo {
-  modo: ModoTema;
-  setModo: (modo: ModoTema) => void;
+interface ThemeModeValue {
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
   /** Modo efectivo (lo que se pinta). */
-  brillo: Brillo;
+  brightness: Brightness;
 }
 
-const ContextoModo = createContext<ValorModo | null>(null);
-const ContextoTema = createContext<Tema | null>(null);
+const ModeContext = createContext<ThemeModeValue | null>(null);
+const ThemeContext = createContext<Theme | null>(null);
 
 /**
  * Port de `ThemeModeViewModel` + `MaterialApp(theme:, darkTheme:, themeMode:)`. Arranca en
@@ -23,39 +23,39 @@ const ContextoTema = createContext<Tema | null>(null);
  */
 export function ThemeProvider({
   children,
-  modoInicial = 'system',
+  initialMode = 'system',
 }: {
   children: ReactNode;
-  modoInicial?: ModoTema;
+  initialMode?: ThemeMode;
 }) {
-  const sistema = useColorScheme();
-  const [modo, setModo] = useState<ModoTema>(modoInicial);
-  const brillo: Brillo = modo === 'system' ? (sistema === 'dark' ? 'dark' : 'light') : modo;
-  const valorModo = useMemo(() => ({ modo, setModo, brillo }), [modo, brillo]);
+  const system = useColorScheme();
+  const [mode, setMode] = useState<ThemeMode>(initialMode);
+  const brightness: Brightness = mode === 'system' ? (system === 'dark' ? 'dark' : 'light') : mode;
+  const modeValue = useMemo(() => ({ mode, setMode, brightness }), [mode, brightness]);
   return (
-    <ContextoModo.Provider value={valorModo}>
-      <ContextoTema.Provider value={temaPara(brillo)}>{children}</ContextoTema.Provider>
-    </ContextoModo.Provider>
+    <ModeContext.Provider value={modeValue}>
+      <ThemeContext.Provider value={themeFor(brightness)}>{children}</ThemeContext.Provider>
+    </ModeContext.Provider>
   );
 }
 
 /** Tokens del modo efectivo. Sin provider sigue al sistema (como «system»). */
-export function useTheme(): Tema {
-  const tema = useContext(ContextoTema);
-  const sistema = useColorScheme();
-  return tema ?? temaPara(sistema === 'dark' ? 'dark' : 'light');
+export function useTheme(): Theme {
+  const theme = useContext(ThemeContext);
+  const system = useColorScheme();
+  return theme ?? themeFor(system === 'dark' ? 'dark' : 'light');
 }
 
 /** Modo elegido (system/light/dark) y cómo cambiarlo (selector «Apariencia» del perfil). */
-export function useThemeMode(): ValorModo {
-  const valor = useContext(ContextoModo);
-  const sistema = useColorScheme();
-  if (valor) return valor;
+export function useThemeMode(): ThemeModeValue {
+  const value = useContext(ModeContext);
+  const system = useColorScheme();
+  if (value) return value;
   return {
-    modo: 'system',
-    setModo: () => {
+    mode: 'system',
+    setMode: () => {
       throw new Error('useThemeMode().setModo necesita un <ThemeProvider> arriba.');
     },
-    brillo: sistema === 'dark' ? 'dark' : 'light',
+    brightness: system === 'dark' ? 'dark' : 'light',
   };
 }

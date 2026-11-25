@@ -6,7 +6,7 @@ import { AppInsets } from '@/ui/theme';
 /** Tarjetas de relleno mientras carga «Mis reservas» (3 × 108, radio 20, separadas 12). */
 export function ReservasSkeleton() {
   return (
-    <ScrollView contentContainerStyle={AppInsets.contenido} scrollEnabled={false}>
+    <ScrollView contentContainerStyle={AppInsets.content} scrollEnabled={false}>
       {[0, 1, 2].map((i) => (
         <View key={i} style={{ paddingBottom: 12 }}>
           <Skeleton height={108} radius={20} />

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { CabeceraColapsable, Text, medidasCabecera } from '@/ui/components';
 
-import { insetSuperiorDePrueba, renderConTema } from '../support/conTema';
+import { testTopInset, renderWithTheme } from '../support/render-with-theme';
 
 // La cabecera sigue el foco de la pantalla (la barra de estado clara es solo de la pantalla
 // visible); sin navegador, el doble la da por enfocada mientras esté montada.
@@ -50,7 +50,7 @@ describe('medidasCabecera', () => {
 // Port del grupo «cabecera colapsable» de cabeceras_test.dart.
 describe('CabeceraColapsable', () => {
   const montar = (onVolver = jest.fn()) =>
-    renderConTema(
+    renderWithTheme(
       <CabeceraColapsable
         titulo="Rutas de Antioquia Cultural"
         fondo={<View testID="foto" />}
@@ -105,7 +105,7 @@ describe('CabeceraColapsable', () => {
       });
     });
     const caja = screen.getByTestId('cabecera-titulo-caja');
-    expect(caja.props.style).toMatchObject({ left: 64, right: 20, top: insetSuperiorDePrueba, height: 56 });
+    expect(caja.props.style).toMatchObject({ left: 64, right: 20, top: testTopInset, height: 56 });
   });
 
   const colapsar = async () => {
@@ -136,7 +136,7 @@ describe('CabeceraColapsable', () => {
     expect(estilo.backgroundImage).toContain('rgba(0,0,0,0)');
     expect(estilo).toMatchObject({ position: 'absolute', top: 0, left: 0, right: 0 });
     // Cubre la barra de estado y la fila de «Volver» (inset + 56).
-    expect(estilo.height).toBeGreaterThanOrEqual(insetSuperiorDePrueba + 56);
+    expect(estilo.height).toBeGreaterThanOrEqual(testTopInset + 56);
     expect(scrim.props.pointerEvents).toBe('none');
   });
 

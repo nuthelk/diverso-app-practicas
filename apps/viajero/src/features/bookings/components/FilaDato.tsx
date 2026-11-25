@@ -32,7 +32,7 @@ export function FilaDato({
       <View style={{ width: compacto ? 8 : 10 }} />
       <Text
         altura={1.3}
-        style={[estilos.texto, { fontSize: compacto ? AppText.detalle : AppText.cuerpoGrande, color: color ?? cs.onSurface }]}
+        style={[estilos.texto, { fontSize: compacto ? AppText.detail : AppText.largeBody, color: color ?? cs.onSurface }]}
       >
         {noLineBreaks(texto)}
         {acento ? (

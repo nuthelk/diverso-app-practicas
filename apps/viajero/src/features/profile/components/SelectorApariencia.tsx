@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { SegmentedButton } from '@/ui/components';
-import { AppRadios, useTheme, useThemeMode, type ModoTema } from '@/ui/theme';
+import { AppRadii, useTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
 
 /**
  * Selector de apariencia (`SelectorApariencia`): Sistema / Claro / Oscuro sobre el modo global
@@ -10,10 +10,10 @@ import { AppRadios, useTheme, useThemeMode, type ModoTema } from '@/ui/theme';
  */
 export function SelectorApariencia() {
   const cs = useTheme().colorScheme;
-  const { modo, setModo } = useThemeMode();
+  const { mode: modo, setMode: setModo } = useThemeMode();
   return (
-    <View style={{ padding: 6, backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card }}>
-      <SegmentedButton<ModoTema>
+    <View style={{ padding: 6, backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card }}>
+      <SegmentedButton<ThemeMode>
         segmentos={[
           { valor: 'system', etiqueta: 'Sistema', icono: 'brightness_auto_rounded' },
           { valor: 'light', etiqueta: 'Claro', icono: 'light_mode_rounded' },

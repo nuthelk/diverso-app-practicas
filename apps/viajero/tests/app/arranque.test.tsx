@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { ProveedoresDeLaApp } from '@/composition/RaizDeLaApp';
 import { AppRoutes } from '@/router';
 import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
-import { temaClaro, temaOscuro, useThemeMode, type ModoTema } from '@/ui/theme';
+import { lightTheme, darkTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
 
 import { arrancarApp, asentar, pantallaVisible } from '../support/app';
 import { AuthFalso } from '../support/auth-falso';
@@ -136,9 +136,9 @@ describe('rutas anteriores (dependían de `extra`, que se pierde al recargar)', 
 });
 
 test('cambiar el tema no recrea el router ni reinicia la navegación', async () => {
-  let cambiarModo!: (modo: ModoTema) => void;
+  let cambiarModo!: (modo: ThemeMode) => void;
   function CapturaModo() {
-    cambiarModo = useThemeMode().setModo;
+    cambiarModo = useThemeMode().setMode;
     return null;
   }
   const r = await renderRouter(
@@ -160,13 +160,13 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
   await asentar();
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
   const fondo = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
-  expect(fondo()).toBe(temaClaro.fondoPagina);
+  expect(fondo()).toBe(lightTheme.pageBackground);
 
   await act(async () => cambiarModo('dark'));
   await asentar();
 
   expect(r.getPathname()).toBe('/legal/privacidad');
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
-  expect(fondo()).toBe(temaOscuro.fondoPagina);
+  expect(fondo()).toBe(darkTheme.pageBackground);
   expect(router.canGoBack()).toBe(true);
 });

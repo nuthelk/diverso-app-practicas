@@ -21,7 +21,7 @@ export const DESTINOS: readonly { ruta: string; etiqueta: string; icono: IconoNo
  */
 export function BarraInferior({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const tema = useTheme();
-  const nav = tema.componentes.navigationBar;
+  const nav = tema.components.navigationBar;
   return (
     <View testID="barra-inferior" style={estilos.contenedor}>
       <Divider />
@@ -36,7 +36,7 @@ export function BarraInferior({ state, emitter, navigateToTab, insets }: BottomT
           const route = state.routes.find((r) => r.name === destino.ruta);
           if (!route) return null;
           const activo = state.routes[state.index]?.key === route.key;
-          const color = activo ? nav.colorSeleccionado : nav.colorNoSeleccionado;
+          const color = activo ? nav.selectedColor : nav.unselectedColor;
           const alTocar = () => {
             const evento = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!activo && !evento.defaultPrevented) navigateToTab(route.key);
@@ -61,8 +61,8 @@ export function BarraInferior({ state, emitter, navigateToTab, insets }: BottomT
                 altura={null}
                 style={{
                   marginTop: 4,
-                  fontSize: AppText.leyenda,
-                  fontWeight: activo ? nav.label.pesoSeleccionado : nav.label.peso,
+                  fontSize: AppText.caption,
+                  fontWeight: activo ? nav.label.selectedWeight : nav.label.weight,
                   letterSpacing: 0,
                   color,
                 }}

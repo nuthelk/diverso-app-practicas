@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { formatCOP, formatLongDate, type Booking } from '@/core';
 import { Divider, Icono, Text, type IconoNombre } from '@/ui/components';
-import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /**
  * Detalle de la reserva confirmada: plan, fecha, personas, punto de encuentro, monto y referencia
@@ -15,8 +15,8 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
   const pago = booking.payment;
   const puntoEncuentro = plan?.meetingPoint ?? '';
   return (
-    <View style={[AppInsets.tarjetaGrande, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
-      <Text altura={1.25} style={{ fontWeight: '700', fontSize: AppText.enfasisGrande }}>
+    <View style={[AppInsets.largeCard, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
+      <Text altura={1.25} style={{ fontWeight: '700', fontSize: AppText.largeEmphasis }}>
         {plan?.title ?? 'Tu plan'}
       </Text>
       <View style={{ height: 12 }} />
@@ -33,7 +33,7 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
       <View style={estilos.fila}>
         <Icono nombre="verified_user_rounded" size={14} color={cs.tertiary} />
         <View style={{ width: 6 }} />
-        <Text style={[estilos.flexible, { fontSize: AppText.leyenda, color: cs.onSurfaceVariant }]}>
+        <Text style={[estilos.flexible, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
           Compra protegida: reembolso según la política de cancelación.
         </Text>
       </View>
@@ -47,13 +47,13 @@ function Fila({ icono, texto }: { icono: IconoNombre; texto: string }) {
     <View style={[estilos.fila, { paddingVertical: 4 }]}>
       <Icono nombre={icono} size={16} color={cs.onSurfaceVariant} />
       <View style={{ width: 10 }} />
-      <Text style={[estilos.flexible, { fontSize: AppText.cuerpoChico }]}>{texto}</Text>
+      <Text style={[estilos.flexible, { fontSize: AppText.smallBody }]}>{texto}</Text>
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
-  caja: { borderRadius: AppRadios.card },
+  caja: { borderRadius: AppRadii.card },
   fila: { flexDirection: 'row', alignItems: 'center' },
   flexible: { flex: 1, minWidth: 0 },
   divisor: { height: 22, justifyContent: 'center' },

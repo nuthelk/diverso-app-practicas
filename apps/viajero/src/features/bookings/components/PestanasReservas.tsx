@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/ui/components';
-import { conAlfa, useTheme } from '@/ui/theme';
+import { withAlpha, useTheme } from '@/ui/theme';
 
 /**
  * `TabBar` de «Mis reservas» (en el `bottom` del AppBar): dos pestañas a todo el ancho, alto 46,
@@ -39,7 +39,7 @@ export function PestanasReservas({
                 {pressed ? (
                   <View
                     pointerEvents="none"
-                    style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(color, tema.componentes.opacidadPresionado) }]}
+                    style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(color, tema.components.pressedOpacity) }]}
                   />
                 ) : null}
                 <View style={estilos.etiqueta}>

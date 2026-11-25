@@ -3,9 +3,9 @@ import { StyleSheet } from 'react-native';
 
 import { CancellationPreview } from '@/core';
 import { CancelacionDialog } from '@/features/bookings/components/CancelacionDialog';
-import { temaClaro } from '@/ui/theme';
+import { lightTheme } from '@/ui/theme';
 
-import { renderConTema } from '../../../ui/support/conTema';
+import { renderWithTheme } from '../../../ui/support/render-with-theme';
 import { textoCrudo } from '../../../support/texto-crudo';
 
 /** Diálogo de cancelación con la política que aplica AHORA. Port 1:1 de `cancel_dialog_test.dart`. */
@@ -16,7 +16,7 @@ function vista({ aplica, porcentaje, monto, motivo = 'motivo del servidor' }: { 
 
 async function abrir(v: CancellationPreview, codigo = 'DIV-ABC123') {
   const onResultado = jest.fn();
-  await renderConTema(<CancelacionDialog codigo={codigo} vista={v} onResultado={onResultado} />);
+  await renderWithTheme(<CancelacionDialog codigo={codigo} vista={v} onResultado={onResultado} />);
   return onResultado;
 }
 
@@ -52,10 +52,10 @@ test('0 %: avisa que no hay reembolso y cita el motivo del servidor', async () =
 
 test('la política va en primary si aplica y en error si no', async () => {
   await abrir(vista({ aplica: true, porcentaje: 100, monto: 1000 }));
-  expect(StyleSheet.flatten(screen.getByText(/te devolvemos/).props.style).color).toBe(temaClaro.colorScheme.primary);
+  expect(StyleSheet.flatten(screen.getByText(/te devolvemos/).props.style).color).toBe(lightTheme.colorScheme.primary);
 
   await abrir(vista({ aplica: false, porcentaje: 0, monto: 0 }));
-  expect(StyleSheet.flatten(screen.getByText(/no recibirás/).props.style).color).toBe(temaClaro.colorScheme.error);
+  expect(StyleSheet.flatten(screen.getByText(/no recibirás/).props.style).color).toBe(lightTheme.colorScheme.error);
 });
 
 test('«Sí, cancelar» confirma y «Mantener» no', async () => {

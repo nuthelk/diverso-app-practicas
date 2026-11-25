@@ -9,7 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { conAlfa, useTheme } from '@/ui/theme';
+import { withAlpha, useTheme } from '@/ui/theme';
 
 import { Icono, type IconoNombre } from '../Icono';
 import { DefaultTextStyle, Text } from '../Text';
@@ -32,7 +32,7 @@ export function Card({
   testID?: string;
 }) {
   const tema = useTheme();
-  const fondo = { backgroundColor: color ?? tema.componentes.card.backgroundColor, borderRadius: tema.componentes.card.radio };
+  const fondo = { backgroundColor: color ?? tema.components.card.backgroundColor, borderRadius: tema.components.card.radius };
   if (!onPress) {
     return (
       <View testID={testID} style={[estilos.card, fondo, style]}>
@@ -54,7 +54,7 @@ export function Card({
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: conAlfa(tema.colorScheme.onSurface, tema.componentes.opacidadPresionado) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(tema.colorScheme.onSurface, tema.components.pressedOpacity) }]}
             />
           ) : null}
         </>
@@ -69,7 +69,7 @@ export function Divider({ color, style, testID = 'divider' }: { color?: string; 
   return (
     <View
       testID={testID}
-      style={[{ height: tema.componentes.divider.height, backgroundColor: color ?? tema.componentes.divider.color }, style]}
+      style={[{ height: tema.components.divider.height, backgroundColor: color ?? tema.components.divider.color }, style]}
     />
   );
 }
@@ -112,7 +112,7 @@ export function Chip({
   testID,
 }: ChipProps) {
   const tema = useTheme();
-  const chip = tema.componentes.chip;
+  const chip = tema.components.chip;
   return (
     <View
       testID={testID ?? (onBorrar ? 'input-chip' : 'chip')}
@@ -127,7 +127,7 @@ export function Chip({
           <Icono nombre={icono} size={tamanoIcono} color={colorIcono ?? chip.avatarColor} />
         </View>
       ) : null}
-      <DefaultTextStyle estilo={{ ...chip.label, altura: null, letterSpacing: 0 }}>
+      <DefaultTextStyle estilo={{ ...chip.label, height: null, letterSpacing: 0 }}>
         {typeof etiqueta === 'string' ? (
           <Text numberOfLines={1} style={estiloEtiqueta}>
             {etiqueta}
@@ -211,7 +211,7 @@ export function SegmentedButton<T extends string>({
             ]}
           >
             {icono ? <Icono nombre={icono} size={18} color={colorContenido} /> : null}
-            <DefaultTextStyle estilo={{ fontSize: 13.5, fontWeight: '600', color: colorContenido, altura: null, letterSpacing: 0 }}>
+            <DefaultTextStyle estilo={{ fontSize: 13.5, fontWeight: '600', color: colorContenido, height: null, letterSpacing: 0 }}>
               <Text numberOfLines={1}>{s.etiqueta}</Text>
             </DefaultTextStyle>
           </Pressable>

@@ -43,7 +43,7 @@ export interface ColorScheme {
   surfaceTint: string;
 }
 
-export const colorSchemeClaro: ColorScheme = {
+export const lightColorScheme: ColorScheme = {
   primary: '#1F6A4F',
   onPrimary: '#FFFFFF',
   primaryContainer: '#A8F2CE',
@@ -80,7 +80,7 @@ export const colorSchemeClaro: ColorScheme = {
   surfaceTint: '#1F6A4F',
 };
 
-export const colorSchemeOscuro: ColorScheme = {
+export const darkColorScheme: ColorScheme = {
   primary: '#8CD5B3',
   onPrimary: '#003826',
   primaryContainer: '#005139',
@@ -118,52 +118,52 @@ export const colorSchemeOscuro: ColorScheme = {
 };
 
 /** `scaffoldBackgroundColor`: el fondo de página, que NO es `surface`. */
-export const fondoPagina = { claro: '#FAFAF8', oscuro: '#101312' } as const;
+export const pageBackground = { light: '#FAFAF8', dark: '#101312' } as const;
 
 /**
  * Color de TODO texto sin color explícito. Son los neutros del esquema M3 *baseline* (morado),
  * no el `onSurface` verde: el `textTheme` se copia de `ThemeData.light()/dark()` con sus colores.
  */
-export const colorTextoPorDefecto = { claro: '#1D1B20', oscuro: '#E6E0E9' } as const;
+export const defaultTextColor = { light: '#1D1B20', dark: '#E6E0E9' } as const;
 
 /** Colores que no están en el ColorScheme (`ThemeExtension` `DiversoColors`). */
 export interface DiversoColorsTokens {
   /** Estrellas de calificación. */
-  dorado: string;
+  gold: string;
   /** Píldoras de estado de la reserva (texto blanco encima). */
-  estadoConfirmada: string;
-  estadoPendiente: string;
-  estadoCancelada: string;
+  statusConfirmed: string;
+  statusPending: string;
+  statusCancelled: string;
   /** «Realizada» y «Completada». */
-  estadoCerrada: string;
+  statusClosed: string;
   /** Aviso «¡Últimos N!». */
-  pocosCupos: string;
+  fewSpots: string;
   /** Fondo del sello «Verificada RNT» sobre foto. */
-  selloSobreFoto: string;
+  sealOverPhoto: string;
   /** Controles pequeños sobre foto (código de reserva, quitar de la comparación). */
-  controlSobreFoto: string;
+  controlOverPhoto: string;
   /** Sombra de las insignias que flotan sobre la foto. */
-  sombraInsignia: string;
+  badgeShadow: string;
 }
 
-const diversoClaro: DiversoColorsTokens = {
-  dorado: '#E8A33D',
-  estadoConfirmada: '#1B7A4B',
-  estadoPendiente: '#B25E09',
-  estadoCancelada: '#B3261E',
-  estadoCerrada: '#4A5C6E',
-  pocosCupos: '#EF6C00',
-  selloSobreFoto: 'rgba(0, 0, 0, 0.66)',
-  controlSobreFoto: 'rgba(0, 0, 0, 0.62)',
-  sombraInsignia: 'rgba(0, 0, 0, 0.25)',
+const diversoLight: DiversoColorsTokens = {
+  gold: '#E8A33D',
+  statusConfirmed: '#1B7A4B',
+  statusPending: '#B25E09',
+  statusCancelled: '#B3261E',
+  statusClosed: '#4A5C6E',
+  fewSpots: '#EF6C00',
+  sealOverPhoto: 'rgba(0, 0, 0, 0.66)',
+  controlOverPhoto: 'rgba(0, 0, 0, 0.62)',
+  badgeShadow: 'rgba(0, 0, 0, 0.25)',
 };
 
 export const DiversoColors = {
-  claro: diversoClaro,
+  light: diversoLight,
   /** Hoy iguales a `claro` (como en Flutter). */
-  oscuro: diversoClaro,
+  dark: diversoLight,
   /** Círculo de iniciales de las agencias (todos con contraste con blanco). El orden importa. */
-  paletaAgencias: [
+  agencyPalette: [
     '#0E6E4F', // verde selva
     '#2D4A73', // azul pizarra
     '#7A4A21', // tierra
@@ -176,7 +176,7 @@ export const DiversoColors = {
 } as const;
 
 /** `color.withValues(alpha: a)` de Flutter para un hex `#RRGGBB`. */
-export function conAlfa(hex: string, alfa: number): string {
+export function withAlpha(hex: string, alpha: number): string {
   const n = parseInt(hex.replace('#', '').slice(0, 6), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`;
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
 }

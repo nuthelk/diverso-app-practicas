@@ -93,9 +93,9 @@ export function AvisoFlotante({ sobreBarraInferior = false }: { sobreBarraInferi
         accessible
         accessibilityRole="alert"
         accessibilityLiveRegion="polite"
-        style={[estilos.aviso, { backgroundColor: cs.inverseSurface, borderRadius: tema.componentes.snackBar.radio }]}
+        style={[estilos.aviso, { backgroundColor: cs.inverseSurface, borderRadius: tema.components.snackBar.radius }]}
       >
-        <Text style={{ fontSize: AppText.cuerpo, color: cs.onInverseSurface }}>{noLineBreaks(aviso.texto)}</Text>
+        <Text style={{ fontSize: AppText.body, color: cs.onInverseSurface }}>{noLineBreaks(aviso.texto)}</Text>
       </View>
     </View>
   );

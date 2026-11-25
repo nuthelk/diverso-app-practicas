@@ -3,14 +3,14 @@ import { StyleSheet } from 'react-native';
 
 import { DefaultTextStyle, Text } from '@/ui/components';
 
-import { renderConTema } from '../support/conTema';
+import { renderWithTheme } from '../support/render-with-theme';
 
 const estilo = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
 
 /** Gotcha 1: sin un Text base propio el diseño se ve distinto (RN no hereda 1.43 ni 0.25). */
 describe('Text base', () => {
   it('claro: #1D1B20, 14, lineHeight 14×1.43, letterSpacing 0.25', async () => {
-    await renderConTema(<Text testID="t">hola</Text>);
+    await renderWithTheme(<Text testID="t">hola</Text>);
     const s = estilo('t');
     expect(s.color).toBe('#1D1B20');
     expect(s.fontSize).toBe(14);
@@ -19,12 +19,12 @@ describe('Text base', () => {
   });
 
   it('oscuro: #E6E0E9', async () => {
-    await renderConTema(<Text testID="t">hola</Text>, { modo: 'dark' });
+    await renderWithTheme(<Text testID="t">hola</Text>, { mode: 'dark' });
     expect(estilo('t').color).toBe('#E6E0E9');
   });
 
   it('un estilo propio hereda altura y letter-spacing', async () => {
-    await renderConTema(
+    await renderWithTheme(
       <Text testID="t" style={{ fontSize: 13, fontWeight: '700' }}>
         hola
       </Text>,
@@ -37,7 +37,7 @@ describe('Text base', () => {
   });
 
   it('variante de la escala M3', async () => {
-    await renderConTema(
+    await renderWithTheme(
       <Text testID="t" variante="labelSmall">
         hola
       </Text>,
@@ -50,7 +50,7 @@ describe('Text base', () => {
   });
 
   it('un Text anidado hereda del padre, como un TextSpan', async () => {
-    await renderConTema(
+    await renderWithTheme(
       <Text style={{ fontSize: 20, color: '#FF0000' }}>
         padre <Text testID="hijo">hijo</Text>
       </Text>,
@@ -61,8 +61,8 @@ describe('Text base', () => {
   });
 
   it('DefaultTextStyle reemplaza la base (lo que hacen los botones de Flutter)', async () => {
-    await renderConTema(
-      <DefaultTextStyle estilo={{ fontSize: 15, fontWeight: '700', letterSpacing: -0.2, color: '#FFFFFF', altura: null }}>
+    await renderWithTheme(
+      <DefaultTextStyle estilo={{ fontSize: 15, fontWeight: '700', letterSpacing: -0.2, color: '#FFFFFF', height: null }}>
         <Text testID="t">Pagar</Text>
       </DefaultTextStyle>,
     );

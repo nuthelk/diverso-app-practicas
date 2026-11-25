@@ -56,7 +56,7 @@ export function ContenidoAgencia({
           <AgencyAvatar agencia={agencia} size={64} />
           <View style={{ width: 14 }} />
           <View style={estilos.flex}>
-            <Text altura={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.encabezadoXl }]}>
+            <Text altura={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.headingXl }]}>
               {agencia.name}
             </Text>
             <View style={{ height: 8 }} />
@@ -70,7 +70,7 @@ export function ContenidoAgencia({
         {descripcion !== '' ? (
           <>
             <View style={{ height: 16 }} />
-            <Text altura={1.5} style={{ fontSize: AppText.cuerpoGrande, color: cs.onSurfaceVariant }}>
+            <Text altura={1.5} style={{ fontSize: AppText.largeBody, color: cs.onSurfaceVariant }}>
               {descripcion}
             </Text>
           </>
@@ -83,7 +83,7 @@ export function ContenidoAgencia({
           <Text>Esta agencia no tiene planes disponibles por ahora.</Text>
         </View>
       ) : (
-        <View style={AppInsets.lista}>
+        <View style={AppInsets.list}>
           {esGrid ? (
             <Grilla
               items={planes}
@@ -93,7 +93,7 @@ export function ContenidoAgencia({
             />
           ) : (
             planes.map((p) => (
-              <View key={p.id} style={AppInsets.entreTarjetas}>
+              <View key={p.id} style={AppInsets.betweenCards}>
                 <PlanCard plan={p} />
               </View>
             ))

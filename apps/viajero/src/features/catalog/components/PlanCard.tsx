@@ -6,7 +6,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { AppRoutes } from '@/router';
 import { Card, Icono, IconButton, PriceText, PuntajePlan, Text, VerifiedBadge } from '@/ui/components';
-import { AppRadios, AppText, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Alto de la portada de la tarjeta (y de su esqueleto). */
 export const ALTO_PORTADA_PLAN = 168;
@@ -84,7 +84,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         <View style={estilos.destino}>
           <Icono nombre="location_on_rounded" size={14} color="#FFFFFF" />
           <View style={{ width: 3 }} />
-          <Text numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: AppText.detalle, flexShrink: 1 }}>
+          <Text numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: AppText.detail, flexShrink: 1 }}>
             {plan.destination}
           </Text>
           <View style={{ width: 8 }} />
@@ -93,14 +93,14 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
             testID="pildora-duracion"
             style={[estilos.pildora, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: AppText.nota, fontWeight: '600' }}>{plan.durationText}</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: AppText.note, fontWeight: '600' }}>{plan.durationText}</Text>
           </View>
         </View>
         {proxima ? (
           <View style={[estilos.cupos, estilos.pildora, { backgroundColor: '#FFFFFF' }]}>
             <Icono nombre="event_available_rounded" size={12} color={cs.primary} />
             <View style={{ width: 3 }} />
-            <Text style={{ fontSize: AppText.nota, fontWeight: '700', color: cs.primary }}>
+            <Text style={{ fontSize: AppText.note, fontWeight: '700', color: cs.primary }}>
               {`${proxima.availableSpots} cupos`}
             </Text>
           </View>
@@ -111,7 +111,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           numberOfLines={2}
           ellipsizeMode="tail"
           altura={1.25}
-          style={{ fontSize: AppText.enfasisGrande, fontWeight: '700', letterSpacing: -0.3 }}
+          style={{ fontSize: AppText.largeEmphasis, fontWeight: '700', letterSpacing: -0.3 }}
         >
           {plan.title}
         </Text>
@@ -134,7 +134,7 @@ function PortadaPlan({ plan }: { plan: Plan }) {
   if (foto === null || fallo) {
     return (
       <View testID="portada-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
-        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
+        <Text style={{ fontSize: AppText.photoEmoji }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       </View>
     );
   }
@@ -171,6 +171,6 @@ const estilos = StyleSheet.create({
   compacto: { width: 32, height: 32, borderRadius: 16 },
   destino: { position: 'absolute', left: 12, bottom: 10, right: 96, flexDirection: 'row', alignItems: 'center' },
   cupos: { position: 'absolute', right: 12, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  pildora: { borderRadius: AppRadios.pill, flexDirection: 'row', alignItems: 'center' },
+  pildora: { borderRadius: AppRadii.pill, flexDirection: 'row', alignItems: 'center' },
   contenido: { paddingLeft: 14, paddingTop: 12, paddingRight: 14, paddingBottom: 14 },
 });

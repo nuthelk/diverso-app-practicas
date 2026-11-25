@@ -6,7 +6,7 @@ import { LABEL_AGENCY_SORT, AgencySort, valuesOf } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { EmptyState, FilledButton, SegmentedButton, Skeleton, TituloPagina } from '@/ui/components';
-import { AppInsets, AppRadios, AppTheme, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
 
 import { AgenciaCard } from '../components/AgenciaCard';
 import { useAgenciasViewModel } from '../view-models/useAgenciasViewModel';
@@ -41,7 +41,7 @@ export function AgenciasView() {
   };
 
   return (
-    <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo={<TituloPagina texto="Agencias" />} />
       <ScrollView
         testID="agencias-scroll"
@@ -56,10 +56,10 @@ export function AgenciasView() {
           </View>
         ) : null}
         {vm.cargando && !vm.hayAgencias ? (
-          <View style={AppInsets.lista}>
+          <View style={AppInsets.list}>
             {[0, 1, 2].map((i) => (
-              <View key={i} style={AppInsets.entreTarjetas}>
-                <Skeleton height={210} radius={AppRadios.card} />
+              <View key={i} style={AppInsets.betweenCards}>
+                <Skeleton height={210} radius={AppRadii.card} />
               </View>
             ))}
           </View>
@@ -78,7 +78,7 @@ export function AgenciasView() {
             mensaje="Cuando una agencia verificada publique planes, la verás aquí."
           />
         ) : (
-          <View testID="lista-agencias" style={AppInsets.lista}>
+          <View testID="lista-agencias" style={AppInsets.list}>
             {esGrid ? (
               <Grilla
                 items={vm.agencias}
@@ -88,7 +88,7 @@ export function AgenciasView() {
               />
             ) : (
               vm.agencias.map((a) => (
-                <View key={a.id} style={AppInsets.entreTarjetas}>
+                <View key={a.id} style={AppInsets.betweenCards}>
                   <AgenciaCard agencia={a} />
                 </View>
               ))

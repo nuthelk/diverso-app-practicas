@@ -4,7 +4,7 @@ import { Animated, StyleSheet, View } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { FilledButton, Icono, IconButton, Text, TextButton } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, Curvas, Duraciones, Sombras, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, Curves, Durations, Shadows, useTheme } from '@/ui/theme';
 
 /** Desde cuántos planes se puede comparar. */
 export const MINIMO_COMPARAR = 2;
@@ -45,8 +45,8 @@ export function BandejaAnimada(props: PropsBandeja) {
     habia.current = hay;
     const animacion = Animated.timing(t, {
       toValue: hay ? 1 : 0,
-      duration: Duraciones.bandejaComparar,
-      easing: (hay ? Curvas.easeOutCubic : Curvas.easeInCubic).fn,
+      duration: Durations.compareTray,
+      easing: (hay ? Curves.easeOutCubic : Curves.easeInCubic).fn,
       useNativeDriver: false,
     });
     animacion.start(({ finished }) => {
@@ -88,11 +88,11 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
       testID="bandeja-comparar"
       style={[
         estilos.bandeja,
-        Sombras.bandeja,
+        Shadows.tray,
         {
           backgroundColor: cs.surfaceContainerLowest,
           // Borde sutil además de la sombra: en oscuro la sombra casi no se ve.
-          borderColor: conAlfa(cs.outlineVariant, 0.6),
+          borderColor: withAlpha(cs.outlineVariant, 0.6),
           // Sin inset inferior: la barra de pestañas va debajo y ya consume el de la barra de gestos.
           paddingBottom: 14,
         },
@@ -100,8 +100,8 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
     >
       <View style={estilos.fila}>
         <View style={estilos.flex}>
-          <Text style={{ fontSize: AppText.enfasis, fontWeight: '800', letterSpacing: -0.2 }}>{`${n} de ${maximo} planes`}</Text>
-          {pista ? <Text style={{ fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant }}>{pista}</Text> : null}
+          <Text style={{ fontSize: AppText.emphasis, fontWeight: '800', letterSpacing: -0.2 }}>{`${n} de ${maximo} planes`}</Text>
+          {pista ? <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{pista}</Text> : null}
         </View>
         <TextButton texto="Limpiar" onPress={onLimpiar} />
       </View>
@@ -135,7 +135,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
       <View testID="foto-miniatura" style={[estilos.miniatura, { height: ALTO_MINIATURA }]}>
         {foto === null || fallo ? (
           <View style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
-            <Text style={{ fontSize: AppText.encabezadoS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
+            <Text style={{ fontSize: AppText.headingS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
           </View>
         ) : (
           <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} onError={() => setFallo(true)} accessible={false} />
@@ -146,7 +146,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
             icono="close_rounded"
             tamanoIcono={14}
             tooltip={`Quitar ${plan.title} de la comparación`}
-            colorFondo={tema.diverso.controlSobreFoto}
+            colorFondo={tema.diverso.controlOverPhoto}
             colorIcono="#FFFFFF"
             style={estilos.quitarBoton}
             onPress={onQuitar}
@@ -154,7 +154,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
         </View>
       </View>
       <View style={{ height: 4 }} />
-      <Text numberOfLines={1} altura={1.2} style={{ fontSize: AppText.etiqueta, fontWeight: '600' }}>
+      <Text numberOfLines={1} altura={1.2} style={{ fontSize: AppText.label, fontWeight: '600' }}>
         {plan.title}
       </Text>
     </View>
@@ -173,7 +173,7 @@ function Hueco() {
           estilos.centro,
           {
             height: ALTO_MINIATURA,
-            backgroundColor: conAlfa(cs.surfaceContainerHigh, 0.4),
+            backgroundColor: withAlpha(cs.surfaceContainerHigh, 0.4),
             borderWidth: 1,
             borderColor: cs.outlineVariant,
           },
@@ -188,8 +188,8 @@ function Hueco() {
 
 const estilos = StyleSheet.create({
   bandeja: {
-    borderTopLeftRadius: AppRadios.card,
-    borderTopRightRadius: AppRadios.card,
+    borderTopLeftRadius: AppRadii.card,
+    borderTopRightRadius: AppRadii.card,
     borderWidth: 1,
     borderBottomWidth: 0,
     paddingLeft: 16,
@@ -199,7 +199,7 @@ const estilos = StyleSheet.create({
   fila: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
   centro: { alignItems: 'center', justifyContent: 'center' },
-  miniatura: { borderRadius: AppRadios.control, overflow: 'hidden' },
+  miniatura: { borderRadius: AppRadii.control, overflow: 'hidden' },
   quitar: { position: 'absolute', top: 2, right: 2 },
   quitarBoton: { width: 24, height: 24, borderRadius: 12 },
 });

@@ -6,7 +6,7 @@ import { Text } from '../Text';
 
 /** `TituloPagina.estilo(cs)`: 28 w800 ls -1 onSurface (la altura 1.1 va con `altura`). */
 export function estiloTituloPagina(cs: ColorScheme): TextStyle {
-  return { fontSize: AppText.tituloPagina, fontWeight: '800', letterSpacing: -1, color: cs.onSurface };
+  return { fontSize: AppText.pageTitle, fontWeight: '800', letterSpacing: -1, color: cs.onSurface };
 }
 
 /** Título de pestaña (Explorar, Agencias, Reservas, Perfil): grande, una línea, encabezado. */

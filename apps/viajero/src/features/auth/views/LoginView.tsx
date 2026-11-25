@@ -87,7 +87,7 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
 
   if (ancha) {
     return (
-      <View style={[estilos.fila, { backgroundColor: tema.fondoPagina }]}>
+      <View style={[estilos.fila, { backgroundColor: tema.pageBackground }]}>
         <View style={estilos.mitad}>
           <PanelMarca />
         </View>
@@ -98,12 +98,12 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
     );
   }
   return (
-    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       {/* Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
           esto el teclado taparía «Entrar». `padding` en ambas: con `height` el KAV pierde el flex. */}
       <KeyboardAvoidingView testID="teclado-login" style={estilos.pantalla} behavior="padding">
         <ScrollView
-          contentContainerStyle={[AppInsets.pantalla, estilos.centrado]}
+          contentContainerStyle={[AppInsets.screen, estilos.centrado]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >

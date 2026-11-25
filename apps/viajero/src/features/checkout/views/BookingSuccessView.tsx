@@ -27,8 +27,8 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
   const itinerario = booking.plan?.itinerary ?? [];
 
   return (
-    <SafeAreaView testID="booking-success" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <ScrollView contentContainerStyle={[estilos.centro, AppInsets.pantalla]}>
+    <SafeAreaView testID="booking-success" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
+      <ScrollView contentContainerStyle={[estilos.centro, AppInsets.screen]}>
         <View style={estilos.columna}>
           <EscalaElastica>
             <View style={[estilos.circulo, { backgroundColor: cs.primaryContainer }]}>
@@ -39,12 +39,12 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
           <Aparecer paso={0}>
             <Text
               accessibilityRole="header"
-              style={[estilos.centrado, { fontSize: AppText.encabezado3xl, fontWeight: '800', letterSpacing: -0.8, color: cs.onSurface }]}
+              style={[estilos.centrado, { fontSize: AppText.heading3xl, fontWeight: '800', letterSpacing: -0.8, color: cs.onSurface }]}
             >
               ¡Listo, nos vemos ahí!
             </Text>
             <View style={{ height: 6 }} />
-            <Text style={[estilos.centrado, { fontSize: AppText.cuerpo, color: cs.onSurfaceVariant }]}>
+            <Text style={[estilos.centrado, { fontSize: AppText.body, color: cs.onSurfaceVariant }]}>
               Tu reserva está confirmada y el cupo es tuyo.
             </Text>
           </Aparecer>

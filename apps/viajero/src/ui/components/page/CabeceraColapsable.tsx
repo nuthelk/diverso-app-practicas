@@ -116,7 +116,7 @@ export function CabeceraColapsable({
   const { contentContainerStyle, ...restoScroll } = scrollViewProps ?? {};
 
   return (
-    <View style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {enfocada && fotoALaVista ? <StatusBar style="light" /> : null}
       <Animated.ScrollView
         testID="cabecera-scroll"
@@ -133,7 +133,7 @@ export function CabeceraColapsable({
         pointerEvents="box-none"
         style={[
           estilos.cabecera,
-          { height: alturaExpandida, backgroundColor: tema.fondoPagina, transform: [{ translateY: subir }] },
+          { height: alturaExpandida, backgroundColor: tema.pageBackground, transform: [{ translateY: subir }] },
         ]}
       >
         <Animated.View
@@ -164,7 +164,7 @@ export function CabeceraColapsable({
         {conCapaSolida ? (
           <Animated.View
             pointerEvents="none"
-            style={[StyleSheet.absoluteFill, { opacity: opacidadSolida, backgroundColor: tema.fondoPagina }]}
+            style={[StyleSheet.absoluteFill, { opacity: opacidadSolida, backgroundColor: tema.pageBackground }]}
           >
             <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: desplazado }] }]}>
               <View
@@ -175,7 +175,7 @@ export function CabeceraColapsable({
                   testID="cabecera-titulo"
                   numberOfLines={1}
                   ellipsizeMode="tail"
-                  style={{ fontSize: AppText.encabezadoXs, fontWeight: '800', letterSpacing: -0.4, color: tema.colorScheme.onSurface }}
+                  style={{ fontSize: AppText.headingXs, fontWeight: '800', letterSpacing: -0.4, color: tema.colorScheme.onSurface }}
                 >
                   {titulo}
                 </Text>

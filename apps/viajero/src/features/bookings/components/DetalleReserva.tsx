@@ -13,7 +13,7 @@ import {
   Text,
   TextButton,
 } from '@/ui/components';
-import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { cuentaRegresiva, textoPersonas, textoSalida } from '../reserva-formato';
 import { FilaDato } from './FilaDato';
@@ -53,14 +53,14 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
       fondo={<FotoReserva booking={booking} />}
     >
       <View style={{ paddingLeft: 22, paddingRight: 22, paddingTop: 20, paddingBottom: 28 + abajo }}>
-        <Text altura={1.15} style={{ fontSize: AppText.encabezadoXl, fontWeight: '800', letterSpacing: -0.7 }}>
+        <Text altura={1.15} style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.7 }}>
           {titulo}
         </Text>
         {agencia !== null ? (
           <View style={[estilos.fila, { marginTop: 8 }]}>
             <Icono nombre="storefront_outlined" size={16} color={cs.onSurfaceVariant} />
             <View style={{ width: 6 }} />
-            <Text style={[estilos.flex, { fontSize: AppText.cuerpo, fontWeight: '600', color: cs.onSurfaceVariant }]}>
+            <Text style={[estilos.flex, { fontSize: AppText.body, fontWeight: '600', color: cs.onSurfaceVariant }]}>
               {agencia}
             </Text>
           </View>
@@ -105,7 +105,7 @@ function ResumenReserva({ booking }: { booking: Booking }) {
   const pago = booking.payment;
   const etiquetaReembolso = booking.refundLabel;
   return (
-    <View style={[AppInsets.tarjetaAmplia, { backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card }]}>
+    <View style={[AppInsets.wideCard, { backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card }]}>
       {salida !== null ? (
         <>
           <FilaDato icono="event_rounded" texto={salida} acento={cuentaRegresiva(booking)} />
@@ -173,7 +173,7 @@ function AccionesDetalleReserva({
           <View style={estilos.fila}>
             <Icono nombre="rate_review_rounded" size={15} color={cs.primary} />
             <View style={{ width: 6 }} />
-            <Text style={{ fontSize: AppText.detalle, color: cs.primary }}>Ya dejaste tu reseña</Text>
+            <Text style={{ fontSize: AppText.detail, color: cs.primary }}>Ya dejaste tu reseña</Text>
           </View>
           <View style={{ height: 10 }} />
         </>
@@ -187,7 +187,7 @@ function AccionesDetalleReserva({
           <OutlinedButton
             accessibilityLabel="Cancelar"
             onPress={onCancelar}
-            style={[estilos.flex, { borderColor: conAlfa(cs.error, 0.5) }]}
+            style={[estilos.flex, { borderColor: withAlpha(cs.error, 0.5) }]}
           >
             <Text style={{ color: cs.error }}>Cancelar</Text>
           </OutlinedButton>

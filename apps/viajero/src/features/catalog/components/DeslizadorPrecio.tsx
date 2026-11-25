@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { StyleSheet, View, type GestureResponderEvent, type LayoutChangeEvent } from 'react-native';
 
 import { Text } from '@/ui/components';
-import { AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 const ALTO = 48;
 const PULGAR = 20;
@@ -88,7 +88,7 @@ export function DeslizadorPrecio({
                   key={i}
                   style={[
                     estilos.marca,
-                    { left: xi - 1, backgroundColor: xi <= x ? conAlfa(cs.onPrimary, 0.38) : conAlfa(cs.onSurfaceVariant, 0.38) },
+                    { left: xi - 1, backgroundColor: xi <= x ? withAlpha(cs.onPrimary, 0.38) : withAlpha(cs.onSurfaceVariant, 0.38) },
                   ]}
                 />
               );
@@ -97,7 +97,7 @@ export function DeslizadorPrecio({
         <View style={[estilos.pulgar, { left: x - PULGAR / 2, backgroundColor: cs.primary }]} />
         {arrastrando ? (
           <View style={[estilos.burbuja, { left: x - 50, backgroundColor: cs.primary }]}>
-            <Text numberOfLines={1} style={{ color: cs.onPrimary, fontSize: AppText.leyenda, fontWeight: '600' }}>
+            <Text numberOfLines={1} style={{ color: cs.onPrimary, fontSize: AppText.caption, fontWeight: '600' }}>
               {etiqueta(valor)}
             </Text>
           </View>

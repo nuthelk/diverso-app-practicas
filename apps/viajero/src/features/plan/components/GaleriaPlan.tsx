@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { Curvas, Duraciones, useTheme } from '@/ui/theme';
+import { Curves, Durations, useTheme } from '@/ui/theme';
 
 /**
  * Fondo de la cabecera de la ficha: sin fotos, primaryContainer; con fotos, una galería que se
@@ -16,8 +16,8 @@ export function GaleriaPlan({ fotos }: { fotos: readonly string[] }) {
   useEffect(() => {
     const animacion = Animated.timing(escala, {
       toValue: 1,
-      duration: Duraciones.galeria,
-      easing: Curvas.easeOutCubic.fn,
+      duration: Durations.gallery,
+      easing: Curves.easeOutCubic.fn,
       useNativeDriver: true,
     });
     animacion.start();

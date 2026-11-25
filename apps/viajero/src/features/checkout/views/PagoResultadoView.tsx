@@ -45,7 +45,7 @@ export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoVie
   }, [aprobado, router]);
 
   return (
-    <View testID="pantalla-PagoResultadoView" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-PagoResultadoView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Resultado del pago" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       <Contenido vm={vm} irAReservas={() => irA(router, AppRoutes.reservas)} reintentar={(id) => void vm.intentarDeNuevo(id, abrirPago)} />
       {modalPago}

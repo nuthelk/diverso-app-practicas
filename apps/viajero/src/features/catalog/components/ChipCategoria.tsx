@@ -3,7 +3,7 @@ import { Animated, Pressable, StyleSheet } from 'react-native';
 
 import { LABEL_EXPERIENCE_CATEGORY, type ExperienceCategory } from '@/core';
 import { Icono, Text, type IconoNombre } from '@/ui/components';
-import { AppRadios, AppText, Curvas, Duraciones, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, Curves, Durations, useTheme } from '@/ui/theme';
 
 const ICONOS: Record<ExperienceCategory, IconoNombre> = {
   aventura: 'hiking_rounded',
@@ -33,8 +33,8 @@ export function ChipCategoria({
   useEffect(() => {
     const animacion = Animated.timing(t, {
       toValue: seleccionada ? 1 : 0,
-      duration: Duraciones.chipCategoria,
-      easing: Curvas.easeOut.fn,
+      duration: Durations.categoryChip,
+      easing: Curves.easeOut.fn,
       useNativeDriver: false,
     });
     animacion.start();
@@ -61,7 +61,7 @@ export function ChipCategoria({
         ]}
       >
         <Icono nombre={ICONOS[categoria]} size={16} color={contenido} />
-        <Text style={{ marginLeft: 6, fontSize: AppText.detalle, fontWeight: '600', color: contenido }}>{etiqueta}</Text>
+        <Text style={{ marginLeft: 6, fontSize: AppText.detail, fontWeight: '600', color: contenido }}>{etiqueta}</Text>
       </Animated.View>
     </Pressable>
   );
@@ -71,7 +71,7 @@ const estilos = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: AppRadios.pill,
+    borderRadius: AppRadii.pill,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 9,

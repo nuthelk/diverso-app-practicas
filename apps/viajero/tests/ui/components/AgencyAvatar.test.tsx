@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { AgencyAvatar, colorDeAgencia, hashFnv1a } from '@/ui/components';
 
-import { renderConTema } from '../support/conTema';
+import { renderWithTheme } from '../support/render-with-theme';
 
 const estilo = (el: { props: { style?: unknown } }) =>
   StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
@@ -34,7 +34,7 @@ describe('AgencyAvatar', () => {
   const agencia = { id: 'ag-rutas', initials: 'RA', logoUrl: null };
 
   it('sin logo: iniciales blancas w800 sobre el color de la agencia', async () => {
-    await renderConTema(<AgencyAvatar agencia={agencia} />);
+    await renderWithTheme(<AgencyAvatar agencia={agencia} />);
     const iniciales = screen.getByText('RA');
     const s = estilo(iniciales);
     expect(s.color).toBe('#FFFFFF');
@@ -49,13 +49,13 @@ describe('AgencyAvatar', () => {
   });
 
   it('logo vacío cuenta como sin logo', async () => {
-    await renderConTema(<AgencyAvatar agencia={{ ...agencia, logoUrl: '' }} size={60} />);
+    await renderWithTheme(<AgencyAvatar agencia={{ ...agencia, logoUrl: '' }} size={60} />);
     expect(screen.getByText('RA')).toBeOnTheScreen();
     expect(screen.queryByTestId('agency-avatar-logo')).toBeNull();
   });
 
   it('con logo muestra la imagen y, si falla, las iniciales', async () => {
-    await renderConTema(
+    await renderWithTheme(
       <AgencyAvatar agencia={{ ...agencia, logoUrl: 'https://x.test/logo.png' }} />,
     );
     const logo = screen.getByTestId('agency-avatar-logo');

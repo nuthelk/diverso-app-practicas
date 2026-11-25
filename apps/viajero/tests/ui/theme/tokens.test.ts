@@ -1,12 +1,12 @@
 import {
   AppInsets,
-  AppRadios,
+  AppRadii,
   AppText,
   AppTheme,
   DiversoColors,
-  conAlfa,
-  temaClaro,
-  temaOscuro,
+  withAlpha,
+  lightTheme,
+  darkTheme,
 } from '@/ui/theme';
 
 /**
@@ -16,14 +16,14 @@ import {
  */
 describe('marca y breakpoint', () => {
   it('semillas y breakpoint único', () => {
-    expect(AppTheme.seedViajero).toBe('#0E6E4F');
+    expect(AppTheme.seedTraveler).toBe('#0E6E4F');
     expect(AppTheme.seedPanel).toBe('#2D4A73');
     expect(AppTheme.bpCompact).toBe(640);
   });
 });
 
 describe('ColorScheme resuelto', () => {
-  const claro: Record<string, string> = {
+  const light: Record<string, string> = {
     primary: '#1F6A4F',
     onPrimary: '#FFFFFF',
     primaryContainer: '#A8F2CE',
@@ -59,7 +59,7 @@ describe('ColorScheme resuelto', () => {
     scrim: '#000000',
     surfaceTint: '#1F6A4F',
   };
-  const oscuro: Record<string, string> = {
+  const dark: Record<string, string> = {
     primary: '#8CD5B3',
     onPrimary: '#003826',
     primaryContainer: '#005139',
@@ -97,52 +97,52 @@ describe('ColorScheme resuelto', () => {
   };
 
   it('claro: cada rol con su hex literal', () => {
-    expect(temaClaro.colorScheme).toEqual(claro);
+    expect(lightTheme.colorScheme).toEqual(light);
   });
 
   it('oscuro: cada rol con su hex literal', () => {
-    expect(temaOscuro.colorScheme).toEqual(oscuro);
+    expect(darkTheme.colorScheme).toEqual(dark);
   });
 
   it('brillo de cada tema', () => {
-    expect(temaClaro.brillo).toBe('light');
-    expect(temaOscuro.brillo).toBe('dark');
+    expect(lightTheme.brightness).toBe('light');
+    expect(darkTheme.brightness).toBe('dark');
   });
 });
 
 describe('fondo de página y texto por defecto', () => {
   it('el fondo de página NO es surface', () => {
-    expect(temaClaro.fondoPagina).toBe('#FAFAF8');
-    expect(temaOscuro.fondoPagina).toBe('#101312');
-    expect(temaClaro.fondoPagina).not.toBe(temaClaro.colorScheme.surface);
+    expect(lightTheme.pageBackground).toBe('#FAFAF8');
+    expect(darkTheme.pageBackground).toBe('#101312');
+    expect(lightTheme.pageBackground).not.toBe(lightTheme.colorScheme.surface);
   });
 
   it('el color del texto por defecto es el neutro M3 baseline, no onSurface', () => {
-    expect(temaClaro.colorTexto).toBe('#1D1B20');
-    expect(temaOscuro.colorTexto).toBe('#E6E0E9');
-    expect(temaClaro.colorTexto).not.toBe(temaClaro.colorScheme.onSurface);
+    expect(lightTheme.textColor).toBe('#1D1B20');
+    expect(darkTheme.textColor).toBe('#E6E0E9');
+    expect(lightTheme.textColor).not.toBe(lightTheme.colorScheme.onSurface);
   });
 });
 
 describe('DiversoColors', () => {
   it('valores literales, iguales en claro y oscuro', () => {
-    const esperado = {
-      dorado: '#E8A33D',
-      estadoConfirmada: '#1B7A4B',
-      estadoPendiente: '#B25E09',
-      estadoCancelada: '#B3261E',
-      estadoCerrada: '#4A5C6E',
-      pocosCupos: '#EF6C00',
-      selloSobreFoto: 'rgba(0, 0, 0, 0.66)',
-      controlSobreFoto: 'rgba(0, 0, 0, 0.62)',
-      sombraInsignia: 'rgba(0, 0, 0, 0.25)',
+    const expected = {
+      gold: '#E8A33D',
+      statusConfirmed: '#1B7A4B',
+      statusPending: '#B25E09',
+      statusCancelled: '#B3261E',
+      statusClosed: '#4A5C6E',
+      fewSpots: '#EF6C00',
+      sealOverPhoto: 'rgba(0, 0, 0, 0.66)',
+      controlOverPhoto: 'rgba(0, 0, 0, 0.62)',
+      badgeShadow: 'rgba(0, 0, 0, 0.25)',
     };
-    expect(temaClaro.diverso).toEqual(esperado);
-    expect(temaOscuro.diverso).toEqual(esperado);
+    expect(lightTheme.diverso).toEqual(expected);
+    expect(darkTheme.diverso).toEqual(expected);
   });
 
   it('paleta de agencias en su orden', () => {
-    expect(DiversoColors.paletaAgencias).toEqual([
+    expect(DiversoColors.agencyPalette).toEqual([
       '#0E6E4F',
       '#2D4A73',
       '#7A4A21',
@@ -155,11 +155,11 @@ describe('DiversoColors', () => {
   });
 });
 
-describe('conAlfa', () => {
+describe('withAlpha', () => {
   it('equivale a Color.withValues(alpha:) de Flutter', () => {
-    expect(conAlfa('#1F6A4F', 0.1)).toBe('rgba(31, 106, 79, 0.1)');
-    expect(conAlfa('#BFC9C2', 0.5)).toBe('rgba(191, 201, 194, 0.5)');
-    expect(conAlfa('#FFFFFF', 0.05)).toBe('rgba(255, 255, 255, 0.05)');
+    expect(withAlpha('#1F6A4F', 0.1)).toBe('rgba(31, 106, 79, 0.1)');
+    expect(withAlpha('#BFC9C2', 0.5)).toBe('rgba(191, 201, 194, 0.5)');
+    expect(withAlpha('#FFFFFF', 0.05)).toBe('rgba(255, 255, 255, 0.05)');
   });
 });
 
@@ -167,54 +167,54 @@ describe('escala de tamaños, espaciados y radios', () => {
   it('AppText', () => {
     expect(AppText).toEqual({
       micro: 10.5,
-      nota: 11,
-      etiqueta: 11.5,
-      leyenda: 12,
-      leyendaGrande: 12.5,
-      detalle: 13,
-      cuerpoChico: 13.5,
-      cuerpo: 14,
-      cuerpoGrande: 14.5,
-      enfasis: 15,
-      enfasisGrande: 15.5,
-      subtitulo: 16,
-      subtituloGrande: 17,
-      encabezadoXs: 19,
-      encabezadoS: 20,
-      encabezadoM: 21,
-      encabezadoL: 22,
-      encabezadoXl: 24,
-      encabezado2xl: 25,
-      encabezado3xl: 26,
-      tituloPagina: 28,
-      cifra: 30,
-      emojiFoto: 40,
-      marca: 42,
+      note: 11,
+      label: 11.5,
+      caption: 12,
+      largeCaption: 12.5,
+      detail: 13,
+      smallBody: 13.5,
+      body: 14,
+      largeBody: 14.5,
+      emphasis: 15,
+      largeEmphasis: 15.5,
+      subtitle: 16,
+      largeSubtitle: 17,
+      headingXs: 19,
+      headingS: 20,
+      headingM: 21,
+      headingL: 22,
+      headingXl: 24,
+      heading2xl: 25,
+      heading3xl: 26,
+      pageTitle: 28,
+      figure: 30,
+      photoEmoji: 40,
+      brand: 42,
     });
   });
 
   it('AppInsets como padding de RN', () => {
-    expect(AppInsets.lista).toEqual({
+    expect(AppInsets.list).toEqual({
       paddingLeft: 20,
       paddingTop: 4,
       paddingRight: 20,
       paddingBottom: 24,
     });
-    expect(AppInsets.listaConAire).toEqual({
+    expect(AppInsets.roomyList).toEqual({
       paddingLeft: 20,
       paddingTop: 8,
       paddingRight: 20,
       paddingBottom: 24,
     });
-    expect(AppInsets.entreTarjetas).toEqual({ paddingBottom: 14 });
-    expect(AppInsets.tarjeta).toEqual({ padding: 14 });
-    expect(AppInsets.tarjetaAmplia).toEqual({ padding: 16 });
-    expect(AppInsets.tarjetaGrande).toEqual({ padding: 18 });
-    expect(AppInsets.contenido).toEqual({ padding: 20 });
-    expect(AppInsets.pantalla).toEqual({ padding: 24 });
+    expect(AppInsets.betweenCards).toEqual({ paddingBottom: 14 });
+    expect(AppInsets.card).toEqual({ padding: 14 });
+    expect(AppInsets.wideCard).toEqual({ padding: 16 });
+    expect(AppInsets.largeCard).toEqual({ padding: 18 });
+    expect(AppInsets.content).toEqual({ padding: 20 });
+    expect(AppInsets.screen).toEqual({ padding: 24 });
   });
 
-  it('AppRadios', () => {
-    expect(AppRadios).toEqual({ field: 14, control: 12, card: 20, sheet: 28, pill: 999 });
+  it('AppRadii', () => {
+    expect(AppRadii).toEqual({ field: 14, control: 12, card: 20, sheet: 28, pill: 999 });
   });
 });

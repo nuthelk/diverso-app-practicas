@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes';
 
-import { renderConTema } from '../../../ui/support/conTema';
+import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -12,7 +12,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 const MENSAJE = 'Debes aceptar ambos documentos para crear tu cuenta.';
 
 async function abrir(props: { aceptaDatos?: boolean; aceptaTerminos?: boolean; mostrarError?: boolean } = {}) {
-  await renderConTema(
+  await renderWithTheme(
     <ConsentCheckboxes
       aceptaDatos={props.aceptaDatos ?? false}
       aceptaTerminos={props.aceptaTerminos ?? false}

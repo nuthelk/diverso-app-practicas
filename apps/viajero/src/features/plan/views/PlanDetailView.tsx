@@ -17,7 +17,7 @@ import {
   TarjetaCancelacion,
   Text,
 } from '@/ui/components';
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { BarraReserva } from '../components/BarraReserva';
 import { GaleriaPlan } from '../components/GaleriaPlan';
@@ -87,7 +87,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
   }
 
   return (
-    <View testID="pantalla-PlanDetailView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
+    <View testID="pantalla-PlanDetailView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {cuerpo}
     </View>
   );
@@ -99,7 +99,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
   const incluyeAlgo = plan.includes.length > 0 || plan.includesTransport || plan.includesFood || plan.includesLodging;
   return (
     <View testID="ficha-columna" style={estilos.contenido}>
-      <Text altura={1.15} accessibilityRole="header" style={{ fontSize: AppText.encabezado3xl, fontWeight: '800', letterSpacing: -0.8 }}>
+      <Text altura={1.15} accessibilityRole="header" style={{ fontSize: AppText.heading3xl, fontWeight: '800', letterSpacing: -0.8 }}>
         {plan.title}
       </Text>
       <View style={{ height: 8 }} />
@@ -110,7 +110,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <View style={estilos.flex} />
         <View style={[estilos.duracion, { backgroundColor: cs.secondaryContainer }]}>
           <Icono nombre="schedule_rounded" size={14} color={cs.onSecondaryContainer} />
-          <Text style={{ marginLeft: 4, fontSize: AppText.leyenda, fontWeight: '700', color: cs.onSecondaryContainer }}>
+          <Text style={{ marginLeft: 4, fontSize: AppText.caption, fontWeight: '700', color: cs.onSecondaryContainer }}>
             {plan.durationText}
           </Text>
         </View>
@@ -123,7 +123,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
       {plan.description !== '' ? (
         <>
           <SectionLabel texto="La experiencia" />
-          <Text altura={1.55} style={{ fontSize: AppText.cuerpoGrande, color: conAlfa(cs.onSurface, 0.85) }}>
+          <Text altura={1.55} style={{ fontSize: AppText.largeBody, color: withAlpha(cs.onSurface, 0.85) }}>
             {plan.description}
           </Text>
           <View style={{ height: 24 }} />
@@ -160,7 +160,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
           <SectionLabel texto="Punto de encuentro" />
           <View style={estilos.fila}>
             <Icono nombre="flag_rounded" size={17} color={cs.primary} />
-            <Text style={{ marginLeft: 8, flex: 1, fontSize: AppText.cuerpoGrande }}>{plan.meetingPoint}</Text>
+            <Text style={{ marginLeft: 8, flex: 1, fontSize: AppText.largeBody }}>{plan.meetingPoint}</Text>
           </View>
           <View style={{ height: 24 }} />
         </>
@@ -180,7 +180,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <>
           <View style={{ height: 24 }} />
           <SectionLabel texto={`Reseñas verificadas (${plan.reviewsCount})`} />
-          <Text style={{ color: cs.onSurfaceVariant, fontSize: AppText.detalle }}>Carga al volver a abrir…</Text>
+          <Text style={{ color: cs.onSurfaceVariant, fontSize: AppText.detail }}>Carga al volver a abrir…</Text>
         </>
       ) : null}
     </View>
@@ -208,7 +208,7 @@ const estilos = StyleSheet.create({
   duracion: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: AppRadios.pill,
+    borderRadius: AppRadii.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },

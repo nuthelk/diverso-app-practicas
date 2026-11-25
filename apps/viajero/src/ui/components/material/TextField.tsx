@@ -11,7 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Curvas, Duraciones, familiaRoboto, textTheme, useTheme } from '@/ui/theme';
+import { Curves, Durations, robotoFamily, textTheme, useTheme } from '@/ui/theme';
 
 import { Icono, type IconoNombre } from '../Icono';
 import { Text } from '../Text';
@@ -91,7 +91,7 @@ export function TextField({
 }: TextFieldProps) {
   const tema = useTheme();
   const cs = tema.colorScheme;
-  const input = tema.componentes.input;
+  const input = tema.components.input;
   const [foco, setFoco] = useState(false);
   const campo = useRef<ComponentRef<typeof TextInput>>(null);
   const hayError = !!error;
@@ -105,15 +105,15 @@ export function TextField({
     flotaAntes.current = flota;
     const animacion = Animated.timing(progreso, {
       toValue: flota ? 1 : 0,
-      duration: Duraciones.campoTexto,
-      easing: Curvas.fastOutSlowIn.fn,
+      duration: Durations.textField,
+      easing: Curves.fastOutSlowIn.fn,
       useNativeDriver: false,
     });
     animacion.start();
     return () => animacion.stop();
   }, [flota, progreso]);
 
-  const borde = hayError ? (foco ? input.bordeFocoError : input.bordeError) : foco ? input.bordeFoco : null;
+  const borde = hayError ? (foco ? input.focusErrorBorder : input.errorBorder) : foco ? input.focusBorder : null;
   const anchoBorde = borde?.width ?? 0;
   const izquierdaContenido = icono ? ANCHO_PREFIJO + 4 : IZQUIERDA;
   const { arriba, abajo, altoContenido, altoCaja, topReposo, topFlotando } = medidasCampo({
@@ -123,7 +123,7 @@ export function TextField({
   });
 
   const colorEtiqueta = hayError ? cs.error : foco ? cs.primary : cs.onSurfaceVariant;
-  const fuente = Platform.OS === 'android' || Platform.OS === 'web' ? familiaRoboto('400') : undefined;
+  const fuente = Platform.OS === 'android' || Platform.OS === 'web' ? robotoFamily('400') : undefined;
   const cuerpo = textTheme.bodyLarge;
 
   return (
@@ -138,7 +138,7 @@ export function TextField({
           estilos.caja,
           {
             backgroundColor: input.fillColor,
-            borderRadius: input.radio,
+            borderRadius: input.radius,
             minHeight: altoCaja,
             borderColor: borde?.color ?? 'transparent',
             borderWidth: anchoBorde,
@@ -169,8 +169,8 @@ export function TextField({
           placeholder={pista}
           placeholderTextColor={cs.onSurfaceVariant}
           accessibilityLabel={resto.accessibilityLabel ?? etiqueta ?? pista}
-          cursorColor={hayError ? input.cursorError : input.cursor}
-          selectionColor={hayError ? input.cursorError : input.cursor}
+          cursorColor={hayError ? input.errorCursor : input.cursor}
+          selectionColor={hayError ? input.errorCursor : input.cursor}
           onFocus={(e) => {
             setFoco(true);
             onFocus?.(e);
@@ -184,7 +184,7 @@ export function TextField({
             {
               fontSize: cuerpo.fontSize,
               letterSpacing: cuerpo.letterSpacing,
-              color: tema.colorTexto,
+              color: tema.textColor,
               fontFamily: fuente,
               minHeight: altoContenido,
             },

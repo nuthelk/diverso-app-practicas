@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Platform } from 'react-native';
 
-import { Curvas, Duraciones, intervalo, TransicionesDePagina } from '@/ui/theme';
+import { Curves, Durations, interval, PageTransitions } from '@/ui/theme';
 
 const ESCALON = 0.14;
 
@@ -18,8 +18,8 @@ export function Aparecer({ paso, children }: { paso: number; children: ReactNode
     const fin = Math.min(Math.max(inicio + 0.42, 0), 1);
     const animacion = Animated.timing(t, {
       toValue: 1,
-      duration: Duraciones.aparecer,
-      easing: intervalo(inicio, fin, Curvas.easeOutCubic.fn),
+      duration: Durations.appear,
+      easing: interval(inicio, fin, Curves.easeOutCubic.fn),
       useNativeDriver: Platform.OS !== 'web',
     });
     animacion.start();
@@ -46,8 +46,8 @@ export function EscalaElastica({ children }: { children: ReactNode }) {
   useEffect(() => {
     const animacion = Animated.timing(t, {
       toValue: 1,
-      duration: Duraciones.checkConfirmacion,
-      easing: Curvas.elasticOut,
+      duration: Durations.confirmationCheck,
+      easing: Curves.elasticOut,
       useNativeDriver: Platform.OS !== 'web',
     });
     animacion.start();
@@ -58,7 +58,7 @@ export function EscalaElastica({ children }: { children: ReactNode }) {
 
 /**
  * Escala de `DiversoPageTransitions.zoomIn` (0.9 → 1 con easeOutBack, 440 ms) para
- * `/reserva/:bookingId`. El stack nativo solo hace el fundido (`opcionesDePantalla.zoomIn`): la
+ * `/reserva/:bookingId`. El stack nativo solo hace el fundido (`screenOptions.zoomIn`): la
  * escala se pone aquí para que la confirmación entre con el mismo «zoom» que en Flutter.
  */
 export function EntradaZoom({ children, testID }: { children: ReactNode; testID?: string }) {
@@ -66,8 +66,8 @@ export function EntradaZoom({ children, testID }: { children: ReactNode; testID?
   useEffect(() => {
     const animacion = Animated.timing(t, {
       toValue: 1,
-      duration: TransicionesDePagina.zoomIn.duracion,
-      easing: Curvas.easeOutBack.fn,
+      duration: PageTransitions.zoomIn.duration,
+      easing: Curves.easeOutBack.fn,
       useNativeDriver: Platform.OS !== 'web',
     });
     animacion.start();

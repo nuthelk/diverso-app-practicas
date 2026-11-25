@@ -53,7 +53,7 @@ export function FormularioLogin({
   const cs = useTheme().colorScheme;
   const router = useRouter();
   const [verClave, setVerClave] = useState(false);
-  const pie = { fontSize: AppText.leyendaGrande, fontWeight: '600' as const, color: cs.onSurfaceVariant };
+  const pie = { fontSize: AppText.largeCaption, fontWeight: '600' as const, color: cs.onSurfaceVariant };
 
   return (
     <View style={estilos.formulario}>
@@ -74,7 +74,7 @@ export function FormularioLogin({
       ) : null}
       <Text
         style={[
-          { fontSize: AppText.cuerpoGrande, color: cs.onSurfaceVariant },
+          { fontSize: AppText.largeBody, color: cs.onSurfaceVariant },
           vm.esRegistro ? null : estilos.fraseCentrada,
         ]}
       >
@@ -145,7 +145,7 @@ export function FormularioLogin({
       {vm.error !== null ? (
         <View accessibilityRole="alert" style={[estilos.aviso, { backgroundColor: cs.errorContainer }]}>
           <Icono nombre="error_outline_rounded" size={20} color={cs.onErrorContainer} />
-          <Text style={{ flex: 1, color: cs.onErrorContainer, fontSize: AppText.cuerpoChico }}>{vm.error}</Text>
+          <Text style={{ flex: 1, color: cs.onErrorContainer, fontSize: AppText.smallBody }}>{vm.error}</Text>
         </View>
       ) : null}
       <View style={{ height: 24 }} />
@@ -190,7 +190,7 @@ export function FormularioLogin({
 const estilos = StyleSheet.create({
   formulario: { width: '100%', maxWidth: 420, paddingHorizontal: 24, alignSelf: 'center' },
   marca: { alignItems: 'center', marginBottom: 32 },
-  titulo: { fontSize: AppText.tituloPagina, fontWeight: '800', letterSpacing: -0.8 },
+  titulo: { fontSize: AppText.pageTitle, fontWeight: '800', letterSpacing: -0.8 },
   fraseCentrada: { textAlign: 'center' },
   entreCampos: { height: 14 },
   aviso: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 16 },

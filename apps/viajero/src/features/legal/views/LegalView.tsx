@@ -6,7 +6,7 @@ import { LegalDocument, LEGAL_VERSION } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { Text } from '@/ui/components';
-import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /**
  * Lectura de un documento legal (`/legal/[doc]`: política de datos o términos). Accesible siempre,
@@ -21,7 +21,7 @@ export function LegalView({ docId }: { docId: string }) {
   const doc = LegalDocument.byId(docId);
 
   return (
-    <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
+    <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Documentos legales" onVolver={() => volverSeguro(router, AppRoutes.explorar)} />
       {doc === null ? (
         <View style={estilos.centro}>
@@ -29,38 +29,38 @@ export function LegalView({ docId }: { docId: string }) {
         </View>
       ) : (
         <ScrollView contentContainerStyle={estilos.lista}>
-          <Text selectable style={{ fontSize: AppText.nota, fontWeight: '700', letterSpacing: 1.2, color: cs.outline }}>
+          <Text selectable style={{ fontSize: AppText.note, fontWeight: '700', letterSpacing: 1.2, color: cs.outline }}>
             {`VERSIÓN ${LEGAL_VERSION.toUpperCase()}`}
           </Text>
           <View style={{ height: 8 }} />
-          <Text selectable altura={1.2} style={{ fontSize: AppText.encabezado2xl, fontWeight: '800', letterSpacing: -0.6 }}>
+          <Text selectable altura={1.2} style={{ fontSize: AppText.heading2xl, fontWeight: '800', letterSpacing: -0.6 }}>
             {doc.title}
           </Text>
           <View style={{ height: 8 }} />
-          <Text selectable altura={1.5} style={{ fontSize: AppText.enfasis, color: cs.onSurfaceVariant }}>
+          <Text selectable altura={1.5} style={{ fontSize: AppText.emphasis, color: cs.onSurfaceVariant }}>
             {doc.summary}
           </Text>
           <View style={{ height: 18 }} />
           <View
             style={[
-              AppInsets.tarjeta,
-              { backgroundColor: conAlfa(cs.tertiaryContainer, 0.55), borderRadius: AppRadios.field },
+              AppInsets.card,
+              { backgroundColor: withAlpha(cs.tertiaryContainer, 0.55), borderRadius: AppRadii.field },
             ]}
           >
-            <Text selectable altura={1.5} style={{ fontSize: AppText.leyendaGrande, color: cs.onTertiaryContainer }}>
+            <Text selectable altura={1.5} style={{ fontSize: AppText.largeCaption, color: cs.onTertiaryContainer }}>
               Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del responsable antes del lanzamiento comercial.
             </Text>
           </View>
           {doc.sections.map((s) => (
             <Fragment key={s.title}>
               <View style={{ height: 26 }} />
-              <Text selectable accessibilityRole="header" style={{ fontSize: AppText.subtitulo, fontWeight: '700' }}>
+              <Text selectable accessibilityRole="header" style={{ fontSize: AppText.subtitle, fontWeight: '700' }}>
                 {s.title}
               </Text>
               {s.paragraphs.map((p) => (
                 <Fragment key={p}>
                   <View style={{ height: 10 }} />
-                  <Text selectable altura={1.65} style={{ fontSize: AppText.cuerpoGrande, color: cs.onSurface }}>
+                  <Text selectable altura={1.65} style={{ fontSize: AppText.largeBody, color: cs.onSurface }}>
                     {p}
                   </Text>
                 </Fragment>

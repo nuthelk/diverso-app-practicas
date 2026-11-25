@@ -6,7 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import type { AgencySummary } from '@/core';
 import { AppRoutes } from '@/router';
 import { AgencyAvatar, Card, colorDeAgencia, Icono, InsigniaNueva, Text, VerifiedBadge } from '@/ui/components';
-import { AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /**
  * Tarjeta de agencia de la lista (`agencia_card.dart`): portada, logo (o iniciales), nombre,
@@ -34,7 +34,7 @@ export function AgenciaCard({ agencia }: { agencia: AgencySummary }) {
         <AgencyAvatar agencia={agencia} />
         <View style={{ width: 12 }} />
         <View style={estilos.flex}>
-          <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: AppText.enfasisGrande, fontWeight: '700', letterSpacing: -0.3 }}>
+          <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: AppText.largeEmphasis, fontWeight: '700', letterSpacing: -0.3 }}>
             {agencia.name}
           </Text>
           <View style={{ height: 5 }} />
@@ -49,15 +49,15 @@ export function AgenciaCard({ agencia }: { agencia: AgencySummary }) {
 export function DatosAgencia({ agencia }: { agencia: AgencySummary }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
-  const suave = { fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant };
+  const suave = { fontSize: AppText.largeCaption, color: cs.onSurfaceVariant };
   return (
     <View style={estilos.datos}>
       {agencia.isNew ? (
         <InsigniaNueva texto={agencia.ratingText} />
       ) : (
         <View style={estilos.fila}>
-          <Icono nombre="star_rounded" size={17} color={tema.diverso.dorado} />
-          <Text style={{ marginLeft: 2, fontSize: AppText.detalle, fontWeight: '700', color: cs.onSurface }}>{agencia.ratingText}</Text>
+          <Icono nombre="star_rounded" size={17} color={tema.diverso.gold} />
+          <Text style={{ marginLeft: 2, fontSize: AppText.detail, fontWeight: '700', color: cs.onSurface }}>{agencia.ratingText}</Text>
           <Text style={[suave, { marginLeft: 3 }]}>{`(${agencia.reviewsTotal})`}</Text>
         </View>
       )}
@@ -79,8 +79,8 @@ export function PortadaAgencia({ agencia }: { agencia: AgencySummary }) {
   const url = agencia.coverUrl;
   if (!url || fallo) {
     return (
-      <View testID="portada-agencia-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: conAlfa(color, 0.16) }]}>
-        <Icono nombre="storefront_rounded" size={40} color={conAlfa(color, 0.55)} />
+      <View testID="portada-agencia-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: withAlpha(color, 0.16) }]}>
+        <Icono nombre="storefront_rounded" size={40} color={withAlpha(color, 0.55)} />
       </View>
     );
   }

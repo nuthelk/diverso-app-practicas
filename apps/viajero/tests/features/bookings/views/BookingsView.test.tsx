@@ -13,7 +13,7 @@ import {
   type Public,
 } from '@/core';
 import { BookingsView } from '@/features/bookings/views/BookingsView';
-import { conAlfa, temaClaro } from '@/ui/theme';
+import { withAlpha, lightTheme } from '@/ui/theme';
 import { ocultarAviso } from '@/features/compartido/aviso-flotante';
 import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
 
@@ -187,11 +187,11 @@ describe('tarjeta con la foto del plan', () => {
       reserva('FUTURA', 5, { plan: plan({ fotos: ['https://fotos.test/a.jpg'] }) }),
     ]);
     const colorDe = () => StyleSheet.flatten(screen.getByText('Comuna 13 y memoria').props.style).color;
-    expect(colorDe()).toBe(temaClaro.colorScheme.onSurface);
+    expect(colorDe()).toBe(lightTheme.colorScheme.onSurface);
 
     await tocar('Historial (1)');
 
-    expect(colorDe()).toBe(conAlfa(temaClaro.colorScheme.onSurface, 0.72));
+    expect(colorDe()).toBe(withAlpha(lightTheme.colorScheme.onSurface, 0.72));
   });
 });
 

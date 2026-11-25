@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
+import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 import { Icono } from '../Icono';
 import { Text } from '../Text';
@@ -18,7 +18,7 @@ export function RatingStars({
   const tema = useTheme();
   return (
     <View style={estilos.fila}>
-      <Icono nombre="star_rounded" size={size + 2} color={tema.diverso.dorado} />
+      <Icono nombre="star_rounded" size={size + 2} color={tema.diverso.gold} />
       {mostrarNumero ? (
         <Text style={{ fontSize: size - 1, fontWeight: '700', color: tema.colorScheme.onSurface }}>
           {calificacion.toFixed(1)}
@@ -38,7 +38,7 @@ export function EstrellasCalificacion({ calificacion, size = 15 }: { calificacio
     <View accessible accessibilityLabel={`${calificacion} de 5 estrellas`} style={estilos.fila}>
       {[1, 2, 3, 4, 5].map((i) =>
         i <= calificacion ? (
-          <Icono key={i} nombre="star_rounded" size={size} color={tema.diverso.dorado} />
+          <Icono key={i} nombre="star_rounded" size={size} color={tema.diverso.gold} />
         ) : (
           <Icono key={i} nombre="star_outline_rounded" size={size} color={tema.colorScheme.outlineVariant} />
         ),
@@ -53,14 +53,14 @@ export function InsigniaNueva({ texto = 'Nueva' }: { texto?: string }) {
   return (
     <View
       testID="insignia-nueva"
-      style={[estilos.pildora, { backgroundColor: conAlfa(cs.primary, 0.1), paddingHorizontal: 8, paddingVertical: 2 }]}
+      style={[estilos.pildora, { backgroundColor: withAlpha(cs.primary, 0.1), paddingHorizontal: 8, paddingVertical: 2 }]}
     >
-      <Text style={{ fontSize: AppText.etiqueta, fontWeight: '700', color: cs.primary }}>{texto}</Text>
+      <Text style={{ fontSize: AppText.label, fontWeight: '700', color: cs.primary }}>{texto}</Text>
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
   fila: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start' },
-  pildora: { borderRadius: AppRadios.pill, alignSelf: 'flex-start' },
+  pildora: { borderRadius: AppRadii.pill, alignSelf: 'flex-start' },
 });

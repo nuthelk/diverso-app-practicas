@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { BotonFiltros } from '@/features/catalog/components/BotonFiltros';
 
-import { renderConTema } from '../../../ui/support/conTema';
+import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -12,12 +12,12 @@ const fondo = () => StyleSheet.flatten(screen.getByRole('button', { name: 'Filtr
 
 describe('BotonFiltros', () => {
   test('en oscuro su caja se ve (relleno claro de los campos), no queda negra sobre negro', async () => {
-    await renderConTema(<BotonFiltros vm={vm} />, { modo: 'dark' });
+    await renderWithTheme(<BotonFiltros vm={vm} />, { mode: 'dark' });
     expect(fondo()).toBe('rgba(255, 255, 255, 0.05)');
   });
 
   test('en claro usa el mismo relleno que el buscador de al lado', async () => {
-    await renderConTema(<BotonFiltros vm={vm} />);
+    await renderWithTheme(<BotonFiltros vm={vm} />);
     expect(fondo()).toBe('rgba(0, 0, 0, 0.04)');
   });
 });
