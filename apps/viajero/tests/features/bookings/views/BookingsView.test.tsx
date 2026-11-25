@@ -14,7 +14,7 @@ import {
 } from '@/core';
 import { BookingsView } from '@/features/bookings/views/BookingsView';
 import { withAlpha, lightTheme } from '@/ui/theme';
-import { ocultarAviso } from '@/features/compartido/aviso-flotante';
+import { hideSnackbar } from '@/features/shared/snackbar';
 import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
 
 import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
@@ -31,7 +31,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  */
 
 afterEach(() => {
-  ocultarAviso();
+  hideSnackbar();
   olvidarReservaAdelantada();
 });
 

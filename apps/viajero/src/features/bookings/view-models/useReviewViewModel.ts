@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import type { Booking, BookingRepository, Public, ReviewRepository } from '@/core';
-import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
+import { errorMessageFor } from '@/features/shared/error-message';
 
 import { relojDelSistema, type Reloj } from './useReservaAcciones';
 
@@ -62,7 +62,7 @@ export function useReviewViewModel({
       cambiar({ reserva: await reservas.booking(bookingId), cargandoAhora: false });
     } catch (e) {
       console.warn('ReviewViewModel.cargar:', e);
-      cambiar({ error: mensajeDeError(e), cargandoAhora: false });
+      cambiar({ error: errorMessageFor(e), cargandoAhora: false });
     }
   }, [reservas, bookingId, cambiar]);
 
@@ -89,7 +89,7 @@ export function useReviewViewModel({
         return true;
       } catch (e) {
         console.warn('ReviewViewModel.enviar:', e);
-        cambiar({ errorEnvio: mensajeDeError(e), enviando: false });
+        cambiar({ errorEnvio: errorMessageFor(e), enviando: false });
         return false;
       }
     },

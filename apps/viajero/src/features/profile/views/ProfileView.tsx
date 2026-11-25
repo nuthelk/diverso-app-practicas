@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { LEGAL_VERSION } from '@/core';
 import { useDependencies } from '@/composition';
-import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotante';
+import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
@@ -33,7 +33,7 @@ export function ProfileView() {
   }, [cargar]);
 
   const cerrarSesion = async () => {
-    if ((await vm.cerrarSesion()) === false) mostrarAviso('No pudimos cerrar la sesión. Intenta de nuevo.');
+    if ((await vm.cerrarSesion()) === false) showSnackbar('No pudimos cerrar la sesión. Intenta de nuevo.');
   };
 
   return (
@@ -85,7 +85,7 @@ export function ProfileView() {
           </OutlinedButton>
         </View>
       </ScrollView>
-      <AvisoFlotante sobreBarraInferior />
+      <Snackbar aboveBottomBar />
     </View>
   );
 }

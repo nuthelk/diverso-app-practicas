@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 import type { Booking, CancellationPreview } from '@/core';
 import { PagoAbierto, type AbrirPago } from '@/features/checkout/pago-abierto';
-import { mostrarAviso } from '@/features/compartido/aviso-flotante';
-import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
+import { showSnackbar } from '@/features/shared/snackbar';
+import { errorMessageFor } from '@/features/shared/error-message';
 
 import { CancelacionDialog } from './components/CancelacionDialog';
 import type { ReservaAcciones } from './view-models/useReservaAcciones';
@@ -16,7 +16,7 @@ export const AVISO_PAGO_CERRADO = 'Cerraste el pago antes de terminar. Si ya pag
  * la parte con diálogos y avisos (en Flutter, la que necesita el `BuildContext`); lo demás vive en
  * el view model.
  *
- * - Muestra como aviso flotante el `mensaje` pendiente del view model y lo consume (`mostrarAviso`).
+ * - Muestra como aviso flotante el `mensaje` pendiente del view model y lo consume (`showSnackbar`).
  * - `cancelarConConfirmacion(b)`: pide la vista previa; si llegó, muestra el diálogo con la
  *   política y, si el viajero confirma, cancela. Devuelve si confirmó (el resultado del servidor
  *   queda en el aviso).
@@ -42,7 +42,7 @@ export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
 
   useEffect(() => {
     if (mensaje === null) return;
-    mostrarAviso(mensaje);
+    showSnackbar(mensaje);
     limpiarMensaje();
   }, [mensaje, limpiarMensaje]);
 
@@ -63,7 +63,7 @@ export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
       try {
         if ((await abrirPago(b.id)) === PagoAbierto.cerrado) avisar(AVISO_PAGO_CERRADO);
       } catch (e) {
-        avisar(mensajeDeError(e));
+        avisar(errorMessageFor(e));
       }
     },
     [abrirPago, avisar],

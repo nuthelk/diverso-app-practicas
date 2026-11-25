@@ -3,7 +3,7 @@ import { act } from '@testing-library/react-native';
 import { Keyboard, Platform, StyleSheet, type KeyboardEvent } from 'react-native';
 
 import { BookingStatus, DiversoError, ExperienceCategory, Plan, PlanStatus } from '@/core';
-import { ocultarAviso } from '@/features/compartido/aviso-flotante';
+import { hideSnackbar } from '@/features/shared/snackbar';
 import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
 
 import { arrancarApp, asentar } from '../../../support/app';
@@ -18,7 +18,7 @@ import { PublicadorDeResenasFalso, ReservasFalsas, reservaDePrueba } from '../..
  */
 
 afterEach(() => {
-  ocultarAviso();
+  hideSnackbar();
   olvidarReservaAdelantada();
 });
 

@@ -1,5 +1,5 @@
 import type { Booking, BookingRepository, Public } from '@/core';
-import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
+import { errorMessageFor } from '@/features/shared/error-message';
 
 import { useEstadoVivo } from './use-estado-vivo';
 
@@ -27,7 +27,7 @@ export function useReservaViewModel(
       cambiar({ reserva: await reservas.booking(bookingId) }, false);
     } catch (e) {
       console.warn('ReservaViewModel.cargar:', e);
-      cambiar({ error: mensajeDeError(e) }, false);
+      cambiar({ error: errorMessageFor(e) }, false);
     } finally {
       cambiar({ cargando: false });
     }

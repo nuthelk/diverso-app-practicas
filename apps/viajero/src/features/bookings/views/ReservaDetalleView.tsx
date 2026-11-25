@@ -6,7 +6,7 @@ import type { Booking } from '@/core';
 import { useDependencies } from '@/composition';
 import { irA } from '@/features/checkout/ir-a';
 import { useAbrirPago } from '@/features/checkout/useAbrirPago';
-import { AvisoFlotante } from '@/features/compartido/aviso-flotante';
+import { Snackbar } from '@/features/shared/snackbar';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
@@ -88,7 +88,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
     <View testID="pantalla-ReservaDetalleView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo={null} onVolver={volver} />
       <View style={estilos.flex}>{cuerpo}</View>
-      <AvisoFlotante />
+      <Snackbar />
     </View>
   );
 
@@ -107,7 +107,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
           onResenar={() => resenar(b)}
           onVerPlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
         />
-        <AvisoFlotante />
+        <Snackbar />
         {dialogo}
         {modalPago}
       </View>

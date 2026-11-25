@@ -6,7 +6,7 @@ import { BookingStatus, type Booking } from '@/core';
 import { useDependencies } from '@/composition';
 import { useAbrirPago } from '@/features/checkout/useAbrirPago';
 import { irA } from '@/features/checkout/ir-a';
-import { AvisoFlotante } from '@/features/compartido/aviso-flotante';
+import { Snackbar } from '@/features/shared/snackbar';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, Text, PageTitle } from '@/ui/components';
@@ -139,7 +139,7 @@ export function BookingsView() {
         onCambio={setPestana}
       />
       <View style={estilos.flex}>{cuerpo}</View>
-      <AvisoFlotante sobreBarraInferior />
+      <Snackbar aboveBottomBar />
       {dialogo}
       {modalPago}
     </View>

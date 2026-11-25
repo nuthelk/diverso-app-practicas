@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { irA } from '@/features/checkout/ir-a';
-import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotante';
+import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
@@ -40,12 +40,12 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
 
   // Si el servidor la rechaza, el motivo va en un aviso (se puede reintentar).
   useEffect(() => {
-    if (errorEnvio !== null) mostrarAviso(errorEnvio);
+    if (errorEnvio !== null) showSnackbar(errorEnvio);
   }, [errorEnvio]);
 
   const enviar = async (comentario: string) => {
     if (!(await vm.enviar(comentario))) return;
-    mostrarAviso('¡Gracias! Tu reseña ayudará a otros viajeros.');
+    showSnackbar('¡Gracias! Tu reseña ayudará a otros viajeros.');
     devolverResultado(AppRoutes.resena(bookingId), true);
     volverSeguro(router, AppRoutes.reservas);
   };
@@ -90,7 +90,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
     <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       <BarraSuperior titulo="Tu reseña" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
       <View style={estilos.flex}>{cuerpo}</View>
-      <AvisoFlotante />
+      <Snackbar />
     </View>
   );
 }

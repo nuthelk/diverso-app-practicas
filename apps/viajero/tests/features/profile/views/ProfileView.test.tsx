@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { LEGAL_VERSION } from '@/core';
-import { ocultarAviso } from '@/features/compartido/aviso-flotante';
+import { hideSnackbar } from '@/features/shared/snackbar';
 import { ProfileView } from '@/features/profile/views/ProfileView';
 import { lightTheme } from '@/ui/theme';
 
@@ -36,7 +36,7 @@ const tocar = async (texto: string) => {
 
 beforeEach(reiniciarRouterFalso);
 afterEach(async () => {
-  ocultarAviso();
+  hideSnackbar();
   await restaurarVentana();
 });
 

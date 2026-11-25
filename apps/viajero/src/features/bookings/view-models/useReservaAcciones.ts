@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import type { Booking, BookingRepository, Public, CancellationPreview } from '@/core';
-import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
+import { errorMessageFor } from '@/features/shared/error-message';
 
 import { mensajeCancelacion } from '../reserva-formato';
 
@@ -58,7 +58,7 @@ export function useReservaAcciones({
         return await reservas.cancellationPreview(b.id);
       } catch (e) {
         console.warn('ReservaAccionesViewModel.vistaPrevia:', e);
-        setMensaje(mensajeDeError(e));
+        setMensaje(errorMessageFor(e));
         return null;
       }
     },
@@ -77,7 +77,7 @@ export function useReservaAcciones({
         setMensaje(mensajeCancelacion(resultado));
       } catch (e) {
         console.warn('ReservaAccionesViewModel.cancelar:', e);
-        setMensaje(mensajeDeError(e));
+        setMensaje(errorMessageFor(e));
         return false;
       }
       await cargarActual.current();

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import type { Booking, BookingRepository, Public } from '@/core';
-import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
+import { errorMessageFor } from '@/features/shared/error-message';
 
 import { useReservaAcciones, type Reloj } from './useReservaAcciones';
 
@@ -53,7 +53,7 @@ export function useReservaDetalleViewModel({
         cambiar((s) => ({ ...s, cargandoAhora: false }));
         avisarRef.current('No pudimos actualizar la reserva.');
       } else {
-        cambiar((s) => ({ ...s, cargandoAhora: false, error: mensajeDeError(e) }));
+        cambiar((s) => ({ ...s, cargandoAhora: false, error: errorMessageFor(e) }));
       }
     }
   }, [reservas, bookingId, cambiar]);
