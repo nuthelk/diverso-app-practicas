@@ -60,9 +60,9 @@ describe('BookingApiSupabase', () => {
       edgeFunctions: new EdgeFunctionsFalsas(() => ({})),
     });
     const b = await repo.reserva('b1');
-    expect(b.plan?.titulo).toBe('Guatapé');
-    expect(b.plan?.agency?.nombre).toBe('Rutas de Antioquia');
-    expect(b.tieneResena).toBe(false);
+    expect(b.plan?.title).toBe('Guatapé');
+    expect(b.plan?.agency?.name).toBe('Rutas de Antioquia');
+    expect(b.hasReview).toBe(false);
   });
 
   test('reservasDe, resenasDe y resenaDe piden lo mismo que en Dart', async () => {

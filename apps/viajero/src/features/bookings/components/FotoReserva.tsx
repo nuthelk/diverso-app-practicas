@@ -21,7 +21,7 @@ const apagadoEstilo: ViewStyle = { filter: [{ saturate: 0.45 }] };
 export function FotoReserva({ booking, apagado = false }: { booking: Booking; apagado?: boolean }) {
   const cs = useTheme().colorScheme;
   const plan = booking.plan;
-  const foto = plan?.fotoPrincipal ?? null;
+  const foto = plan?.mainPhoto ?? null;
   const [fallo, setFallo] = useState(false);
 
   const respaldo = (testID?: string) => (
@@ -29,7 +29,7 @@ export function FotoReserva({ booking, apagado = false }: { booking: Booking; ap
       {plan === null ? (
         <Icono nombre="luggage_rounded" size={40} color={cs.onPrimaryContainer} />
       ) : (
-        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.categoria]}</Text>
+        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       )}
     </View>
   );

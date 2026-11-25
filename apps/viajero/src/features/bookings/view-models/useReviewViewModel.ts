@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { Booking, BookingRepository, Publico, ReviewRepository } from '@/core';
+import type { Booking, BookingRepository, Public, ReviewRepository } from '@/core';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
 
 import { relojDelSistema, type Reloj } from './useReservaAcciones';
@@ -31,8 +31,8 @@ export function useReviewViewModel({
   adelantada = null,
   reloj = relojDelSistema,
 }: {
-  reservas: Publico<BookingRepository>;
-  resenas: Publico<ReviewRepository>;
+  reservas: Public<BookingRepository>;
+  resenas: Public<ReviewRepository>;
   bookingId: string;
   adelantada?: Booking | null;
   reloj?: Reloj;
@@ -103,7 +103,7 @@ export function useReviewViewModel({
     /** Motivo si no se pudo cargar la reserva. */
     error: estado.error,
     /** Solo se reseñan los viajes ya realizados, confirmados y sin reseña (el servidor lo exige). */
-    puedeResenar: estado.reserva?.puedeResenar(reloj()) ?? false,
+    puedeResenar: estado.reserva?.canReview(reloj()) ?? false,
     calificacion: estado.calificacion,
     enviando: estado.enviando,
     /** La reseña ya se publicó: la pantalla se cierra y el botón no vuelve a activarse. */

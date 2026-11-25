@@ -88,8 +88,8 @@ describe('carga de la reserva', () => {
   test.each([
     ['aún no viajó', () => reservaDePrueba({ salida: dias(1) })],
     ['ya reseñada', () => reservaDePrueba({ salida, tieneResena: true })],
-    ['cancelada', () => reservaDePrueba({ salida, estado: BookingStatus.cancelada })],
-    ['pendiente de pago', () => reservaDePrueba({ salida, estado: BookingStatus.pendientePago })],
+    ['cancelada', () => reservaDePrueba({ salida, estado: BookingStatus.cancelled })],
+    ['pendiente de pago', () => reservaDePrueba({ salida, estado: BookingStatus.pendingPayment })],
   ])('no se puede reseñar una reserva %s', async (_nombre, hacer) => {
     reservas.lista = [hacer()];
     const { result } = await crear();

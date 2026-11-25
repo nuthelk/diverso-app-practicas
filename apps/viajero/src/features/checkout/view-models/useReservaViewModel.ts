@@ -1,4 +1,4 @@
-import type { Booking, BookingRepository, Publico } from '@/core';
+import type { Booking, BookingRepository, Public } from '@/core';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
 
 import { useEstadoVivo } from './use-estado-vivo';
@@ -16,7 +16,7 @@ interface EstadoReserva {
  * confirmación sobreviva a recargar la página en web.
  */
 export function useReservaViewModel(
-  { reservas }: { reservas: Pick<Publico<BookingRepository>, 'reserva'> },
+  { reservas }: { reservas: Pick<Public<BookingRepository>, 'reserva'> },
   { bookingId }: { bookingId: string },
 ) {
   const { estado, cambiar } = useEstadoVivo<EstadoReserva>(() => ({ reserva: null, cargando: true, error: null }));

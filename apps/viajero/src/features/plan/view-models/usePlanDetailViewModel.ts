@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { CatalogRepository, Plan, PlanDate, Publico, Review, ReviewRepository } from '@/core';
+import type { CatalogRepository, Plan, PlanDate, Public, Review, ReviewRepository } from '@/core';
 
 /** Cuántas reseñas se muestran en la ficha (no hay «ver todas»). */
 export const MAX_RESENAS = 4;
@@ -29,8 +29,8 @@ export function usePlanDetailViewModel({
   planId,
   reloj = () => new Date(),
 }: {
-  catalogo: Pick<Publico<CatalogRepository>, 'planDetalle'>;
-  resenas: Pick<Publico<ReviewRepository>, 'porPlan'>;
+  catalogo: Pick<Public<CatalogRepository>, 'planDetalle'>;
+  resenas: Pick<Public<ReviewRepository>, 'porPlan'>;
   planId: string;
   reloj?: () => Date;
 }) {
@@ -56,13 +56,13 @@ export function usePlanDetailViewModel({
   }, [catalogo, resenas, planId, cambiar]);
 
   /** Próximas fechas reservables, de la más cercana a la más lejana (según el reloj). */
-  const fechas: readonly PlanDate[] = estado.plan?.fechasDisponiblesA(reloj()) ?? [];
+  const fechas: readonly PlanDate[] = estado.plan?.availableDatesAt(reloj()) ?? [];
   /** La elegida si sigue disponible; si no, la más cercana; null sin fechas. */
   const fechaSeleccionada: PlanDate | null =
     fechas.length === 0 ? null : (fechas.find((f) => f.id === estado.fechaId) ?? fechas[0]!);
 
   const seleccionarFecha = (fecha: PlanDate) => {
-    const disponibles = actual.current.plan?.fechasDisponiblesA(reloj()) ?? [];
+    const disponibles = actual.current.plan?.availableDatesAt(reloj()) ?? [];
     if (!disponibles.some((f) => f.id === fecha.id)) return;
     cambiar({ fechaId: fecha.id });
   };

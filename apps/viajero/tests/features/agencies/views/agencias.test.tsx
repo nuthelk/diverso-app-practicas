@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { act, fireEvent, screen, within } from 'expo-router/testing-library';
 
-import { AgenciaResumen, ExperienceCategory, Plan, PlanStatus } from '@/core';
+import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
 
 import { arrancarApp, asentar } from '../../../support/app';
 import { CatalogoFalso, ResenasFalsas } from '../../../support/catalogo-falso';
@@ -16,21 +16,21 @@ import { fijarVentana, restaurarVentana } from '../../../support/pantalla';
  * «logo» y el color estable por agencia ya los cubre `tests/ui/components/AgencyAvatar.test.tsx`).
  */
 
-const rutas = new AgenciaResumen({
+const rutas = new AgencySummary({
   id: 'ag-rutas',
-  nombre: 'Rutas de Antioquia Cultural',
-  ciudad: 'Medellín',
-  descripcion: 'Cultura, memoria y patrimonio de Antioquia.',
-  planesCount: 2,
+  name: 'Rutas de Antioquia Cultural',
+  city: 'Medellín',
+  description: 'Cultura, memoria y patrimonio de Antioquia.',
+  planCount: 2,
   rating: 4.5,
   reviewsTotal: 2,
 });
-const eco = new AgenciaResumen({ id: 'ag-eco', nombre: 'EcoAndes Viajes', ciudad: 'Envigado', planesCount: 5 });
-const cafe = new AgenciaResumen({
+const eco = new AgencySummary({ id: 'ag-eco', name: 'EcoAndes Viajes', city: 'Envigado', planCount: 5 });
+const cafe = new AgencySummary({
   id: 'ag-cafe',
-  nombre: 'Café y Montaña Tours',
-  ciudad: 'Jardín',
-  planesCount: 3,
+  name: 'Café y Montaña Tours',
+  city: 'Jardín',
+  planCount: 3,
   rating: 5.0,
   reviewsTotal: 3,
 });
@@ -39,12 +39,12 @@ const plan = (id: string, titulo: string) =>
   new Plan({
     id,
     agencyId: 'ag-rutas',
-    titulo,
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.cultura,
-    precioCop: 120000,
-    estado: PlanStatus.publicado,
-    ratingPromedio: 3.0,
+    title: titulo,
+    destination: 'Guatapé',
+    category: ExperienceCategory.culture,
+    priceCop: 120000,
+    status: PlanStatus.published,
+    averageRating: 3.0,
     reviewsCount: 1,
   });
 
@@ -67,7 +67,7 @@ function ordenEnPantalla() {
   const todas = [rutas, eco, cafe];
   return screen
     .getAllByTestId(/^agencia-card-/)
-    .map((el) => todas.find((a) => el.props.testID === `agencia-card-${a.id}`)?.nombre);
+    .map((el) => todas.find((a) => el.props.testID === `agencia-card-${a.id}`)?.name);
 }
 
 beforeEach(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));

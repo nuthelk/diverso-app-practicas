@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { AgenciaResumen, CatalogRepository, Plan, Publico } from '@/core';
+import type { AgencySummary, CatalogRepository, Plan, Public } from '@/core';
 
 interface EstadoAgencia {
-  agencia: AgenciaResumen | null;
+  agencia: AgencySummary | null;
   planes: readonly Plan[];
   cargando: boolean;
   noEncontrada: boolean;
@@ -29,7 +29,7 @@ export function useAgenciaViewModel({
   catalogo,
   agencyId,
 }: {
-  catalogo: Pick<Publico<CatalogRepository>, 'agenciaConPlanes'>;
+  catalogo: Pick<Public<CatalogRepository>, 'agenciaConPlanes'>;
   agencyId: string;
 }) {
   const [estado, setEstado] = useState<EstadoAgencia>(inicial);

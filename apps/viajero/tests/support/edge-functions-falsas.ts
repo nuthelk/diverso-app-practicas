@@ -1,5 +1,5 @@
 import type { EdgeFunctionsApi } from '@/core/data/services/edge-functions-api';
-import { esFila, type Fila } from '@/core/models/fila';
+import { isRow, type Row } from '@/core/models/row';
 
 /**
  * Edge Functions falsas: registran cada llamada y devuelven (o lanzan) lo que se les indique,
@@ -8,14 +8,14 @@ import { esFila, type Fila } from '@/core/models/fila';
  * devuelve cualquier otra cosa (p. ej. `errorHttp(409, {...})`), se lanza.
  */
 export class EdgeFunctionsFalsas implements EdgeFunctionsApi {
-  readonly llamadas: [funcion: string, cuerpo: Fila][] = [];
+  readonly llamadas: [funcion: string, cuerpo: Row][] = [];
 
-  constructor(private readonly respuesta: (funcion: string, cuerpo: Fila) => unknown) {}
+  constructor(private readonly respuesta: (funcion: string, cuerpo: Row) => unknown) {}
 
-  async invocar(funcion: string, cuerpo: Fila): Promise<Fila> {
+  async invocar(funcion: string, cuerpo: Row): Promise<Row> {
     this.llamadas.push([funcion, cuerpo]);
     const r = this.respuesta(funcion, cuerpo);
-    if (esFila(r) && !(r instanceof Error)) return r;
+    if (isRow(r) && !(r instanceof Error)) return r;
     throw r;
   }
 }

@@ -129,13 +129,13 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const [fallo, setFallo] = useState(false);
-  const foto = plan.fotoPrincipal;
+  const foto = plan.mainPhoto;
   return (
     <View>
       <View testID="foto-miniatura" style={[estilos.miniatura, { height: ALTO_MINIATURA }]}>
         {foto === null || fallo ? (
           <View style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
-            <Text style={{ fontSize: AppText.encabezadoS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.categoria]}</Text>
+            <Text style={{ fontSize: AppText.encabezadoS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
           </View>
         ) : (
           <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} onError={() => setFallo(true)} accessible={false} />
@@ -145,7 +145,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
             variante="filled"
             icono="close_rounded"
             tamanoIcono={14}
-            tooltip={`Quitar ${plan.titulo} de la comparación`}
+            tooltip={`Quitar ${plan.title} de la comparación`}
             colorFondo={tema.diverso.controlSobreFoto}
             colorIcono="#FFFFFF"
             style={estilos.quitarBoton}
@@ -155,7 +155,7 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
       </View>
       <View style={{ height: 4 }} />
       <Text numberOfLines={1} altura={1.2} style={{ fontSize: AppText.etiqueta, fontWeight: '600' }}>
-        {plan.titulo}
+        {plan.title}
       </Text>
     </View>
   );

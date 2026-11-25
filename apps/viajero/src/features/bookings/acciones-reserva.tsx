@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import type { Booking, VistaPreviaCancelacion } from '@/core';
+import type { Booking, CancellationPreview } from '@/core';
 import { PagoAbierto, type AbrirPago } from '@/features/checkout/pago-abierto';
 import { mostrarAviso } from '@/features/compartido/aviso-flotante';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
@@ -28,7 +28,7 @@ export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
   const { mensaje, limpiarMensaje, vistaPrevia, cancelar, avisar } = vm;
   const [pregunta, setPregunta] = useState<{
     codigo: string;
-    vista: VistaPreviaCancelacion;
+    vista: CancellationPreview;
     responder: (confirmo: boolean) => void;
   } | null>(null);
   const montada = useRef(true);
@@ -50,7 +50,7 @@ export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
     async (b: Booking): Promise<boolean> => {
       const vista = await vistaPrevia(b);
       if (vista === null || !montada.current) return false;
-      const confirmo = await new Promise<boolean>((responder) => setPregunta({ codigo: b.codigo, vista, responder }));
+      const confirmo = await new Promise<boolean>((responder) => setPregunta({ codigo: b.code, vista, responder }));
       if (!confirmo) return false;
       await cancelar(b);
       return true;

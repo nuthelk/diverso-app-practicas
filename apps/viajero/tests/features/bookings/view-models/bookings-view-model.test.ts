@@ -4,10 +4,10 @@ import {
   Booking,
   BookingStatus,
   DiversoError,
-  EstadoReembolso,
-  ResultadoCancelacion,
+  RefundStatus,
+  CancellationResult,
   type BookingRepository,
-  type Publico,
+  type Public,
 } from '@/core';
 import { useBookingsViewModel } from '@/features/bookings/view-models/useBookingsViewModel';
 
@@ -25,21 +25,21 @@ const reloj = () => ahora;
 const dia = (d: number) => new Date(Date.UTC(2026, 9, d, 13));
 const minutos = (m: number) => new Date(ahora.getTime() + m * 60 * 1000);
 
-function reserva(codigo: string, salida: Date, estado: BookingStatus = BookingStatus.confirmada) {
+function reserva(codigo: string, salida: Date, estado: BookingStatus = BookingStatus.confirmed) {
   return new Booking({
     id: codigo,
-    codigo,
+    code: codigo,
     planDateId: 'pd',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax: 2,
-    montoTotal: 190000,
-    estado,
+    totalAmount: 190000,
+    status: estado,
     createdAt: dia(1),
-    salidaAt: salida,
+    departureAt: salida,
   });
 }
 
-async function crear(repo: Publico<BookingRepository>) {
+async function crear(repo: Public<BookingRepository>) {
   const cargandos: boolean[] = [];
   const r = await renderHook(() => {
     const vm = useBookingsViewModel({ reservas: repo, reloj });
@@ -50,12 +50,12 @@ async function crear(repo: Publico<BookingRepository>) {
 }
 
 async function cargado(lista: Booking[]) {
-  const r = await crear(doble<Publico<BookingRepository>>('BookingRepository', { misReservas: async () => lista }));
+  const r = await crear(doble<Public<BookingRepository>>('BookingRepository', { misReservas: async () => lista }));
   await act(() => r.result.current.cargar());
   return r.result;
 }
 
-const codigos = (l: readonly Booking[]) => l.map((b) => b.codigo);
+const codigos = (l: readonly Booking[]) => l.map((b) => b.code);
 
 test('L22: confirmadas del 3, 6, 12, 18 y 27 → solo el 27 es próximo; el resto, historial reciente primero', async () => {
   const c = await cargado([
@@ -72,7 +72,7 @@ test('L22: confirmadas del 3, 6, 12, 18 y 27 → solo el 27 es próximo; el rest
 
 test('próximas: pendiente y confirmada con salida futura, la más cercana primero', async () => {
   const c = await cargado([
-    reserva('D30', dia(30), BookingStatus.pendientePago),
+    reserva('D30', dia(30), BookingStatus.pendingPayment),
     reserva('D28', dia(28)),
     reserva('D26', dia(26)),
   ]);
@@ -83,9 +83,9 @@ test('próximas: pendiente y confirmada con salida futura, la más cercana prime
 
 test('historial: canceladas y completadas (aunque su fecha sea futura) y pendientes ya vencidas por salida', async () => {
   const c = await cargado([
-    reserva('CAN-FUT', dia(29), BookingStatus.cancelada),
-    reserva('COMP', dia(10), BookingStatus.completada),
-    reserva('PEND-PASADA', dia(20), BookingStatus.pendientePago),
+    reserva('CAN-FUT', dia(29), BookingStatus.cancelled),
+    reserva('COMP', dia(10), BookingStatus.completed),
+    reserva('PEND-PASADA', dia(20), BookingStatus.pendingPayment),
     reserva('PROX', dia(27)),
   ]);
 
@@ -101,7 +101,7 @@ test('límite: salida 1 minuto adelante es próxima y 1 minuto atrás es histori
 });
 
 test('historial: las que no tienen salida van al final', async () => {
-  const sinSalida = new Booking({ ...reserva('SIN', dia(1), BookingStatus.cancelada), salidaAt: null });
+  const sinSalida = new Booking({ ...reserva('SIN', dia(1), BookingStatus.cancelled), departureAt: null });
   const c = await cargado([sinSalida, reserva('D10', dia(10)), reserva('D12', dia(12))]);
 
   expect(codigos(c.current.historial)).toEqual(['D12', 'D10', 'SIN']);
@@ -254,7 +254,7 @@ describe('mensaje y cancelación', () => {
       vista = await vm.current.vistaPrevia(unaReserva);
     });
     expect(vista).not.toBeNull();
-    expect(vista!.porcentaje).toBe(100);
+    expect(vista!.percentage).toBe(100);
     expect(vm.current.mensaje).toBeNull();
   });
 
@@ -287,12 +287,12 @@ describe('mensaje y cancelación', () => {
 
   test('cancelar sin reembolso solo dice «Sin reembolso»', async () => {
     const vm = await listo();
-    repo.resultado = new ResultadoCancelacion({
-      aplica: false,
-      porcentaje: 0,
-      monto: 0,
-      estado: EstadoReembolso.noAplica,
-      motivo: '',
+    repo.resultado = new CancellationResult({
+      applies: false,
+      percentage: 0,
+      amount: 0,
+      status: RefundStatus.notApplicable,
+      reason: '',
     });
 
     await act(async () => {
@@ -333,7 +333,7 @@ describe('mensaje y cancelación', () => {
     const vm = await listo();
     const proxima = reservaDePrueba({ salida: dia(27) });
     const pasada = reservaDePrueba({ salida: dia(10) });
-    const cancelada = reservaDePrueba({ salida: dia(27), estado: BookingStatus.cancelada });
+    const cancelada = reservaDePrueba({ salida: dia(27), estado: BookingStatus.cancelled });
 
     expect(vm.current.puedeCancelar(proxima)).toBe(true);
     expect(vm.current.puedeResenar(proxima)).toBe(false);

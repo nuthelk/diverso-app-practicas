@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { type ExperienceCategory, PlanStatus } from '../../models/enums';
-import type { Fila } from '../../models/fila';
-import { OrdenCatalogo } from '../../models/filtros-catalogo';
+import type { Row } from '../../models/row';
+import { CatalogSort } from '../../models/catalog-filters';
 
 const SELECCION_PLAN = '*, agencies(*), plan_dates(*)';
 
@@ -17,7 +17,7 @@ const SELECCION_PLAN_CON_DIA = '*, agencies(*), plan_dates!inner(*)';
 export interface ParametrosPlanes {
   /** YYYY-MM-DD: solo fechas embebidas desde este día. */
   desde: string;
-  orden: OrdenCatalogo;
+  orden: CatalogSort;
   /** Ya normalizada (minúsculas y sin tildes). */
   busqueda?: string | null;
   categoria?: ExperienceCategory | null;
@@ -31,20 +31,20 @@ export interface ParametrosPlanes {
 /** Acceso crudo al catálogo público en Supabase: devuelve filas y LANZA los errores de PostgREST. */
 export interface CatalogApi {
   /** Planes publicados con su agencia y las fechas desde `desde`, aplicando los filtros que no sean null. */
-  planesPublicados(p: ParametrosPlanes): Promise<Fila[]>;
+  planesPublicados(p: ParametrosPlanes): Promise<Row[]>;
   /** `agencias_publicas`: solo columnas públicas y agregados; con `agencyId`, solo esa agencia. */
-  agenciasPublicas(opciones?: { agencyId?: string | null }): Promise<Fila[]>;
+  agenciasPublicas(opciones?: { agencyId?: string | null }): Promise<Row[]>;
   /** Un plan con su agencia y las fechas desde `desde`; falla (PGRST116) si no existe. */
-  plan(planId: string, opciones: { desde: string }): Promise<Fila>;
+  plan(planId: string, opciones: { desde: string }): Promise<Row>;
   /** `destino` de cada plan publicado (con repeticiones). */
-  destinosPublicados(): Promise<Fila[]>;
+  destinosPublicados(): Promise<Row[]>;
 }
 
-const ORDEN: Record<OrdenCatalogo, { columna: string; ascending: boolean }> = {
-  [OrdenCatalogo.rating]: { columna: 'rating_promedio', ascending: false },
-  [OrdenCatalogo.precioAsc]: { columna: 'precio_cop', ascending: true },
-  [OrdenCatalogo.precioDesc]: { columna: 'precio_cop', ascending: false },
-  [OrdenCatalogo.recientes]: { columna: 'created_at', ascending: false },
+const ORDEN: Record<CatalogSort, { columna: string; ascending: boolean }> = {
+  [CatalogSort.rating]: { columna: 'rating_promedio', ascending: false },
+  [CatalogSort.priceAsc]: { columna: 'precio_cop', ascending: true },
+  [CatalogSort.priceDesc]: { columna: 'precio_cop', ascending: false },
+  [CatalogSort.newest]: { columna: 'created_at', ascending: false },
 };
 
 export class CatalogApiSupabase implements CatalogApi {
@@ -54,12 +54,12 @@ export class CatalogApiSupabase implements CatalogApi {
     this.client = client;
   }
 
-  async planesPublicados(p: ParametrosPlanes): Promise<Fila[]> {
+  async planesPublicados(p: ParametrosPlanes): Promise<Row[]> {
     // Filtros primero; orden y límite al final.
     let query = this.client
       .from('plans')
       .select(p.fecha == null ? SELECCION_PLAN : SELECCION_PLAN_CON_DIA)
-      .eq('estado', PlanStatus.publicado)
+      .eq('estado', PlanStatus.published)
       // Sin `!inner` filtra las fechas embebidas, no los planes.
       .gte('plan_dates.fecha', p.desde);
 
@@ -77,18 +77,18 @@ export class CatalogApiSupabase implements CatalogApi {
       .order(columna, { ascending })
       .limit(60)
       .throwOnError();
-    return data as unknown as Fila[];
+    return data as unknown as Row[];
   }
 
-  async agenciasPublicas({ agencyId = null }: { agencyId?: string | null } = {}): Promise<Fila[]> {
+  async agenciasPublicas({ agencyId = null }: { agencyId?: string | null } = {}): Promise<Row[]> {
     const { data } = await (agencyId == null
       ? this.client.rpc('agencias_publicas')
       : this.client.rpc('agencias_publicas', { p_agency_id: agencyId })
     ).throwOnError();
-    return data as Fila[];
+    return data as Row[];
   }
 
-  async plan(planId: string, { desde }: { desde: string }): Promise<Fila> {
+  async plan(planId: string, { desde }: { desde: string }): Promise<Row> {
     const { data } = await this.client
       .from('plans')
       .select(SELECCION_PLAN)
@@ -97,16 +97,16 @@ export class CatalogApiSupabase implements CatalogApi {
       .order('fecha', { ascending: true, referencedTable: 'plan_dates' })
       .single()
       .throwOnError();
-    return data as Fila;
+    return data as Row;
   }
 
-  async destinosPublicados(): Promise<Fila[]> {
+  async destinosPublicados(): Promise<Row[]> {
     const { data } = await this.client
       .from('plans')
       .select('destino')
-      .eq('estado', PlanStatus.publicado)
+      .eq('estado', PlanStatus.published)
       .order('destino')
       .throwOnError();
-    return data as Fila[];
+    return data as Row[];
   }
 }

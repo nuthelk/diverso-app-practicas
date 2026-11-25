@@ -21,8 +21,8 @@ function primerCaracter(texto: string): string {
  */
 export function ResenaItem({ review }: { review: Review }) {
   const cs = useTheme().colorScheme;
-  const nombre = review.viajeroNombre?.trim() ?? '';
-  const comentario = review.comentario ?? '';
+  const nombre = review.travelerName?.trim() ?? '';
+  const comentario = review.comment ?? '';
   return (
     <View testID="resena-item" style={[estilos.caja, AppInsets.tarjeta, { backgroundColor: cs.surfaceContainerLow }]}>
       <View style={estilos.fila}>
@@ -33,8 +33,8 @@ export function ResenaItem({ review }: { review: Review }) {
           </Text>
         </View>
         <View style={{ width: 9 }} />
-        <Text style={{ flex: 1, fontWeight: '700', fontSize: AppText.cuerpoChico }}>{nombre === '' ? 'Viajero' : review.viajeroNombre}</Text>
-        <EstrellasCalificacion calificacion={review.calificacion} size={14} />
+        <Text style={{ flex: 1, fontWeight: '700', fontSize: AppText.cuerpoChico }}>{nombre === '' ? 'Viajero' : review.travelerName}</Text>
+        <EstrellasCalificacion calificacion={review.rating} size={14} />
         <View style={{ width: 5 }} />
         <View accessible accessibilityLabel="Reseña verificada: solo quien compró puede opinar">
           <Icono nombre="verified_rounded" size={14} color={cs.tertiary} />

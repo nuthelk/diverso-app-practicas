@@ -1,12 +1,12 @@
 import {
   DiversoError,
   ExperienceCategory,
-  ItinerarioPaso,
+  ItineraryStep,
   Plan,
   PlanDate,
   PlanStatus,
   type CatalogRepository,
-  type Publico,
+  type Public,
 } from '@/core';
 
 import type { Compuerta } from '../../../support/compuerta';
@@ -15,7 +15,7 @@ import type { Compuerta } from '../../../support/compuerta';
  * [CatalogRepository] sin Supabase, solo con `planDetalle` (lo único que usa el checkout; port de
  * la parte de `catalogo_falso.dart` que tocan sus pruebas).
  */
-export class CatalogoFalso implements Pick<Publico<CatalogRepository>, 'planDetalle'> {
+export class CatalogoFalso implements Pick<Public<CatalogRepository>, 'planDetalle'> {
   readonly detalles: Map<string, Plan>;
 
   /** Si no es null, `planDetalle` lo lanza. */
@@ -49,9 +49,9 @@ export function fechaDePrueba(id = 'fecha-1', { dias = 20, cupos = 8 }: { dias?:
   return new PlanDate({
     id,
     planId: 'plan-1',
-    fecha: new Date(dia.getTime() + dias * DIA_MS),
-    cupoTotal: 10,
-    cupoDisponible: cupos,
+    date: new Date(dia.getTime() + dias * DIA_MS),
+    totalSpots: 10,
+    availableSpots: cupos,
   });
 }
 
@@ -64,20 +64,20 @@ export function planDePrueba({
 }: {
   fechas?: PlanDate[];
   puntoEncuentro?: string;
-  itinerario?: ItinerarioPaso[];
+  itinerario?: ItineraryStep[];
   fotos?: string[];
 } = {}): Plan {
   return new Plan({
     id: 'plan-1',
     agencyId: 'ag-1',
-    titulo: 'Guatapé en un día',
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.aventura,
-    precioCop: 150000,
-    estado: PlanStatus.publicado,
-    puntoEncuentro,
-    itinerario,
-    fotos,
+    title: 'Guatapé en un día',
+    destination: 'Guatapé',
+    category: ExperienceCategory.adventure,
+    priceCop: 150000,
+    status: PlanStatus.published,
+    meetingPoint: puntoEncuentro,
+    itinerary: itinerario,
+    photos: fotos,
     dates: fechas,
   });
 }

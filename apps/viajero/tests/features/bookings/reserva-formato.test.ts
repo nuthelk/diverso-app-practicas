@@ -1,4 +1,4 @@
-import { Booking, BookingStatus, EstadoReembolso, PlanDate, ResultadoCancelacion, VistaPreviaCancelacion } from '@/core';
+import { Booking, BookingStatus, RefundStatus, PlanDate, CancellationResult, CancellationPreview } from '@/core';
 import {
   cuentaRegresiva,
   mensajeCancelacion,
@@ -15,7 +15,7 @@ import {
 function reserva({
   salidaAt = null,
   fechaPlan = null,
-  estado = BookingStatus.confirmada,
+  estado = BookingStatus.confirmed,
 }: {
   salidaAt?: Date | null;
   fechaPlan?: Date | null;
@@ -23,15 +23,15 @@ function reserva({
 }) {
   return new Booking({
     id: 'b',
-    codigo: 'DIV-1',
+    code: 'DIV-1',
     planDateId: 'pd',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax: 2,
-    montoTotal: 1,
-    estado,
+    totalAmount: 1,
+    status: estado,
     createdAt: new Date(2026, 9, 1),
-    salidaAt,
-    planDate: fechaPlan ? new PlanDate({ id: 'pd', planId: 'p', fecha: fechaPlan, cupoTotal: 1, cupoDisponible: 1 }) : null,
+    departureAt: salidaAt,
+    planDate: fechaPlan ? new PlanDate({ id: 'pd', planId: 'p', date: fechaPlan, totalSpots: 1, availableSpots: 1 }) : null,
   });
 }
 
@@ -68,7 +68,7 @@ describe('cuentaRegresiva (días de calendario, no bloques de 24 h)', () => {
     expect(cuentaRegresiva(reserva({ salidaAt: new Date(2026, 9, 25, 22, 0) }), ahora)).toBeNull();
     expect(cuentaRegresiva(reserva({}), ahora)).toBeNull();
     expect(
-      cuentaRegresiva(reserva({ salidaAt: new Date(2026, 9, 27, 6), estado: BookingStatus.cancelada }), ahora),
+      cuentaRegresiva(reserva({ salidaAt: new Date(2026, 9, 27, 6), estado: BookingStatus.cancelled }), ahora),
     ).toBeNull();
   });
 });
@@ -81,19 +81,19 @@ test('textoPersonas: singular y plural', () => {
 test('mensajeCancelacion: con y sin reembolso', () => {
   expect(
     mensajeCancelacion(
-      new ResultadoCancelacion({ aplica: true, porcentaje: 100, monto: 190000, estado: EstadoReembolso.aprobado, motivo: '' }),
+      new CancellationResult({ applies: true, percentage: 100, amount: 190000, status: RefundStatus.approved, reason: '' }),
     ),
   ).toBe('Reserva cancelada y cupos liberados. Reembolso de prueba aprobado: $ 190.000 (100 %).');
   expect(
     mensajeCancelacion(
-      new ResultadoCancelacion({ aplica: false, porcentaje: 0, monto: 0, estado: EstadoReembolso.noAplica, motivo: '' }),
+      new CancellationResult({ applies: false, percentage: 0, amount: 0, status: RefundStatus.notApplicable, reason: '' }),
     ),
   ).toBe('Reserva cancelada y cupos liberados. Sin reembolso.');
 });
 
 test('textoPoliticaCancelacion: 100 %, parcial y sin reembolso', () => {
   const vista = (aplica: boolean, porcentaje: number, monto: number) =>
-    new VistaPreviaCancelacion({ aplica, porcentaje, monto, horasAntes: 30, motivo: 'motivo del servidor' });
+    new CancellationPreview({ applies: aplica, percentage: porcentaje, amount: monto, hoursBefore: 30, reason: 'motivo del servidor' });
   expect(textoPoliticaCancelacion(vista(true, 100, 300000))).toBe(
     'Si cancelas ahora te devolvemos el 100 % ($ 300.000). Es un reembolso de prueba: no se mueve dinero real.',
   );

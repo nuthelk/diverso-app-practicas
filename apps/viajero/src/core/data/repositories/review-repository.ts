@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { DiversoError } from '../../errors/diverso-error';
-import type { Fila } from '../../models/fila';
+import type { Row } from '../../models/row';
 import { Review } from '../../models/review';
 
 export class ReviewRepository {
@@ -23,7 +23,7 @@ export class ReviewRepository {
       .order('created_at', { ascending: false })
       .limit(limit)
       .throwOnError();
-    return (data as unknown as Fila[]).map(Review.fromMap);
+    return (data as unknown as Row[]).map(Review.fromMap);
   }
 
   /**

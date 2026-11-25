@@ -42,8 +42,8 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
   const abajo = useSafeAreaInsets().bottom;
   const { booking } = props;
   const plan = booking.plan;
-  const titulo = plan?.titulo ?? 'Plan';
-  const agencia = plan?.agency?.nombre ?? null;
+  const titulo = plan?.title ?? 'Plan';
+  const agencia = plan?.agency?.name ?? null;
 
   return (
     <CabeceraColapsable
@@ -68,23 +68,23 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
         <View style={{ height: 14 }} />
         <View style={estilos.envolver}>
           <EstadoReservaPill booking={booking} />
-          <ChipCodigo codigo={booking.codigo} />
+          <ChipCodigo codigo={booking.code} />
         </View>
         <View style={{ height: 18 }} />
         <ResumenReserva booking={booking} />
-        {plan !== null && plan.itinerario.length > 0 ? (
+        {plan !== null && plan.itinerary.length > 0 ? (
           <>
             <View style={{ height: 24 }} />
             <SectionLabel texto="Itinerario" />
-            {plan.itinerario.map((paso, i) => (
-              <PasoItinerario key={i} paso={paso} ultimo={i === plan.itinerario.length - 1} />
+            {plan.itinerary.map((paso, i) => (
+              <PasoItinerario key={i} paso={paso} ultimo={i === plan.itinerary.length - 1} />
             ))}
           </>
         ) : null}
-        {plan !== null && plan.politicaCancelacion.length > 0 ? (
+        {plan !== null && plan.cancellationPolicy.length > 0 ? (
           <>
             <View style={{ height: 8 }} />
-            <TarjetaCancelacion texto={plan.politicaCancelacion} />
+            <TarjetaCancelacion texto={plan.cancellationPolicy} />
           </>
         ) : null}
         <View style={{ height: 24 }} />
@@ -101,9 +101,9 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
 function ResumenReserva({ booking }: { booking: Booking }) {
   const cs = useTheme().colorScheme;
   const salida = textoSalida(booking);
-  const puntoEncuentro = booking.plan?.puntoEncuentro ?? '';
-  const pago = booking.pago;
-  const etiquetaReembolso = booking.etiquetaReembolso;
+  const puntoEncuentro = booking.plan?.meetingPoint ?? '';
+  const pago = booking.payment;
+  const etiquetaReembolso = booking.refundLabel;
   return (
     <View style={[AppInsets.tarjetaAmplia, { backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card }]}>
       {salida !== null ? (
@@ -118,11 +118,11 @@ function ResumenReserva({ booking }: { booking: Booking }) {
           <View style={{ height: 12 }} />
         </>
       ) : null}
-      <FilaDato icono="group_outlined" texto={`${textoPersonas(booking.pax)} · ${formatCOP(booking.montoTotal)}`} />
+      <FilaDato icono="group_outlined" texto={`${textoPersonas(booking.pax)} · ${formatCOP(booking.totalAmount)}`} />
       {pago !== null ? (
         <>
           <View style={{ height: 12 }} />
-          <FilaDato icono="credit_card_rounded" texto={pago.textoReferencia} />
+          <FilaDato icono="credit_card_rounded" texto={pago.referenceText} />
         </>
       ) : null}
       {etiquetaReembolso !== null ? (
@@ -152,7 +152,7 @@ function AccionesDetalleReserva({
 }: AccionesProps) {
   const cs = useTheme().colorScheme;
   const planId = booking.plan?.id ?? booking.planDate?.planId ?? null;
-  const pendiente = booking.estado === BookingStatus.pendientePago;
+  const pendiente = booking.status === BookingStatus.pendingPayment;
   return (
     <View style={estilos.columna}>
       {pendiente ? (
@@ -168,7 +168,7 @@ function AccionesDetalleReserva({
           <FilledButton variante="tonal" icono="star_outline_rounded" texto="Reseñar" onPress={onResenar} style={estilos.inicio} />
           <View style={{ height: 10 }} />
         </>
-      ) : booking.tieneResena ? (
+      ) : booking.hasReview ? (
         <>
           <View style={estilos.fila}>
             <Icono nombre="rate_review_rounded" size={15} color={cs.primary} />

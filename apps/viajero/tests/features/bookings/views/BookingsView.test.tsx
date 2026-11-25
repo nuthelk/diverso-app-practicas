@@ -10,7 +10,7 @@ import {
   PlanStatus,
   VerificationStatus,
   type BookingRepository,
-  type Publico,
+  type Public,
 } from '@/core';
 import { BookingsView } from '@/features/bookings/views/BookingsView';
 import { conAlfa, temaClaro } from '@/ui/theme';
@@ -40,18 +40,18 @@ const DIA = 24 * 60 * 60 * 1000;
 function reserva(
   codigo: string,
   dias: number,
-  { estado = BookingStatus.confirmada, plan = null }: { estado?: BookingStatus; plan?: Plan | null } = {},
+  { estado = BookingStatus.confirmed, plan = null }: { estado?: BookingStatus; plan?: Plan | null } = {},
 ) {
   return new Booking({
     id: codigo,
-    codigo,
+    code: codigo,
     planDateId: 'pd',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax: 2,
-    montoTotal: 190000,
-    estado,
+    totalAmount: 190000,
+    status: estado,
     createdAt: new Date(Date.now() - 40 * DIA),
-    salidaAt: new Date(Date.now() + dias * DIA),
+    departureAt: new Date(Date.now() + dias * DIA),
     plan,
   });
 }
@@ -60,19 +60,19 @@ function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?
   return new Plan({
     id: 'plan-1',
     agencyId: 'ag',
-    titulo: 'Comuna 13 y memoria',
-    destino: 'Medellín',
-    categoria: ExperienceCategory.cultura,
-    precioCop: 95000,
-    estado: PlanStatus.publicado,
-    fotos,
+    title: 'Comuna 13 y memoria',
+    destination: 'Medellín',
+    category: ExperienceCategory.culture,
+    priceCop: 95000,
+    status: PlanStatus.published,
+    photos: fotos,
     agency: conAgencia
       ? new Agency({
           id: 'ag',
-          nombre: 'EcoAndes Viajes',
-          numeroRnt: '12345',
-          matriculaCamaraComercio: '999',
-          estadoVerificacion: VerificationStatus.verificado,
+          name: 'EcoAndes Viajes',
+          rntNumber: '12345',
+          commercialRegistration: '999',
+          verificationStatus: VerificationStatus.verified,
         })
       : null,
   });
@@ -80,7 +80,7 @@ function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?
 
 async function abrir(reservas: Booking[]) {
   await fijarVentana(800, 1400);
-  const repo = doble<Publico<BookingRepository>>('BookingRepository', { misReservas: async () => reservas });
+  const repo = doble<Public<BookingRepository>>('BookingRepository', { misReservas: async () => reservas });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
   await asentarPantalla();
 }
@@ -213,9 +213,9 @@ describe('etiqueta de estado', () => {
 
   test('PRESERVE: «Cancelada», «Pendiente» y «Completada» no cambian aunque ya salieron', async () => {
     await abrir([
-      reserva('CAN', -5, { estado: BookingStatus.cancelada }),
-      reserva('PEN', -4, { estado: BookingStatus.pendientePago }),
-      reserva('COM', -3, { estado: BookingStatus.completada }),
+      reserva('CAN', -5, { estado: BookingStatus.cancelled }),
+      reserva('PEN', -4, { estado: BookingStatus.pendingPayment }),
+      reserva('COM', -3, { estado: BookingStatus.completed }),
     ]);
     await tocar('Historial (3)');
 
@@ -226,7 +226,7 @@ describe('etiqueta de estado', () => {
   });
 
   test('PRESERVE: «Pendiente» de un viaje próximo sigue igual', async () => {
-    await abrir([reserva('PEN', 4, { estado: BookingStatus.pendientePago })]);
+    await abrir([reserva('PEN', 4, { estado: BookingStatus.pendingPayment })]);
     expect(screen.getByText('Pendiente')).toBeOnTheScreen();
   });
 });
@@ -263,7 +263,7 @@ test('«Historial» vacía: «Todavía no hay historial.»', async () => {
 test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async () => {
   await fijarVentana(800, 1400);
   let intentos = 0;
-  const repo = doble<Publico<BookingRepository>>('BookingRepository', {
+  const repo = doble<Public<BookingRepository>>('BookingRepository', {
     misReservas: async () => {
       intentos++;
       if (intentos === 1) throw new Error('sin red');
@@ -283,7 +283,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
 
 test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
   await fijarVentana(800, 1400);
-  const repo = doble<Publico<BookingRepository>>('BookingRepository', {
+  const repo = doble<Public<BookingRepository>>('BookingRepository', {
     misReservas: () => new Promise<Booking[]>(() => {}),
   });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
@@ -292,7 +292,7 @@ test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
 });
 
 test('pendiente de pago: «Ya pagué, verificar» lleva a verificar el pago de esa reserva', async () => {
-  await abrir([reserva('PEN', 4, { estado: BookingStatus.pendientePago })]);
+  await abrir([reserva('PEN', 4, { estado: BookingStatus.pendingPayment })]);
 
   expect(screen.getByText('Completar pago')).toBeOnTheScreen();
   await tocar('Ya pagué, verificar');

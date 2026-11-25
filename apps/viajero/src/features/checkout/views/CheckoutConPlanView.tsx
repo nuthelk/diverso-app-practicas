@@ -62,9 +62,9 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
         <View style={{ height: 22 }} />
         <SelectorPersonas
           pax={vm.pax}
-          cupos={fecha.cupoDisponible}
+          cupos={fecha.availableSpots}
           puedeQuitar={vm.puedeQuitarPersona}
-          puedeAgregar={vm.puedeAgregarPersona(fecha.cupoDisponible)}
+          puedeAgregar={vm.puedeAgregarPersona(fecha.availableSpots)}
           onCambiar={vm.setPax}
         />
         <View style={{ height: 22 }} />
@@ -72,7 +72,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
         <SectionLabel texto="Pago" />
         <PagoWompiCard />
         <View style={{ height: 22 }} />
-        <ResumenPago precioPorPersona={plan.precioCop} pax={vm.pax} total={vm.total(plan)} />
+        <ResumenPago precioPorPersona={plan.priceCop} pax={vm.pax} total={vm.total(plan)} />
         {error !== null ? (
           <>
             <View style={{ height: 16 }} />

@@ -1,5 +1,5 @@
 import type { DiversoError } from './diverso-error';
-import { EstadoReembolso, estadoReembolsoDesdeServidor } from '../models/reembolso';
+import { RefundStatus, refundStatusFromServer } from '../models/refund';
 
 /** Texto en español que se le muestra al viajero para cada código de [DiversoError] (1:1 con Dart). */
 export function mensajeDeError(e: DiversoError): string {
@@ -34,9 +34,9 @@ export function mensajeDeError(e: DiversoError): string {
       return 'Tu sesión expiró. Inicia sesión de nuevo.';
     case 'RESERVA_VENCIDA': {
       if (e.aprobadoTarde) {
-        const estado = estadoReembolsoDesdeServidor(e.detalle?.['reembolso']);
+        const estado = refundStatusFromServer(e.detalle?.['reembolso']);
         // Dart usa `estado.name`: aprobado / pendiente / rechazado.
-        const texto = estado === EstadoReembolso.noAplica ? 'en proceso' : estado;
+        const texto = estado === RefundStatus.notApplicable ? 'en proceso' : estado;
         return (
           'Tu pago llegó cuando la reserva ya había vencido, así que no se confirmó. ' +
           `Te lo devolvemos automáticamente (reembolso de prueba ${texto}).`

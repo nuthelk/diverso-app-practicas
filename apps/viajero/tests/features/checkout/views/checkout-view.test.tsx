@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 
-import { DiversoError, diversoConfig, type BookingRepository, type CatalogRepository, type Publico } from '@/core';
+import { DiversoError, diversoConfig, type BookingRepository, type CatalogRepository, type Public } from '@/core';
 import { CheckoutView } from '@/features/checkout/views/CheckoutView';
 import { AppRoutes } from '@/router';
 
@@ -42,8 +42,8 @@ async function abrir({
 }: { catalogo?: CatalogoFalso; reservas?: ReservasFalsas; pasarela?: PasarelaFalsa; fechaId?: string } = {}) {
   await renderPantalla(<CheckoutView planId="plan-1" fechaId={fechaId} />, {
     dependencias: dependenciasDePrueba({
-      catalogo: doble<Publico<CatalogRepository>>('CatalogRepository', catalogo),
-      reservas: doble<Publico<BookingRepository>>('BookingRepository', reservas),
+      catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalogo),
+      reservas: doble<Public<BookingRepository>>('BookingRepository', reservas),
       pasarela,
     }),
   });

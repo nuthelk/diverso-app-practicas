@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { Booking, BookingRepository, Publico } from '@/core';
+import type { Booking, BookingRepository, Public } from '@/core';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
 
 import { useReservaAcciones, type Reloj } from './useReservaAcciones';
@@ -24,7 +24,7 @@ export function useReservaDetalleViewModel({
   inicial = null,
   reloj,
 }: {
-  reservas: Publico<BookingRepository>;
+  reservas: Public<BookingRepository>;
   bookingId: string;
   inicial?: Booking | null;
   reloj?: Reloj;
@@ -46,7 +46,7 @@ export function useReservaDetalleViewModel({
     try {
       const nueva = await reservas.reserva(bookingId);
       // `reserva(id)` no sabe si ya se reseñó: no se pierde lo que la lista ya había marcado.
-      cambiar((e) => ({ ...e, reserva: e.reserva?.tieneResena ? nueva.conResena() : nueva, cargandoAhora: false }));
+      cambiar((e) => ({ ...e, reserva: e.reserva?.hasReview ? nueva.withReview() : nueva, cargandoAhora: false }));
     } catch (e) {
       console.warn('ReservaDetalleViewModel.cargar:', e);
       if (actual.current.reserva !== null) {
@@ -82,7 +82,7 @@ export function useReservaDetalleViewModel({
 
   /** La reseña se publicó: ya no se ofrece «Reseñar». */
   const resenaPublicada = useCallback(() => {
-    cambiar((e) => ({ ...e, cambio: true, reserva: e.reserva?.conResena() ?? null }));
+    cambiar((e) => ({ ...e, cambio: true, reserva: e.reserva?.withReview() ?? null }));
   }, [cambiar]);
 
   return {

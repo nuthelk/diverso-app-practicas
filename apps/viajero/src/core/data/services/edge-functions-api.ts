@@ -6,7 +6,7 @@ import {
 } from '@supabase/supabase-js';
 
 import { ErrorFuncion } from '../../errors/error-funcion';
-import { esFila, type Fila } from '../../models/fila';
+import { isRow, type Row } from '../../models/row';
 
 /**
  * Edge Functions de Supabase. `functions.invoke` envía la sesión del usuario (JWT) en
@@ -17,7 +17,7 @@ export interface EdgeFunctionsApi {
    * Llama a [funcion] con el cuerpo JSON y devuelve el JSON de la respuesta 2xx. Cualquier fallo
    * se lanza como [ErrorFuncion] (como `FunctionException` en Dart).
    */
-  invocar(funcion: string, cuerpo: Fila): Promise<Fila>;
+  invocar(funcion: string, cuerpo: Row): Promise<Row>;
 }
 
 /** Lee el cuerpo de un no‑2xx: JSON si se puede, si no el texto. */
@@ -58,10 +58,10 @@ export class EdgeFunctionsApiSupabase implements EdgeFunctionsApi {
     this.client = client;
   }
 
-  async invocar(funcion: string, cuerpo: Fila): Promise<Fila> {
+  async invocar(funcion: string, cuerpo: Row): Promise<Row> {
     const { data, error, response } = await this.client.functions.invoke(funcion, { body: cuerpo });
     if (error) throw await aErrorFuncion(error);
-    if (esFila(data)) return data;
+    if (isRow(data)) return data;
     throw new ErrorFuncion(response?.status ?? 200, data);
   }
 }

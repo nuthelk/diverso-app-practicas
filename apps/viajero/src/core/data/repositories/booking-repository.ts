@@ -1,8 +1,8 @@
 import { DiversoError } from '../../errors/diverso-error';
 import { Booking } from '../../models/booking';
 import { CreatedBooking } from '../../models/created-booking';
-import { decimal, texto, textoO } from '../../models/fila';
-import { ResultadoCancelacion, VistaPreviaCancelacion } from '../../models/reembolso';
+import { asDouble, asString, asStringOr } from '../../models/row';
+import { CancellationResult, CancellationPreview } from '../../models/refund';
 import { parsearFecha } from '../../utils/fechas';
 import type { BookingApi } from '../services/booking-api';
 import type { EdgeFunctionsApi } from '../services/edge-functions-api';
@@ -25,11 +25,11 @@ export class BookingRepository {
     try {
       const map = await this.api.crearReserva({ planDateId, pax });
       return new CreatedBooking({
-        bookingId: texto(map['booking_id']),
-        codigo: texto(map['codigo']),
-        montoTotal: decimal(map['monto_total']),
-        planTitulo: textoO(map['plan_titulo'], ''),
-        fecha: map['fecha'] == null ? null : parsearFecha(String(map['fecha'])),
+        bookingId: asString(map['booking_id']),
+        code: asString(map['codigo']),
+        totalAmount: asDouble(map['monto_total']),
+        planTitle: asStringOr(map['plan_titulo'], ''),
+        date: map['fecha'] == null ? null : parsearFecha(String(map['fecha'])),
       });
     } catch (e) {
       throw DiversoError.fromPostgrest(e);
@@ -48,8 +48,8 @@ export class BookingRepository {
     // Marca cuáles ya tienen reseña (habilita el botón en las que no).
     if (bookings.length > 0) {
       const resenas = await this.api.resenasDe(uid);
-      const conResena = new Set(resenas.map((e) => texto(e['booking_id'])));
-      return bookings.map((b) => (b.tieneResena || conResena.has(b.id) ? b.conResena() : b));
+      const conResena = new Set(resenas.map((e) => asString(e['booking_id'])));
+      return bookings.map((b) => (b.hasReview || conResena.has(b.id) ? b.withReview() : b));
     }
     return bookings;
   }
@@ -65,7 +65,7 @@ export class BookingRepository {
       const booking = Booking.fromMap(res);
       // Igual que en misReservas: sin esto, el detalle cargado en frío ofrecería «Reseñar» de nuevo.
       const resena = await this.api.resenaDe(bookingId);
-      return resena === null ? booking : booking.conResena();
+      return resena === null ? booking : booking.withReview();
     } catch (e) {
       if (e instanceof DiversoError) throw e;
       throw DiversoError.fromPostgrest(e);
@@ -80,7 +80,7 @@ export class BookingRepository {
     const uid = await this.api.usuarioId();
     if (uid === null) return null;
     try {
-      const desde = new Date(Date.now() - Booking.retencionMs);
+      const desde = new Date(Date.now() - Booking.holdMs);
       const res = await this.api.pendientesDe({ viajeroId: uid, planDateId, creadaDespuesDe: desde });
       return res.length === 0 ? null : Booking.fromMap(res[0]!);
     } catch (e) {
@@ -89,9 +89,9 @@ export class BookingRepository {
   }
 
   /** Reembolso que daría la política del plan si se cancelara AHORA (solo lectura). */
-  async vistaPreviaCancelacion(bookingId: string): Promise<VistaPreviaCancelacion> {
+  async vistaPreviaCancelacion(bookingId: string): Promise<CancellationPreview> {
     try {
-      return VistaPreviaCancelacion.fromMap(await this.api.vistaPreviaCancelacion(bookingId));
+      return CancellationPreview.fromMap(await this.api.vistaPreviaCancelacion(bookingId));
     } catch (e) {
       throw DiversoError.fromPostgrest(e);
     }
@@ -101,8 +101,8 @@ export class BookingRepository {
    * Cancela con la política del plan (Edge Function `reservas-cancelar`, que también pide el
    * reembolso de prueba a Wompi). Es idempotente.
    */
-  async cancelar(bookingId: string): Promise<ResultadoCancelacion> {
+  async cancelar(bookingId: string): Promise<CancellationResult> {
     const res = await llamarEdgeFunction(this.edgeFunctions, 'reservas-cancelar', { booking_id: bookingId });
-    return ResultadoCancelacion.fromMap(res);
+    return CancellationResult.fromMap(res);
   }
 }

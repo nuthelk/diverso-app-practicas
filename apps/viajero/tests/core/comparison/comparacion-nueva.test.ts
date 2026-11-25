@@ -13,19 +13,19 @@ const plan = ({
   new Plan({
     id: 'p',
     agencyId: 'a',
-    titulo: 'Plan',
-    destino: 'Jericó',
-    categoria: ExperienceCategory.cultura,
-    precioCop: precio,
-    estado: PlanStatus.publicado,
-    ratingPromedio: rating,
+    title: 'Plan',
+    destination: 'Jericó',
+    category: ExperienceCategory.culture,
+    priceCop: precio,
+    status: PlanStatus.published,
+    averageRating: rating,
     reviewsCount: reviews,
     ...resto,
   });
 
 test('Plan.esNuevo: sin reseñas aunque el promedio venga en 0', () => {
-  expect(plan().esNuevo).toBe(true);
-  expect(plan({ reviews: 2, rating: 4.5 }).esNuevo).toBe(false);
+  expect(plan().isNew).toBe(true);
+  expect(plan({ reviews: 2, rating: 4.5 }).isNew).toBe(false);
 });
 
 test('el comparador dice «Nueva» para un plan sin reseñas y conserva el formato con reseñas', () => {
@@ -64,9 +64,9 @@ describe('buildComparisonRows (extra del port)', () => {
     const hoy = hoyBogota();
     const enTres = fechaLocal(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
     const conFecha = plan({
-      incluyeTransporte: true,
-      politicaCancelacion: 'Gratis hasta 48 h antes',
-      dates: [new PlanDate({ id: 'd', planId: 'p', fecha: enTres, cupoTotal: 10, cupoDisponible: 7 })],
+      includesTransport: true,
+      cancellationPolicy: 'Gratis hasta 48 h antes',
+      dates: [new PlanDate({ id: 'd', planId: 'p', date: enTres, totalSpots: 10, availableSpots: 7 })],
     });
     const filas = buildComparisonRows([conFecha, plan()]);
     const fila = (k: string) => filas.find((f) => f.icono === k)!.valores;

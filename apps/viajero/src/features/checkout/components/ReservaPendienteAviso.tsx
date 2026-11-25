@@ -6,12 +6,12 @@ import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
 
 /** «Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 330.000). Vence a las 14:35.» */
 export function textoReservaPendiente(reserva: Booking): string {
-  const vence = reserva.venceAt;
+  const vence = reserva.expiresAt;
   const hora = `${String(vence.getHours()).padStart(2, '0')}:${String(vence.getMinutes()).padStart(2, '0')}`;
   const personas = `${reserva.pax} ${reserva.pax === 1 ? 'persona' : 'personas'}`;
   return (
     'Ya tienes una reserva pendiente de pago para esta fecha ' +
-    `(${personas}, ${formatCOP(reserva.montoTotal)}). Vence a las ${hora}.`
+    `(${personas}, ${formatCOP(reserva.totalAmount)}). Vence a las ${hora}.`
   );
 }
 

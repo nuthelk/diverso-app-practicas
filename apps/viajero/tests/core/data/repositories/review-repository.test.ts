@@ -28,7 +28,7 @@ describe('porPlan', () => {
       limit: ['20'],
     });
     // El autor de reseñas ajenas llega null por RLS de profiles (igual que en Flutter).
-    expect(r.map((x) => [x.id, x.viajeroNombre])).toEqual([
+    expect(r.map((x) => [x.id, x.travelerName])).toEqual([
       ['r1', 'Ana'],
       ['r2', null],
     ]);

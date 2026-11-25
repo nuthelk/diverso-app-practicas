@@ -55,8 +55,8 @@ test('aplicar destino y precio hace una sola consulta con ambos filtros', async 
   await aplicar();
 
   expect(catalogo.busquedas).toHaveLength(2);
-  expect(catalogo.busquedas.at(-1)!.destino).toBe('Guatapé');
-  expect(catalogo.busquedas.at(-1)!.precioMax).not.toBeNull();
+  expect(catalogo.busquedas.at(-1)!.destination).toBe('Guatapé');
+  expect(catalogo.busquedas.at(-1)!.maxPrice).not.toBeNull();
   expect(chips()).toHaveLength(2);
 });
 
@@ -67,9 +67,9 @@ test('aplicar sin cambios también hace una sola consulta', async () => {
   await aplicar();
 
   expect(catalogo.busquedas).toHaveLength(2);
-  expect(catalogo.busquedas.at(-1)!.destino).toBeNull();
-  expect(catalogo.busquedas.at(-1)!.precioMax).toBeNull();
-  expect(catalogo.busquedas.at(-1)!.fecha).toBeNull();
+  expect(catalogo.busquedas.at(-1)!.destination).toBeNull();
+  expect(catalogo.busquedas.at(-1)!.maxPrice).toBeNull();
+  expect(catalogo.busquedas.at(-1)!.date).toBeNull();
 });
 
 test('Limpiar y aplicar quita los filtros con una sola consulta', async () => {
@@ -77,7 +77,7 @@ test('Limpiar y aplicar quita los filtros con una sola consulta', async () => {
   await abrirHoja();
   await elegirDestino('Jardín');
   await aplicar();
-  expect(catalogo.busquedas.at(-1)!.destino).toBe('Jardín');
+  expect(catalogo.busquedas.at(-1)!.destination).toBe('Jardín');
   const antes = catalogo.busquedas.length;
 
   await abrirHoja();
@@ -85,7 +85,7 @@ test('Limpiar y aplicar quita los filtros con una sola consulta', async () => {
   await aplicar();
 
   expect(catalogo.busquedas).toHaveLength(antes + 1);
-  expect(catalogo.busquedas.at(-1)!.destino).toBeNull();
+  expect(catalogo.busquedas.at(-1)!.destination).toBeNull();
   expect(chips()).toHaveLength(0);
 });
 
@@ -95,7 +95,7 @@ describe('con un destino ya activo', () => {
     await abrirHoja();
     await elegirDestino('Guatapé');
     await aplicar();
-    expect(catalogo.busquedas.at(-1)!.destino).toBe('Guatapé');
+    expect(catalogo.busquedas.at(-1)!.destination).toBe('Guatapé');
     return catalogo;
   }
 
@@ -108,8 +108,8 @@ describe('con un destino ya activo', () => {
     await aplicar();
 
     expect(catalogo.busquedas).toHaveLength(antes + 1);
-    expect(catalogo.busquedas.at(-1)!.destino).toBe('Guatapé');
-    expect(catalogo.busquedas.at(-1)!.precioMax).not.toBeNull();
+    expect(catalogo.busquedas.at(-1)!.destination).toBe('Guatapé');
+    expect(catalogo.busquedas.at(-1)!.maxPrice).not.toBeNull();
     expect(chips().some((c) => within(c).queryByText('Guatapé') !== null)).toBe(true);
   });
 
@@ -120,7 +120,7 @@ describe('con un destino ya activo', () => {
     await fireEvent.press(hoja().getByText('Limpiar'));
     await aplicar();
 
-    expect(catalogo.busquedas.at(-1)!.destino).toBeNull();
+    expect(catalogo.busquedas.at(-1)!.destination).toBeNull();
     expect(chips()).toHaveLength(0);
   });
 
@@ -131,7 +131,7 @@ describe('con un destino ya activo', () => {
     await elegirDestino('Jardín');
     await aplicar();
 
-    expect(catalogo.busquedas.at(-1)!.destino).toBe('Jardín');
+    expect(catalogo.busquedas.at(-1)!.destination).toBe('Jardín');
   });
 });
 
@@ -147,7 +147,7 @@ describe('detalles de la hoja', () => {
     await fireEvent(hoja().getByRole('adjustable'), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
     expect(hoja().getByTestId('valor-precio')).toHaveTextContent('Sin límite');
     await aplicar();
-    expect(catalogo.busquedas.at(-1)!.precioMax).toBeNull();
+    expect(catalogo.busquedas.at(-1)!.maxPrice).toBeNull();
   });
 
   test('el deslizador va de 50 000 a 600 000 en 11 divisiones de 50 000', async () => {
@@ -174,8 +174,8 @@ describe('detalles de la hoja', () => {
     const chipPrecio = chips().find((c) => within(c).queryByText('Hasta $ 450.000') !== null)!;
     await fireEvent.press(within(chipPrecio).getByRole('button'));
 
-    expect(catalogo.busquedas.at(-1)!.precioMax).toBeNull();
-    expect(catalogo.busquedas.at(-1)!.destino).toBe('Jardín');
+    expect(catalogo.busquedas.at(-1)!.maxPrice).toBeNull();
+    expect(catalogo.busquedas.at(-1)!.destination).toBe('Jardín');
     expect(screen.getByTestId('insignia-filtros')).toHaveTextContent('1');
   });
 
@@ -204,7 +204,7 @@ describe('detalles de la hoja', () => {
     expect(hoja().getByRole('button', { name: 'Quitar fecha' })).toBeOnTheScreen();
     await aplicar();
 
-    const fecha = catalogo.busquedas.at(-1)!.fecha!;
+    const fecha = catalogo.busquedas.at(-1)!.date!;
     expect([fecha.getFullYear(), fecha.getMonth(), fecha.getDate()]).toEqual([manana.getFullYear(), manana.getMonth(), manana.getDate()]);
     expect(screen.getByText(formatFechaCorta(manana))).toBeOnTheScreen();
 

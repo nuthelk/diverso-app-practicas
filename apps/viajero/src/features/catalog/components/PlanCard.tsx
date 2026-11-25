@@ -43,7 +43,7 @@ export const PlanCard = memo(function PlanCard({
         testID={`plan-card-${plan.id}`}
         color={cs.surfaceContainerLow}
         onPress={() => router.push(AppRoutes.plan(plan.id) as Href)}
-        accessibilityLabel={plan.titulo}
+        accessibilityLabel={plan.title}
         style={estilos.envoltura}
       >
         <ContenidoPlanCard plan={plan} />
@@ -67,7 +67,7 @@ export const PlanCard = memo(function PlanCard({
 
 function ContenidoPlanCard({ plan }: { plan: Plan }) {
   const cs = useTheme().colorScheme;
-  const proxima = plan.fechasDisponibles[0];
+  const proxima = plan.availableDates[0];
   return (
     <>
       <View style={{ height: ALTO_PORTADA_PLAN }}>
@@ -76,7 +76,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           <View testID="degradado-portada" style={[estilos.flex, DEGRADADO_PORTADA]} />
         </View>
-        {plan.agency?.verificada === true ? (
+        {plan.agency?.isVerified === true ? (
           <View style={estilos.sello}>
             <VerifiedBadge blanco compacto />
           </View>
@@ -85,7 +85,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           <Icono nombre="location_on_rounded" size={14} color="#FFFFFF" />
           <View style={{ width: 3 }} />
           <Text numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: AppText.detalle, flexShrink: 1 }}>
-            {plan.destino}
+            {plan.destination}
           </Text>
           <View style={{ width: 8 }} />
           {/* Oscura translúcida (no blanca): el texto blanco se lee igual sobre un cielo o una pared clara. */}
@@ -93,7 +93,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
             testID="pildora-duracion"
             style={[estilos.pildora, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: AppText.nota, fontWeight: '600' }}>{plan.duracionTexto}</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: AppText.nota, fontWeight: '600' }}>{plan.durationText}</Text>
           </View>
         </View>
         {proxima ? (
@@ -101,7 +101,7 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
             <Icono nombre="event_available_rounded" size={12} color={cs.primary} />
             <View style={{ width: 3 }} />
             <Text style={{ fontSize: AppText.nota, fontWeight: '700', color: cs.primary }}>
-              {`${proxima.cupoDisponible} cupos`}
+              {`${proxima.availableSpots} cupos`}
             </Text>
           </View>
         ) : null}
@@ -113,13 +113,13 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           altura={1.25}
           style={{ fontSize: AppText.enfasisGrande, fontWeight: '700', letterSpacing: -0.3 }}
         >
-          {plan.titulo}
+          {plan.title}
         </Text>
         <View style={{ height: 8 }} />
         <View style={estilos.fila}>
           <PuntajePlan plan={plan} />
           <View style={estilos.flex} />
-          <PriceText monto={plan.precioCop} />
+          <PriceText monto={plan.priceCop} />
         </View>
       </View>
     </>
@@ -130,11 +130,11 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
 function PortadaPlan({ plan }: { plan: Plan }) {
   const cs = useTheme().colorScheme;
   const [fallo, setFallo] = useState(false);
-  const foto = plan.fotoPrincipal;
+  const foto = plan.mainPhoto;
   if (foto === null || fallo) {
     return (
       <View testID="portada-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
-        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.categoria]}</Text>
+        <Text style={{ fontSize: AppText.emojiFoto }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       </View>
     );
   }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { CatalogRepository, Plan, Publico } from '@/core';
+import type { CatalogRepository, Plan, Public } from '@/core';
 
 /** `listEquals` de los ids: mismos ids y en el mismo orden. */
 function mismosIds(planes: readonly Plan[], ids: readonly string[]): boolean {
@@ -24,7 +24,7 @@ export function useComparatorViewModel({
   ids,
   planesIniciales,
 }: {
-  catalogo: Pick<Publico<CatalogRepository>, 'planDetalle'>;
+  catalogo: Pick<Public<CatalogRepository>, 'planDetalle'>;
   ids: readonly string[];
   planesIniciales?: readonly Plan[] | null;
 }) {

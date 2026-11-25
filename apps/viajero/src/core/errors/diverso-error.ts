@@ -2,7 +2,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 
 import type { ErrorFuncion } from './error-funcion';
 import { mensajeDeError } from './mensaje-usuario';
-import { esFila, type Fila } from '../models/fila';
+import { isRow, type Row } from '../models/row';
 
 /**
  * Códigos que las RPC elevan con `raise exception 'CODIGO'`, en el orden EXACTO en que Dart los
@@ -37,7 +37,7 @@ interface ErrorPostgrestPlano {
  */
 function esErrorPostgrest(e: unknown): e is ErrorPostgrestPlano {
   if (e instanceof PostgrestError) return true;
-  return esFila(e) && !(e instanceof Error) && typeof e['message'] === 'string' && 'code' in e && 'details' in e;
+  return isRow(e) && !(e instanceof Error) && typeof e['message'] === 'string' && 'code' in e && 'details' in e;
 }
 
 /** Texto de un detalle cualquiera (`details?.toString()` de Dart). */
@@ -57,9 +57,9 @@ export class DiversoError extends Error {
   readonly codigo: string;
   readonly mensaje: string | null;
   /** Cuerpo completo del error de una Edge Function (p. ej. `estado_pago`, `reembolso`). */
-  readonly detalle: Fila | null;
+  readonly detalle: Row | null;
 
-  constructor(codigo: string, mensaje: string | null = null, detalle: Fila | null = null) {
+  constructor(codigo: string, mensaje: string | null = null, detalle: Row | null = null) {
     super(`DiversoError(${codigo}): ${mensaje}`);
     this.name = 'DiversoError';
     this.codigo = codigo;
@@ -84,7 +84,7 @@ export class DiversoError extends Error {
    */
   static fromFunction(e: ErrorFuncion): DiversoError {
     const d = e.details;
-    if (esFila(d) && typeof d['error'] === 'string') {
+    if (isRow(d) && typeof d['error'] === 'string') {
       return new DiversoError(d['error'], typeof d['mensaje'] === 'string' ? d['mensaje'] : null, d);
     }
     if (e.status === 0) return new DiversoError('SIN_CONEXION', comoTexto(d));

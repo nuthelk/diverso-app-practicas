@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { LABEL_ORDEN_AGENCIAS, OrdenAgencias, valoresDe } from '@/core';
+import { LABEL_AGENCY_SORT, AgencySort, valuesOf } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { EmptyState, FilledButton, SegmentedButton, Skeleton, TituloPagina } from '@/ui/components';
@@ -11,7 +11,7 @@ import { AppInsets, AppRadios, AppTheme, useTheme } from '@/ui/theme';
 import { AgenciaCard } from '../components/AgenciaCard';
 import { useAgenciasViewModel } from '../view-models/useAgenciasViewModel';
 
-const SEGMENTOS = valoresDe(OrdenAgencias).map((o) => ({ valor: o, etiqueta: LABEL_ORDEN_AGENCIAS[o] }));
+const SEGMENTOS = valuesOf(AgencySort).map((o) => ({ valor: o, etiqueta: LABEL_AGENCY_SORT[o] }));
 
 /**
  * Pestaña «Agencias» (`agencias_view.dart`): agencias verificadas con puntaje, logo y portada,

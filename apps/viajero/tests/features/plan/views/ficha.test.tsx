@@ -5,7 +5,7 @@ import {
   Agency,
   ExperienceCategory,
   formatFechaCorta,
-  ItinerarioPaso,
+  ItineraryStep,
   Plan,
   PlanDate,
   PlanStatus,
@@ -96,8 +96,8 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     await abrir(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba({ dates: fechas }) } }));
 
     for (const [id, textos] of [
-      ['f-1', [formatFechaCorta(fechas[0]!.fecha), '10 cupos']],
-      ['f-2', [formatFechaCorta(fechas[1]!.fecha), '¡Últimos 2!']],
+      ['f-1', [formatFechaCorta(fechas[0]!.date), '10 cupos']],
+      ['f-2', [formatFechaCorta(fechas[1]!.date), '¡Últimos 2!']],
     ] as const) {
       const chip = within(screen.getByTestId(`fecha-${id}`));
       for (const texto of textos) {
@@ -184,18 +184,18 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
     new Plan({
       id: 'plan-1',
       agencyId: 'ag-rutas',
-      titulo: 'Comuna 13 y memoria',
-      destino: 'Medellín',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 120000,
-      estado: PlanStatus.publicado,
+      title: 'Comuna 13 y memoria',
+      destination: 'Medellín',
+      category: ExperienceCategory.culture,
+      priceCop: 120000,
+      status: PlanStatus.published,
       agency: new Agency({
         id: 'ag-rutas',
-        nombre: 'Rutas de Antioquia Cultural',
-        numeroRnt: '12345',
-        matriculaCamaraComercio: '999',
-        estadoVerificacion: VerificationStatus.verificado,
-        rntVigenteHasta: new Date(Date.now() + 365 * 24 * 3600 * 1000),
+        name: 'Rutas de Antioquia Cultural',
+        rntNumber: '12345',
+        commercialRegistration: '999',
+        verificationStatus: VerificationStatus.verified,
+        rntValidUntil: new Date(Date.now() + 365 * 24 * 3600 * 1000),
         logoUrl,
       }),
     });
@@ -238,11 +238,11 @@ describe('reseñas (detalle_resena_test)', () => {
     new Plan({
       id: 'plan-1',
       agencyId: 'ag-1',
-      titulo: 'Santa Fe termal',
-      destino: 'Santa Fe de Antioquia',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 178000,
-      estado: PlanStatus.publicado,
+      title: 'Santa Fe termal',
+      destination: 'Santa Fe de Antioquia',
+      category: ExperienceCategory.culture,
+      priceCop: 178000,
+      status: PlanStatus.published,
       reviewsCount,
     });
   const resena = (id: string, nombre: string | null, comentario: string | null = null) =>
@@ -250,11 +250,11 @@ describe('reseñas (detalle_resena_test)', () => {
       id,
       bookingId: `b-${id}`,
       planId: 'plan-1',
-      viajeroId: `v-${id}`,
-      calificacion: 5,
+      travelerId: `v-${id}`,
+      rating: 5,
       createdAt: new Date(2026, 9, 1),
-      viajeroNombre: nombre,
-      comentario,
+      travelerName: nombre,
+      comment: comentario,
     });
   const avatares = () => screen.getAllByTestId('avatar-resena');
   const avatarCon = (texto: string) => avatares().filter((a) => within(a).queryByText(texto) !== null);
@@ -316,18 +316,18 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
     new Plan({
       id: 'plan-1',
       agencyId: 'ag-1',
-      titulo: 'Santa Fe termal',
-      destino: 'Santa Fe de Antioquia',
-      categoria: ExperienceCategory.cultura,
-      precioCop: 178000,
-      estado: PlanStatus.publicado,
-      politicaCancelacion: politica,
-      descripcion: 'Aguas termales y pueblo patrimonio.',
-      incluye: ['Guía bilingüe'],
-      incluyeTransporte: true,
-      puntoEncuentro: 'Parque de Santa Fe',
-      itinerario: Array.from({ length: 12 }, (_, i) => new ItinerarioPaso({ hora: `${String(i + 6).padStart(2, '0')}:00`, actividad: `Parada ${i + 6}` })),
-      dates: [new PlanDate({ id: 'f-1', planId: 'plan-1', fecha: new Date(Date.now() + 3 * 24 * 3600 * 1000), cupoTotal: 20, cupoDisponible: 20 })],
+      title: 'Santa Fe termal',
+      destination: 'Santa Fe de Antioquia',
+      category: ExperienceCategory.culture,
+      priceCop: 178000,
+      status: PlanStatus.published,
+      cancellationPolicy: politica,
+      description: 'Aguas termales y pueblo patrimonio.',
+      includes: ['Guía bilingüe'],
+      includesTransport: true,
+      meetingPoint: 'Parque de Santa Fe',
+      itinerary: Array.from({ length: 12 }, (_, i) => new ItineraryStep({ time: `${String(i + 6).padStart(2, '0')}:00`, activity: `Parada ${i + 6}` })),
+      dates: [new PlanDate({ id: 'f-1', planId: 'plan-1', date: new Date(Date.now() + 3 * 24 * 3600 * 1000), totalSpots: 20, availableSpots: 20 })],
     });
 
   test('la barra de reserva va DESPUÉS del contenido desplazable (no encima): el final queda sobre ella', async () => {

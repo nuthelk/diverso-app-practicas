@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { AgenciaResumen, OrdenAgencias, type Plan } from '@/core';
+import { AgencySummary, AgencySort, type Plan } from '@/core';
 import { useAgenciaViewModel } from '@/features/agencies/view-models/useAgenciaViewModel';
 import { useAgenciasViewModel } from '@/features/agencies/view-models/useAgenciasViewModel';
 
@@ -13,20 +13,20 @@ import { compuerta } from '../../../support/compuerta';
  * `agencias_view_model_test.dart` y `agencia_view_model_test.dart`.
  */
 
-const rutas = new AgenciaResumen({
+const rutas = new AgencySummary({
   id: 'ag-rutas',
-  nombre: 'Rutas de Antioquia Cultural',
-  ciudad: 'Medellín',
-  planesCount: 2,
+  name: 'Rutas de Antioquia Cultural',
+  city: 'Medellín',
+  planCount: 2,
   rating: 4.5,
   reviewsTotal: 2,
 });
-const eco = new AgenciaResumen({ id: 'ag-eco', nombre: 'EcoAndes Viajes', ciudad: 'Envigado', planesCount: 5 });
-const cafe = new AgenciaResumen({
+const eco = new AgencySummary({ id: 'ag-eco', name: 'EcoAndes Viajes', city: 'Envigado', planCount: 5 });
+const cafe = new AgencySummary({
   id: 'ag-cafe',
-  nombre: 'Café y Montaña Tours',
-  ciudad: 'Jardín',
-  planesCount: 3,
+  name: 'Café y Montaña Tours',
+  city: 'Jardín',
+  planCount: 3,
   rating: 5.0,
   reviewsTotal: 3,
 });
@@ -63,7 +63,7 @@ describe('AgenciasViewModel', () => {
       expect(result.current.agencias).toEqual([]);
       expect(result.current.hayAgencias).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(result.current.orden).toBe(OrdenAgencias.puntaje);
+      expect(result.current.orden).toBe(AgencySort.score);
       expect(catalogo.consultasAgencias).toBe(0);
     });
 
@@ -127,7 +127,7 @@ describe('AgenciasViewModel', () => {
       const { result } = await crear();
       await act(() => result.current.cargar());
 
-      expect(() => (result.current.agencias as AgenciaResumen[]).push(eco)).toThrow();
+      expect(() => (result.current.agencias as AgencySummary[]).push(eco)).toThrow();
     });
   });
 
@@ -141,16 +141,16 @@ describe('AgenciasViewModel', () => {
     test('más planes: de más a menos planes', async () => {
       const { result } = await crear();
       await act(() => result.current.cargar());
-      await act(() => result.current.cambiarOrden(OrdenAgencias.masPlanes));
+      await act(() => result.current.cambiarOrden(AgencySort.mostPlans));
 
-      expect(result.current.orden).toBe(OrdenAgencias.masPlanes);
+      expect(result.current.orden).toBe(AgencySort.mostPlans);
       expect(ids(result.current.agencias)).toEqual(['ag-eco', 'ag-cafe', 'ag-rutas']);
     });
 
     test('nombre: alfabético sin tildes ni mayúsculas', async () => {
       const { result } = await crear();
       await act(() => result.current.cargar());
-      await act(() => result.current.cambiarOrden(OrdenAgencias.nombre));
+      await act(() => result.current.cambiarOrden(AgencySort.name));
 
       expect(ids(result.current.agencias)).toEqual(['ag-cafe', 'ag-eco', 'ag-rutas']);
     });
@@ -160,7 +160,7 @@ describe('AgenciasViewModel', () => {
       await act(() => result.current.cargar());
       const antes = renders();
 
-      await act(() => result.current.cambiarOrden(OrdenAgencias.nombre));
+      await act(() => result.current.cambiarOrden(AgencySort.name));
 
       expect(renders()).toBe(antes + 1);
       expect(catalogo.consultasAgencias).toBe(1);
@@ -171,7 +171,7 @@ describe('AgenciasViewModel', () => {
       await act(() => result.current.cargar());
       const antes = renders();
 
-      await act(() => result.current.cambiarOrden(OrdenAgencias.puntaje));
+      await act(() => result.current.cambiarOrden(AgencySort.score));
 
       expect(renders()).toBe(antes);
     });
@@ -179,10 +179,10 @@ describe('AgenciasViewModel', () => {
     test('el orden elegido se conserva al recargar', async () => {
       const { result } = await crear();
       await act(() => result.current.cargar());
-      await act(() => result.current.cambiarOrden(OrdenAgencias.nombre));
+      await act(() => result.current.cambiarOrden(AgencySort.name));
       await act(() => result.current.cargar());
 
-      expect(result.current.orden).toBe(OrdenAgencias.nombre);
+      expect(result.current.orden).toBe(AgencySort.name);
       expect(ids(result.current.agencias)).toEqual(['ag-cafe', 'ag-eco', 'ag-rutas']);
     });
   });

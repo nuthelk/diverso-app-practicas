@@ -1,4 +1,4 @@
-import type { CatalogRepository, Plan, PlanDate, Publico } from '@/core';
+import type { CatalogRepository, Plan, PlanDate, Public } from '@/core';
 
 import { useEstadoVivo } from './use-estado-vivo';
 
@@ -16,7 +16,7 @@ interface EstadoCheckoutPlan {
  * pedida. No carga solo: la vista llama a `cargar()` al montarse (como el `..cargar()` de Dart).
  */
 export function useCheckoutPlanViewModel(
-  { catalogo }: { catalogo: Pick<Publico<CatalogRepository>, 'planDetalle'> },
+  { catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'planDetalle'> },
   { planId, fechaId, reloj = () => new Date() }: { planId: string; fechaId: string; reloj?: () => Date },
 ) {
   const { estado, cambiar } = useEstadoVivo<EstadoCheckoutPlan>(() => ({ plan: null, cargando: true, error: null }));
@@ -40,7 +40,7 @@ export function useCheckoutPlanViewModel(
    */
   const plan = estado.plan;
   const ahora = reloj();
-  const fecha: PlanDate | null = plan?.dates.find((d) => d.id === fechaId && !plan.yaSalio(d, ahora)) ?? null;
+  const fecha: PlanDate | null = plan?.dates.find((d) => d.id === fechaId && !plan.hasDeparted(d, ahora)) ?? null;
 
   return { ...estado, fecha, cargar };
 }

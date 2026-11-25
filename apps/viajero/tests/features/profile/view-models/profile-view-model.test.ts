@@ -42,7 +42,7 @@ test('antes de cargar: cargando, «Viajero» con inicial V', async () => {
 });
 
 test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el correo de la sesión', async () => {
-  auth.perfil = new Profile({ id: 'u', rol: UserRole.viajero, nombre: 'ana' });
+  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: 'ana' });
   const { result, cargandos } = await crear();
 
   await act(() => result.current.cargar());
@@ -56,7 +56,7 @@ test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el c
 });
 
 test('nombre vacío: la inicial es V (no se rompe)', async () => {
-  auth.perfil = new Profile({ id: 'u', rol: UserRole.viajero, nombre: '' });
+  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '' });
   const { result } = await crear();
   await act(() => result.current.cargar());
 
@@ -64,7 +64,7 @@ test('nombre vacío: la inicial es V (no se rompe)', async () => {
 });
 
 test('la inicial es la primera letra completa, aunque sea un emoji (sin partir el carácter)', async () => {
-  auth.perfil = new Profile({ id: 'u', rol: UserRole.viajero, nombre: '😀 Ana' });
+  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '😀 Ana' });
   const { result } = await crear();
   await act(() => result.current.cargar());
 

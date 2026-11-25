@@ -10,7 +10,7 @@ import { EdgeFunctionsApiSupabase } from '@/core/data/services/edge-functions-ap
 import { DiversoError } from '@/core/errors/diverso-error';
 import { CreatedBooking } from '@/core/models/created-booking';
 import { BookingStatus } from '@/core/models/enums';
-import { decimal, entero, esFila, texto, textoO, type Fila } from '@/core/models/fila';
+import { asDouble, asInt, isRow, asString, asStringOr, type Row } from '@/core/models/row';
 import { fechaToIso } from '@/core/utils/fechas';
 import { hoyBogota } from '@/core/utils/hora-bogota';
 
@@ -86,7 +86,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       .throwOnError();
     const sinCancelar: string[] = [];
     const aBorrar: string[] = [];
-    for (const f of (filas ?? []) as Fila[]) {
+    for (const f of (filas ?? []) as Row[]) {
       if (f['estado'] !== 'cancelada') {
         try {
           await admin
@@ -97,7 +97,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
           continue;
         }
       }
-      aBorrar.push(texto(f['id']));
+      aBorrar.push(asString(f['id']));
     }
     if (aBorrar.length > 0) await admin.from('bookings').delete().in('id', aBorrar).throwOnError();
     if (sinCancelar.length > 0) {
@@ -115,11 +115,11 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       .eq('id', planDateId)
       .single()
       .throwOnError();
-    return entero((data as Fila)['cupo_disponible']);
+    return asInt((data as Row)['cupo_disponible']);
   }
 
   /** Fechas futuras de planes publicados con al menos [minimo] cupos (consulta con service_role). */
-  async function fechasPublicadas(minimo: number, limite: number): Promise<Fila[]> {
+  async function fechasPublicadas(minimo: number, limite: number): Promise<Row[]> {
     const { data } = await admin
       .from('plan_dates')
       .select('id, cupo_disponible, plans!inner(estado)')
@@ -128,7 +128,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       .gte('cupo_disponible', minimo)
       .limit(limite)
       .throwOnError();
-    return (data ?? []) as Fila[];
+    return (data ?? []) as Row[];
   }
 
   beforeAll(async () => {
@@ -162,14 +162,14 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       .throwOnError();
     // Cupo entre 3 y 21: deja exactamente 1 cupo tras reservar cupo-1 pax sin exceder el máximo de
     // 20 personas por reserva.
-    const conCupo = ((fechas ?? []) as Fila[])
-      .filter((f) => entero(f['cupo_disponible']) >= 3)
-      .filter((f) => entero(f['cupo_disponible']) <= 21)
+    const conCupo = ((fechas ?? []) as Row[])
+      .filter((f) => asInt(f['cupo_disponible']) >= 3)
+      .filter((f) => asInt(f['cupo_disponible']) <= 21)
       .filter((f) => f['plans'] != null);
     expect(conCupo.length).toBeGreaterThan(0); // El seed debe dejar fechas con cupos
     const fecha = conCupo[0]!;
-    const planDateId = texto(fecha['id']);
-    const cupo = entero(fecha['cupo_disponible']);
+    const planDateId = asString(fecha['id']);
+    const cupo = asInt(fecha['cupo_disponible']);
     const creadas: string[] = [];
 
     // La regla "una sola reserva pendiente por viajero y fecha" (servidor) impide que UN viajero
@@ -191,7 +191,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       // 2. Consumir cupo-1 asientos en una reserva grande.
       const grande = await bookings.crearReserva({ planDateId, pax: cupo - 1 });
       creadas.push(grande.bookingId);
-      expect(grande.codigo.startsWith('DIV-')).toBe(true);
+      expect(grande.code.startsWith('DIV-')).toBe(true);
       // La reserva grande queda pagada: si siguiera pendiente, la regla de una pendiente por viajero y
       // fecha rechazaría el segundo intento de este mismo viajero por ese motivo y no por falta de cupo.
       await admin.from('bookings').update({ estado: 'confirmada' }).eq('id', grande.bookingId).throwOnError();
@@ -213,12 +213,12 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
             const { data: res } = await otro
               .rpc('create_booking', { p_plan_date_id: planDateId, p_pax: 1 })
               .throwOnError();
-            if (!esFila(res)) throw new Error(`create_booking devolvió ${String(res)}`);
+            if (!isRow(res)) throw new Error(`create_booking devolvió ${String(res)}`);
             return new CreatedBooking({
-              bookingId: texto(res['booking_id']),
-              codigo: texto(res['codigo']),
-              montoTotal: decimal(res['monto_total']),
-              planTitulo: textoO(res['plan_titulo'], ''),
+              bookingId: asString(res['booking_id']),
+              code: asString(res['codigo']),
+              totalAmount: asDouble(res['monto_total']),
+              planTitle: asStringOr(res['plan_titulo'], ''),
             });
           } catch (e) {
             throw DiversoError.fromPostgrest(e);
@@ -245,7 +245,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
         .eq('id', planDateId)
         .single()
         .throwOnError();
-      expect((despues as Fila)['cupo_disponible']).toBe(0);
+      expect((despues as Row)['cupo_disponible']).toBe(0);
     } finally {
       // 5. Limpieza: devuelve cupos, borra las reservas de prueba y el viajero creado para la carrera.
       await limpiar(creadas);
@@ -259,7 +259,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
   test('el mismo viajero no abre una segunda reserva pendiente de la misma fecha (RESERVA_PENDIENTE_EXISTENTE)', async () => {
     const fechas = await fechasPublicadas(3, 1);
     expect(fechas.length).toBeGreaterThan(0); // el seed debe dejar una fecha con cupos
-    const planDateId = texto(fechas[0]!['id']);
+    const planDateId = asString(fechas[0]!['id']);
     const cupo = await cupoDe(planDateId);
 
     const primera = await bookings.crearReserva({ planDateId, pax: 1 });
@@ -284,8 +284,8 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
   test('reservaPendiente encuentra la reserva sin pagar de esa fecha y solo de esa', async () => {
     const fechas = await fechasPublicadas(2, 2);
     expect(fechas).toHaveLength(2); // el seed debe dejar dos fechas con cupos
-    const a = texto(fechas[0]!['id']);
-    const b = texto(fechas[1]!['id']);
+    const a = asString(fechas[0]!['id']);
+    const b = asString(fechas[1]!['id']);
     const cupoA = await cupoDe(a);
 
     expect(await bookings.reservaPendiente(a)).toBeNull(); // antes de reservar no hay pendiente
@@ -293,9 +293,9 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
     try {
       const pendiente = await bookings.reservaPendiente(a);
       expect(pendiente?.id).toBe(creada.bookingId);
-      expect(pendiente?.estado).toBe(BookingStatus.pendientePago);
+      expect(pendiente?.status).toBe(BookingStatus.pendingPayment);
       expect(pendiente?.pax).toBe(1);
-      expect(pendiente!.venceAt.getTime()).toBeGreaterThan(Date.now());
+      expect(pendiente!.expiresAt.getTime()).toBeGreaterThan(Date.now());
       expect(await bookings.reservaPendiente(b)).toBeNull(); // otra fecha no se ve afectada
     } finally {
       await limpiar([creada.bookingId]);
@@ -339,18 +339,18 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
         .gt('fecha', hoyIso())
         .limit(50)
         .throwOnError();
-      const fecha = ((fechas ?? []) as Fila[]).find(
-        (f) => entero(f['cupo_disponible']) >= 2 && f['plans'] != null,
+      const fecha = ((fechas ?? []) as Row[]).find(
+        (f) => asInt(f['cupo_disponible']) >= 2 && f['plans'] != null,
       );
       if (fecha === undefined) throw new Error('el seed debe dejar una fecha con cupos');
-      const reserva = await bookings.crearReserva({ planDateId: texto(fecha['id']), pax: 1 });
+      const reserva = await bookings.crearReserva({ planDateId: asString(fecha['id']), pax: 1 });
       try {
         const insercion = await client.from('payments').insert({
           booking_id: reserva.bookingId,
           metodo: 'tarjeta',
           estado: 'aprobado',
-          monto: reserva.montoTotal,
-          referencia: `FALSO-${reserva.codigo}`,
+          monto: reserva.totalAmount,
+          referencia: `FALSO-${reserva.code}`,
         });
         expect(insercion.error).not.toBeNull();
         // El UPDATE sobre bookings no tiene política para el viajero: no cambia nada.
@@ -367,7 +367,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
           .eq('id', reserva.bookingId)
           .single()
           .throwOnError();
-        expect((estado as Fila)['estado']).toBe('pendiente_pago');
+        expect((estado as Row)['estado']).toBe('pendiente_pago');
       } finally {
         await limpiar([reserva.bookingId]);
       }

@@ -75,7 +75,7 @@ export function BarraReserva({
         <View style={estilos.fila}>
           <View>
             <Text style={{ fontSize: AppText.encabezadoL, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
-              {formatCOP(plan.precioCop)}
+              {formatCOP(plan.priceCop)}
             </Text>
             <Text style={{ fontSize: AppText.micro, color: cs.onSurfaceVariant }}>por persona · precio final</Text>
           </View>
@@ -102,14 +102,14 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
     animacion.start();
     return () => animacion.stop();
   }, [seleccionada, t]);
-  const pocos = fecha.cupoDisponible <= POCOS_CUPOS;
-  const cupos = pocos ? `¡Últimos ${fecha.cupoDisponible}!` : `${fecha.cupoDisponible} cupos`;
+  const pocos = fecha.availableSpots <= POCOS_CUPOS;
+  const cupos = pocos ? `¡Últimos ${fecha.availableSpots}!` : `${fecha.availableSpots} cupos`;
   return (
     <Pressable
       testID={`fecha-${fecha.id}`}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${formatFechaCorta(fecha.fecha)}, ${cupos}`}
+      accessibilityLabel={`${formatFechaCorta(fecha.date)}, ${cupos}`}
       accessibilityState={{ selected: seleccionada }}
     >
       <Animated.View
@@ -119,7 +119,7 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
         ]}
       >
         <TextoSinCorte estilo={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
-          {formatFechaCorta(fecha.fecha)}
+          {formatFechaCorta(fecha.date)}
         </TextoSinCorte>
         <TextoSinCorte
           estilo={{

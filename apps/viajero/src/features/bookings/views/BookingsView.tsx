@@ -72,7 +72,7 @@ export function BookingsView() {
       contentContainerStyle={estilos.lista}
       refreshControl={<RefreshControl refreshing={false} onRefresh={() => void cargar()} colors={[cs.primary]} tintColor={cs.primary} />}
       renderItem={({ item: b }) => {
-        const pendiente = b.estado === BookingStatus.pendientePago;
+        const pendiente = b.status === BookingStatus.pendingPayment;
         return (
           <TarjetaReserva
             booking={b}

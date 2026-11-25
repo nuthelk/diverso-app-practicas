@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { ExperienceCategory, OrdenCatalogo } from '@/core';
+import { ExperienceCategory, CatalogSort } from '@/core';
 import { MAX_COMPARAR, useCatalogViewModel } from '@/features/catalog/view-models/useCatalogViewModel';
 
 import { CatalogoFalso, planDePrueba } from '../../../support/catalogo-falso';
@@ -121,18 +121,18 @@ describe('filtros', () => {
 
     await act(() => result.current.buscar());
     expect(catalogo.busquedas).toHaveLength(2);
-    expect(catalogo.busquedas.at(-1)!.texto).toBe('guatape');
+    expect(catalogo.busquedas.at(-1)!.text).toBe('guatape');
   });
 
   test('toggleCategoria selecciona y, con la misma, deselecciona', async () => {
     const { result } = await crear();
-    await act(() => result.current.toggleCategoria(ExperienceCategory.aventura));
-    expect(result.current.categoria).toBe(ExperienceCategory.aventura);
-    expect(catalogo.busquedas.at(-1)!.categoria).toBe(ExperienceCategory.aventura);
+    await act(() => result.current.toggleCategoria(ExperienceCategory.adventure));
+    expect(result.current.categoria).toBe(ExperienceCategory.adventure);
+    expect(catalogo.busquedas.at(-1)!.category).toBe(ExperienceCategory.adventure);
 
-    await act(() => result.current.toggleCategoria(ExperienceCategory.aventura));
+    await act(() => result.current.toggleCategoria(ExperienceCategory.adventure));
     expect(result.current.categoria).toBeNull();
-    expect(catalogo.busquedas.at(-1)!.categoria).toBeNull();
+    expect(catalogo.busquedas.at(-1)!.category).toBeNull();
   });
 
   test('aplicarFiltros: destino, precio y fecha con UNA sola consulta', async () => {
@@ -145,9 +145,9 @@ describe('filtros', () => {
     expect(catalogo.busquedas).toHaveLength(2);
     expect(catalogo.consultasDestinos).toBe(2);
     const filtros = catalogo.busquedas.at(-1)!;
-    expect(filtros.destino).toBe('Guatapé');
-    expect(filtros.precioMax).toBe(150000);
-    expect(filtros.fecha).toEqual(fecha);
+    expect(filtros.destination).toBe('Guatapé');
+    expect(filtros.maxPrice).toBe(150000);
+    expect(filtros.date).toEqual(fecha);
     expect(result.current.destino).toBe('Guatapé');
     expect(result.current.precioMax).toBe(150000);
     expect(result.current.fecha).toEqual(fecha);
@@ -187,11 +187,11 @@ describe('filtros', () => {
   test('PRESERVE: setDestino, setPrecioMax, setFecha y limpiarFiltros consultan una vez', async () => {
     const { result } = await crear();
     await act(() => result.current.setDestino('Jardín'));
-    expect(catalogo.busquedas.at(-1)!.destino).toBe('Jardín');
+    expect(catalogo.busquedas.at(-1)!.destination).toBe('Jardín');
     await act(() => result.current.setPrecioMax(90000));
-    expect(catalogo.busquedas.at(-1)!.precioMax).toBe(90000);
+    expect(catalogo.busquedas.at(-1)!.maxPrice).toBe(90000);
     await act(() => result.current.setFecha(new Date(2026, 11, 1)));
-    expect(catalogo.busquedas.at(-1)!.fecha).toEqual(new Date(2026, 11, 1));
+    expect(catalogo.busquedas.at(-1)!.date).toEqual(new Date(2026, 11, 1));
     expect(catalogo.busquedas).toHaveLength(3);
     expect(result.current.filtrosActivos).toBe(3);
 
@@ -203,10 +203,10 @@ describe('filtros', () => {
 
   test('cambiarOrden consulta con el nuevo orden', async () => {
     const { result } = await crear();
-    await act(() => result.current.cambiarOrden(OrdenCatalogo.precioAsc));
+    await act(() => result.current.cambiarOrden(CatalogSort.priceAsc));
 
-    expect(result.current.orden).toBe(OrdenCatalogo.precioAsc);
-    expect(catalogo.busquedas.at(-1)!.orden).toBe(OrdenCatalogo.precioAsc);
+    expect(result.current.orden).toBe(CatalogSort.priceAsc);
+    expect(catalogo.busquedas.at(-1)!.sort).toBe(CatalogSort.priceAsc);
   });
 
   test('filtrosActivos no cuenta la categoría ni el texto', async () => {

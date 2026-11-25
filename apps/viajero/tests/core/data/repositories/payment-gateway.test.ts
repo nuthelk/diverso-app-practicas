@@ -2,7 +2,7 @@ import { WompiPaymentGateway } from '@/core/data/repositories/payment-gateway';
 import { DiversoError } from '@/core/errors/diverso-error';
 import { ArgumentError } from '@/core/errors/errores-programacion';
 import { BookingStatus, LABEL_PAYMENT_METHOD, PaymentMethodOption } from '@/core/models/enums';
-import { EstadoPago } from '@/core/models/pago';
+import { VerifiedPaymentStatus } from '@/core/models/payment-checkout';
 import { fechaUtc } from '@/core/utils/fechas';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
@@ -34,10 +34,10 @@ describe('WompiPaymentGateway.iniciar', () => {
       redirect_url: 'https://diverso.app/pago/resultado',
     });
     expect(r.checkoutUrl).toBe('https://checkout.wompi.co/p/?public-key=pub_test_x');
-    expect(r.referencia).toBe('DIV-ABC123-1');
+    expect(r.reference).toBe('DIV-ABC123-1');
     expect(r.amountInCents).toBe(30000000);
-    expect(r.monto).toBe(300000);
-    expect(r.expiraAt).toEqual(fechaUtc(2026, 10, 25, 15, 30));
+    expect(r.amount).toBe(300000);
+    expect(r.expiresAt).toEqual(fechaUtc(2026, 10, 25, 15, 30));
   });
 
   test('RESERVA_VENCIDA (409): reserva vencida sin cobro', async () => {
@@ -95,12 +95,12 @@ describe('WompiPaymentGateway.verificar', () => {
     // toStrictEqual: ni siquiera `booking_id: undefined` (el servidor compara con === undefined).
     expect(inv.llamadas[0]![1]).toStrictEqual({ transaction_id: 'tx-9' });
     expect(Object.keys(inv.llamadas[0]![1])).toEqual(['transaction_id']);
-    expect(r.estado).toBe(EstadoPago.aprobado);
-    expect(r.metodo).toBe(PaymentMethodOption.tarjeta);
-    expect(r.referencia).toBe('DIV-ABC123-1');
+    expect(r.status).toBe(VerifiedPaymentStatus.approved);
+    expect(r.method).toBe(PaymentMethodOption.card);
+    expect(r.reference).toBe('DIV-ABC123-1');
     expect(r.bookingId).toBe('b-1');
-    expect(r.codigo).toBe('DIV-ABC123');
-    expect(r.bookingEstado).toBe(BookingStatus.confirmada);
+    expect(r.code).toBe('DIV-ABC123');
+    expect(r.bookingStatus).toBe(BookingStatus.confirmed);
   });
 
   test('con booking_id (fallback «Ya pagué, verificar») envía solo ese campo', async () => {
@@ -108,8 +108,8 @@ describe('WompiPaymentGateway.verificar', () => {
     const r = await new WompiPaymentGateway({ edgeFunctions: inv }).verificar({ bookingId: 'b-1', transactionId: null });
     expect(inv.llamadas[0]![1]).toStrictEqual({ booking_id: 'b-1' });
     expect(JSON.stringify(inv.llamadas[0]![1])).toBe('{"booking_id":"b-1"}');
-    expect(r.estado).toBe(EstadoPago.pendiente);
-    expect(r.metodo).toBeNull();
+    expect(r.status).toBe(VerifiedPaymentStatus.pending);
+    expect(r.method).toBeNull();
   });
 
   test('exige exactamente uno de transaction_id / booking_id', async () => {
@@ -121,30 +121,30 @@ describe('WompiPaymentGateway.verificar', () => {
   });
 
   test('rechazado y error son resultados, no excepciones', async () => {
-    const casos: [string, EstadoPago][] = [
-      ['rechazado', EstadoPago.rechazado],
-      ['error', EstadoPago.error],
+    const casos: [string, VerifiedPaymentStatus][] = [
+      ['rechazado', VerifiedPaymentStatus.rejected],
+      ['error', VerifiedPaymentStatus.error],
     ];
     for (const [raw, esperado] of casos) {
       const r = await new WompiPaymentGateway({ edgeFunctions: new EdgeFunctionsFalsas(() => ok(raw)) }).verificar({
         transactionId: 't',
       });
-      expect(r.estado).toBe(esperado);
-      expect(r.mensajeUsuario).not.toBe('');
+      expect(r.status).toBe(esperado);
+      expect(r.userMessage).not.toBe('');
     }
   });
 
   test('métodos bancolombia y otro se reconocen (no caen en PSE)', async () => {
     const casos: [string, PaymentMethodOption][] = [
       ['bancolombia', PaymentMethodOption.bancolombia],
-      ['otro', PaymentMethodOption.otro],
+      ['otro', PaymentMethodOption.other],
       ['pse', PaymentMethodOption.pse],
     ];
     for (const [raw, esperado] of casos) {
       const r = await new WompiPaymentGateway({
         edgeFunctions: new EdgeFunctionsFalsas(() => ok('aprobado', raw)),
       }).verificar({ transactionId: 't' });
-      expect(r.metodo).toBe(esperado);
+      expect(r.method).toBe(esperado);
     }
     expect(LABEL_PAYMENT_METHOD.bancolombia).toBe('Bancolombia');
     expect(LABEL_PAYMENT_METHOD.otro).toBe('Otro medio');

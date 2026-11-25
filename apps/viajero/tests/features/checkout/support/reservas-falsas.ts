@@ -3,11 +3,11 @@ import {
   BookingStatus,
   CreatedBooking,
   DiversoError,
-  EstadoReembolso,
-  ResultadoCancelacion,
+  RefundStatus,
+  CancellationResult,
   type BookingRepository,
   type Plan,
-  type Publico,
+  type Public,
 } from '@/core';
 
 import type { Compuerta } from '../../../support/compuerta';
@@ -18,7 +18,7 @@ import type { Compuerta } from '../../../support/compuerta';
  * para no pisar los dobles de reservas de T7.
  */
 export class ReservasFalsas
-  implements Pick<Publico<BookingRepository>, 'reserva' | 'reservaPendiente' | 'crearReserva' | 'cancelar' | 'misReservas'>
+  implements Pick<Public<BookingRepository>, 'reserva' | 'reservaPendiente' | 'crearReserva' | 'cancelar' | 'misReservas'>
 {
   lista: Booking[];
 
@@ -44,12 +44,12 @@ export class ReservasFalsas
   falloAlCrear: unknown = null;
   pendienteTrasFalla: Booking | null = null;
 
-  resultado = new ResultadoCancelacion({
-    aplica: false,
-    porcentaje: 0,
-    monto: 0,
-    estado: EstadoReembolso.noAplica,
-    motivo: 'Reserva sin pago confirmado',
+  resultado = new CancellationResult({
+    applies: false,
+    percentage: 0,
+    amount: 0,
+    status: RefundStatus.notApplicable,
+    reason: 'Reserva sin pago confirmado',
   });
 
   consultasLista = 0;
@@ -92,13 +92,13 @@ export class ReservasFalsas
     this.creadas.push({ planDateId, pax });
     return new CreatedBooking({
       bookingId: `nueva-${this.creadas.length}`,
-      codigo: 'DIV-NEW',
-      montoTotal: 1,
-      planTitulo: '',
+      code: 'DIV-NEW',
+      totalAmount: 1,
+      planTitle: '',
     });
   }
 
-  async cancelar(bookingId: string): Promise<ResultadoCancelacion> {
+  async cancelar(bookingId: string): Promise<CancellationResult> {
     if (this.falloAlCancelar !== null) throw this.falloAlCancelar;
     this.canceladas.push(bookingId);
     if (this.pendiente?.id === bookingId) this.pendiente = null;
@@ -110,19 +110,19 @@ export class ReservasFalsas
 export function reservaDePrueba({
   id = 'res-1',
   codigo = 'DIV-AAAA0001',
-  estado = BookingStatus.confirmada,
+  estado = BookingStatus.confirmed,
   plan = null,
 }: { id?: string; codigo?: string; estado?: BookingStatus; plan?: Plan | null } = {}): Booking {
   return new Booking({
     id,
-    codigo,
+    code: codigo,
     planDateId: 'pd',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax: 2,
-    montoTotal: 190000,
-    estado,
+    totalAmount: 190000,
+    status: estado,
     createdAt: new Date(2026, 9, 1),
-    salidaAt: new Date(Date.now() + 3 * 24 * 3600 * 1000),
+    departureAt: new Date(Date.now() + 3 * 24 * 3600 * 1000),
     plan,
   });
 }
@@ -131,12 +131,12 @@ export function reservaDePrueba({
 export function pendienteDePrueba({ pax = 2, haceMin = 5 }: { pax?: number; haceMin?: number } = {}): Booking {
   return new Booking({
     id: 'pend-1',
-    codigo: 'DIV-PEND01',
+    code: 'DIV-PEND01',
     planDateId: 'fecha-1',
-    viajeroId: 'v-1',
+    travelerId: 'v-1',
     pax,
-    montoTotal: 150000 * pax,
-    estado: BookingStatus.pendientePago,
+    totalAmount: 150000 * pax,
+    status: BookingStatus.pendingPayment,
     createdAt: new Date(Date.now() - haceMin * 60_000),
   });
 }

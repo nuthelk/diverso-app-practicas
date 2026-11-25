@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { AgenciaResumen, ExperienceCategory, Plan, PlanStatus } from '@/core';
+import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { AgenciaView } from '@/features/agencies/views/AgenciaView';
 import { AgenciasView } from '@/features/agencies/views/AgenciasView';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
@@ -27,16 +27,16 @@ const plan = ({ reviews = 0, rating = 0 }: { reviews?: number; rating?: number }
   new Plan({
     id: 'plan-1',
     agencyId: 'ag-rutas',
-    titulo: 'Plan número 1',
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.aventura,
-    precioCop: 150000,
-    estado: PlanStatus.publicado,
+    title: 'Plan número 1',
+    destination: 'Guatapé',
+    category: ExperienceCategory.adventure,
+    priceCop: 150000,
+    status: PlanStatus.published,
     reviewsCount: reviews,
-    ratingPromedio: rating,
+    averageRating: rating,
   });
 
-const agencia = new AgenciaResumen({ id: 'ag-rutas', nombre: 'Rutas de Antioquia Cultural', ciudad: 'Medellín', planesCount: 1 });
+const agencia = new AgencySummary({ id: 'ag-rutas', name: 'Rutas de Antioquia Cultural', city: 'Medellín', planCount: 1 });
 
 function dependencias(p = plan()) {
   const catalogo = new CatalogoFalso({
@@ -143,11 +143,11 @@ describe('cabecera colapsable', () => {
     await renderPantalla(<AgenciaView agencyId="ag-rutas" />, { dependencias: dependencias() });
 
     expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
-    expect(screen.getByText(agencia.nombre)).toBeOnTheScreen();
+    expect(screen.getByText(agencia.name)).toBeOnTheScreen();
 
     await desplazar(2500);
 
-    expect(screen.getByTestId('cabecera-titulo')).toHaveTextContent(agencia.nombre);
+    expect(screen.getByTestId('cabecera-titulo')).toHaveTextContent(agencia.name);
     expect(screen.getByRole('button', { name: 'Volver' })).toBeOnTheScreen();
     // El nombre de la cabecera va entre el botón de volver (64) y el borde derecho (20).
     expect(screen.getByTestId('cabecera-titulo-caja')).toHaveStyle({ left: 64, right: 20 });

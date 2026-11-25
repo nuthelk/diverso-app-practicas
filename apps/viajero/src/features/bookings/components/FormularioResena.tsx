@@ -21,7 +21,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
   const cs = tema.colorScheme;
   const [comentario, setComentario] = useState('');
   const plan = vm.reserva?.plan ?? null;
-  const fecha = vm.reserva?.planDate?.fecha ?? null;
+  const fecha = vm.reserva?.planDate?.date ?? null;
   const bloqueado = vm.enviando || vm.publicada;
   const colorBotonDeshabilitado = conAlfa(cs.onSurface, 0.38);
 
@@ -37,7 +37,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
                 altura={1.2}
                 style={{ fontSize: AppText.encabezadoM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}
               >
-                {plan.titulo}
+                {plan.title}
               </Text>
               {fecha !== null ? (
                 <>

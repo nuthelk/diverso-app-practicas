@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 
-import { DiversoError, type Booking, type BookingRepository, type Plan, type PlanDate, type Publico } from '@/core';
+import { DiversoError, type Booking, type BookingRepository, type Plan, type PlanDate, type Public } from '@/core';
 
 import { PagoAbierto, type AbrirPago } from '../pago-abierto';
 import { useEstadoVivo } from './use-estado-vivo';
@@ -50,7 +50,7 @@ interface EstadoCheckout {
  * para que el viajero la complete o la cancele. [vibrar] se inyecta en las pruebas.
  */
 export function useCheckoutViewModel(
-  { reservas }: { reservas: Pick<Publico<BookingRepository>, 'reservaPendiente' | 'crearReserva' | 'cancelar'> },
+  { reservas }: { reservas: Pick<Public<BookingRepository>, 'reservaPendiente' | 'crearReserva' | 'cancelar'> },
   { vibrar = vibrarMedio }: { vibrar?: () => void } = {},
 ) {
   const { estado, actual, cambiar, notificar } = useEstadoVivo<EstadoCheckout>(() => ({
@@ -175,7 +175,7 @@ export function useCheckoutViewModel(
      * descargue abriría otro intento de pago de la misma reserva.
      */
     puedePagar: !estado.procesando && !estado.redirigido && estado.pendiente === null,
-    total: (plan: Plan) => plan.precioCop * estado.pax,
+    total: (plan: Plan) => plan.priceCop * estado.pax,
     setPax,
     cargarPendiente,
     pagar,

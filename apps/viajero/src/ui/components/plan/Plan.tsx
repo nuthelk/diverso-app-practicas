@@ -59,8 +59,8 @@ export function TarjetaCancelacion({ texto }: { texto: string }) {
 
 /** Lo que el paso necesita de `ItinerarioPaso` (core). */
 export interface PasoItinerarioDatos {
-  hora: string;
-  actividad: string;
+  time: string;
+  activity: string;
 }
 
 /**
@@ -75,7 +75,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
         altura={1.35}
         style={{ width: 62, textAlign: 'right', fontWeight: '800', fontSize: AppText.detalle, color: cs.primary }}
       >
-        {paso.hora}
+        {paso.time}
       </Text>
       <View style={{ width: 14 }} />
       <View style={estilos.linea}>
@@ -87,7 +87,7 @@ export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioD
       <View style={{ width: 14 }} />
       <View style={[estilos.flex, { paddingBottom: 16 }]}>
         <Text altura={1.45} style={{ fontSize: AppText.cuerpo }}>
-          {paso.actividad}
+          {paso.activity}
         </Text>
       </View>
     </View>

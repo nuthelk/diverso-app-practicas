@@ -16,11 +16,11 @@ const plan = (id: string) =>
   new Plan({
     id,
     agencyId: 'ag-1',
-    titulo: `Plan ${id}`,
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.aventura,
-    precioCop: 150000,
-    estado: PlanStatus.publicado,
+    title: `Plan ${id}`,
+    destination: 'Guatapé',
+    category: ExperienceCategory.adventure,
+    priceCop: 150000,
+    status: PlanStatus.published,
   });
 
 let catalogo: CatalogoFalso;

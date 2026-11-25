@@ -35,7 +35,7 @@ test('cargar trae el plan por id y elige la fecha pedida', async () => {
   await act(() => result.current.cargar());
 
   expect(catalogo.detallesPedidos).toEqual(['plan-1']);
-  expect(result.current.plan?.titulo).toBe('Guatapé en un día');
+  expect(result.current.plan?.title).toBe('Guatapé en un día');
   expect(result.current.fecha?.id).toBe('fecha-1');
   expect(result.current.cargando).toBe(false);
   expect(result.current.error).toBeNull();

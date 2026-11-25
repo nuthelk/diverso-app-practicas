@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-import type { AuthRepository, Publico } from '@/core';
+import type { AuthRepository, Public } from '@/core';
 
 /** Credenciales de la cuenta de pruebas del seed. */
 export const CORREO_DEMO = 'viajero@demo.com';
@@ -44,7 +44,7 @@ export function useLoginViewModel({
   auth,
   cuentaDemo = __DEV__,
 }: {
-  auth: Publico<AuthRepository>;
+  auth: Public<AuthRepository>;
   cuentaDemo?: boolean;
 }) {
   const [estado, setEstado] = useState<EstadoLogin>(inicial);

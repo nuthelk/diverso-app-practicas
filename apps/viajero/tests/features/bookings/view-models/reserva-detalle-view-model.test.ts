@@ -96,7 +96,7 @@ describe('carga', () => {
   test('no pierde la marca «ya reseñada» que traía la lista', async () => {
     const { result } = await crear({ inicial: reservaDePrueba({ tieneResena: true }) });
     await act(() => result.current.cargar());
-    expect(result.current.reserva?.tieneResena).toBe(true);
+    expect(result.current.reserva?.hasReview).toBe(true);
   });
 
   test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
@@ -158,7 +158,7 @@ describe('cambios y acciones', () => {
     await act(async () => result.current.resenaPublicada());
 
     expect(result.current.cambio).toBe(true);
-    expect(result.current.reserva?.tieneResena).toBe(true);
+    expect(result.current.reserva?.hasReview).toBe(true);
     expect(result.current.puedeResenar(result.current.reserva!)).toBe(false);
   });
 

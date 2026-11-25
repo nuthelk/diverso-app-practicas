@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 
-import { BookingStatus, DiversoError, EstadoPago } from '@/core';
+import { BookingStatus, DiversoError, VerifiedPaymentStatus } from '@/core';
 import { PagoResultadoView } from '@/features/checkout/views/PagoResultadoView';
 import { AppRoutes } from '@/router';
 
@@ -19,7 +19,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 beforeEach(reiniciarRouterFalso);
 
 async function abrir({
-  respuestas = [pagoDePrueba(EstadoPago.rechazado, BookingStatus.pendientePago)],
+  respuestas = [pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)],
   falloAlIniciar,
   transactionId = 'tx-1',
   bookingId = null,
@@ -58,13 +58,13 @@ test('un error inesperado al reintentar no rompe la pantalla', async () => {
 
 describe('estados', () => {
   test('mientras verifica: «Confirmando tu pago de prueba con Wompi…»', async () => {
-    await abrir({ respuestas: [pagoDePrueba(EstadoPago.aprobado)] });
+    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.approved)] });
     expect(screen.getByText('Resultado del pago')).toBeOnTheScreen();
     expect(screen.getByText('Confirmando tu pago de prueba con Wompi…')).toBeOnTheScreen();
   });
 
   test('aprobado: va a la confirmación de la reserva (reemplaza, como `go`)', async () => {
-    await abrir({ respuestas: [pagoDePrueba(EstadoPago.aprobado)] });
+    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.approved)] });
     await screen.findByText('Confirmando tu pago de prueba con Wompi…');
     await new Promise((r) => setTimeout(r, 0));
     expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reserva('res-1'));
@@ -77,7 +77,7 @@ describe('estados', () => {
   });
 
   test('rechazado con la reserva ya cancelada: no ofrece reintentar y «Ver mis reservas» es la acción principal', async () => {
-    await abrir({ respuestas: [pagoDePrueba(EstadoPago.rechazado, BookingStatus.cancelada)] });
+    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.cancelled)] });
     expect(await screen.findByText('El pago no se completó')).toBeOnTheScreen();
     expect(screen.getByText(/Tu reserva ya no está vigente; vuelve a reservar\.$/)).toBeOnTheScreen();
     expect(screen.queryByText('Intentar de nuevo')).toBeNull();
@@ -95,7 +95,7 @@ describe('estados', () => {
   });
 
   test('error al verificar: «No pudimos verificar el pago» con «Reintentar» que vuelve a preguntar', async () => {
-    const pasarela = await abrir({ respuestas: [new DiversoError('ERROR_RED'), pagoDePrueba(EstadoPago.rechazado, BookingStatus.pendientePago)] });
+    const pasarela = await abrir({ respuestas: [new DiversoError('ERROR_RED'), pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)] });
     expect(await screen.findByText('No pudimos verificar el pago')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Reintentar'));
     expect(await screen.findByText('El pago no se completó')).toBeOnTheScreen();

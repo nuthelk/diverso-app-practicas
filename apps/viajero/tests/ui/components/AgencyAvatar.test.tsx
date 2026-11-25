@@ -31,7 +31,7 @@ describe('colorDeAgencia (FNV-1a 32 bits sobre UTF-16, idéntico al Dart)', () =
 });
 
 describe('AgencyAvatar', () => {
-  const agencia = { id: 'ag-rutas', iniciales: 'RA', logoUrl: null };
+  const agencia = { id: 'ag-rutas', initials: 'RA', logoUrl: null };
 
   it('sin logo: iniciales blancas w800 sobre el color de la agencia', async () => {
     await renderConTema(<AgencyAvatar agencia={agencia} />);

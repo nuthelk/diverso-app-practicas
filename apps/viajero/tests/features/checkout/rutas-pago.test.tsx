@@ -3,15 +3,15 @@ import { act, screen } from 'expo-router/testing-library';
 import {
   Booking,
   BookingStatus,
-  EstadoPago,
-  ItinerarioPaso,
+  VerifiedPaymentStatus,
+  ItineraryStep,
   Payment,
   PaymentMethodOption,
   PaymentStatus,
-  PagoVerificado,
+  VerifiedPayment,
   type BookingRepository,
   type CatalogRepository,
-  type Publico,
+  type Public,
 } from '@/core';
 import { AppRoutes } from '@/router';
 
@@ -34,19 +34,19 @@ const plan = () =>
   planDePrueba({
     fechas: [fechaDePrueba()],
     puntoEncuentro: 'Parque Berrío',
-    itinerario: [new ItinerarioPaso({ hora: '06:00', actividad: 'Salida desde Medellín' })],
+    itinerario: [new ItineraryStep({ time: '06:00', activity: 'Salida desde Medellín' })],
   });
 
 function reserva(estado: BookingStatus): Booking {
   const p = plan();
   return new Booking({
     id: 'res-1',
-    codigo: 'DIV-ABC123',
+    code: 'DIV-ABC123',
     planDateId: 'fecha-1',
-    viajeroId: 'v-1',
+    travelerId: 'v-1',
     pax: 2,
-    montoTotal: 300000,
-    estado,
+    totalAmount: 300000,
+    status: estado,
     createdAt: new Date(),
     plan: p,
     planDate: p.dates[0],
@@ -54,10 +54,10 @@ function reserva(estado: BookingStatus): Booking {
       new Payment({
         id: 'p-1',
         bookingId: 'res-1',
-        metodo: PaymentMethodOption.tarjeta,
-        estado: PaymentStatus.aprobado,
-        monto: 300000,
-        referencia: 'DIV-ABC123-1',
+        method: PaymentMethodOption.card,
+        status: PaymentStatus.approved,
+        amount: 300000,
+        reference: 'DIV-ABC123-1',
         provider: 'wompi',
         simulated: false,
       }),
@@ -65,14 +65,14 @@ function reserva(estado: BookingStatus): Booking {
   });
 }
 
-const pago = (estado: EstadoPago, reserva: BookingStatus = BookingStatus.confirmada) =>
-  new PagoVerificado({
-    estado,
-    metodo: PaymentMethodOption.tarjeta,
-    referencia: 'DIV-ABC123-1',
+const pago = (estado: VerifiedPaymentStatus, reserva: BookingStatus = BookingStatus.confirmed) =>
+  new VerifiedPayment({
+    status: estado,
+    method: PaymentMethodOption.card,
+    reference: 'DIV-ABC123-1',
     bookingId: 'res-1',
-    codigo: 'DIV-ABC123',
-    bookingEstado: reserva,
+    code: 'DIV-ABC123',
+    bookingStatus: reserva,
   });
 
 let catalogo: CatalogoFalso;
@@ -80,22 +80,22 @@ let reservas: ReservasFalsas;
 
 beforeEach(() => {
   catalogo = new CatalogoFalso({ detalles: { 'plan-1': plan() } });
-  reservas = new ReservasFalsas([reserva(BookingStatus.confirmada)]);
+  reservas = new ReservasFalsas([reserva(BookingStatus.confirmed)]);
 });
 
 async function abrir(url: string, pasarela: PasarelaFalsa) {
   return arrancarApp(
     url,
     dependenciasDePrueba({
-      catalogo: doble<Publico<CatalogRepository>>('CatalogRepository', catalogo),
-      reservas: doble<Publico<BookingRepository>>('BookingRepository', reservas),
+      catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalogo),
+      reservas: doble<Public<BookingRepository>>('BookingRepository', reservas),
       pasarela,
     }),
   );
 }
 
 test('/checkout/:planId/:fechaId carga plan y fecha por id (sin extra)', async () => {
-  await abrir(AppRoutes.checkout('plan-1', 'fecha-1'), new PasarelaFalsa([pago(EstadoPago.aprobado)]));
+  await abrir(AppRoutes.checkout('plan-1', 'fecha-1'), new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]));
   expect(catalogo.detallesPedidos).toEqual(['plan-1']);
   expect(screen.getByText('Guatapé en un día')).toBeOnTheScreen();
   expect(screen.getByText('¿Cuántos viajan?')).toBeOnTheScreen();
@@ -105,13 +105,13 @@ test('/checkout/:planId/:fechaId carga plan y fecha por id (sin extra)', async (
 });
 
 test('/checkout con una fecha que no existe en el plan avisa en vez de romperse', async () => {
-  await abrir(AppRoutes.checkout('plan-1', 'otra-fecha'), new PasarelaFalsa([pago(EstadoPago.aprobado)]));
+  await abrir(AppRoutes.checkout('plan-1', 'otra-fecha'), new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]));
   expect(screen.getByText(/ya no está disponible/)).toBeOnTheScreen();
   expect(screen.queryByText('Pagar con Wompi')).toBeNull();
 });
 
 test('/reserva/:bookingId muestra la confirmación cargada del backend', async () => {
-  await abrir(AppRoutes.reserva('res-1'), new PasarelaFalsa([pago(EstadoPago.aprobado)]));
+  await abrir(AppRoutes.reserva('res-1'), new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]));
   expect(reservas.consultas).toEqual(['res-1']);
   expect(screen.getByText('DIV-ABC123')).toBeOnTheScreen();
   expect(screen.getByText('Guatapé en un día')).toBeOnTheScreen();
@@ -120,12 +120,12 @@ test('/reserva/:bookingId muestra la confirmación cargada del backend', async (
 });
 
 test('/reserva/:bookingId inexistente muestra el error, no una pantalla vacía', async () => {
-  await abrir(AppRoutes.reserva('nope'), new PasarelaFalsa([pago(EstadoPago.aprobado)]));
+  await abrir(AppRoutes.reserva('nope'), new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]));
   expect(screen.getByText(/No encontramos esa reserva/)).toBeOnTheScreen();
 });
 
 test('/pago/resultado?id=… verifica en el servidor y, si fue aprobado, abre /reserva/:id', async () => {
-  const pasarela = new PasarelaFalsa([pago(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]);
   const r = await abrir(AppRoutes.pagoDeTransaccion('tx-77'), pasarela);
   await asentar();
   expect(pasarela.verificaciones).toEqual([{ transaccion: 'tx-77', reserva: null }]);
@@ -134,20 +134,20 @@ test('/pago/resultado?id=… verifica en el servidor y, si fue aprobado, abre /r
 });
 
 test('/pago/resultado?reserva=… («Ya pagué, verificar») verifica por reserva', async () => {
-  const pasarela = new PasarelaFalsa([pago(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]);
   await abrir(AppRoutes.pagoDeReserva('res-1'), pasarela);
   expect(pasarela.verificaciones).toEqual([{ transaccion: null, reserva: 'res-1' }]);
 });
 
 test('/pago/resultado rechazado: mensaje y «Intentar de nuevo»', async () => {
-  await abrir('/pago/resultado?id=tx-1', new PasarelaFalsa([pago(EstadoPago.rechazado, BookingStatus.pendientePago)]));
+  await abrir('/pago/resultado?id=tx-1', new PasarelaFalsa([pago(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)]));
   expect(screen.getByText(/Wompi rechazó el pago de prueba/)).toBeOnTheScreen();
   expect(screen.getByText('Intentar de nuevo')).toBeOnTheScreen();
   expect(screen.getByText('Ver mis reservas')).toBeOnTheScreen();
 });
 
 test('/pago/resultado pendiente: reintenta unas veces y luego remite a Mis reservas', async () => {
-  const pasarela = new PasarelaFalsa([pago(EstadoPago.pendiente, BookingStatus.pendientePago)]);
+  const pasarela = new PasarelaFalsa([pago(VerifiedPaymentStatus.pending, BookingStatus.pendingPayment)]);
   await abrir('/pago/resultado?id=tx-1', pasarela);
   for (let i = 0; i < 8; i++) {
     await act(async () => {
@@ -160,13 +160,13 @@ test('/pago/resultado pendiente: reintenta unas veces y luego remite a Mis reser
 });
 
 test('/pago/resultado sin id ni reserva vuelve a Mis reservas', async () => {
-  const r = await abrir(AppRoutes.pagoResultado, new PasarelaFalsa([pago(EstadoPago.aprobado)]));
+  const r = await abrir(AppRoutes.pagoResultado, new PasarelaFalsa([pago(VerifiedPaymentStatus.approved)]));
   expect(r.getPathname()).toBe('/reservas');
 });
 
 test('/reserva/:bookingId pendiente de pago manda a verificar el pago de esa reserva', async () => {
-  reservas = new ReservasFalsas([reserva(BookingStatus.pendientePago)]);
-  const pasarela = new PasarelaFalsa([pago(EstadoPago.pendiente, BookingStatus.pendientePago)]);
+  reservas = new ReservasFalsas([reserva(BookingStatus.pendingPayment)]);
+  const pasarela = new PasarelaFalsa([pago(VerifiedPaymentStatus.pending, BookingStatus.pendingPayment)]);
   const r = await abrir(AppRoutes.reserva('res-1'), pasarela);
   await asentar();
   expect(r.getPathname()).toBe('/pago/resultado');
@@ -174,7 +174,7 @@ test('/reserva/:bookingId pendiente de pago manda a verificar el pago de esa res
 });
 
 test('/reserva/:bookingId cancelada lo dice con su código', async () => {
-  reservas = new ReservasFalsas([reserva(BookingStatus.cancelada)]);
+  reservas = new ReservasFalsas([reserva(BookingStatus.cancelled)]);
   await abrir(AppRoutes.reserva('res-1'), new PasarelaFalsa());
   expect(screen.getByText('Reserva cancelada')).toBeOnTheScreen();
   expect(screen.getByText(/La reserva DIV-ABC123 está cancelada\./)).toBeOnTheScreen();

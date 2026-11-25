@@ -1,122 +1,122 @@
-import { enumFromDb, UserRole, valoresDe, VerificationStatus } from './enums';
-import { decimalO, type Fila, texto, textoO, textoONulo } from './fila';
+import { enumFromDb, UserRole, valuesOf, VerificationStatus } from './enums';
+import { asDoubleOr, type Row, asString, asStringOr, asStringOrNull } from './row';
 import { intentarParsearFecha } from '../utils/fechas';
 
-export interface DatosProfile {
+export interface ProfileData {
   id: string;
-  rol: UserRole;
-  nombre: string;
-  telefono?: string | null;
+  role: UserRole;
+  name: string;
+  phone?: string | null;
 }
 
 /** Tabla `profiles`. */
 export class Profile {
   readonly id: string;
-  readonly rol: UserRole;
-  readonly nombre: string;
-  readonly telefono: string | null;
+  readonly role: UserRole;
+  readonly name: string;
+  readonly phone: string | null;
 
-  constructor(d: DatosProfile) {
+  constructor(d: ProfileData) {
     this.id = d.id;
-    this.rol = d.rol;
-    this.nombre = d.nombre;
-    this.telefono = d.telefono ?? null;
+    this.role = d.role;
+    this.name = d.name;
+    this.phone = d.phone ?? null;
   }
 
-  static fromMap(map: Fila): Profile {
+  static fromMap(map: Row): Profile {
     return new Profile({
-      id: texto(map['id']),
-      rol: enumFromDb(valoresDe(UserRole), map['rol'] as string | null) ?? UserRole.viajero,
-      nombre: textoO(map['nombre'], ''),
-      telefono: textoONulo(map['telefono']),
+      id: asString(map['id']),
+      role: enumFromDb(valuesOf(UserRole), map['rol'] as string | null) ?? UserRole.traveler,
+      name: asStringOr(map['nombre'], ''),
+      phone: asStringOrNull(map['telefono']),
     });
   }
 }
 
-export interface DatosAgency {
+export interface AgencyData {
   id: string;
-  nombre: string;
-  numeroRnt: string;
-  matriculaCamaraComercio: string;
-  estadoVerificacion: VerificationStatus;
+  name: string;
+  rntNumber: string;
+  commercialRegistration: string;
+  verificationStatus: VerificationStatus;
   ownerUserId?: string | null;
-  descripcion?: string;
-  ciudad?: string;
-  telefono?: string | null;
+  description?: string;
+  city?: string;
+  phone?: string | null;
   email?: string | null;
   whatsapp?: string | null;
   logoUrl?: string | null;
-  comisionPct?: number;
-  rntVigenteHasta?: Date | null;
+  commissionPct?: number;
+  rntValidUntil?: Date | null;
 }
 
 /** Tabla `agencies` (llega embebida en `Plan` como `agencies(*)`). */
 export class Agency {
   readonly id: string;
   readonly ownerUserId: string | null;
-  readonly nombre: string;
-  readonly descripcion: string;
-  readonly numeroRnt: string;
-  readonly matriculaCamaraComercio: string;
-  readonly ciudad: string;
-  readonly telefono: string | null;
+  readonly name: string;
+  readonly description: string;
+  readonly rntNumber: string;
+  readonly commercialRegistration: string;
+  readonly city: string;
+  readonly phone: string | null;
   readonly email: string | null;
   readonly whatsapp: string | null;
   readonly logoUrl: string | null;
-  readonly estadoVerificacion: VerificationStatus;
-  readonly comisionPct: number;
+  readonly verificationStatus: VerificationStatus;
+  readonly commissionPct: number;
   /** Fecha (medianoche local) hasta la que el RNT está vigente (renovación anual). */
-  readonly rntVigenteHasta: Date | null;
+  readonly rntValidUntil: Date | null;
 
-  constructor(d: DatosAgency) {
+  constructor(d: AgencyData) {
     this.id = d.id;
     this.ownerUserId = d.ownerUserId ?? null;
-    this.nombre = d.nombre;
-    this.descripcion = d.descripcion ?? '';
-    this.numeroRnt = d.numeroRnt;
-    this.matriculaCamaraComercio = d.matriculaCamaraComercio;
-    this.ciudad = d.ciudad ?? 'Medellín';
-    this.telefono = d.telefono ?? null;
+    this.name = d.name;
+    this.description = d.description ?? '';
+    this.rntNumber = d.rntNumber;
+    this.commercialRegistration = d.commercialRegistration;
+    this.city = d.city ?? 'Medellín';
+    this.phone = d.phone ?? null;
     this.email = d.email ?? null;
     this.whatsapp = d.whatsapp ?? null;
     this.logoUrl = d.logoUrl ?? null;
-    this.estadoVerificacion = d.estadoVerificacion;
-    this.comisionPct = d.comisionPct ?? 12;
-    this.rntVigenteHasta = d.rntVigenteHasta ?? null;
+    this.verificationStatus = d.verificationStatus;
+    this.commissionPct = d.commissionPct ?? 12;
+    this.rntValidUntil = d.rntValidUntil ?? null;
   }
 
   /**
    * Verificada y con RNT vigente: solo así puede vender en la plataforma. Usa la fecha LOCAL del
    * teléfono (como Dart; el servidor usa `current_date`).
    */
-  get verificada(): boolean {
-    if (this.estadoVerificacion !== VerificationStatus.verificado) return false;
-    const v = this.rntVigenteHasta;
+  get isVerified(): boolean {
+    if (this.verificationStatus !== VerificationStatus.verified) return false;
+    const v = this.rntValidUntil;
     if (v === null) return false;
-    const hoy = new Date();
-    const inicioDeHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-    return v.getTime() >= inicioDeHoy.getTime();
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return v.getTime() >= startOfToday.getTime();
   }
 
-  static fromMap(map: Fila): Agency {
+  static fromMap(map: Row): Agency {
     const rnt = map['rnt_vigente_hasta'];
     return new Agency({
-      id: texto(map['id']),
-      ownerUserId: textoONulo(map['owner_user_id']),
-      nombre: texto(map['nombre']),
-      descripcion: textoO(map['descripcion'], ''),
-      numeroRnt: texto(map['numero_rnt']),
-      matriculaCamaraComercio: textoO(map['matricula_camara_comercio'], ''),
-      ciudad: textoO(map['ciudad'], 'Medellín'),
-      telefono: textoONulo(map['telefono']),
-      email: textoONulo(map['email']),
-      whatsapp: textoONulo(map['whatsapp']),
-      logoUrl: textoONulo(map['logo_url']),
-      estadoVerificacion:
-        enumFromDb(valoresDe(VerificationStatus), map['estado_verificacion'] as string | null) ??
-        VerificationStatus.pendiente,
-      comisionPct: decimalO(map['comision_pct'], 12),
-      rntVigenteHasta: rnt == null ? null : intentarParsearFecha(String(rnt)),
+      id: asString(map['id']),
+      ownerUserId: asStringOrNull(map['owner_user_id']),
+      name: asString(map['nombre']),
+      description: asStringOr(map['descripcion'], ''),
+      rntNumber: asString(map['numero_rnt']),
+      commercialRegistration: asStringOr(map['matricula_camara_comercio'], ''),
+      city: asStringOr(map['ciudad'], 'Medellín'),
+      phone: asStringOrNull(map['telefono']),
+      email: asStringOrNull(map['email']),
+      whatsapp: asStringOrNull(map['whatsapp']),
+      logoUrl: asStringOrNull(map['logo_url']),
+      verificationStatus:
+        enumFromDb(valuesOf(VerificationStatus), map['estado_verificacion'] as string | null) ??
+        VerificationStatus.pending,
+      commissionPct: asDoubleOr(map['comision_pct'], 12),
+      rntValidUntil: rnt == null ? null : intentarParsearFecha(String(rnt)),
     });
   }
 }

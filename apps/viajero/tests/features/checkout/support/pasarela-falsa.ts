@@ -1,8 +1,8 @@
 import {
   BookingStatus,
-  CheckoutIniciado,
-  EstadoPago,
-  PagoVerificado,
+  StartedCheckout,
+  VerifiedPaymentStatus,
+  VerifiedPayment,
   PaymentMethodOption,
   type PaymentGateway,
 } from '@/core';
@@ -31,26 +31,26 @@ export class PasarelaFalsa implements PaymentGateway {
   readonly clavesVerificar: string[][] = [];
   readonly iniciadas: { bookingId: string; redirectUrl: string }[] = [];
 
-  constructor(readonly respuestas: (PagoVerificado | unknown)[] = []) {}
+  constructor(readonly respuestas: (VerifiedPayment | unknown)[] = []) {}
 
-  async verificar(p: { transactionId?: string | null; bookingId?: string | null }): Promise<PagoVerificado> {
+  async verificar(p: { transactionId?: string | null; bookingId?: string | null }): Promise<VerifiedPayment> {
     this.verificaciones.push({ transaccion: p.transactionId ?? null, reserva: p.bookingId ?? null });
     this.clavesVerificar.push(Object.keys(p));
     await this.compuerta?.promesa;
     const i = this.verificaciones.length - 1;
     const respuesta = this.respuestas[i < this.respuestas.length ? i : this.respuestas.length - 1];
-    if (respuesta instanceof PagoVerificado) return respuesta;
+    if (respuesta instanceof VerifiedPayment) return respuesta;
     throw respuesta;
   }
 
-  async iniciar({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<CheckoutIniciado> {
+  async iniciar({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<StartedCheckout> {
     this.iniciadas.push({ bookingId, redirectUrl });
     if (this.checkoutUrl !== null) {
-      return new CheckoutIniciado({
+      return new StartedCheckout({
         checkoutUrl: this.checkoutUrl,
-        referencia: 'DIV-ABC123-1',
+        reference: 'DIV-ABC123-1',
         amountInCents: 30000000,
-        expiraAt: new Date(Date.now() + 30 * 60_000),
+        expiresAt: new Date(Date.now() + 30 * 60_000),
       });
     }
     throw this.falloAlIniciar;
@@ -58,13 +58,13 @@ export class PasarelaFalsa implements PaymentGateway {
 }
 
 /** Resultado de `pagos-verificar` de la reserva `res-1` para las pruebas. */
-export function pagoDePrueba(estado: EstadoPago, reserva: BookingStatus = BookingStatus.confirmada): PagoVerificado {
-  return new PagoVerificado({
-    estado,
-    metodo: PaymentMethodOption.tarjeta,
-    referencia: 'DIV-ABC123-1',
+export function pagoDePrueba(estado: VerifiedPaymentStatus, reserva: BookingStatus = BookingStatus.confirmed): VerifiedPayment {
+  return new VerifiedPayment({
+    status: estado,
+    method: PaymentMethodOption.card,
+    reference: 'DIV-ABC123-1',
     bookingId: 'res-1',
-    codigo: 'DIV-ABC123',
-    bookingEstado: reserva,
+    code: 'DIV-ABC123',
+    bookingStatus: reserva,
   });
 }

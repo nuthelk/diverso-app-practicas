@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { EstadoReembolso, formatCOP, type Booking } from '@/core';
+import { RefundStatus, formatCOP, type Booking } from '@/core';
 import { Card, Divider, FilledButton, Icono, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppText, conAlfa, useTheme, type ColorScheme } from '@/ui/theme';
 
@@ -10,7 +10,7 @@ import { FilaDato } from './FilaDato';
 
 /** Color de la etiqueta de reembolso: rojo si fue rechazado, el primario en los demás casos. */
 export function colorReembolso(b: Booking, cs: ColorScheme): string {
-  return b.reembolso?.estado === EstadoReembolso.rechazado ? cs.error : cs.primary;
+  return b.refund?.status === RefundStatus.rejected ? cs.error : cs.primary;
 }
 
 /**
@@ -42,11 +42,11 @@ export function TarjetaReserva({
 }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
-  const agencia = booking.plan?.agency?.nombre ?? null;
+  const agencia = booking.plan?.agency?.name ?? null;
   const salida = textoSalida(booking);
-  const puntoEncuentro = booking.plan?.puntoEncuentro ?? '';
+  const puntoEncuentro = booking.plan?.meetingPoint ?? '';
   const colorTexto = historial ? conAlfa(cs.onSurface, 0.72) : cs.onSurface;
-  const etiquetaReembolso = booking.etiquetaReembolso;
+  const etiquetaReembolso = booking.refundLabel;
   const conPago = !!onPagar || !!onVerificar;
   const conAcciones = !!onResenar || !!onCancelar;
 
@@ -56,7 +56,7 @@ export function TarjetaReserva({
         <Pressable
           onPress={onAbrir}
           accessibilityRole="button"
-          accessibilityLabel={`Ver detalle de la reserva ${booking.codigo}`}
+          accessibilityLabel={`Ver detalle de la reserva ${booking.code}`}
         >
           {({ pressed }) => (
             <>
@@ -68,7 +68,7 @@ export function TarjetaReserva({
                   altura={1.25}
                   style={{ fontWeight: '700', fontSize: AppText.subtitulo, color: colorTexto }}
                 >
-                  {booking.plan?.titulo ?? 'Plan'}
+                  {booking.plan?.title ?? 'Plan'}
                 </Text>
                 {agencia !== null ? (
                   <>
@@ -122,7 +122,7 @@ export function TarjetaReserva({
                   <Text
                     style={{ fontSize: AppText.subtituloGrande, fontWeight: '800', letterSpacing: -0.3, color: colorTexto }}
                   >
-                    {formatCOP(booking.montoTotal)}
+                    {formatCOP(booking.totalAmount)}
                   </Text>
                 </View>
               </View>
@@ -135,7 +135,7 @@ export function TarjetaReserva({
             </>
           )}
         </Pressable>
-        {conPago || conAcciones || booking.tieneResena ? (
+        {conPago || conAcciones || booking.hasReview ? (
           <View style={estilos.acciones}>
             {conPago ? (
               <View style={[estilos.envolver, { marginTop: 10 }]}>
@@ -164,7 +164,7 @@ export function TarjetaReserva({
                   </TextButton>
                 ) : null}
               </View>
-            ) : booking.tieneResena ? (
+            ) : booking.hasReview ? (
               <View style={[estilos.fila, { marginTop: 8 }]}>
                 <Icono nombre="rate_review_rounded" size={13} color={cs.primary} />
                 <View style={{ width: 4 }} />

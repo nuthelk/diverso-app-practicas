@@ -32,7 +32,7 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
   }, []);
 
   const reserva = vm.reserva;
-  const pendienteDePago = !vm.cargando && reserva?.estado === BookingStatus.pendientePago ? reserva.id : null;
+  const pendienteDePago = !vm.cargando && reserva?.status === BookingStatus.pendingPayment ? reserva.id : null;
   useEffect(() => {
     if (pendienteDePago !== null) irA(router, AppRoutes.pagoDeReserva(pendienteDePago));
   }, [pendienteDePago, router]);
@@ -54,22 +54,22 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
       </Estado>
     );
   } else {
-    switch (reserva.estado) {
-      case BookingStatus.confirmada:
-      case BookingStatus.completada:
+    switch (reserva.status) {
+      case BookingStatus.confirmed:
+      case BookingStatus.completed:
         contenido = <BookingSuccessView booking={reserva} />;
         break;
-      case BookingStatus.pendientePago:
+      case BookingStatus.pendingPayment:
         contenido = <Estado><Cargando /></Estado>;
         break;
-      case BookingStatus.cancelada: {
-        const reembolso = reserva.etiquetaReembolso;
+      case BookingStatus.cancelled: {
+        const reembolso = reserva.refundLabel;
         contenido = (
           <Estado>
             <EmptyState
               icono="event_busy_rounded"
               titulo="Reserva cancelada"
-              mensaje={sinCortes(`La reserva ${reserva.codigo} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
+              mensaje={sinCortes(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
               accion={<FilledButton variante="tonal" texto="Ver mis reservas" onPress={irAReservas} />}
             />
           </Estado>

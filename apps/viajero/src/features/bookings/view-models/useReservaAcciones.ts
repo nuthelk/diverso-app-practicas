@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { Booking, BookingRepository, Publico, VistaPreviaCancelacion } from '@/core';
+import type { Booking, BookingRepository, Public, CancellationPreview } from '@/core';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
 
 import { mensajeCancelacion } from '../reserva-formato';
@@ -23,7 +23,7 @@ export function useReservaAcciones({
   reloj = relojDelSistema,
   cargar,
 }: {
-  reservas: Publico<BookingRepository>;
+  reservas: Public<BookingRepository>;
   reloj?: Reloj;
   cargar: () => Promise<void>;
 }) {
@@ -34,9 +34,9 @@ export function useReservaAcciones({
   relojActual.current = reloj;
 
   /** Pendiente o confirmada y que aún no sale (ver `Booking.vigente`), según el reloj del VM. */
-  const esVigente = useCallback((b: Booking) => b.vigente(relojActual.current()), []);
+  const esVigente = useCallback((b: Booking) => b.isActive(relojActual.current()), []);
   const puedeCancelar = esVigente;
-  const puedeResenar = useCallback((b: Booking) => b.puedeResenar(relojActual.current()), []);
+  const puedeResenar = useCallback((b: Booking) => b.canReview(relojActual.current()), []);
 
   /** Deja [texto] como aviso para la vista. */
   const avisar = useCallback((texto: string) => setMensaje(texto), []);
@@ -52,7 +52,7 @@ export function useReservaAcciones({
    * (el motivo queda en `mensaje`).
    */
   const vistaPrevia = useCallback(
-    async (b: Booking): Promise<VistaPreviaCancelacion | null> => {
+    async (b: Booking): Promise<CancellationPreview | null> => {
       setMensaje(null);
       try {
         return await reservas.vistaPreviaCancelacion(b.id);

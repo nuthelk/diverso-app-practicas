@@ -1,4 +1,4 @@
-import { DiversoError, EstadoPago, type PagoVerificado, type PaymentGateway } from '@/core';
+import { DiversoError, VerifiedPaymentStatus, type VerifiedPayment, type PaymentGateway } from '@/core';
 
 import { PagoAbierto, type AbrirPago } from '../pago-abierto';
 import { useEstadoVivo } from './use-estado-vivo';
@@ -6,7 +6,7 @@ import { useEstadoVivo } from './use-estado-vivo';
 interface EstadoPagoResultado {
   cargando: boolean;
   /** Lo que dijo el servidor del pago; null mientras se verifica o si hubo [falla]. */
-  resultado: PagoVerificado | null;
+  resultado: VerifiedPayment | null;
   /** Por qué no se pudo verificar el pago. */
   falla: DiversoError | null;
   /** Cuántas veces se ha preguntado al servidor en esta verificación. */
@@ -54,7 +54,7 @@ export function usePagoResultadoViewModel(
       // Cada intento se avisa: la vista muestra «… (intento N)» desde el segundo. (En Dart no se
       // notificaba y ese texto nunca llegaba a verse.)
       cambiar({ intentos: actual.current.intentos + 1 });
-      let resultado: PagoVerificado;
+      let resultado: VerifiedPayment;
       try {
         resultado = await pasarela.verificar(transactionId !== null ? { transactionId } : { bookingId });
         cambiar({ resultado, falla: null }, false);
@@ -63,7 +63,7 @@ export function usePagoResultadoViewModel(
         cambiar({ falla: e instanceof DiversoError ? e : new DiversoError('ERROR_INESPERADO'), resultado: null }, false);
         break;
       }
-      if (resultado.estado !== EstadoPago.pendiente || actual.current.intentos >= maxIntentos) break;
+      if (resultado.status !== VerifiedPaymentStatus.pending || actual.current.intentos >= maxIntentos) break;
       await esperarMs(pausaMs);
     }
     cambiar({ cargando: false });

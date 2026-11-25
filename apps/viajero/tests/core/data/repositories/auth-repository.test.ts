@@ -48,7 +48,7 @@ describe('sesión', () => {
     expect(await repo.currentUserId()).toBe('viajero-1');
     expect(await repo.currentUserEmail()).toBe('ana@diverso.test');
     const perfil = await repo.currentProfile();
-    expect(perfil).toMatchObject({ id: 'viajero-1', rol: UserRole.viajero, nombre: 'Ana' });
+    expect(perfil).toMatchObject({ id: 'viajero-1', role: UserRole.traveler, name: 'Ana' });
     const consultaPerfil = pedidos.find((p) => p.ruta === '/rest/v1/profiles')!;
     expect(consultaPerfil.params['id']).toEqual(['eq.viajero-1']);
     // Con sesión, PostgREST recibe el JWT del viajero (no la clave publicable).

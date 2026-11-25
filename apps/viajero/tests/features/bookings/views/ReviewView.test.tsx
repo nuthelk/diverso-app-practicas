@@ -26,18 +26,18 @@ const DIA = 24 * 60 * 60 * 1000;
 const planP1 = new Plan({
   id: 'p1',
   agencyId: 'ag',
-  titulo: 'Plan p1',
-  destino: 'Guatapé',
-  categoria: ExperienceCategory.aventura,
-  precioCop: 150000,
-  estado: PlanStatus.publicado,
+  title: 'Plan p1',
+  destination: 'Guatapé',
+  category: ExperienceCategory.adventure,
+  priceCop: 150000,
+  status: PlanStatus.published,
 });
 
 async function abrir({
   url = '/resena/res-1',
   falloAlPublicar = null,
   yaSalio = true,
-  estado = BookingStatus.confirmada,
+  estado = BookingStatus.confirmed,
 }: { url?: string; falloAlPublicar?: unknown; yaSalio?: boolean; estado?: BookingStatus } = {}) {
   const reservas = new ReservasFalsas([
     reservaDePrueba({ salida: new Date(Date.now() + (yaSalio ? -4 : 4) * DIA), plan: planP1, estado }),
@@ -151,7 +151,7 @@ describe('/resena/:bookingId', () => {
   });
 
   test('«Ver mis reservas» desde una reserva no reseñable lleva a la lista', async () => {
-    const { r } = await abrir({ estado: BookingStatus.cancelada });
+    const { r } = await abrir({ estado: BookingStatus.cancelled });
 
     await tocar('Ver mis reservas');
 

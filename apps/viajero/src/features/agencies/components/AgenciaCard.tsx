@@ -3,7 +3,7 @@ import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import type { AgenciaResumen } from '@/core';
+import type { AgencySummary } from '@/core';
 import { AppRoutes } from '@/router';
 import { AgencyAvatar, Card, colorDeAgencia, Icono, InsigniaNueva, Text, VerifiedBadge } from '@/ui/components';
 import { AppText, conAlfa, useTheme } from '@/ui/theme';
@@ -12,14 +12,14 @@ import { AppText, conAlfa, useTheme } from '@/ui/theme';
  * Tarjeta de agencia de la lista (`agencia_card.dart`): portada, logo (o iniciales), nombre,
  * puntaje («Nueva» sin reseñas), ciudad, número de planes y sello. Abre `/agencia/:id`.
  */
-export function AgenciaCard({ agencia }: { agencia: AgenciaResumen }) {
+export function AgenciaCard({ agencia }: { agencia: AgencySummary }) {
   const cs = useTheme().colorScheme;
   const router = useRouter();
   return (
     <Card
       testID={`agencia-card-${agencia.id}`}
       color={cs.surfaceContainerLow}
-      accessibilityLabel={agencia.nombre}
+      accessibilityLabel={agencia.name}
       onPress={() => router.push(AppRoutes.agencia(agencia.id) as Href)}
       // En la grilla llena la celda (como en SliverGrid); en la lista no cambia nada.
       style={{ flexGrow: 1 }}
@@ -35,7 +35,7 @@ export function AgenciaCard({ agencia }: { agencia: AgenciaResumen }) {
         <View style={{ width: 12 }} />
         <View style={estilos.flex}>
           <Text numberOfLines={1} ellipsizeMode="tail" style={{ fontSize: AppText.enfasisGrande, fontWeight: '700', letterSpacing: -0.3 }}>
-            {agencia.nombre}
+            {agencia.name}
           </Text>
           <View style={{ height: 5 }} />
           <DatosAgencia agencia={agencia} />
@@ -46,37 +46,37 @@ export function AgenciaCard({ agencia }: { agencia: AgenciaResumen }) {
 }
 
 /** Puntaje (★ 4.5 (2) o «Nueva»), ciudad y «N planes» en una línea que se parte si no cabe. */
-export function DatosAgencia({ agencia }: { agencia: AgenciaResumen }) {
+export function DatosAgencia({ agencia }: { agencia: AgencySummary }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const suave = { fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant };
   return (
     <View style={estilos.datos}>
-      {agencia.esNueva ? (
-        <InsigniaNueva texto={agencia.puntajeTexto} />
+      {agencia.isNew ? (
+        <InsigniaNueva texto={agencia.ratingText} />
       ) : (
         <View style={estilos.fila}>
           <Icono nombre="star_rounded" size={17} color={tema.diverso.dorado} />
-          <Text style={{ marginLeft: 2, fontSize: AppText.detalle, fontWeight: '700', color: cs.onSurface }}>{agencia.puntajeTexto}</Text>
+          <Text style={{ marginLeft: 2, fontSize: AppText.detalle, fontWeight: '700', color: cs.onSurface }}>{agencia.ratingText}</Text>
           <Text style={[suave, { marginLeft: 3 }]}>{`(${agencia.reviewsTotal})`}</Text>
         </View>
       )}
-      {agencia.ciudad !== '' ? (
+      {agencia.city !== '' ? (
         <View style={estilos.fila}>
           <Icono nombre="location_on_outlined" size={14} color={cs.onSurfaceVariant} />
-          <Text style={[suave, { marginLeft: 2 }]}>{agencia.ciudad}</Text>
+          <Text style={[suave, { marginLeft: 2 }]}>{agencia.city}</Text>
         </View>
       ) : null}
-      <Text style={suave}>{agencia.planesTexto}</Text>
+      <Text style={suave}>{agencia.plansText}</Text>
     </View>
   );
 }
 
 /** Portada: la foto del plan mejor puntuado; sin foto (o si falla), el color de la agencia. */
-export function PortadaAgencia({ agencia }: { agencia: AgenciaResumen }) {
+export function PortadaAgencia({ agencia }: { agencia: AgencySummary }) {
   const [fallo, setFallo] = useState(false);
   const color = colorDeAgencia(agencia.id);
-  const url = agencia.portadaUrl;
+  const url = agencia.coverUrl;
   if (!url || fallo) {
     return (
       <View testID="portada-agencia-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: conAlfa(color, 0.16) }]}>

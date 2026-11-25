@@ -69,7 +69,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
     cuerpo = (
       <>
         <View testID="ficha-contenido" style={estilos.flex}>
-          <CabeceraColapsable titulo={plan.titulo} alturaExpandida={300} onVolver={volver} fondo={<GaleriaPlan fotos={plan.fotos} />}>
+          <CabeceraColapsable titulo={plan.title} alturaExpandida={300} onVolver={volver} fondo={<GaleriaPlan fotos={plan.photos} />}>
             <ContenidoFicha plan={plan} resenas={vm.resenas} />
           </CabeceraColapsable>
         </View>
@@ -96,11 +96,11 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
 /** Secciones de la ficha (todo lo que hace scroll bajo la cabecera). */
 function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Review[] }) {
   const cs = useTheme().colorScheme;
-  const incluyeAlgo = plan.incluye.length > 0 || plan.incluyeTransporte || plan.incluyeComida || plan.incluyeHospedaje;
+  const incluyeAlgo = plan.includes.length > 0 || plan.includesTransport || plan.includesFood || plan.includesLodging;
   return (
     <View testID="ficha-columna" style={estilos.contenido}>
       <Text altura={1.15} accessibilityRole="header" style={{ fontSize: AppText.encabezado3xl, fontWeight: '800', letterSpacing: -0.8 }}>
-        {plan.titulo}
+        {plan.title}
       </Text>
       <View style={{ height: 8 }} />
       <View style={estilos.fila}>
@@ -111,7 +111,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <View style={[estilos.duracion, { backgroundColor: cs.secondaryContainer }]}>
           <Icono nombre="schedule_rounded" size={14} color={cs.onSecondaryContainer} />
           <Text style={{ marginLeft: 4, fontSize: AppText.leyenda, fontWeight: '700', color: cs.onSecondaryContainer }}>
-            {plan.duracionTexto}
+            {plan.durationText}
           </Text>
         </View>
       </View>
@@ -120,11 +120,11 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
       {plan.agency !== null ? <TarjetaAgencia agency={plan.agency} /> : null}
       <View style={{ height: 24 }} />
 
-      {plan.descripcion !== '' ? (
+      {plan.description !== '' ? (
         <>
           <SectionLabel texto="La experiencia" />
           <Text altura={1.55} style={{ fontSize: AppText.cuerpoGrande, color: conAlfa(cs.onSurface, 0.85) }}>
-            {plan.descripcion}
+            {plan.description}
           </Text>
           <View style={{ height: 24 }} />
         </>
@@ -134,10 +134,10 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <>
           <SectionLabel texto="Qué incluye · precio final" />
           <View style={estilos.incluye}>
-            {plan.incluyeTransporte ? <IncluyePill icono="directions_bus_rounded" texto="Transporte" /> : null}
-            {plan.incluyeComida ? <IncluyePill icono="restaurant_rounded" texto="Comida" /> : null}
-            {plan.incluyeHospedaje ? <IncluyePill icono="hotel_rounded" texto="Hospedaje" /> : null}
-            {plan.incluye.map((i, n) => (
+            {plan.includesTransport ? <IncluyePill icono="directions_bus_rounded" texto="Transporte" /> : null}
+            {plan.includesFood ? <IncluyePill icono="restaurant_rounded" texto="Comida" /> : null}
+            {plan.includesLodging ? <IncluyePill icono="hotel_rounded" texto="Hospedaje" /> : null}
+            {plan.includes.map((i, n) => (
               <IncluyePill key={`${n}-${i}`} icono="check_circle_rounded" texto={i} textoLargo />
             ))}
           </View>
@@ -145,28 +145,28 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         </>
       ) : null}
 
-      {plan.itinerario.length > 0 ? (
+      {plan.itinerary.length > 0 ? (
         <>
           <SectionLabel texto="Itinerario" />
-          {plan.itinerario.map((paso, i) => (
-            <PasoItinerario key={`${i}-${paso.hora}`} paso={paso} ultimo={i === plan.itinerario.length - 1} />
+          {plan.itinerary.map((paso, i) => (
+            <PasoItinerario key={`${i}-${paso.time}`} paso={paso} ultimo={i === plan.itinerary.length - 1} />
           ))}
           <View style={{ height: 24 }} />
         </>
       ) : null}
 
-      {plan.puntoEncuentro !== '' ? (
+      {plan.meetingPoint !== '' ? (
         <>
           <SectionLabel texto="Punto de encuentro" />
           <View style={estilos.fila}>
             <Icono nombre="flag_rounded" size={17} color={cs.primary} />
-            <Text style={{ marginLeft: 8, flex: 1, fontSize: AppText.cuerpoGrande }}>{plan.puntoEncuentro}</Text>
+            <Text style={{ marginLeft: 8, flex: 1, fontSize: AppText.cuerpoGrande }}>{plan.meetingPoint}</Text>
           </View>
           <View style={{ height: 24 }} />
         </>
       ) : null}
 
-      {plan.politicaCancelacion !== '' ? <TarjetaCancelacion texto={plan.politicaCancelacion} /> : null}
+      {plan.cancellationPolicy !== '' ? <TarjetaCancelacion texto={plan.cancellationPolicy} /> : null}
 
       {resenas.length > 0 ? (
         <>

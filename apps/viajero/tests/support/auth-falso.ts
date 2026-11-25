@@ -1,4 +1,4 @@
-import { Profile, UserRole, type AuthRepository, type Publico } from '@/core';
+import { Profile, UserRole, type AuthRepository, type Public } from '@/core';
 
 import type { Compuerta } from './compuerta';
 
@@ -13,7 +13,7 @@ export type RespuestaConsentimiento = string[] | Error;
  * supabase-js, NO repite la sesión inicial al suscribirse (igual que el `Stream` de Dart): la
  * sesión inicial se lee con `currentUserId()`.
  */
-export class AuthFalso implements Publico<AuthRepository> {
+export class AuthFalso implements Public<AuthRepository> {
   private usuario: string | null;
 
   /**
@@ -103,7 +103,7 @@ export class AuthFalso implements Publico<AuthRepository> {
     this.cargasDePerfil++;
     await this.compuertaPerfil?.promesa;
     if (this.falloAlCargarPerfil != null) throw this.falloAlCargarPerfil;
-    return this.perfil ?? new Profile({ id: 'u', rol: UserRole.viajero, nombre: 'Ana' });
+    return this.perfil ?? new Profile({ id: 'u', role: UserRole.traveler, name: 'Ana' });
   }
 
   async signIn({ email, password }: { email: string; password: string }): Promise<void> {

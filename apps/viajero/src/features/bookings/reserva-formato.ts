@@ -1,13 +1,13 @@
 import {
   BookingStatus,
   DIAS_CORTOS,
-  ETIQUETA_REEMBOLSO,
-  EstadoReembolso,
+  LABEL_REFUND_STATUS,
+  RefundStatus,
   formatCOP,
   MESES_CORTOS,
   type Booking,
-  type ResultadoCancelacion,
-  type VistaPreviaCancelacion,
+  type CancellationResult,
+  type CancellationPreview,
 } from '@/core';
 
 /**
@@ -22,10 +22,10 @@ const dosCifras = (n: number) => String(n).padStart(2, '0');
  * la fecha del plan); null si no hay ninguna salida conocida.
  */
 export function textoSalida(b: Booking): string | null {
-  const salida = b.salida;
+  const salida = b.departure;
   if (salida === null) return null;
   const dia = `${DIAS_CORTOS[salida.getDay()]} ${salida.getDate()} ${MESES_CORTOS[salida.getMonth()]}`;
-  return b.salidaAt === null ? dia : `${dia} · ${dosCifras(salida.getHours())}:${dosCifras(salida.getMinutes())}`;
+  return b.departureAt === null ? dia : `${dia} · ${dosCifras(salida.getHours())}:${dosCifras(salida.getMinutes())}`;
 }
 
 /**
@@ -33,8 +33,8 @@ export function textoSalida(b: Booking): string | null {
  * bloques de 24 h). Null si el viaje ya salió, no tiene salida o la reserva está cancelada.
  */
 export function cuentaRegresiva(b: Booking, ahora: Date = new Date()): string | null {
-  if (b.estado === BookingStatus.cancelada || !b.esFutura(ahora)) return null;
-  const salida = b.salida!;
+  if (b.status === BookingStatus.cancelled || !b.isUpcoming(ahora)) return null;
+  const salida = b.departure!;
   // Como Dart: diferencia entre las fechas Y/M/D en UTC (sin saltos de horario de verano).
   const dias = Math.round(
     (Date.UTC(salida.getFullYear(), salida.getMonth(), salida.getDate()) -
@@ -54,17 +54,17 @@ export function textoPersonas(pax: number): string {
  * Aviso tras cancelar: «Reserva cancelada y cupos liberados. Reembolso de prueba aprobado:
  * $ 190.000 (100 %).» (sin monto si no hay reembolso).
  */
-export function mensajeCancelacion(r: ResultadoCancelacion): string {
-  const etiqueta = ETIQUETA_REEMBOLSO[r.estado];
+export function mensajeCancelacion(r: CancellationResult): string {
+  const etiqueta = LABEL_REFUND_STATUS[r.status];
   const reembolso =
-    r.estado === EstadoReembolso.noAplica ? etiqueta : `${etiqueta}: ${formatCOP(r.monto)} (${r.porcentaje} %)`;
+    r.status === RefundStatus.notApplicable ? etiqueta : `${etiqueta}: ${formatCOP(r.amount)} (${r.percentage} %)`;
   return `Reserva cancelada y cupos liberados. ${reembolso}.`;
 }
 
 /** Lo que la política del plan da si se cancela AHORA (viene de `vista_previa_cancelacion`). */
-export function textoPoliticaCancelacion(v: VistaPreviaCancelacion): string {
-  if (!v.aplica || v.porcentaje <= 0) return `Si cancelas ahora no recibirás reembolso. ${v.motivo}`;
-  const cuanto = `${v.porcentaje} % (${formatCOP(v.monto)})`;
-  const politica = v.porcentaje >= 100 ? '' : ' según la política del plan';
+export function textoPoliticaCancelacion(v: CancellationPreview): string {
+  if (!v.applies || v.percentage <= 0) return `Si cancelas ahora no recibirás reembolso. ${v.reason}`;
+  const cuanto = `${v.percentage} % (${formatCOP(v.amount)})`;
+  const politica = v.percentage >= 100 ? '' : ' según la política del plan';
   return `Si cancelas ahora te devolvemos el ${cuanto}${politica}. Es un reembolso de prueba: no se mueve dinero real.`;
 }

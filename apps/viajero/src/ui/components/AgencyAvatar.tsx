@@ -27,7 +27,7 @@ export function colorDeAgencia(clave: string): string {
 /** Lo que el avatar necesita de `AgenciaResumen` (core). */
 export interface AgenciaAvatarDatos {
   id: string;
-  iniciales: string;
+  initials: string;
   logoUrl?: string | null;
 }
 
@@ -56,7 +56,7 @@ export function AgencyAvatar({ agencia, size = 46 }: { agencia: AgenciaAvatarDat
           style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: colorDeAgencia(agencia.id) }]}
         >
           <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: size * 0.38, letterSpacing: 0.5 }}>
-            {agencia.iniciales}
+            {agencia.initials}
           </Text>
         </View>
       )}

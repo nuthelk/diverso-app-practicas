@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import type { ItinerarioPaso } from '@/core';
+import type { ItineraryStep } from '@/core';
 import { Text } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
 
@@ -8,7 +8,7 @@ import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
 export const MAX_PASOS = 5;
 
 /** Itinerario inmediato de la confirmación (Anexo 6): los primeros pasos y cuántos más hay. */
-export function ItinerarioConfirmado({ pasos }: { pasos: readonly ItinerarioPaso[] }) {
+export function ItinerarioConfirmado({ pasos }: { pasos: readonly ItineraryStep[] }) {
   const cs = useTheme().colorScheme;
   return (
     <View style={[AppInsets.tarjetaGrande, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
@@ -17,12 +17,12 @@ export function ItinerarioConfirmado({ pasos }: { pasos: readonly ItinerarioPaso
       </Text>
       <View style={{ height: 12 }} />
       {pasos.slice(0, MAX_PASOS).map((paso, i) => (
-        <View key={`${i}-${paso.hora}`} style={estilos.paso}>
+        <View key={`${i}-${paso.time}`} style={estilos.paso}>
           <View style={estilos.hora}>
-            <Text style={{ fontWeight: '800', fontSize: AppText.leyendaGrande, color: cs.primary }}>{paso.hora}</Text>
+            <Text style={{ fontWeight: '800', fontSize: AppText.leyendaGrande, color: cs.primary }}>{paso.time}</Text>
           </View>
           <Text altura={1.4} style={[estilos.flexible, { fontSize: AppText.detalle }]}>
-            {paso.actividad}
+            {paso.activity}
           </Text>
         </View>
       ))}

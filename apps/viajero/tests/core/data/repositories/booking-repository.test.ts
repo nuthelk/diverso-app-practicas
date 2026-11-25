@@ -3,8 +3,8 @@ import type { BookingApi } from '@/core/data/services/booking-api';
 import { DiversoError } from '@/core/errors/diverso-error';
 import { Booking } from '@/core/models/booking';
 import { BookingStatus } from '@/core/models/enums';
-import type { Fila } from '@/core/models/fila';
-import { ETIQUETA_REEMBOLSO, EstadoReembolso } from '@/core/models/reembolso';
+import type { Row } from '@/core/models/row';
+import { LABEL_REFUND_STATUS, RefundStatus } from '@/core/models/refund';
 import { fechaLocal } from '@/core/utils/fechas';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
@@ -19,13 +19,13 @@ class BookingApiFalsa implements BookingApi {
   /** Lo que lanza cualquier consulta (null = responde normal). */
   falla: unknown = null;
 
-  filaCrear: Fila = {};
-  reservas: Fila[] = [];
-  resenas: Fila[] = [];
-  filaReserva: Fila | null = null;
-  filaResena: Fila | null = null;
-  pendientes: Fila[] = [];
-  filaVistaPrevia: Fila = {};
+  filaCrear: Row = {};
+  reservas: Row[] = [];
+  resenas: Row[] = [];
+  filaReserva: Row | null = null;
+  filaResena: Row | null = null;
+  pendientes: Row[] = [];
+  filaVistaPrevia: Row = {};
 
   readonly consultas: string[] = [];
   creadaDespuesDe: Date | null = null;
@@ -63,7 +63,7 @@ class BookingApiFalsa implements BookingApi {
   }
 }
 
-const fila = (id: string, estado = 'confirmada'): Fila => ({
+const fila = (id: string, estado = 'confirmada'): Row => ({
   id,
   codigo: `DIV-${id}`,
   plan_date_id: 'pd-1',
@@ -101,18 +101,18 @@ describe('crearReserva', () => {
     };
     const r = await repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 });
     expect(r.bookingId).toBe('b-1');
-    expect(r.codigo).toBe('DIV-AB12');
-    expect(r.montoTotal).toBe(300000);
-    expect(r.planTitulo).toBe('Guatapé');
-    expect(r.fecha).toEqual(fechaLocal(2026, 11, 20));
+    expect(r.code).toBe('DIV-AB12');
+    expect(r.totalAmount).toBe(300000);
+    expect(r.planTitle).toBe('Guatapé');
+    expect(r.date).toEqual(fechaLocal(2026, 11, 20));
   });
 
   test('sin plan_titulo ni fecha: título vacío y fecha nula', async () => {
     const api = new BookingApiFalsa();
     api.filaCrear = { booking_id: 'b', codigo: 'C', monto_total: 1 };
     const r = await repo(api).crearReserva({ planDateId: 'pd-1', pax: 1 });
-    expect(r.planTitulo).toBe('');
-    expect(r.fecha).toBeNull();
+    expect(r.planTitle).toBe('');
+    expect(r.date).toBeNull();
   });
 
   test('un error de PostgREST sale como DiversoError con su código', async () => {
@@ -159,7 +159,7 @@ describe('misReservas', () => {
     api.resenas = [{ booking_id: 'b2' }];
     const r = await repo(api).misReservas();
     expect(r.map((b) => b.id)).toEqual(['b1', 'b2', 'b3']);
-    expect(r.map((b) => b.tieneResena)).toEqual([false, true, false]);
+    expect(r.map((b) => b.hasReview)).toEqual([false, true, false]);
     expect(api.consultas).toEqual(['reservasDe', 'resenasDe']);
   });
 });
@@ -170,14 +170,14 @@ describe('reserva (por id)', () => {
     api.filaReserva = fila('b1');
     const b = await repo(api).reserva('b1');
     expect(b.id).toBe('b1');
-    expect(b.tieneResena).toBe(false);
+    expect(b.hasReview).toBe(false);
   });
 
   test('con reseña: la marca para no ofrecer «Reseñar» otra vez', async () => {
     const api = new BookingApiFalsa();
     api.filaReserva = fila('b1');
     api.filaResena = { id: 'r1' };
-    expect((await repo(api).reserva('b1')).tieneResena).toBe(true);
+    expect((await repo(api).reserva('b1')).hasReview).toBe(true);
   });
 
   test('no existe: RESERVA_NO_EXISTE (no se convierte en ERROR_INESPERADO)', async () => {
@@ -211,9 +211,9 @@ describe('reservaPendiente (ventana de 30 minutos)', () => {
     const desde = api.creadaDespuesDe!;
     // En JS un Date ya es un instante: la api lo envía con toISOString() (UTC, «Z»).
     expect(desde).toBeInstanceOf(Date);
-    expect(Booking.retencionMs).toBe(30 * 60 * 1000);
-    expect(desde.getTime() < antes - Booking.retencionMs).toBe(false);
-    expect(desde.getTime() > despues - Booking.retencionMs).toBe(false);
+    expect(Booking.holdMs).toBe(30 * 60 * 1000);
+    expect(desde.getTime() < antes - Booking.holdMs).toBe(false);
+    expect(desde.getTime() > despues - Booking.holdMs).toBe(false);
   });
 
   test('sin filas: null; con filas: la primera', async () => {
@@ -222,7 +222,7 @@ describe('reservaPendiente (ventana de 30 minutos)', () => {
     api.pendientes = [fila('b1', 'pendiente_pago'), fila('b0')];
     const b = await repo(api).reservaPendiente('pd-1');
     expect(b!.id).toBe('b1');
-    expect(b!.estado).toBe(BookingStatus.pendientePago);
+    expect(b!.status).toBe(BookingStatus.pendingPayment);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
@@ -245,8 +245,8 @@ describe('vistaPreviaCancelacion', () => {
       motivo: 'x',
     };
     const v = await repo(api).vistaPreviaCancelacion('b');
-    expect(v.porcentaje).toBe(50);
-    expect(v.monto).toBe(150000);
+    expect(v.percentage).toBe(50);
+    expect(v.amount).toBe(150000);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
@@ -258,7 +258,7 @@ describe('vistaPreviaCancelacion', () => {
 });
 
 describe('cancelar (reservas-cancelar)', () => {
-  const cancelada = (r: Fila) => ({ estado: 'cancelada', reembolso: r });
+  const cancelada = (r: Row) => ({ estado: 'cancelada', reembolso: r });
 
   test('llama a reservas-cancelar y lee el reembolso aprobado', async () => {
     const edge = new EdgeFunctionsFalsas(() =>
@@ -274,18 +274,18 @@ describe('cancelar (reservas-cancelar)', () => {
     expect(edge.llamadas).toHaveLength(1);
     expect(edge.llamadas[0]![0]).toBe('reservas-cancelar');
     expect(edge.llamadas[0]![1]).toStrictEqual({ booking_id: 'b-1' });
-    expect(r.aplica).toBe(true);
-    expect(r.porcentaje).toBe(50);
-    expect(r.monto).toBe(150000);
-    expect(r.estado).toBe(EstadoReembolso.aprobado);
-    expect(ETIQUETA_REEMBOLSO[r.estado]).toBe('Reembolso de prueba aprobado');
+    expect(r.applies).toBe(true);
+    expect(r.percentage).toBe(50);
+    expect(r.amount).toBe(150000);
+    expect(r.status).toBe(RefundStatus.approved);
+    expect(LABEL_REFUND_STATUS[r.status]).toBe('Reembolso de prueba aprobado');
   });
 
   test('estados pendiente, rechazado y no_aplica', async () => {
-    const casos: [string, EstadoReembolso, string][] = [
-      ['pendiente', EstadoReembolso.pendiente, 'Reembolso de prueba pendiente'],
-      ['rechazado', EstadoReembolso.rechazado, 'Reembolso de prueba rechazado'],
-      ['no_aplica', EstadoReembolso.noAplica, 'Sin reembolso'],
+    const casos: [string, RefundStatus, string][] = [
+      ['pendiente', RefundStatus.pending, 'Reembolso de prueba pendiente'],
+      ['rechazado', RefundStatus.rejected, 'Reembolso de prueba rechazado'],
+      ['no_aplica', RefundStatus.notApplicable, 'Sin reembolso'],
     ];
     for (const [raw, esperado, etiqueta] of casos) {
       const edge = new EdgeFunctionsFalsas(() =>
@@ -298,8 +298,8 @@ describe('cancelar (reservas-cancelar)', () => {
         }),
       );
       const r = await repo(new BookingApiFalsa(), edge).cancelar('b-1');
-      expect(r.estado).toBe(esperado);
-      expect(ETIQUETA_REEMBOLSO[r.estado]).toBe(etiqueta);
+      expect(r.status).toBe(esperado);
+      expect(LABEL_REFUND_STATUS[r.status]).toBe(etiqueta);
     }
   });
 

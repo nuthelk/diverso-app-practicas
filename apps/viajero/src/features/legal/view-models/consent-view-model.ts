@@ -1,4 +1,4 @@
-import type { AuthRepository, Publico } from '@/core';
+import type { AuthRepository, Public } from '@/core';
 
 /** Si el usuario actual aceptó la versión vigente de los documentos legales. */
 export const EstadoConsentimiento = {
@@ -41,7 +41,7 @@ export class ConsentViewModel {
    */
   static readonly tiempoLimite = 15_000;
 
-  private readonly auth: Publico<AuthRepository>;
+  private readonly auth: Public<AuthRepository>;
   private readonly cancelarSesion: () => void;
   private readonly escuchas = new Set<() => void>();
   /** `undefined` = todavía no se leyó la sesión inicial. */
@@ -51,7 +51,7 @@ export class ConsentViewModel {
   private revision = 0;
   private desechado = false;
 
-  constructor({ auth }: { auth: Publico<AuthRepository> }) {
+  constructor({ auth }: { auth: Public<AuthRepository> }) {
     this.auth = auth;
     this.cancelarSesion = auth.onAuthStateChanged((usuario) => this.alCambiarSesion(usuario));
     auth.currentUserId().then(

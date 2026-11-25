@@ -34,7 +34,7 @@ test('cargar trae la reserva por id', async () => {
   await act(() => result.current.cargar());
 
   expect(reservas.consultas).toEqual(['res-1']);
-  expect(result.current.reserva?.codigo).toBe('DIV-AAAA0001');
+  expect(result.current.reserva?.code).toBe('DIV-AAAA0001');
   expect(result.current.cargando).toBe(false);
   expect(result.current.error).toBeNull();
   expect(cargandos).toEqual([true, false]);

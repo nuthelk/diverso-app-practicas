@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { AgenciaResumen } from '@/core/models/agencia-resumen';
+import { AgencySummary } from '@/core/models/agency-summary';
 import { ExperienceCategory, PlanStatus } from '@/core/models/enums';
 import { Plan } from '@/core/models/plan';
 import { AgencyAvatar, PriceText, PuntajePlan } from '@/ui/components';
@@ -16,12 +16,12 @@ const plan = ({ reviews = 0, rating = 0 } = {}) =>
   new Plan({
     id: 'plan-1',
     agencyId: 'ag',
-    titulo: 'Jericó 2 días',
-    destino: 'Jericó',
-    categoria: ExperienceCategory.cultura,
-    precioCop: 449000,
-    estado: PlanStatus.publicado,
-    ratingPromedio: rating,
+    title: 'Jericó 2 días',
+    destination: 'Jericó',
+    category: ExperienceCategory.culture,
+    priceCop: 449000,
+    status: PlanStatus.published,
+    averageRating: rating,
     reviewsCount: reviews,
   });
 
@@ -55,8 +55,8 @@ describe('PriceText', () => {
 // Port de la parte de widget de puntaje_nueva_test.dart (la tarjeta y la ficha son de T5).
 describe('PuntajePlan', () => {
   it('Plan.esNuevo: sin reseñas aunque el promedio venga en 0', () => {
-    expect(plan().esNuevo).toBe(true);
-    expect(plan({ reviews: 1, rating: 5 }).esNuevo).toBe(false);
+    expect(plan().isNew).toBe(true);
+    expect(plan({ reviews: 1, rating: 5 }).isNew).toBe(false);
   });
 
   it('sin reseñas dice «Nueva», sin estrella ni 0.0', async () => {
@@ -92,15 +92,15 @@ describe('PuntajePlan', () => {
 
 describe('AgencyAvatar con el modelo de core', () => {
   it('acepta AgenciaResumen (iniciales del modelo)', async () => {
-    const agencia = new AgenciaResumen({
+    const agencia = new AgencySummary({
       id: 'ag-rutas',
-      nombre: 'Rutas de Antioquia Cultural',
-      ciudad: 'Medellín',
-      planesCount: 6,
+      name: 'Rutas de Antioquia Cultural',
+      city: 'Medellín',
+      planCount: 6,
       rating: 4.5,
       reviewsTotal: 2,
     });
     await renderConTema(<AgencyAvatar agencia={agencia} />);
-    expect(screen.getByText(agencia.iniciales)).toBeOnTheScreen();
+    expect(screen.getByText(agencia.initials)).toBeOnTheScreen();
   });
 });

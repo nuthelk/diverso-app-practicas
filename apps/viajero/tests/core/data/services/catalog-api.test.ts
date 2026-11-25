@@ -1,6 +1,6 @@
 import { CatalogApiSupabase } from '@/core/data/services/catalog-api';
 import { ExperienceCategory } from '@/core/models/enums';
-import { OrdenCatalogo } from '@/core/models/filtros-catalogo';
+import { CatalogSort } from '@/core/models/catalog-filters';
 
 import { crearSupabaseFalso } from '../../../support/supabase-falso';
 
@@ -13,7 +13,7 @@ async function consulta(extra: { fecha?: string } = {}) {
   const { client, pedidos } = crearSupabaseFalso();
   await new CatalogApiSupabase({ client }).planesPublicados({
     desde: '2026-11-02',
-    orden: OrdenCatalogo.rating,
+    orden: CatalogSort.rating,
     ...extra,
   });
   expect(pedidos).toHaveLength(1);
@@ -39,9 +39,9 @@ describe('CatalogApiSupabase (extra del port)', () => {
     const { client, pedidos } = crearSupabaseFalso();
     await new CatalogApiSupabase({ client }).planesPublicados({
       desde: '2026-11-02',
-      orden: OrdenCatalogo.precioDesc,
+      orden: CatalogSort.priceDesc,
       busqueda: 'guatape',
-      categoria: ExperienceCategory.gastronomia,
+      categoria: ExperienceCategory.gastronomy,
       destino: 'Jericó',
       precioMax: 250000,
       agencyId: 'a-7',
@@ -61,10 +61,10 @@ describe('CatalogApiSupabase (extra del port)', () => {
   });
 
   test.each([
-    [OrdenCatalogo.rating, 'rating_promedio.desc'],
-    [OrdenCatalogo.precioAsc, 'precio_cop.asc'],
-    [OrdenCatalogo.precioDesc, 'precio_cop.desc'],
-    [OrdenCatalogo.recientes, 'created_at.desc'],
+    [CatalogSort.rating, 'rating_promedio.desc'],
+    [CatalogSort.priceAsc, 'precio_cop.asc'],
+    [CatalogSort.priceDesc, 'precio_cop.desc'],
+    [CatalogSort.newest, 'created_at.desc'],
   ])('orden %s → %s', async (orden, esperado) => {
     const { client, pedidos } = crearSupabaseFalso();
     await new CatalogApiSupabase({ client }).planesPublicados({ desde: '2026-11-02', orden });

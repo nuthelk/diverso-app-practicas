@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { formatCOP, formatFechaCorta, valoresDe, ExperienceCategory } from '@/core';
+import { formatCOP, formatFechaCorta, valuesOf, ExperienceCategory } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, IconButton, InputChip, TextField, TituloPagina } from '@/ui/components';
@@ -116,7 +116,7 @@ export function CatalogView() {
             </>
           ) : null}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 40 }} contentContainerStyle={estilos.categorias}>
-            {valoresDe(ExperienceCategory).map((c) => (
+            {valuesOf(ExperienceCategory).map((c) => (
               <ChipCategoria key={c} categoria={c} seleccionada={vm.categoria === c} onPress={() => void vm.toggleCategoria(c)} />
             ))}
           </ScrollView>

@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { BookingStatus, DiversoError, EstadoPago } from '@/core';
+import { BookingStatus, DiversoError, VerifiedPaymentStatus } from '@/core';
 import { PagoAbierto } from '@/features/checkout/pago-abierto';
 import { usePagoResultadoViewModel } from '@/features/checkout/view-models/usePagoResultadoViewModel';
 
@@ -30,14 +30,14 @@ async function crear(pasarela: PasarelaFalsa, { tx = 'tx-1', reserva = null }: {
   return { ...r, cargandos, intentos, reintentandos };
 }
 
-const pendiente = () => pagoDePrueba(EstadoPago.pendiente, BookingStatus.pendientePago);
+const pendiente = () => pagoDePrueba(VerifiedPaymentStatus.pending, BookingStatus.pendingPayment);
 
 test('aprobado: queda el resultado, sin reintentos, verificando por la transacción', async () => {
-  const pasarela = new PasarelaFalsa([pagoDePrueba(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([pagoDePrueba(VerifiedPaymentStatus.approved)]);
   const { result } = await crear(pasarela);
   await act(() => result.current.verificar());
 
-  expect(result.current.resultado?.estado).toBe(EstadoPago.aprobado);
+  expect(result.current.resultado?.status).toBe(VerifiedPaymentStatus.approved);
   expect(result.current.falla).toBeNull();
   expect(result.current.cargando).toBe(false);
   expect(result.current.intentos).toBe(1);
@@ -47,7 +47,7 @@ test('aprobado: queda el resultado, sin reintentos, verificando por la transacci
 });
 
 test('«Ya pagué, verificar» verifica por la reserva, sin transacción', async () => {
-  const pasarela = new PasarelaFalsa([pagoDePrueba(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([pagoDePrueba(VerifiedPaymentStatus.approved)]);
   const { result } = await crear(pasarela, { tx: null, reserva: 'res-1' });
   await act(() => result.current.verificar());
   expect(pasarela.verificaciones).toEqual([{ transaccion: null, reserva: 'res-1' }]);
@@ -66,26 +66,26 @@ test('pendiente: reintenta hasta el máximo y se queda en pendiente', async () =
 
   expect(pasarela.verificaciones).toHaveLength(3);
   expect(result.current.intentos).toBe(3);
-  expect(result.current.resultado?.estado).toBe(EstadoPago.pendiente);
+  expect(result.current.resultado?.status).toBe(VerifiedPaymentStatus.pending);
   expect(result.current.cargando).toBe(false);
 });
 
 test('pendiente que se aprueba en el reintento deja de preguntar', async () => {
-  const pasarela = new PasarelaFalsa([pendiente(), pagoDePrueba(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([pendiente(), pagoDePrueba(VerifiedPaymentStatus.approved)]);
   const { result } = await crear(pasarela);
   await act(() => result.current.verificar());
 
   expect(pasarela.verificaciones).toHaveLength(2);
-  expect(result.current.resultado?.estado).toBe(EstadoPago.aprobado);
+  expect(result.current.resultado?.status).toBe(VerifiedPaymentStatus.approved);
   expect(result.current.intentos).toBe(2);
 });
 
 test('rechazado no se reintenta: lo dice el servidor', async () => {
-  const pasarela = new PasarelaFalsa([pagoDePrueba(EstadoPago.rechazado, BookingStatus.pendientePago)]);
+  const pasarela = new PasarelaFalsa([pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)]);
   const { result } = await crear(pasarela);
   await act(() => result.current.verificar());
   expect(pasarela.verificaciones).toHaveLength(1);
-  expect(result.current.resultado?.estado).toBe(EstadoPago.rechazado);
+  expect(result.current.resultado?.status).toBe(VerifiedPaymentStatus.rejected);
 });
 
 test('error del servidor: queda la falla con su mensaje y no se reintenta', async () => {
@@ -107,7 +107,7 @@ test('error inesperado: falla ERROR_INESPERADO en vez de romper la pantalla', as
 });
 
 test('«Reintentar» tras una falla verifica de nuevo desde cero', async () => {
-  const pasarela = new PasarelaFalsa([new DiversoError('ERROR_RED'), pagoDePrueba(EstadoPago.aprobado)]);
+  const pasarela = new PasarelaFalsa([new DiversoError('ERROR_RED'), pagoDePrueba(VerifiedPaymentStatus.approved)]);
   const { result, cargandos } = await crear(pasarela);
   await act(() => result.current.verificar());
   expect(result.current.falla).not.toBeNull();
@@ -126,7 +126,7 @@ test('«Reintentar» tras una falla verifica de nuevo desde cero', async () => {
   // Vuelve a cargar y termina.
   expect(cargandos).toEqual([true, false]);
   expect(result.current.falla).toBeNull();
-  expect(result.current.resultado?.estado).toBe(EstadoPago.aprobado);
+  expect(result.current.resultado?.status).toBe(VerifiedPaymentStatus.approved);
   // Los intentos empiezan de cero.
   expect(result.current.intentos).toBe(1);
 });

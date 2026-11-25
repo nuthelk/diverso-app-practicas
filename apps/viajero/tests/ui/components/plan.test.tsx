@@ -76,7 +76,7 @@ describe('TarjetaCancelacion', () => {
 
 describe('PasoItinerario', () => {
   it('hora en primary w800 y la actividad', async () => {
-    await renderConTema(<PasoItinerario paso={{ hora: '8:00', actividad: 'Desayuno típico' }} />);
+    await renderConTema(<PasoItinerario paso={{ time: '8:00', activity: 'Desayuno típico' }} />);
     const hora = estilo(screen.getByText('8:00'));
     expect(hora.color).toBe(temaClaro.colorScheme.primary);
     expect(hora.fontWeight).toBe('800');
@@ -90,9 +90,9 @@ describe('PasoItinerario', () => {
   it('la línea de tiempo une los puntos y termina en el último (no sigue por debajo)', async () => {
     await renderConTema(
       <>
-        <PasoItinerario paso={{ hora: '8:00', actividad: 'Desayuno típico' }} />
-        <PasoItinerario paso={{ hora: '9:00', actividad: 'Caminata' }} />
-        <PasoItinerario paso={{ hora: '12:00', actividad: 'Regreso' }} ultimo />
+        <PasoItinerario paso={{ time: '8:00', activity: 'Desayuno típico' }} />
+        <PasoItinerario paso={{ time: '9:00', activity: 'Caminata' }} />
+        <PasoItinerario paso={{ time: '12:00', activity: 'Regreso' }} ultimo />
       </>,
     );
     expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(2);

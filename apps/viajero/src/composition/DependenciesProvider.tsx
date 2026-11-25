@@ -5,7 +5,7 @@ import type {
   BookingRepository,
   CatalogRepository,
   PaymentGateway,
-  Publico,
+  Public,
   ReviewRepository,
 } from '@/core';
 
@@ -15,10 +15,10 @@ import type {
  * sobre Supabase; en pruebas, dobles.
  */
 export interface Dependencias {
-  auth: Publico<AuthRepository>;
-  reservas: Publico<BookingRepository>;
-  catalogo: Publico<CatalogRepository>;
-  resenas: Publico<ReviewRepository>;
+  auth: Public<AuthRepository>;
+  reservas: Public<BookingRepository>;
+  catalogo: Public<CatalogRepository>;
+  resenas: Public<ReviewRepository>;
   pasarela: PaymentGateway;
 }
 

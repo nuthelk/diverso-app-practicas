@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ArgumentError, StateError } from '../../errors/errores-programacion';
 import { VERSION_LEGAL } from '../../legal/documento-legal';
-import type { Fila } from '../../models/fila';
+import type { Row } from '../../models/row';
 import { Profile } from '../../models/profile';
 
 /**
@@ -105,6 +105,6 @@ export class AuthRepository {
     const uid = await this.currentUserId();
     if (uid === null) throw new StateError('No hay sesión activa');
     const { data } = await this.client.from('profiles').select().eq('id', uid).single().throwOnError();
-    return Profile.fromMap(data as Fila);
+    return Profile.fromMap(data as Row);
   }
 }

@@ -41,16 +41,16 @@ export function ChipCodigo({ codigo, sobreFoto = false }: { codigo: string; sobr
  */
 export function EstadoReservaPill({ booking }: { booking: Booking }) {
   const colores = useTheme().diverso;
-  const realizada = booking.estado === BookingStatus.confirmada && booking.salida !== null && !booking.esFutura();
+  const realizada = booking.status === BookingStatus.confirmed && booking.departure !== null && !booking.isUpcoming();
   const [color, texto] = (() => {
-    switch (booking.estado) {
-      case BookingStatus.confirmada:
+    switch (booking.status) {
+      case BookingStatus.confirmed:
         return realizada ? [colores.estadoCerrada, 'Realizada'] : [colores.estadoConfirmada, 'Confirmada'];
-      case BookingStatus.pendientePago:
+      case BookingStatus.pendingPayment:
         return [colores.estadoPendiente, 'Pendiente'];
-      case BookingStatus.cancelada:
+      case BookingStatus.cancelled:
         return [colores.estadoCancelada, 'Cancelada'];
-      case BookingStatus.completada:
+      case BookingStatus.completed:
         return [colores.estadoCerrada, 'Completada'];
     }
   })();

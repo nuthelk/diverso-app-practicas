@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { BookingStatus, EstadoPago, type DiversoError, type PagoVerificado } from '@/core';
+import { BookingStatus, VerifiedPaymentStatus, type DiversoError, type VerifiedPayment } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, Text, TextButton } from '@/ui/components';
@@ -39,7 +39,7 @@ export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoVie
   }, []);
 
   // El listener de Dart: aprobado y ya sin cargar → confirmación.
-  const aprobado = !vm.cargando && vm.resultado?.estado === EstadoPago.aprobado ? vm.resultado.bookingId : null;
+  const aprobado = !vm.cargando && vm.resultado?.status === VerifiedPaymentStatus.approved ? vm.resultado.bookingId : null;
   useEffect(() => {
     if (aprobado !== null) irA(router, AppRoutes.reserva(aprobado));
   }, [aprobado, router]);
@@ -62,7 +62,7 @@ function Contenido({
   irAReservas: () => void;
   reintentar: (bookingId: string) => void;
 }) {
-  if (vm.sinDatos || vm.cargando || vm.resultado?.estado === EstadoPago.aprobado) {
+  if (vm.sinDatos || vm.cargando || vm.resultado?.status === VerifiedPaymentStatus.approved) {
     return (
       <View style={estilos.centro}>
         <CircularProgressIndicator />
@@ -117,18 +117,18 @@ function ResultadoNoAprobado({
   irAReservas,
   reintentar,
 }: {
-  r: PagoVerificado;
+  r: VerifiedPayment;
   vm: PagoResultadoViewModel;
   irAReservas: () => void;
   reintentar: (bookingId: string) => void;
 }) {
-  const pendiente = r.estado === EstadoPago.pendiente;
-  const puedeReintentar = !pendiente && r.bookingEstado === BookingStatus.pendientePago;
+  const pendiente = r.status === VerifiedPaymentStatus.pending;
+  const puedeReintentar = !pendiente && r.bookingStatus === BookingStatus.pendingPayment;
   const mensaje = pendiente
     ? 'Todavía no recibimos la confirmación de Wompi. Te avisaremos en Mis reservas cuando llegue.'
-    : r.bookingEstado === BookingStatus.pendientePago
-      ? r.mensajeUsuario
-      : `${r.mensajeUsuario} Tu reserva ya no está vigente; vuelve a reservar.`;
+    : r.bookingStatus === BookingStatus.pendingPayment
+      ? r.userMessage
+      : `${r.userMessage} Tu reserva ya no está vigente; vuelve a reservar.`;
   return (
     <EmptyState
       icono={pendiente ? 'hourglass_top_rounded' : 'credit_card_off_rounded'}

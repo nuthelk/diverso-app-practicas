@@ -14,15 +14,15 @@ export function PuntajePlan({
   plan,
   detallado = false,
 }: {
-  plan: Pick<Plan, 'esNuevo' | 'ratingPromedio' | 'reviewsCount'>;
+  plan: Pick<Plan, 'isNew' | 'averageRating' | 'reviewsCount'>;
   detallado?: boolean;
 }) {
   const cs = useTheme().colorScheme;
-  if (plan.esNuevo) return <InsigniaNueva />;
+  if (plan.isNew) return <InsigniaNueva />;
   const suave = { fontSize: detallado ? AppText.detalle : AppText.leyenda, color: cs.onSurfaceVariant };
   return (
     <View style={estilos.fila}>
-      <RatingStars calificacion={plan.ratingPromedio} mostrarNumero />
+      <RatingStars calificacion={plan.averageRating} mostrarNumero />
       {detallado ? (
         <Text style={suave}>{` · ${plan.reviewsCount} reseñas verificadas`}</Text>
       ) : (

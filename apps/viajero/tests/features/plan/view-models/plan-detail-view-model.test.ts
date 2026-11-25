@@ -13,7 +13,7 @@ import { compuerta } from '../../../support/compuerta';
  */
 
 const resena = (id: string) =>
-  new Review({ id, bookingId: `b-${id}`, planId: 'plan-1', viajeroId: `v-${id}`, calificacion: 5, createdAt: new Date(2026, 9, 1) });
+  new Review({ id, bookingId: `b-${id}`, planId: 'plan-1', travelerId: `v-${id}`, rating: 5, createdAt: new Date(2026, 9, 1) });
 
 let catalogo: CatalogoFalso;
 let resenas: ResenasFalsas;

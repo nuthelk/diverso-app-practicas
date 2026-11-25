@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 
-import { Booking, BookingStatus, ItinerarioPaso } from '@/core';
+import { Booking, BookingStatus, ItineraryStep } from '@/core';
 import { BookingSuccessView } from '@/features/checkout/views/BookingSuccessView';
 import { AppRoutes } from '@/router';
 
@@ -17,16 +17,16 @@ beforeEach(reiniciarRouterFalso);
 function reserva(pasos: number, pax = 1) {
   const plan = planDePrueba({
     puntoEncuentro: 'Parque Berrío',
-    itinerario: Array.from({ length: pasos }, (_, i) => new ItinerarioPaso({ hora: `0${i}:00`, actividad: `Paso ${i + 1}` })),
+    itinerario: Array.from({ length: pasos }, (_, i) => new ItineraryStep({ time: `0${i}:00`, activity: `Paso ${i + 1}` })),
   });
   return new Booking({
     id: 'res-1',
-    codigo: 'DIV-ABC123',
+    code: 'DIV-ABC123',
     planDateId: 'fecha-1',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax,
-    montoTotal: 150000 * pax,
-    estado: BookingStatus.confirmada,
+    totalAmount: 150000 * pax,
+    status: BookingStatus.confirmed,
     createdAt: new Date(),
     plan,
     planDate: plan.dates[0],

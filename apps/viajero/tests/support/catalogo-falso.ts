@@ -1,12 +1,12 @@
 import {
-  AgenciaResumen,
+  AgencySummary,
   ExperienceCategory,
   Plan,
   PlanDate,
   PlanStatus,
   type CatalogRepository,
-  type FiltrosCatalogo,
-  type Publico,
+  type CatalogFilters,
+  type Public,
   type Review,
   type ReviewRepository,
 } from '@/core';
@@ -17,11 +17,11 @@ import type { Compuerta } from './compuerta';
  * `CatalogRepository` sin Supabase para pruebas del catálogo, el comparador, la ficha y las
  * agencias (`catalogo_falso.dart`). Registra cada consulta y puede fallar o quedar en espera.
  */
-export class CatalogoFalso implements Publico<CatalogRepository> {
+export class CatalogoFalso implements Public<CatalogRepository> {
   planes: Plan[];
   destinosDisponibles: string[];
   readonly detalles: Map<string, Plan>;
-  agenciasPublicas: AgenciaResumen[];
+  agenciasPublicas: AgencySummary[];
   readonly planesPorAgencia: Map<string, Plan[]>;
 
   /** Si no es null, todas las consultas lo lanzan. */
@@ -30,7 +30,7 @@ export class CatalogoFalso implements Publico<CatalogRepository> {
   compuerta: Compuerta | null = null;
 
   /** Un registro por cada llamada a `search`, en orden. */
-  readonly busquedas: FiltrosCatalogo[] = [];
+  readonly busquedas: CatalogFilters[] = [];
   consultasDestinos = 0;
   readonly detallesPedidos: string[] = [];
   consultasAgencias = 0;
@@ -46,7 +46,7 @@ export class CatalogoFalso implements Publico<CatalogRepository> {
     planes?: Plan[];
     destinosDisponibles?: string[];
     detalles?: Record<string, Plan>;
-    agenciasPublicas?: AgenciaResumen[];
+    agenciasPublicas?: AgencySummary[];
     planesPorAgencia?: Record<string, Plan[]>;
   } = {}) {
     this.planes = planes;
@@ -61,7 +61,7 @@ export class CatalogoFalso implements Publico<CatalogRepository> {
     if (this.fallo !== null) throw this.fallo;
   }
 
-  async search(filtros: FiltrosCatalogo = {}): Promise<Plan[]> {
+  async search(filtros: CatalogFilters = {}): Promise<Plan[]> {
     this.busquedas.push(filtros);
     await this.esperar();
     return this.planes;
@@ -81,14 +81,14 @@ export class CatalogoFalso implements Publico<CatalogRepository> {
     return plan;
   }
 
-  async agencias(): Promise<AgenciaResumen[]> {
+  async agencias(): Promise<AgencySummary[]> {
     this.consultasAgencias++;
     await this.esperar();
     return this.agenciasPublicas;
   }
 
   /** Null si la agencia no está en `agenciasPublicas` (no existe o no está habilitada). */
-  async agenciaConPlanes(agencyId: string): Promise<{ agencia: AgenciaResumen; planes: Plan[] } | null> {
+  async agenciaConPlanes(agencyId: string): Promise<{ agencia: AgencySummary; planes: Plan[] } | null> {
     this.agenciasPedidas.push(agencyId);
     await this.esperar();
     const agencia = this.agenciasPublicas.find((a) => a.id === agencyId);
@@ -97,7 +97,7 @@ export class CatalogoFalso implements Publico<CatalogRepository> {
 }
 
 /** `ReviewRepository` sin Supabase: devuelve las reseñas dadas (o lanza `fallo`). */
-export class ResenasFalsas implements Pick<Publico<ReviewRepository>, 'porPlan'> {
+export class ResenasFalsas implements Pick<Public<ReviewRepository>, 'porPlan'> {
   resenas: Review[];
   fallo: unknown = null;
   readonly pedidas: string[] = [];
@@ -130,16 +130,16 @@ export function planDePrueba({
   return new Plan({
     id,
     agencyId: 'ag-1',
-    titulo,
-    destino: 'Santa Fe de Antioquia',
-    categoria: ExperienceCategory.cultura,
-    precioCop: 178000,
-    estado: PlanStatus.publicado,
+    title: titulo,
+    destination: 'Santa Fe de Antioquia',
+    category: ExperienceCategory.culture,
+    priceCop: 178000,
+    status: PlanStatus.published,
     reviewsCount,
     dates,
   });
 }
 
 export function fechaDePrueba(id: string, { dias = 3, cupos = 10 }: { dias?: number; cupos?: number } = {}): PlanDate {
-  return new PlanDate({ id, planId: 'plan-1', fecha: enDias(dias), cupoTotal: 20, cupoDisponible: cupos });
+  return new PlanDate({ id, planId: 'plan-1', date: enDias(dias), totalSpots: 20, availableSpots: cupos });
 }

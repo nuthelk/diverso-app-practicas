@@ -1,17 +1,17 @@
 import { CatalogRepository } from '@/core/data/repositories/catalog-repository';
 import type { CatalogApi, ParametrosPlanes } from '@/core/data/services/catalog-api';
 import { ExperienceCategory } from '@/core/models/enums';
-import type { Fila } from '@/core/models/fila';
-import { OrdenCatalogo } from '@/core/models/filtros-catalogo';
+import type { Row } from '@/core/models/row';
+import { CatalogSort } from '@/core/models/catalog-filters';
 import { fechaLocal, fechaToIso } from '@/core/utils/fechas';
 import { hoyBogota } from '@/core/utils/hora-bogota';
 
 /** Api falsa del catálogo: devuelve las filas indicadas y guarda con qué filtros se le pidió. */
 class CatalogApiFalsa implements CatalogApi {
-  planes: Fila[] = [];
-  agencias: Fila[] = [];
-  filaPlan: Fila = {};
-  destinos: Fila[] = [];
+  planes: Row[] = [];
+  agencias: Row[] = [];
+  filaPlan: Row = {};
+  destinos: Row[] = [];
 
   ultimaBusqueda: ParametrosPlanes | null = null;
   readonly agenciasPedidas: (string | null)[] = [];
@@ -35,7 +35,7 @@ class CatalogApiFalsa implements CatalogApi {
 }
 
 /** Plan con una sola fecha. `hora` es la `hora_salida` (hora de Bogotá) de todas sus fechas. */
-const plan = (id: string, { fecha, cupos = 5, hora = '06:00:00' }: { fecha: Date; cupos?: number; hora?: string }): Fila => ({
+const plan = (id: string, { fecha, cupos = 5, hora = '06:00:00' }: { fecha: Date; cupos?: number; hora?: string }): Row => ({
   id,
   agency_id: 'a-1',
   titulo: `Plan ${id}`,
@@ -47,7 +47,7 @@ const plan = (id: string, { fecha, cupos = 5, hora = '06:00:00' }: { fecha: Date
   ],
 });
 
-const agencia = (id: string): Fila => ({ id, nombre: `Agencia ${id}` });
+const agencia = (id: string): Row => ({ id, nombre: `Agencia ${id}` });
 
 const hoy = hoyBogota();
 const enTresDias = fechaLocal(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
@@ -59,7 +59,7 @@ describe('search: lo que se le pide a la Api', () => {
     await new CatalogRepository({ api }).search({});
     expect(api.ultimaBusqueda).toStrictEqual({
       desde: fechaToIso(hoy),
-      orden: OrdenCatalogo.rating,
+      orden: CatalogSort.rating,
       busqueda: null,
       categoria: null,
       destino: null,
@@ -72,39 +72,39 @@ describe('search: lo que se le pide a la Api', () => {
   test('búsqueda de texto: minúsculas, sin tildes ni comodines', async () => {
     const api = new CatalogApiFalsa();
     const repo = new CatalogRepository({ api });
-    await repo.search({ texto: '  Guatapé  % PiedraL ' });
+    await repo.search({ text: '  Guatapé  % PiedraL ' });
     expect(api.ultimaBusqueda!.busqueda).toBe('guatape piedral');
-    await repo.search({ texto: '   ' });
+    await repo.search({ text: '   ' });
     expect(api.ultimaBusqueda!.busqueda).toBeNull();
   });
 
   test('categoría, destino, precio máximo, agencia y orden pasan tal cual', async () => {
     const api = new CatalogApiFalsa();
     await new CatalogRepository({ api }).search({
-      categoria: ExperienceCategory.gastronomia,
-      destino: 'Jericó',
-      precioMax: 250000,
+      category: ExperienceCategory.gastronomy,
+      destination: 'Jericó',
+      maxPrice: 250000,
       agencyId: 'a-7',
-      orden: OrdenCatalogo.precioDesc,
+      sort: CatalogSort.priceDesc,
     });
     expect(api.ultimaBusqueda).toMatchObject({
-      categoria: ExperienceCategory.gastronomia,
+      categoria: ExperienceCategory.gastronomy,
       destino: 'Jericó',
       precioMax: 250000,
       agencyId: 'a-7',
-      orden: OrdenCatalogo.precioDesc,
+      orden: CatalogSort.priceDesc,
     });
   });
 
   test('un destino vacío no filtra', async () => {
     const api = new CatalogApiFalsa();
-    await new CatalogRepository({ api }).search({ destino: '' });
+    await new CatalogRepository({ api }).search({ destination: '' });
     expect(api.ultimaBusqueda!.destino).toBeNull();
   });
 
   test('la fecha elegida viaja como YYYY-MM-DD', async () => {
     const api = new CatalogApiFalsa();
-    await new CatalogRepository({ api }).search({ fecha: enTresDias });
+    await new CatalogRepository({ api }).search({ date: enTresDias });
     expect(api.ultimaBusqueda!.fecha).toBe(fechaToIso(enTresDias));
   });
 });
@@ -124,14 +124,14 @@ describe('search: filtro de fecha (bug L)', () => {
       plan('otro-dia', { fecha: enCuatroDias }),
       plan('agotado', { fecha: enTresDias, cupos: 0 }),
     ];
-    const r = await new CatalogRepository({ api }).search({ fecha: enTresDias });
+    const r = await new CatalogRepository({ api }).search({ date: enTresDias });
     expect(r.map((p) => p.id)).toEqual(['sale']);
   });
 
   test('hoy, una salida que ya partió no cuenta (aunque tenga cupos)', async () => {
     const api = new CatalogApiFalsa();
     api.planes = [plan('ya-salio', { fecha: hoy, hora: '00:00:00' })];
-    const r = await new CatalogRepository({ api }).search({ fecha: hoy });
+    const r = await new CatalogRepository({ api }).search({ date: hoy });
     expect(r).toEqual([]);
   });
 });
@@ -141,7 +141,7 @@ describe('agencias, detalle y destinos', () => {
     const api = new CatalogApiFalsa();
     api.agencias = [agencia('a1'), agencia('a2')];
     const r = await new CatalogRepository({ api }).agencias();
-    expect(r.map((a) => a.nombre)).toEqual(['Agencia a1', 'Agencia a2']);
+    expect(r.map((a) => a.name)).toEqual(['Agencia a1', 'Agencia a2']);
     expect(api.agenciasPedidas).toEqual([null]);
   });
 

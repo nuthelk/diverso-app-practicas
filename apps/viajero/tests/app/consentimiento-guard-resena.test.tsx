@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from 'expo-router/testing-library';
 
-import { DiversoError, Profile, UserRole, type Booking, type BookingRepository, type Publico } from '@/core';
+import { DiversoError, Profile, UserRole, type Booking, type BookingRepository, type Public } from '@/core';
 import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
 import { ocultarAviso } from '@/features/compartido/aviso-flotante';
 
@@ -26,7 +26,7 @@ class AuthManual extends AuthFalso {
   constructor(usuario: string) {
     super({ usuario });
     this.email = 'viajero@demo.com';
-    this.perfil = new Profile({ id: 'viajero-1', rol: UserRole.viajero, nombre: 'Santiago' });
+    this.perfil = new Profile({ id: 'viajero-1', role: UserRole.traveler, name: 'Santiago' });
   }
 
   override consentimientosPendientes(): Promise<string[]> {
@@ -40,7 +40,7 @@ class AuthManual extends AuthFalso {
 /** RLS oculta las reservas de otros viajeros: el servidor responde «no existe». */
 function reservasAjenas() {
   const consultas: string[] = [];
-  const repo = doble<Publico<BookingRepository>>('BookingRepository', {
+  const repo = doble<Public<BookingRepository>>('BookingRepository', {
     reserva: async (bookingId: string): Promise<Booking> => {
       consultas.push(bookingId);
       throw new DiversoError('RESERVA_NO_EXISTE');

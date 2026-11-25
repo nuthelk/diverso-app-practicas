@@ -12,11 +12,11 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 const plan = new Plan({
   id: 'plan-1',
   agencyId: 'ag-1',
-  titulo: 'Plan número 1',
-  destino: 'Guatapé',
-  categoria: ExperienceCategory.aventura,
-  precioCop: 150000,
-  estado: PlanStatus.publicado,
+  title: 'Plan número 1',
+  destination: 'Guatapé',
+  category: ExperienceCategory.adventure,
+  priceCop: 150000,
+  status: PlanStatus.published,
 });
 
 beforeEach(reiniciarRouterFalso);
@@ -50,7 +50,7 @@ describe('PlanCard', () => {
     expect(r + g + b).toBe(0);
     expect(a).toBeGreaterThanOrEqual(0.35);
     expect(a).toBeLessThan(0.6);
-    const texto = within(pildora).getByText(plan.duracionTexto);
+    const texto = within(pildora).getByText(plan.durationText);
     expect(StyleSheet.flatten(texto.props.style).color).toBe('#FFFFFF');
   });
 });

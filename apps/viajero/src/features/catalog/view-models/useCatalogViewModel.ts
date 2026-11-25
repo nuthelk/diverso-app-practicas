@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import {
-  OrdenCatalogo,
+  CatalogSort,
   type CatalogRepository,
   type ExperienceCategory,
   type Plan,
-  type Publico,
+  type Public,
 } from '@/core';
 import { MAX_COMPARAR } from '@/router';
 
@@ -24,7 +24,7 @@ interface EstadoCatalogo {
   destino: string | null;
   precioMax: number | null;
   fecha: Date | null;
-  orden: OrdenCatalogo;
+  orden: CatalogSort;
   /** Ids elegidos para comparar (máx. [MAX_COMPARAR]), en el orden en que se eligieron. */
   idsComparar: readonly string[];
 }
@@ -40,7 +40,7 @@ const inicial: EstadoCatalogo = {
   destino: null,
   precioMax: null,
   fecha: null,
-  orden: OrdenCatalogo.rating,
+  orden: CatalogSort.rating,
   idsComparar: [],
 };
 
@@ -56,7 +56,7 @@ const inicial: EstadoCatalogo = {
  * Igual que en los demás view models, el estado vive en `useState` + un ref espejo que leen los
  * comandos (un comando lanzado desde un cierre viejo ve el estado actual).
  */
-export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Publico<CatalogRepository>, 'search' | 'destinos'> }) {
+export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Public<CatalogRepository>, 'search' | 'destinos'> }) {
   const [estado, setEstado] = useState<EstadoCatalogo>(inicial);
   const actual = useRef<EstadoCatalogo>(inicial);
 
@@ -70,12 +70,12 @@ export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Publico<Catal
     const e = actual.current;
     try {
       const resultados = await catalogo.search({
-        texto: e.texto,
-        categoria: e.categoria,
-        destino: e.destino,
-        precioMax: e.precioMax,
-        fecha: e.fecha,
-        orden: e.orden,
+        text: e.texto,
+        category: e.categoria,
+        destination: e.destino,
+        maxPrice: e.precioMax,
+        date: e.fecha,
+        sort: e.orden,
       });
       const destinos = await catalogo.destinos();
       // La selección puede referenciar planes que ya no aparecen.
@@ -154,7 +154,7 @@ export function useCatalogViewModel({ catalogo }: { catalogo: Pick<Publico<Catal
     setFecha: (fecha: Date | null) => conFiltros({ fecha }),
     aplicarFiltros,
     limpiarFiltros: () => aplicarFiltros(),
-    cambiarOrden: (orden: OrdenCatalogo) => conFiltros({ orden }),
+    cambiarOrden: (orden: CatalogSort) => conFiltros({ orden }),
     toggleComparar,
     limpiarComparar: () => cambiar({ idsComparar: [] }),
   };

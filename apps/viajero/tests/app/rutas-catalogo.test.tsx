@@ -1,7 +1,7 @@
 import { type Href, router } from 'expo-router';
 import { act, fireEvent, screen } from 'expo-router/testing-library';
 
-import { AgenciaResumen, ExperienceCategory, Plan, PlanStatus } from '@/core';
+import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { dejarPlanesParaComparar, olvidarPlanesParaComparar } from '@/features/catalog/planes-para-comparar';
 import { AppRoutes } from '@/router';
 
@@ -19,17 +19,17 @@ const plan = (id: string) =>
   new Plan({
     id,
     agencyId: 'a1',
-    titulo: `Plan ${id}`,
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.aventura,
-    precioCop: 150000,
-    estado: PlanStatus.publicado,
+    title: `Plan ${id}`,
+    destination: 'Guatapé',
+    category: ExperienceCategory.adventure,
+    priceCop: 150000,
+    status: PlanStatus.published,
   });
 
 function catalogoDePrueba() {
   return new CatalogoFalso({
     detalles: Object.fromEntries(['p1', 'p2', 'p3', 'p4'].map((id) => [id, plan(id)])),
-    agenciasPublicas: [new AgenciaResumen({ id: 'a1', nombre: 'Rutas de Antioquia', ciudad: 'Medellín' })],
+    agenciasPublicas: [new AgencySummary({ id: 'a1', name: 'Rutas de Antioquia', city: 'Medellín' })],
   });
 }
 

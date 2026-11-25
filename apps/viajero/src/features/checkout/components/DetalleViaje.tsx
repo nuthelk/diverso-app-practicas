@@ -11,13 +11,13 @@ import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
 export function DetalleViaje({ booking }: { booking: Booking }) {
   const cs = useTheme().colorScheme;
   const plan = booking.plan;
-  const fecha = booking.planDate?.fecha ?? null;
-  const pago = booking.pago;
-  const puntoEncuentro = plan?.puntoEncuentro ?? '';
+  const fecha = booking.planDate?.date ?? null;
+  const pago = booking.payment;
+  const puntoEncuentro = plan?.meetingPoint ?? '';
   return (
     <View style={[AppInsets.tarjetaGrande, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
       <Text altura={1.25} style={{ fontWeight: '700', fontSize: AppText.enfasisGrande }}>
-        {plan?.titulo ?? 'Tu plan'}
+        {plan?.title ?? 'Tu plan'}
       </Text>
       <View style={{ height: 12 }} />
       {fecha !== null ? <Fila icono="event_rounded" texto={formatFechaLarga(fecha)} /> : null}
@@ -27,8 +27,8 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
       <View style={estilos.divisor}>
         <Divider />
       </View>
-      <Fila icono="payments_rounded" texto={formatCOP(booking.montoTotal)} />
-      {pago !== null ? <Fila icono="receipt_rounded" texto={pago.textoReferencia} /> : null}
+      <Fila icono="payments_rounded" texto={formatCOP(booking.totalAmount)} />
+      {pago !== null ? <Fila icono="receipt_rounded" texto={pago.referenceText} /> : null}
       <View style={{ height: 8 }} />
       <View style={estilos.fila}>
         <Icono nombre="verified_user_rounded" size={14} color={cs.tertiary} />

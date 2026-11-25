@@ -1,5 +1,5 @@
 import { ArgumentError } from '../../errors/errores-programacion';
-import { CheckoutIniciado, PagoVerificado } from '../../models/pago';
+import { StartedCheckout, VerifiedPayment } from '../../models/payment-checkout';
 import type { EdgeFunctionsApi } from '../services/edge-functions-api';
 import { llamarEdgeFunction } from './llamar-edge-function';
 
@@ -12,14 +12,14 @@ import { llamarEdgeFunction } from './llamar-edge-function';
  */
 export interface PaymentGateway {
   /** Crea el intento de pago de una reserva pendiente y devuelve la URL del checkout. */
-  iniciar(p: { bookingId: string; redirectUrl: string }): Promise<CheckoutIniciado>;
+  iniciar(p: { bookingId: string; redirectUrl: string }): Promise<StartedCheckout>;
 
   /**
    * Verifica el pago en el servidor (nunca se confía en la redirección del navegador).
    * Exactamente uno de `transactionId` (tras la redirección) o `bookingId` («Ya pagué»); si no,
    * `ArgumentError` sin llamar al servidor.
    */
-  verificar(p: { transactionId?: string | null; bookingId?: string | null }): Promise<PagoVerificado>;
+  verificar(p: { transactionId?: string | null; bookingId?: string | null }): Promise<VerifiedPayment>;
 }
 
 /** Pasarela Wompi en modo prueba: delega en las Edge Functions `pagos-iniciar` y `pagos-verificar`. */
@@ -30,12 +30,12 @@ export class WompiPaymentGateway implements PaymentGateway {
     this.edgeFunctions = edgeFunctions;
   }
 
-  async iniciar({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<CheckoutIniciado> {
+  async iniciar({ bookingId, redirectUrl }: { bookingId: string; redirectUrl: string }): Promise<StartedCheckout> {
     const res = await llamarEdgeFunction(this.edgeFunctions, 'pagos-iniciar', {
       booking_id: bookingId,
       redirect_url: redirectUrl,
     });
-    return CheckoutIniciado.fromMap(res);
+    return StartedCheckout.fromMap(res);
   }
 
   async verificar({
@@ -44,13 +44,13 @@ export class WompiPaymentGateway implements PaymentGateway {
   }: {
     transactionId?: string | null;
     bookingId?: string | null;
-  }): Promise<PagoVerificado> {
+  }): Promise<VerifiedPayment> {
     if ((transactionId === null) === (bookingId === null)) {
       throw new ArgumentError('Indica exactamente uno de transactionId o bookingId');
     }
     // El servidor compara con `=== undefined`: la clave ausente se OMITE (mandarla en null → 400).
     const cuerpo = transactionId !== null ? { transaction_id: transactionId } : { booking_id: bookingId };
     const res = await llamarEdgeFunction(this.edgeFunctions, 'pagos-verificar', cuerpo);
-    return PagoVerificado.fromMap(res);
+    return VerifiedPayment.fromMap(res);
   }
 }

@@ -24,7 +24,7 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const router = useRouter();
-  const itinerario = booking.plan?.itinerario ?? [];
+  const itinerario = booking.plan?.itinerary ?? [];
 
   return (
     <SafeAreaView testID="booking-success" style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
@@ -50,7 +50,7 @@ export function BookingSuccessView({ booking }: { booking: Booking }) {
           </Aparecer>
           <View style={{ height: 24 }} />
           <Aparecer paso={1}>
-            <CodigoReserva codigo={booking.codigo} />
+            <CodigoReserva codigo={booking.code} />
           </Aparecer>
           <View style={{ height: 14 }} />
           <Aparecer paso={2}>

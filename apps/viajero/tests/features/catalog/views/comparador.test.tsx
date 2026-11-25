@@ -25,11 +25,11 @@ const plan = (id: string, precio: number, titulo = `Plan ${id} con un nombre bas
   new Plan({
     id,
     agencyId: 'ag',
-    titulo,
-    destino: 'Santa Fe de Antioquia',
-    categoria: ExperienceCategory.cultura,
-    precioCop: precio,
-    estado: PlanStatus.publicado,
+    title: titulo,
+    destination: 'Santa Fe de Antioquia',
+    category: ExperienceCategory.culture,
+    priceCop: precio,
+    status: PlanStatus.published,
   });
 
 const tres = () => [plan('1', 189000), plan('2', 178000), plan('3', 179000)];

@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { VistaPreviaCancelacion } from '@/core';
+import { CancellationPreview } from '@/core';
 import { CancelacionDialog } from '@/features/bookings/components/CancelacionDialog';
 import { temaClaro } from '@/ui/theme';
 
@@ -11,10 +11,10 @@ import { textoCrudo } from '../../../support/texto-crudo';
 /** Diálogo de cancelación con la política que aplica AHORA. Port 1:1 de `cancel_dialog_test.dart`. */
 
 function vista({ aplica, porcentaje, monto, motivo = 'motivo del servidor' }: { aplica: boolean; porcentaje: number; monto: number; motivo?: string }) {
-  return new VistaPreviaCancelacion({ aplica, porcentaje, monto, horasAntes: 30, motivo });
+  return new CancellationPreview({ applies: aplica, percentage: porcentaje, amount: monto, hoursBefore: 30, reason: motivo });
 }
 
-async function abrir(v: VistaPreviaCancelacion, codigo = 'DIV-ABC123') {
+async function abrir(v: CancellationPreview, codigo = 'DIV-ABC123') {
   const onResultado = jest.fn();
   await renderConTema(<CancelacionDialog codigo={codigo} vista={v} onResultado={onResultado} />);
   return onResultado;

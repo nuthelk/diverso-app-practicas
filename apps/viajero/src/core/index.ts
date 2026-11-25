@@ -8,23 +8,23 @@
 
 /**
  * Solo la parte pública de una clase. Las clases con campos `private` son nominales en TS; con
- * `Publico<BookingRepository>` un objeto falso cumple el contrato en los tests de view-models.
+ * `Public<BookingRepository>` un objeto falso cumple el contrato en los tests de view-models.
  */
-export type Publico<T> = { [K in keyof T]: T[K] };
+export type Public<T> = { [K in keyof T]: T[K] };
 
 export * from './config/diverso-config';
 
 export * from './models/enums';
-export * from './models/fila';
+export * from './models/row';
 export * from './models/profile';
-export * from './models/agencia-resumen';
+export * from './models/agency-summary';
 export * from './models/plan';
 export * from './models/booking';
 export * from './models/created-booking';
-export * from './models/reembolso';
-export * from './models/pago';
+export * from './models/refund';
+export * from './models/payment-checkout';
 export * from './models/review';
-export * from './models/filtros-catalogo';
+export * from './models/catalog-filters';
 
 export * from './errors/diverso-error';
 export * from './errors/error-funcion';

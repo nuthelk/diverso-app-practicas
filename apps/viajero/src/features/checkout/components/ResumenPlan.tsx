@@ -10,12 +10,12 @@ const LADO = 64;
 /** Cabecera del checkout: foto (o emoji), título, fecha larga, destino y punto de encuentro. */
 export function ResumenPlan({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
   const cs = useTheme().colorScheme;
-  const foto = plan.fotoPrincipal;
+  const foto = plan.mainPhoto;
   return (
     <View style={[estilos.caja, AppInsets.tarjetaAmplia, { backgroundColor: cs.surfaceContainerLow }]}>
       <View style={[estilos.miniatura, { backgroundColor: cs.primaryContainer }]}>
         {foto === null ? (
-          <Text style={{ fontSize: AppText.encabezadoXl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.categoria]}</Text>
+          <Text style={{ fontSize: AppText.encabezadoXl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
         ) : (
           <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} accessible={false} />
         )}
@@ -23,15 +23,15 @@ export function ResumenPlan({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
       <View style={{ width: 14 }} />
       <View style={estilos.textos}>
         <Text numberOfLines={2} altura={1.25} style={{ fontWeight: '700', fontSize: AppText.enfasis }}>
-          {plan.titulo}
+          {plan.title}
         </Text>
         <View style={{ height: 5 }} />
         <Text style={{ fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant }}>
-          {`${formatFechaLarga(fecha.fecha)} · ${plan.destino}`}
+          {`${formatFechaLarga(fecha.date)} · ${plan.destination}`}
         </Text>
-        {plan.puntoEncuentro !== '' ? (
+        {plan.meetingPoint !== '' ? (
           <Text numberOfLines={1} style={{ fontSize: AppText.leyenda, color: cs.onSurfaceVariant }}>
-            {plan.puntoEncuentro}
+            {plan.meetingPoint}
           </Text>
         ) : null}
       </View>

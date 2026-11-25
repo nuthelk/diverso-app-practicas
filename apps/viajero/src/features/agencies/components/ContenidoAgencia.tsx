@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import type { AgenciaResumen, Plan } from '@/core';
+import type { AgencySummary, Plan } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
 import { AgencyAvatar, CabeceraColapsable, estiloTituloPagina, SectionLabel, Text, VerifiedBadge } from '@/ui/components';
@@ -19,7 +19,7 @@ export function ContenidoAgencia({
   onRefresh,
   onVolver,
 }: {
-  agencia: AgenciaResumen;
+  agencia: AgencySummary;
   planes: readonly Plan[];
   onRefresh: () => Promise<void>;
   onVolver: () => void;
@@ -29,7 +29,7 @@ export function ContenidoAgencia({
   const { width } = useWindowDimensions();
   const esGrid = width > AppTheme.bpCompact;
   const [refrescando, setRefrescando] = useState(false);
-  const descripcion = agencia.descripcion.trim();
+  const descripcion = agencia.description.trim();
 
   const refrescar = async () => {
     setRefrescando(true);
@@ -42,7 +42,7 @@ export function ContenidoAgencia({
 
   return (
     <CabeceraColapsable
-      titulo={agencia.nombre}
+      titulo={agencia.name}
       alturaExpandida={220}
       onVolver={onVolver}
       fondo={<PortadaAgencia agencia={agencia} />}
@@ -57,7 +57,7 @@ export function ContenidoAgencia({
           <View style={{ width: 14 }} />
           <View style={estilos.flex}>
             <Text altura={1.1} accessibilityRole="header" style={[estiloTituloPagina(cs), { fontSize: AppText.encabezadoXl }]}>
-              {agencia.nombre}
+              {agencia.name}
             </Text>
             <View style={{ height: 8 }} />
             <DatosAgencia agencia={agencia} />

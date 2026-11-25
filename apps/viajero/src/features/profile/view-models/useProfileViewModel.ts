@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-import type { AuthRepository, Profile, Publico } from '@/core';
+import type { AuthRepository, Profile, Public } from '@/core';
 
 /** Lo que se muestra mientras no hay nombre (cargando, error o perfil sin nombre). */
 export const NOMBRE_POR_DEFECTO = 'Viajero';
@@ -30,7 +30,7 @@ interface EstadoPerfil {
  * sesión. El correo sale de la sesión, así que se ve aunque el perfil no cargue (supabase-js lo da
  * con una promesa: se lee en `cargar()`, aparte del perfil).
  */
-export function useProfileViewModel({ auth }: { auth: Publico<AuthRepository> }) {
+export function useProfileViewModel({ auth }: { auth: Public<AuthRepository> }) {
   const [estado, setEstado] = useState<EstadoPerfil>({ perfil: null, cargando: true, error: null, email: '' });
 
   const cargar = useCallback(async (): Promise<void> => {
@@ -75,7 +75,7 @@ export function useProfileViewModel({ auth }: { auth: Publico<AuthRepository> })
     }
   }, [auth]);
 
-  const nombre = estado.perfil?.nombre ?? NOMBRE_POR_DEFECTO;
+  const nombre = estado.perfil?.name ?? NOMBRE_POR_DEFECTO;
   return {
     perfil: estado.perfil,
     cargando: estado.cargando,

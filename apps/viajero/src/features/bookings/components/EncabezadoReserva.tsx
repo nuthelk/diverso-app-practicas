@@ -25,7 +25,7 @@ const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'O
  * código de la reserva va abajo a la izquierda.
  */
 export function EncabezadoReserva({ booking, apagado }: { booking: Booking; apagado: boolean }) {
-  const fecha = booking.planDate?.fecha ?? booking.salidaAt;
+  const fecha = booking.planDate?.date ?? booking.departureAt;
   return (
     <View testID="encabezado-reserva" style={estilos.cabecera}>
       <FotoReserva booking={booking} apagado={apagado} />
@@ -39,7 +39,7 @@ export function EncabezadoReserva({ booking, apagado }: { booking: Booking; apag
         <EstadoReservaPill booking={booking} />
       </View>
       <View style={estilos.abajo}>
-        <ChipCodigo codigo={booking.codigo} sobreFoto />
+        <ChipCodigo codigo={booking.code} sobreFoto />
       </View>
     </View>
   );

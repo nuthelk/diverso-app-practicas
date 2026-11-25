@@ -43,7 +43,7 @@ test('al abrir se carga el catálogo sin texto', async () => {
   const catalogo = await abrir();
 
   expect(catalogo.busquedas).toHaveLength(1);
-  expect(catalogo.busquedas[0]!.texto).toBe('');
+  expect(catalogo.busquedas[0]!.text).toBe('');
 });
 
 test('escribir y enviar busca con el texto escrito', async () => {
@@ -52,7 +52,7 @@ test('escribir y enviar busca con el texto escrito', async () => {
   await escribirYBuscar('guatape');
 
   expect(catalogo.busquedas).toHaveLength(2);
-  expect(catalogo.busquedas.at(-1)!.texto).toBe('guatape');
+  expect(catalogo.busquedas.at(-1)!.text).toBe('guatape');
 });
 
 test('el texto se envía tal cual, con tildes y comas', async () => {
@@ -60,7 +60,7 @@ test('el texto se envía tal cual, con tildes y comas', async () => {
 
   await escribirYBuscar('Café, (Jardín)');
 
-  expect(catalogo.busquedas.at(-1)!.texto).toBe('Café, (Jardín)');
+  expect(catalogo.busquedas.at(-1)!.text).toBe('Café, (Jardín)');
 });
 
 test('escribir sin enviar no dispara otra búsqueda', async () => {
@@ -80,7 +80,7 @@ test('el botón de borrar aparece al escribir y busca sin texto', async () => {
 
   await fireEvent.press(screen.getByRole('button', { name: 'Borrar búsqueda' }));
 
-  expect(catalogo.busquedas.at(-1)!.texto).toBe('');
+  expect(catalogo.busquedas.at(-1)!.text).toBe('');
   expect(buscador().props.value).toBe('');
   expect(screen.queryByRole('button', { name: 'Borrar búsqueda' })).toBeNull();
 });
@@ -89,17 +89,17 @@ test('otro filtro conserva el texto buscado', async () => {
   const catalogo = await abrir();
   await escribirYBuscar('guatape');
 
-  await fireEvent.press(screen.getByText(LABEL_EXPERIENCE_CATEGORY[ExperienceCategory.aventura]));
+  await fireEvent.press(screen.getByText(LABEL_EXPERIENCE_CATEGORY[ExperienceCategory.adventure]));
 
-  expect(catalogo.busquedas.at(-1)!.texto).toBe('guatape');
-  expect(catalogo.busquedas.at(-1)!.categoria).toBe(ExperienceCategory.aventura);
+  expect(catalogo.busquedas.at(-1)!.text).toBe('guatape');
+  expect(catalogo.busquedas.at(-1)!.category).toBe(ExperienceCategory.adventure);
 });
 
 test('escribir no vuelve a pintar las tarjetas de la lista (trabajo por tecla acotado)', async () => {
   // En un emulador lento, re-pintar todo el catálogo por tecla desincronizaba el campo controlado
   // («cafe» quedaba «ccafe»). La pantalla no pasa por React Compiler (try/finally lo hace desistir).
   const plan = (i: number) =>
-    new Plan({ id: `p${i}`, agencyId: 'ag', titulo: `Plan ${i}`, destino: 'Guatapé', categoria: ExperienceCategory.cultura, precioCop: 100000, estado: PlanStatus.publicado, fotos: [], ratingPromedio: 4, reviewsCount: 1 });
+    new Plan({ id: `p${i}`, agencyId: 'ag', title: `Plan ${i}`, destination: 'Guatapé', category: ExperienceCategory.culture, priceCop: 100000, status: PlanStatus.published, photos: [], averageRating: 4, reviewsCount: 1 });
   await fijarVentana(600, 1000);
   const catalogo = new CatalogoFalso({ planes: [1, 2, 3, 4, 5].map(plan) });
   await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo }) });

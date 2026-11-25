@@ -25,13 +25,13 @@ const plan = (i: number) =>
   new Plan({
     id: `plan-${i}`,
     agencyId: 'ag',
-    titulo: `Plan ${i}`,
-    destino: 'Guatapé',
-    categoria: ExperienceCategory.cultura,
-    precioCop: 100000 + i,
-    estado: PlanStatus.publicado,
-    fotos: ['https://fotos.test/p.jpg'],
-    ratingPromedio: 4.0,
+    title: `Plan ${i}`,
+    destination: 'Guatapé',
+    category: ExperienceCategory.culture,
+    priceCop: 100000 + i,
+    status: PlanStatus.published,
+    photos: ['https://fotos.test/p.jpg'],
+    averageRating: 4.0,
     reviewsCount: 3,
   });
 

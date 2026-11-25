@@ -28,36 +28,36 @@ export function buildComparisonRows(planes: readonly Plan[], { pax = 2 }: { pax?
   if (planes.length === 0) return [];
 
   return [
-    new ComparisonRow('precio', 'Precio final por persona', planes.map((p) => p.precioCop.toFixed(0))),
+    new ComparisonRow('precio', 'Precio final por persona', planes.map((p) => p.priceCop.toFixed(0))),
     new ComparisonRow(
       'total',
       `Total para ${pax} ${pax === 1 ? 'persona' : 'personas'}`,
-      planes.map((p) => (p.precioCop * pax).toFixed(0)),
+      planes.map((p) => (p.priceCop * pax).toFixed(0)),
     ),
-    new ComparisonRow('duracion', 'Duración', planes.map((p) => p.duracionTexto)),
-    new ComparisonRow('destino', 'Destino', planes.map((p) => p.destino)),
+    new ComparisonRow('duracion', 'Duración', planes.map((p) => p.durationText)),
+    new ComparisonRow('destino', 'Destino', planes.map((p) => p.destination)),
     new ComparisonRow(
       'rating',
       'Calificación',
-      planes.map((p) => (p.esNuevo ? 'Nueva' : `${p.ratingPromedio.toFixed(1)} ★ (${p.reviewsCount})`)),
+      planes.map((p) => (p.isNew ? 'Nueva' : `${p.averageRating.toFixed(1)} ★ (${p.reviewsCount})`)),
     ),
-    new ComparisonRow('transporte', 'Transporte', planes.map((p) => incluido(p.incluyeTransporte))),
-    new ComparisonRow('comida', 'Comida', planes.map((p) => incluido(p.incluyeComida))),
-    new ComparisonRow('hospedaje', 'Hospedaje', planes.map((p) => incluido(p.incluyeHospedaje))),
+    new ComparisonRow('transporte', 'Transporte', planes.map((p) => incluido(p.includesTransport))),
+    new ComparisonRow('comida', 'Comida', planes.map((p) => incluido(p.includesFood))),
+    new ComparisonRow('hospedaje', 'Hospedaje', planes.map((p) => incluido(p.includesLodging))),
     new ComparisonRow(
       'cupos',
       'Próximos cupos',
       planes.map((p) => {
-        const primera = p.fechasDisponibles[0];
+        const primera = p.availableDates[0];
         return primera === undefined
           ? 'Sin fechas'
-          : `${primera.cupoDisponible} el ${primera.fecha.getDate()}/${primera.fecha.getMonth() + 1}`;
+          : `${primera.availableSpots} el ${primera.date.getDate()}/${primera.date.getMonth() + 1}`;
       }),
     ),
     new ComparisonRow(
       'cancelacion',
       'Cancelación',
-      planes.map((p) => (p.politicaCancelacion === '' ? '—' : p.politicaCancelacion)),
+      planes.map((p) => (p.cancellationPolicy === '' ? '—' : p.cancellationPolicy)),
     ),
   ];
 }

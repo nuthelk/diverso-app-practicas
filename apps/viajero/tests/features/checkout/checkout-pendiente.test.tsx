@@ -1,6 +1,6 @@
 import { act, fireEvent, renderHook, screen } from '@testing-library/react-native';
 
-import { DiversoError, type BookingRepository, type CatalogRepository, type Publico } from '@/core';
+import { DiversoError, type BookingRepository, type CatalogRepository, type Public } from '@/core';
 import { PagoAbierto } from '@/features/checkout/pago-abierto';
 import { textoReservaPendiente } from '@/features/checkout/components/ReservaPendienteAviso';
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
@@ -184,13 +184,13 @@ describe('useCheckoutViewModel', () => {
 describe('aviso de reserva pendiente', () => {
   test('la retención dura 30 minutos desde la creación', () => {
     const b = pendienteDePrueba({ haceMin: 5 });
-    expect(b.venceAt.getTime()).toBe(b.createdAt.getTime() + 30 * 60_000);
+    expect(b.expiresAt.getTime()).toBe(b.createdAt.getTime() + 30 * 60_000);
   });
 
   test('texto: personas, total y hora de vencimiento', () => {
     const b = pendienteDePrueba({ pax: 2 });
     expect(textoReservaPendiente(b)).toBe(
-      `Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 300.000). Vence a las ${hora(b.venceAt)}.`,
+      `Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 300.000). Vence a las ${hora(b.expiresAt)}.`,
     );
     expect(textoReservaPendiente(pendienteDePrueba({ pax: 1 }))).toContain('(1 persona, $ 150.000)');
   });
@@ -207,8 +207,8 @@ describe('pantalla /checkout/:planId/:fechaId', () => {
     const catalogo = new CatalogoFalso({ detalles: { 'plan-1': planDePrueba({ fechas: [fecha] }) } });
     await renderPantalla(<CheckoutView planId="plan-1" fechaId="fecha-1" />, {
       dependencias: dependenciasDePrueba({
-        catalogo: doble<Publico<CatalogRepository>>('CatalogRepository', catalogo),
-        reservas: doble<Publico<BookingRepository>>('BookingRepository', reservas),
+        catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalogo),
+        reservas: doble<Public<BookingRepository>>('BookingRepository', reservas),
         pasarela,
       }),
     });
@@ -228,7 +228,7 @@ describe('pantalla /checkout/:planId/:fechaId', () => {
     expect(
       screen.getByText(/Ya tienes una reserva pendiente de pago para esta fecha \(2 personas, \$ 300\.000\)/),
     ).toBeOnTheScreen();
-    expect(screen.getByText(new RegExp(`Vence a las ${hora(pendienteDePrueba().venceAt)}\\.`))).toBeOnTheScreen();
+    expect(screen.getByText(new RegExp(`Vence a las ${hora(pendienteDePrueba().expiresAt)}\\.`))).toBeOnTheScreen();
     // El aviso es texto corrido: si se parte, el «$» no queda solo al final de una línea.
     expect(textoCrudo(screen.getByText(/Ya tienes una reserva pendiente/))).toContain('2 personas, $\u00A0300.000');
     expect(screen.getByText('Completar pago')).toBeOnTheScreen();

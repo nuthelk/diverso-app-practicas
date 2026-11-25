@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 
-import type { Booking, BookingRepository, Publico } from '@/core';
+import type { Booking, BookingRepository, Public } from '@/core';
 
 import { useReservaAcciones, type Reloj } from './useReservaAcciones';
 
@@ -18,7 +18,7 @@ const vacia: readonly Booking[] = Object.freeze([]);
  * `useReservaAcciones`). `activas` e `historial` se calculan en cada render con el reloj (no se
  * cachean). No carga solo: la vista llama `cargar()` al montarse.
  */
-export function useBookingsViewModel({ reservas, reloj }: { reservas: Publico<BookingRepository>; reloj?: Reloj }) {
+export function useBookingsViewModel({ reservas, reloj }: { reservas: Public<BookingRepository>; reloj?: Reloj }) {
   const [estado, setEstado] = useState<EstadoLista>({ lista: vacia, cargando: true, error: null });
 
   /** Pide la lista; [enSegundoPlano] deja la actual a la vista (sin «cargando») hasta que llega. */
@@ -47,14 +47,14 @@ export function useBookingsViewModel({ reservas, reloj }: { reservas: Publico<Bo
   const { esVigente } = acciones;
 
   /** Próximas: pendientes o confirmadas que aún no salen, la salida más cercana primero. */
-  const activas = estado.lista.filter(esVigente).sort((a, b) => a.salida!.getTime() - b.salida!.getTime());
+  const activas = estado.lista.filter(esVigente).sort((a, b) => a.departure!.getTime() - b.departure!.getTime());
 
   /** Historial: todo lo demás, la salida más reciente primero (las que no tienen salida, al final). */
   const historial = estado.lista
     .filter((b) => !esVigente(b))
     .sort((a, b) => {
-      const sa = a.salida;
-      const sb = b.salida;
+      const sa = a.departure;
+      const sb = b.departure;
       if (sa === null || sb === null) return sa === sb ? 0 : sa === null ? 1 : -1;
       return sb.getTime() - sa.getTime();
     });

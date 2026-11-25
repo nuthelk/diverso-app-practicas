@@ -35,8 +35,8 @@ export function TablaComparacion({
 }) {
   const cs = useTheme().colorScheme;
   const router = useRouter();
-  const barato = Math.min(...planes.map((p) => p.precioCop));
-  const esBarato = (i: number) => planes[i]!.precioCop === barato;
+  const barato = Math.min(...planes.map((p) => p.priceCop));
+  const esBarato = (i: number) => planes[i]!.priceCop === barato;
   const { anchoColumna, anchoTabla, desliza } = medidasTabla(anchoDisponible, planes.length);
 
   // Celda de la columna [i]; la del más barato lleva un fondo tenue de punta a punta.
@@ -96,7 +96,7 @@ export function TablaComparacion({
               <FilledButton
                 variante="tonal"
                 texto="Ver plan"
-                accessibilityLabel={`Ver plan ${p.titulo}`}
+                accessibilityLabel={`Ver plan ${p.title}`}
                 style={{ minHeight: 40, paddingHorizontal: 8 }}
                 onPress={() => router.push(AppRoutes.plan(p.id) as Href)}
               />,
@@ -128,19 +128,19 @@ export function TablaComparacion({
 /** Foto (o emoji), título de hasta 3 líneas y sello «Mejor precio». */
 function CabeceraPlan({ plan, mejorPrecio }: { plan: Plan; mejorPrecio: boolean }) {
   const cs = useTheme().colorScheme;
-  const foto = plan.fotoPrincipal;
+  const foto = plan.mainPhoto;
   return (
     <View>
       <View style={[estilos.foto, { backgroundColor: cs.primaryContainer }]}>
         {foto === null ? (
-          <Text style={{ fontSize: AppText.encabezado3xl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.categoria]}</Text>
+          <Text style={{ fontSize: AppText.encabezado3xl }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
         ) : (
           <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} accessible={false} />
         )}
       </View>
       <View style={{ height: 8 }} />
       <Text numberOfLines={3} ellipsizeMode="tail" altura={1.25} style={{ fontWeight: '700', fontSize: AppText.cuerpoChico }}>
-        {plan.titulo}
+        {plan.title}
       </Text>
       {mejorPrecio ? (
         <View style={[estilos.sello, { backgroundColor: cs.primaryContainer }]}>

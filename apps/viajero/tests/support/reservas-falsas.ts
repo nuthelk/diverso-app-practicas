@@ -3,12 +3,12 @@ import {
   BookingStatus,
   CreatedBooking,
   DiversoError,
-  EstadoReembolso,
-  ResultadoCancelacion,
-  VistaPreviaCancelacion,
+  RefundStatus,
+  CancellationResult,
+  CancellationPreview,
   type BookingRepository,
   type Plan,
-  type Publico,
+  type Public,
   type Review,
   type ReviewRepository,
 } from '@/core';
@@ -19,7 +19,7 @@ import type { Compuerta } from './compuerta';
  * [BookingRepository] sin Supabase para pruebas de los view models y las vistas de reservas
  * (port de `test/support/reservas_falsas.dart`).
  */
-export class ReservasFalsas implements Publico<BookingRepository> {
+export class ReservasFalsas implements Public<BookingRepository> {
   lista: Booking[];
 
   /** Si no es null, `misReservas` y `reserva` lo lanzan. */
@@ -31,14 +31,14 @@ export class ReservasFalsas implements Publico<BookingRepository> {
   /** Si no es null, `misReservas` y `reserva` esperan a que se complete (respuestas tardías). */
   compuerta: Compuerta | null = null;
 
-  vista = new VistaPreviaCancelacion({ aplica: true, porcentaje: 100, monto: 190000, horasAntes: 72, motivo: '' });
+  vista = new CancellationPreview({ applies: true, percentage: 100, amount: 190000, hoursBefore: 72, reason: '' });
 
-  resultado = new ResultadoCancelacion({
-    aplica: true,
-    porcentaje: 100,
-    monto: 190000,
-    estado: EstadoReembolso.aprobado,
-    motivo: '',
+  resultado = new CancellationResult({
+    applies: true,
+    percentage: 100,
+    amount: 190000,
+    status: RefundStatus.approved,
+    reason: '',
   });
 
   /** Reserva pendiente de pago que `reservaPendiente` devuelve (null = no hay ninguna). */
@@ -90,15 +90,15 @@ export class ReservasFalsas implements Publico<BookingRepository> {
       throw this.falloAlCrear;
     }
     this.creadas.push({ planDateId, pax });
-    return new CreatedBooking({ bookingId: `nueva-${this.creadas.length}`, codigo: 'DIV-NEW', montoTotal: 1, planTitulo: '' });
+    return new CreatedBooking({ bookingId: `nueva-${this.creadas.length}`, code: 'DIV-NEW', totalAmount: 1, planTitle: '' });
   }
 
-  async vistaPreviaCancelacion(_bookingId: string): Promise<VistaPreviaCancelacion> {
+  async vistaPreviaCancelacion(_bookingId: string): Promise<CancellationPreview> {
     if (this.falloAlCancelar != null) throw this.falloAlCancelar;
     return this.vista;
   }
 
-  async cancelar(bookingId: string): Promise<ResultadoCancelacion> {
+  async cancelar(bookingId: string): Promise<CancellationResult> {
     if (this.falloAlCancelar != null) throw this.falloAlCancelar;
     this.canceladas.push(bookingId);
     if (this.pendiente?.id === bookingId) this.pendiente = null;
@@ -107,7 +107,7 @@ export class ReservasFalsas implements Publico<BookingRepository> {
 }
 
 /** [ReviewRepository] sin Supabase para el envío de reseñas. */
-export class PublicadorDeResenasFalso implements Publico<ReviewRepository> {
+export class PublicadorDeResenasFalso implements Public<ReviewRepository> {
   /** Si no es null, `crear` lo lanza. */
   fallo: unknown = null;
 
@@ -140,7 +140,7 @@ export function reservaDePrueba({
   id = 'res-1',
   codigo = 'DIV-AAAA0001',
   salida,
-  estado = BookingStatus.confirmada,
+  estado = BookingStatus.confirmed,
   tieneResena = false,
   plan = null,
 }: {
@@ -153,15 +153,15 @@ export function reservaDePrueba({
 } = {}): Booking {
   return new Booking({
     id,
-    codigo,
+    code: codigo,
     planDateId: 'pd',
-    viajeroId: 'v',
+    travelerId: 'v',
     pax: 2,
-    montoTotal: 190000,
-    estado,
+    totalAmount: 190000,
+    status: estado,
     createdAt: new Date(2026, 9, 1),
-    salidaAt: salida ?? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    tieneResena,
+    departureAt: salida ?? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    hasReview: tieneResena,
     plan,
   });
 }

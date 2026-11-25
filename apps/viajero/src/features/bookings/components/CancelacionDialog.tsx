@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { sinCortes, type VistaPreviaCancelacion } from '@/core';
+import { sinCortes, type CancellationPreview } from '@/core';
 import { FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -18,7 +18,7 @@ export function CancelacionDialog({
   onResultado,
 }: {
   codigo: string;
-  vista: VistaPreviaCancelacion;
+  vista: CancellationPreview;
   onResultado: (confirmo: boolean) => void;
 }) {
   const tema = useTheme();
@@ -43,7 +43,7 @@ export function CancelacionDialog({
             {`La reserva ${codigo} se cancelará y los cupos volverán a estar disponibles.`}
           </Text>
           <View style={{ height: 12 }} />
-          <Text style={{ fontWeight: '600', color: vista.aplica ? cs.primary : cs.error }}>
+          <Text style={{ fontWeight: '600', color: vista.applies ? cs.primary : cs.error }}>
             {sinCortes(textoPoliticaCancelacion(vista))}
           </Text>
           <View style={{ height: 24 }} />
