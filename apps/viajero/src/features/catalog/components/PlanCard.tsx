@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
@@ -16,8 +16,12 @@ export const ALTO_PORTADA_PLAN = 168;
  * duración sobre la imagen, cupos de la próxima salida, sello de agencia verificada, precio final
  * visible desde el inicio y botón de comparar. Toda la tarjeta abre `/plan/:id`.
  * [onToggleComparar] null oculta el botón de comparar (página de una agencia).
+ *
+ * `memo`: escribir en el buscador cambia el estado del catálogo y re-pinta la vista en cada tecla;
+ * las tarjetas (props estables: el plan, un booleano y un callback de useCallback) no se repintan.
+ * La vista no pasa por React Compiler (desiste ante try/finally), así que no lo haría solo.
  */
-export function PlanCard({
+export const PlanCard = memo(function PlanCard({
   plan,
   comparada = false,
   onToggleComparar,
@@ -59,7 +63,7 @@ export function PlanCard({
       ) : null}
     </View>
   );
-}
+});
 
 function ContenidoPlanCard({ plan }: { plan: Plan }) {
   const cs = useTheme().colorScheme;

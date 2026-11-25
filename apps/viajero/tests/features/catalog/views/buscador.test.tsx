@@ -1,6 +1,8 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 
-import { ExperienceCategory, LABEL_EXPERIENCE_CATEGORY } from '@/core';
+import { useRouter } from 'expo-router';
+
+import { ExperienceCategory, LABEL_EXPERIENCE_CATEGORY, Plan, PlanStatus } from '@/core';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
 import { CatalogoFalso } from '../../../support/catalogo-falso';
@@ -8,7 +10,11 @@ import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso } from '../../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+// useRouter espiado: cada PlanCard lo llama al pintarse, así se cuenta cuántas se vuelven a pintar.
+jest.mock('expo-router', () => {
+  const falso = jest.requireActual('../../../support/expo-router-falso');
+  return { ...falso, useRouter: jest.fn(falso.useRouter) };
+});
 
 /**
  * Buscador del catálogo: lo que el viajero escribe llega a `CatalogRepository.search` en
@@ -87,4 +93,23 @@ test('otro filtro conserva el texto buscado', async () => {
 
   expect(catalogo.busquedas.at(-1)!.texto).toBe('guatape');
   expect(catalogo.busquedas.at(-1)!.categoria).toBe(ExperienceCategory.aventura);
+});
+
+test('escribir no vuelve a pintar las tarjetas de la lista (trabajo por tecla acotado)', async () => {
+  // En un emulador lento, re-pintar todo el catálogo por tecla desincronizaba el campo controlado
+  // («cafe» quedaba «ccafe»). La pantalla no pasa por React Compiler (try/finally lo hace desistir).
+  const plan = (i: number) =>
+    new Plan({ id: `p${i}`, agencyId: 'ag', titulo: `Plan ${i}`, destino: 'Guatapé', categoria: ExperienceCategory.cultura, precioCop: 100000, estado: PlanStatus.publicado, fotos: [], ratingPromedio: 4, reviewsCount: 1 });
+  await fijarVentana(600, 1000);
+  const catalogo = new CatalogoFalso({ planes: [1, 2, 3, 4, 5].map(plan) });
+  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo }) });
+  expect(screen.getAllByTestId(/^plan-card-/)).toHaveLength(5);
+  const pintadas = jest.mocked(useRouter);
+  pintadas.mockClear();
+
+  for (const texto of ['c', 'ca', 'caf', 'cafe']) await fireEvent.changeText(buscador(), texto);
+
+  expect(buscador().props.value).toBe('cafe');
+  // Solo la vista (1 llamada por tecla); antes, además, las 5 tarjetas en cada tecla.
+  expect(pintadas.mock.calls.length).toBeLessThanOrEqual(4);
 });
