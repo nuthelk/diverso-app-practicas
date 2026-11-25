@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
 import { FilledButton, Icono, IconButton, Text, TextButton } from '@/ui/components';
@@ -75,7 +74,6 @@ export function BandejaAnimada(props: PropsBandeja) {
 export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComparar }: PropsBandeja) {
   const tema = useTheme();
   const cs = tema.colorScheme;
-  const abajo = useSafeAreaInsets().bottom;
   const n = seleccion.length;
   const puede = n >= MINIMO_COMPARAR;
   const pista = !puede ? `Elige al menos ${MINIMO_COMPARAR} planes` : n >= maximo ? `Máximo ${maximo} planes` : null;
@@ -90,7 +88,8 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
           backgroundColor: cs.surfaceContainerLowest,
           // Borde sutil además de la sombra: en oscuro la sombra casi no se ve.
           borderColor: conAlfa(cs.outlineVariant, 0.6),
-          paddingBottom: 14 + abajo,
+          // Sin inset inferior: la barra de pestañas va debajo y ya consume el de la barra de gestos.
+          paddingBottom: 14,
         },
       ]}
     >

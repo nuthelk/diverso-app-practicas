@@ -1,7 +1,9 @@
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { ExperienceCategory, formatCOP, Plan, PlanStatus } from '@/core';
+import { BandejaComparar } from '@/features/catalog/components/BandejaComparar';
 import { olvidarPlanesParaComparar, planesParaComparar } from '@/features/catalog/planes-para-comparar';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
@@ -9,6 +11,7 @@ import { CatalogoFalso } from '../../../support/catalogo-falso';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { renderConTema } from '../../../ui/support/conTema';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -188,4 +191,16 @@ test('accesible: cada ✕ y cada botón tienen etiqueta', async () => {
   expect(quitar).toBeOnTheScreen();
   expect(enBandeja().getByRole('button', { name: 'Limpiar' })).toBeOnTheScreen();
   expect(enBandeja().getByRole('button', { name: 'Comparar (1)' })).toBeOnTheScreen();
+});
+
+test('no suma el inset inferior del sistema: la barra de pestañas ya está debajo y lo consume', async () => {
+  // Inset de la barra de gestos (~47 dp en el emulador): antes quedaba como franja vacía.
+  const insets = { top: 24, left: 0, right: 0, bottom: 47 };
+  await renderConTema(
+    <SafeAreaInsetsContext.Provider value={insets}>
+      <BandejaComparar seleccion={[plan(1)]} maximo={3} onQuitar={jest.fn()} onLimpiar={jest.fn()} onComparar={jest.fn()} />
+    </SafeAreaInsetsContext.Provider>,
+  );
+
+  expect(StyleSheet.flatten(screen.getByTestId('bandeja-comparar').props.style).paddingBottom).toBe(14);
 });
