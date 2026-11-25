@@ -435,7 +435,7 @@ RPC pasan por `DiversoException.fromPostgrest` y las Edge Functions por
 | `MONTO_NO_COINCIDE` | `pagos-verificar` (409) tras `aplicar_resultado_pago` | «El monto de la transacción no coincide con el de tu reserva, así que no la confirmamos. Contacta a soporte con tu referencia.» |
 | `REDIRECT_NO_PERMITIDO` | `pagos-iniciar` (400) | «Esta dirección de la app no está autorizada para pagos de prueba.» |
 | `SOLO_MODO_PRUEBA` | `cargarConfig` (`_shared/config.ts`), al inicio de **todas** las Edge Functions de pagos (503) | «La pasarela de prueba no está configurada.» |
-| `NOTAS_CON_POLITICA` | Disparador `plans_sincronizar_politica` (0007) al guardar un plan; **no** es del flujo del viajero | Lo muestra el panel de agencias (`apps/panel_svelte/src/lib/api.ts`): «Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje.» |
+| `NOTAS_CON_POLITICA` | Disparador `plans_sincronizar_politica` (0007) al guardar un plan; **no** es del flujo del viajero | Lo muestra el panel de agencias (`apps/panel/src/shared/api/errores.ts`): «Las notas no pueden contener reglas de reembolso; usa los campos de horas y porcentaje.» |
 
 Dos reglas para códigos que no están en la tabla:
 

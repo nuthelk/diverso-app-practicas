@@ -5,7 +5,7 @@
 --   docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/0005_endurecimiento_pagos.sql
 -- Todo corre dentro de una transacción que termina en ROLLBACK.
 -- Los textos de política de la sección 1 son LOS MISMOS vectores que
--- apps/panel_svelte/src/lib/politica.test.ts («vectores compartidos con la BD»): SQL y TypeScript
+-- apps/panel/tests/unit/features/planes/model/politica.test.ts («vectores compartidos con la BD»): SQL y TypeScript
 -- deben producir exactamente las mismas cadenas.
 \set ON_ERROR_STOP 1
 begin;

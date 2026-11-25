@@ -17,11 +17,11 @@ qué hacer y cómo saber que ya la entendiste.
 Qué **no** cubre: las migraciones SQL ni las Edge Functions. Para eso está el
 [README principal](../../README.md).
 
-**¿Vienes por el panel de agencias en Svelte (`apps/panel_svelte`)?** Tiene su propia guía, escrita
-igual (desde React y TypeScript, con el código real del panel): la
-[guía de Svelte 5 y del panel](svelte/README.md), con 6 sesiones, SvelteKit estático (rutas por
-carpetas), la arquitectura por funcionalidad (`pages/`, `components/`, `api/` y `model/` en cada una)
-y cómo probarlo (pruebas en `tests/unit/`, espejo de `src/`).
+**¿Vienes por el panel de agencias (`apps/panel`, React 19 + TypeScript + Vite)?** Tiene su propia
+guía, con el código real del panel: [`apps/panel/ARQUITECTURA.md`](../../apps/panel/ARQUITECTURA.md),
+con la arquitectura por funcionalidad (`api/`, `model/`, `hooks/`, `components/` y `pages/` en cada
+una, más `shared/` y `app/`), el patrón Contenedor/Presentacional con hooks propios, las rutas con
+React Router y cómo probarlo (pruebas en `tests/unit/`, espejo de `src/`).
 
 ## La app en 5 líneas
 

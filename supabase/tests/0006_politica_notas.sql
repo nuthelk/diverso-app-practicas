@@ -3,7 +3,7 @@
 -- Uso (sobre la BD local ya migrada; NO requiere db reset ni deja datos):
 --   docker exec -i supabase_db_diverso-app psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/0006_politica_notas.sql
 -- Todo corre dentro de una transacción que termina en ROLLBACK.
--- Los textos con notas de la sección 1 son LOS MISMOS vectores que apps/panel_svelte/src/lib/politica.test.ts
+-- Los textos con notas de la sección 1 son LOS MISMOS vectores que apps/panel/tests/unit/features/planes/model/politica.test.ts
 -- («vectores con notas compartidos con la BD»): SQL y TypeScript deben producir exactamente las mismas cadenas.
 \set ON_ERROR_STOP 1
 begin;
@@ -78,7 +78,7 @@ select pg_temp.ok((select bool_and((s.g, s.p, s.x, s.n) is not distinct from (r.
 do $$
 declare v_plan uuid; p public.plans; v_ag uuid := (select id from agencies where numero_rnt = '85421');
 begin
-  -- 3.1 el panel Svelte: números + notas → el texto se genera con las notas
+  -- 3.1 el panel React: números + notas → el texto se genera con las notas
   insert into plans (agency_id, titulo, destino, categoria, precio_cop, horas_cancelacion_gratuita,
                      horas_reembolso_parcial, porcentaje_reembolso_parcial, politica_notas, politica_cancelacion)
   values (v_ag, 'TEST notas', 'd', 'aventura', 1000, 72, 24, 40, '  Avisar   restricciones alimentarias. ', 'texto cualquiera')

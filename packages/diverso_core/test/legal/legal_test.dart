@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Los documentos legales deben describir los pagos como son hoy (Wompi en modo de prueba) y llevar
 /// la misma versión que el panel y la función SQL `version_documentos_legales()` (el test del panel,
-/// `apps/panel_svelte/src/lib/legal.test.ts`, compara las tres).
+/// `apps/panel/tests/unit/features/legal/model/legal.test.ts`, compara las tres).
 String _textos(String id) {
   final d = DocumentoLegal.porId(id)!;
   return d.secciones.expand((s) => [s.titulo, ...s.parrafos]).join('\n');

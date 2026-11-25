@@ -10,9 +10,9 @@ Resultado: ave blanca sobre #0E6E4F (el `ic_launcher_background` de la app) en
   - apps/viajero Android, pantalla de arranque: solo el ave, sin fondo, en
     drawable-*/splash_colibri.png (verde de marca) y drawable-night-*/splash_colibri.png
     (menta);
-  - apps/viajero web y apps/panel_svelte/static: favicon.png, icons/Icon-{192,512}.png y
+  - apps/viajero web y apps/panel/public: favicon.png, icons/Icon-{192,512}.png y
     los maskable;
-  - apps/panel_svelte/static/logo_diverso.png: copia de la máscara para `Logo.svelte`.
+  - apps/panel/public/logo_diverso.png: copia de la máscara para `Logo.tsx`.
 
 Márgenes: cada ícono se escala para que el punto más lejano del ave (medido desde el centro
 de su caja) quede dentro de un círculo de radio fijo; la caja del ave queda centrada.
@@ -46,7 +46,7 @@ R_ICONO = 0.44  # resto de íconos
 VIAJERO = RAIZ / "apps/viajero"
 RES = VIAJERO / "android/app/src/main/res"
 APPICON = VIAJERO / "ios/Runner/Assets.xcassets/AppIcon.appiconset"
-PANEL_STATIC = RAIZ / "apps/panel_svelte/static"
+PANEL_STATIC = RAIZ / "apps/panel/public"
 DENSIDADES = {"mdpi": 1.0, "hdpi": 1.5, "xhdpi": 2.0, "xxhdpi": 3.0, "xxxhdpi": 4.0}
 
 

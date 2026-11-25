@@ -1,5 +1,5 @@
 /// Documentos legales de Diverso (mismo texto que el panel web, generado
-/// desde apps/panel_svelte/src/lib/legal.ts para que no diverjan).
+/// desde apps/panel/src/features/legal/model/legal.ts para que no diverjan).
 ///
 /// BORRADOR: base técnica para el piloto. Antes del lanzamiento debe
 /// revisarlo un abogado y completarse con los datos del responsable.
