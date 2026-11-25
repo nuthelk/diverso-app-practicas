@@ -6,6 +6,9 @@ import { AppRoutes } from '@/router';
 import { Icono, Text } from '@/ui/components';
 import { AppText, conAlfa, useTheme } from '@/ui/theme';
 
+/** Área táctil de la casilla (M3: 48): el texto de cada fila, y el aviso, empiezan después. */
+const AREA_CASILLA = 48;
+
 /**
  * Casilla de M3 (`Checkbox`): caja 18 × 18, borde 2 y radio 2 en un área táctil de 48; marcada,
  * rellena de primary con ✓ onPrimary; con `isError`, en color error. Solo dibuja: el toque lo
@@ -130,8 +133,9 @@ export function ConsentCheckboxes({
 
 const estilos = StyleSheet.create({
   fila: { flexDirection: 'row', alignItems: 'flex-start' },
-  areaCasilla: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  areaCasilla: { width: AREA_CASILLA, height: AREA_CASILLA, alignItems: 'center', justifyContent: 'center' },
   caja: { width: 18, height: 18, borderRadius: 2, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   texto: { flex: 1, paddingTop: 12 },
-  aviso: { paddingLeft: 12, paddingTop: 4 },
+  // Alineado con el texto de las casillas, no con la casilla.
+  aviso: { paddingLeft: AREA_CASILLA, paddingTop: 4 },
 });
