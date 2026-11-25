@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
 import { EMOJI_EXPERIENCE_CATEGORY, type Plan } from '@/core';
@@ -30,8 +30,14 @@ export function BandejaAnimada(props: PropsBandeja) {
   // Mientras sale se sigue pintando la última selección.
   const ultima = useRef(props);
   if (hay) ultima.current = props;
-  const [saliendo, setSaliendo] = useState(false);
+  // Montada mientras haya selección o dure la salida. Se enciende EN EL RENDER (estado derivado de
+  // las props) y se apaga recién al terminar la salida: así la salida no re-renderiza la bandeja a
+  // mitad de camino. Con un setState al empezar la salida, en el dispositivo la animación terminaba
+  // con finished=false y la bandeja quedaba congelada con la selección vieja (en Jest no pasa).
+  const [montada, setMontada] = useState(hay);
+  if (hay && !montada) setMontada(true);
   const [alto, setAlto] = useState(0);
+  const altura = useMemo(() => (alto > 0 ? t.interpolate({ inputRange: [0, 1], outputRange: [0, alto] }) : undefined), [alto, t]);
   const habia = useRef(hay);
 
   useEffect(() => {
@@ -43,20 +49,19 @@ export function BandejaAnimada(props: PropsBandeja) {
       easing: (hay ? Curvas.easeOutCubic : Curvas.easeInCubic).fn,
       useNativeDriver: false,
     });
-    setSaliendo(!hay);
     animacion.start(({ finished }) => {
-      if (finished && !hay) setSaliendo(false);
+      if (finished && !hay) setMontada(false);
     });
     return () => animacion.stop();
   }, [hay, t]);
 
-  if (!hay && !saliendo) return null;
+  if (!montada) return null;
   return (
     <Animated.View
       style={{
         opacity: t,
         // SizeTransition desde arriba: el alto crece de 0 al de la bandeja.
-        height: alto > 0 ? t.interpolate({ inputRange: [0, 1], outputRange: [0, alto] }) : undefined,
+        height: altura,
         overflow: 'hidden',
       }}
     >

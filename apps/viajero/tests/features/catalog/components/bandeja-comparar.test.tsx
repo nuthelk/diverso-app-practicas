@@ -204,3 +204,25 @@ test('no suma el inset inferior del sistema: la barra de pestañas ya está deba
 
   expect(StyleSheet.flatten(screen.getByTestId('bandeja-comparar').props.style).paddingBottom).toBe(14);
 });
+
+test('«Limpiar» vacía la selección y la bandeja se va (no queda congelada con la selección vieja)', async () => {
+  await abrir();
+  await agregar();
+  expect(bandeja()).toBeOnTheScreen();
+
+  await fireEvent.press(enBandeja().getByText('Limpiar'));
+  await animar();
+
+  expect(screen.getAllByRole('button', { name: 'Agregar al comparador' })).toHaveLength(4);
+  expect(bandeja()).toBeNull();
+});
+
+test('quitar el único plan con su ✕ también cierra la bandeja', async () => {
+  await abrir();
+  await agregar();
+
+  await fireEvent.press(enBandeja().getByRole('button', { name: 'Quitar Plan 1 de la comparación' }));
+  await animar();
+
+  expect(bandeja()).toBeNull();
+});
