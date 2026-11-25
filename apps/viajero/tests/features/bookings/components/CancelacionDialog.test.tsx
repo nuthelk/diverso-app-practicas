@@ -6,6 +6,7 @@ import { CancelacionDialog } from '@/features/bookings/components/CancelacionDia
 import { temaClaro } from '@/ui/theme';
 
 import { renderConTema } from '../../../ui/support/conTema';
+import { textoCrudo } from '../../../support/texto-crudo';
 
 /** Diálogo de cancelación con la política que aplica AHORA. Port 1:1 de `cancel_dialog_test.dart`. */
 
@@ -26,6 +27,11 @@ test('100 %: dice que se devuelve todo y que es de prueba', async () => {
   expect(screen.getByText(/te devolvemos el 100 % \(\$ 300\.000\)/)).toBeOnTheScreen();
   expect(screen.getByText(/reembolso de prueba/)).toBeOnTheScreen();
   expect(screen.getByText(/no se mueve dinero real/)).toBeOnTheScreen();
+});
+
+test('el porcentaje y el monto no se separan de su signo si la política se parte en líneas', async () => {
+  await abrir(vista({ aplica: true, porcentaje: 50, monto: 150000 }));
+  expect(textoCrudo(screen.getByText(/te devolvemos/))).toContain('el 50\u00A0% ($\u00A0150.000)');
 });
 
 test('50 %: muestra el porcentaje parcial y el monto', async () => {

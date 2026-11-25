@@ -9,6 +9,7 @@ import { CheckoutView } from '@/features/checkout/views/CheckoutView';
 import { dependenciasDePrueba, doble } from '../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso } from '../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../support/pantalla';
+import { textoCrudo } from '../../support/texto-crudo';
 import { CatalogoFalso, fechaDePrueba, planDePrueba } from './support/catalogo-falso';
 import { PasarelaFalsa } from './support/pasarela-falsa';
 import { pendienteDePrueba, ReservasFalsas } from './support/reservas-falsas';
@@ -228,6 +229,8 @@ describe('pantalla /checkout/:planId/:fechaId', () => {
       screen.getByText(/Ya tienes una reserva pendiente de pago para esta fecha \(2 personas, \$ 300\.000\)/),
     ).toBeOnTheScreen();
     expect(screen.getByText(new RegExp(`Vence a las ${hora(pendienteDePrueba().venceAt)}\\.`))).toBeOnTheScreen();
+    // El aviso es texto corrido: si se parte, el «$» no queda solo al final de una línea.
+    expect(textoCrudo(screen.getByText(/Ya tienes una reserva pendiente/))).toContain('2 personas, $\u00A0300.000');
     expect(screen.getByText('Completar pago')).toBeOnTheScreen();
     expect(screen.getByText('Cancelar y empezar de nuevo')).toBeOnTheScreen();
     expect(botonPagar()).toBeDisabled();

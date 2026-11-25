@@ -3,6 +3,7 @@ import { useCallback, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { sinCortes } from '@/core';
 import { Text } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
@@ -94,7 +95,7 @@ export function AvisoFlotante({ sobreBarraInferior = false }: { sobreBarraInferi
         accessibilityLiveRegion="polite"
         style={[estilos.aviso, { backgroundColor: cs.inverseSurface, borderRadius: tema.componentes.snackBar.radio }]}
       >
-        <Text style={{ fontSize: AppText.cuerpo, color: cs.onInverseSurface }}>{aviso.texto}</Text>
+        <Text style={{ fontSize: AppText.cuerpo, color: cs.onInverseSurface }}>{sinCortes(aviso.texto)}</Text>
       </View>
     </View>
   );

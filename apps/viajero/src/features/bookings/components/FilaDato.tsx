@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { sinCortes } from '@/core';
 import { Icono, Text, type IconoNombre } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
 
@@ -33,7 +34,7 @@ export function FilaDato({
         altura={1.3}
         style={[estilos.texto, { fontSize: compacto ? AppText.detalle : AppText.cuerpoGrande, color: color ?? cs.onSurface }]}
       >
-        {texto}
+        {sinCortes(texto)}
         {acento ? (
           <>
             <Text style={estiloAcento}>{' · '}</Text>

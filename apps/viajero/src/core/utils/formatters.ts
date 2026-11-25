@@ -51,6 +51,19 @@ export function formatCOP(monto: number): string {
   return `$ ${monto < 0 && entero !== 0 ? '-' : ''}${miles}`;
 }
 
+/** Espacio que no parte la línea (U+00A0). */
+const NBSP = '\u00A0';
+
+/**
+ * Para un monto dentro de texto corrido que puede partirse en varias líneas: pega el «$» a su
+ * número y el número a su «%» con espacios que no parten (U+00A0), para que «$» no quede solo al
+ * final de una línea y la cifra abajo. `formatCOP` no cambia (paridad con `intl` de Dart y lo que
+ * comparan muchas vistas): esto se aplica solo a la LÍNEA que lo contiene.
+ */
+export function sinCortes(texto: string): string {
+  return texto.replace(/\$ (?=-?\d)/g, `$${NBSP}`).replace(/(\d) %/g, `$1${NBSP}%`);
+}
+
 /** Fecha de plan (sin hora): "sáb, 3 oct". Patrón Dart `EEE, d MMM`. */
 export function formatFechaCorta(fecha: Date): string {
   return `${DIAS_CORTOS[fecha.getDay()]}, ${fecha.getDate()} ${MESES_CORTOS[fecha.getMonth()]}`;

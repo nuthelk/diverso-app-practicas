@@ -3,6 +3,7 @@ import { act, screen } from '@testing-library/react-native';
 import { AvisoFlotante, DURACION_AVISO_MS, mostrarAviso, ocultarAviso } from '@/features/compartido/aviso-flotante';
 
 import { renderConTema } from '../../ui/support/conTema';
+import { textoCrudo } from '../../support/texto-crudo';
 
 jest.mock('expo-router', () => require('../../support/expo-router-falso'));
 
@@ -22,6 +23,15 @@ test('sin aviso no pinta nada; con aviso lo anuncia como alerta', async () => {
 
   expect(screen.getByText('Hola')).toBeOnTheScreen();
   expect(screen.getByRole('alert')).toBeOnTheScreen();
+});
+
+test('un monto o porcentaje del aviso no se separa de su signo al partirse la línea', async () => {
+  await renderConTema(<AvisoFlotante />);
+  await act(async () => mostrarAviso('Reembolso de prueba aprobado: $ 190.000 (100 %).'));
+
+  expect(textoCrudo(screen.getByText(/Reembolso de prueba aprobado/))).toBe(
+    'Reembolso de prueba aprobado: $\u00A0190.000 (100\u00A0%).',
+  );
 });
 
 test('dura 4 s', async () => {

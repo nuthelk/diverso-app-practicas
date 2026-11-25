@@ -6,6 +6,7 @@ import {
   Booking,
   BookingStatus,
   DiversoError,
+  EstadoReembolso,
   ExperienceCategory,
   ItinerarioPaso,
   Payment,
@@ -13,6 +14,7 @@ import {
   PaymentStatus,
   Plan,
   PlanStatus,
+  Refund,
   VerificationStatus,
   VistaPreviaCancelacion,
   type BookingRepository,
@@ -24,6 +26,7 @@ import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantall
 import { arrancarApp, asentar } from '../../../support/app';
 import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
 import { PublicadorDeResenasFalso } from '../../../support/reservas-falsas';
+import { textoCrudo } from '../../../support/texto-crudo';
 
 /**
  * Tarjeta de «Mis reservas» tocable + pantalla «Detalle de la reserva» (`/reservas/:bookingId`).
@@ -247,6 +250,30 @@ describe('detalle de la reserva', () => {
     expect(screen.getByText('Reembolso total hasta 48 horas antes.')).toBeOnTheScreen();
     expect(screen.getByText('Ver plan')).toBeOnTheScreen();
     expect(screen.getByText('Cancelar')).toBeOnTheScreen();
+  });
+
+  test('cancelada con reembolso: «$» y «%» no se separan de su número si la línea se parte', async () => {
+    const cancelada = reserva({ estado: BookingStatus.cancelada });
+    const conReembolso = new Booking({
+      ...cancelada,
+      refunds: [
+        new Refund({
+          id: 'r1',
+          bookingId: 'res-1',
+          monto: 399000,
+          porcentaje: 100,
+          estado: EstadoReembolso.pendiente,
+          motivo: '',
+          createdAt: new Date(),
+        }),
+      ],
+    });
+    await abrir('/reservas/res-1', [conReembolso]);
+
+    expect(textoCrudo(screen.getByText(/Reembolso de prueba pendiente/))).toBe(
+      'Reembolso de prueba pendiente · 100\u00A0% · $\u00A0399.000',
+    );
+    expect(textoCrudo(screen.getByText(/2 personas/))).toBe('2 personas · $\u00A0190.000');
   });
 
   test('itinerario: la línea de tiempo termina en el último paso (2 pasos, 1 tramo)', async () => {

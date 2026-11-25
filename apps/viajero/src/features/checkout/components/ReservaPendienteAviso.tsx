@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { formatCOP, type Booking } from '@/core';
+import { formatCOP, sinCortes, type Booking } from '@/core';
 import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
 
@@ -40,7 +40,7 @@ export function ReservaPendienteAviso({
         <Icono nombre="hourglass_top_rounded" size={20} color={cs.onSecondaryContainer} />
         <View style={{ width: 10 }} />
         <Text altura={1.4} style={[estilos.texto, { fontSize: AppText.cuerpoChico, color: cs.onSecondaryContainer }]}>
-          {textoReservaPendiente(reserva)}
+          {sinCortes(textoReservaPendiente(reserva))}
         </Text>
       </View>
       <View style={{ height: 12 }} />

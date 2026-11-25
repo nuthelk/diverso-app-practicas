@@ -3,6 +3,7 @@ import {
   formatFechaCorta,
   formatFechaLarga,
   formatFechaTexto,
+  sinCortes,
 } from '@/core/utils/formatters';
 import { fechaLocal } from '@/core/utils/fechas';
 
@@ -40,6 +41,33 @@ describe('formatCOP', () => {
   test('negativos: el signo va después del prefijo', () => {
     expect(formatCOP(-1000)).toBe('$ -1.000');
     expect(formatCOP(-0.5)).toBe('$ -1');
+  });
+});
+
+describe('sinCortes (montos dentro de una línea que puede partirse)', () => {
+  const NBSP = '\u00A0';
+
+  test('el «$» queda pegado al número: la línea no puede partirse entre ellos', () => {
+    expect(sinCortes(`Total ${formatCOP(399000)}`)).toBe(`Total $${NBSP}399.000`);
+    expect(sinCortes(formatCOP(-1000))).toBe(`$${NBSP}-1.000`);
+  });
+
+  test('el «%» tampoco se separa de su número', () => {
+    expect(sinCortes('Reembolso de prueba pendiente · 100 % · $ 399.000')).toBe(
+      `Reembolso de prueba pendiente · 100${NBSP}% · $${NBSP}399.000`,
+    );
+  });
+
+  test('cambia todas las apariciones y deja intacto el resto del texto', () => {
+    expect(sinCortes('de $ 1.000 a $ 2.000 (50 %) y 2 personas')).toBe(
+      `de $${NBSP}1.000 a $${NBSP}2.000 (50${NBSP}%) y 2 personas`,
+    );
+    expect(sinCortes('Sin reembolso')).toBe('Sin reembolso');
+    expect(sinCortes('cuesta $ y punto')).toBe('cuesta $ y punto');
+  });
+
+  test('formatCOP no cambia (paridad con intl de Dart): solo la línea que lo contiene', () => {
+    expect(formatCOP(399000)).toBe('$ 399.000');
   });
 });
 
