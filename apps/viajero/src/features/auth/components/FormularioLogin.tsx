@@ -59,11 +59,22 @@ export function FormularioLogin({
           <ColibriDeBienvenida size={112} color={cs.primary} />
         </View>
       ) : null}
-      <Text accessibilityRole="header" style={estilos.titulo}>
-        {vm.esRegistro ? 'Crea tu cuenta' : 'Bienvenido de vuelta'}
-      </Text>
-      <View style={{ height: 8 }} />
-      <Text style={{ fontSize: AppText.cuerpoGrande, color: cs.onSurfaceVariant }}>
+      {/* Entrar: solo el colibrí y la frase, centrada bajo él. Crear cuenta sí lleva título: es lo
+          que marca el cambio de modo. */}
+      {vm.esRegistro ? (
+        <>
+          <Text accessibilityRole="header" style={estilos.titulo}>
+            Crea tu cuenta
+          </Text>
+          <View style={{ height: 8 }} />
+        </>
+      ) : null}
+      <Text
+        style={[
+          { fontSize: AppText.cuerpoGrande, color: cs.onSurfaceVariant },
+          vm.esRegistro ? null : estilos.fraseCentrada,
+        ]}
+      >
         {vm.esRegistro ? 'Explora y reserva planes de agencias verificadas.' : 'Entra para seguir explorando Antioquia.'}
       </Text>
       <View style={{ height: 28 }} />
@@ -177,6 +188,7 @@ const estilos = StyleSheet.create({
   formulario: { width: '100%', maxWidth: 420, paddingHorizontal: 24, alignSelf: 'center' },
   marca: { alignItems: 'center', marginBottom: 32 },
   titulo: { fontSize: AppText.tituloPagina, fontWeight: '800', letterSpacing: -0.8 },
+  fraseCentrada: { textAlign: 'center' },
   entreCampos: { height: 14 },
   aviso: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 16 },
   principal: { minHeight: 56 },

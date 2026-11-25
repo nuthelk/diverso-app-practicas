@@ -134,9 +134,10 @@ describe('entrar y crear cuenta', () => {
 });
 
 describe('textos y enlaces', () => {
-  test('títulos de entrar y de crear cuenta', async () => {
+  test('entrar no lleva título (solo el colibrí y la frase); crear cuenta sí, para marcar el cambio de modo', async () => {
     await abrir({ cuentaDemo: false });
-    expect(screen.getByText('Bienvenido de vuelta')).toBeOnTheScreen();
+    expect(screen.queryByText('Bienvenido de vuelta')).toBeNull();
+    expect(screen.queryByRole('header')).toBeNull();
     expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();
 
     await tocar('Crear cuenta nueva');

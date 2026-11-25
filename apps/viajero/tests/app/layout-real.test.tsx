@@ -17,6 +17,6 @@ test('sin sesión guardada, el _layout real abre el login', async () => {
   await asentar();
 
   expect(r.getPathname()).toBe('/login');
-  expect(screen.getByText('Bienvenido de vuelta')).toBeOnTheScreen();
+  expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();
   await r.unmount();
 });

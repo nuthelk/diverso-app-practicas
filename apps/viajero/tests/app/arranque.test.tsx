@@ -31,7 +31,7 @@ test('sin sesión arranca en /login', async () => {
   const r = await arrancarApp('/', dependenciasDePrueba({ auth: new AuthFalso({ usuario: null }) }));
 
   expect(r.getPathname()).toBe('/login');
-  expect(screen.getByText('Bienvenido de vuelta')).toBeOnTheScreen();
+  expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();
   expect(pantallaVisible('CatalogView')).toBeNull();
 });
 
@@ -40,7 +40,7 @@ test('con sesión y consentimiento aceptado arranca en el catálogo', async () =
 
   expect(r.getPathname()).toBe('/');
   expect(pantallaVisible('CatalogView')).toBeOnTheScreen();
-  expect(screen.queryByText('Bienvenido de vuelta')).toBeNull();
+  expect(screen.queryByText('Entra para seguir explorando Antioquia.')).toBeNull();
   expect(barra()).toBeOnTheScreen();
 });
 
