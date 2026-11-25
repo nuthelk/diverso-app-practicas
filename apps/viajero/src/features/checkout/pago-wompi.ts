@@ -51,13 +51,13 @@ export function urlRetornoPago({
   web = Platform.OS === 'web',
   origen = () => window.location.origin,
 }: { web?: boolean; origen?: () => string } = {}): string {
-  return web ? `${origen()}${AppRoutes.pagoResultado}` : diversoConfig.pagoRetornoMovil;
+  return web ? `${origen()}${AppRoutes.pagoResultado}` : diversoConfig.mobilePaymentReturnUrl;
 }
 
 /** ¿Es [url] la redirección final de Wompi (`https://diverso.app/pago/resultado[?id=…]`)? */
 export function esRedireccionDePago(url: string): boolean {
   const u = partir(url);
-  const retorno = partir(diversoConfig.pagoRetornoMovil)!;
+  const retorno = partir(diversoConfig.mobilePaymentReturnUrl)!;
   return u !== null && u.scheme === retorno.scheme && u.host === retorno.host && u.path === retorno.path;
 }
 

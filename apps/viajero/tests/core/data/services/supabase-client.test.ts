@@ -20,8 +20,8 @@ describe('cliente Supabase para React Native', () => {
     const client = crearClienteSupabase({
       supabaseUrl: 'http://10.0.2.2:54331',
       supabaseKey: 'clave',
-      pagoResultadoPath: '/pago/resultado',
-      pagoRetornoMovil: 'https://diverso.app/pago/resultado',
+      paymentResultPath: '/pago/resultado',
+      mobilePaymentReturnUrl: 'https://diverso.app/pago/resultado',
     });
     expect(client.functions).toBeDefined();
     expect(typeof client.from).toBe('function');

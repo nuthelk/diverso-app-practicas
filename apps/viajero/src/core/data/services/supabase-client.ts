@@ -20,7 +20,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-import { configDelEntorno, type DiversoConfig, hostDeMetro } from '../../config/diverso-config';
+import { configFromEnv, type DiversoConfig, metroHost } from '../../config/diverso-config';
 
 /**
  * En desarrollo, en un dispositivo, el Supabase local vive en el PC que sirve Metro: se usa su
@@ -28,7 +28,7 @@ import { configDelEntorno, type DiversoConfig, hostDeMetro } from '../../config/
  */
 function hostDesarrollo(): string | undefined {
   if (!__DEV__ || Platform.OS === 'web') return undefined;
-  return hostDeMetro(Constants.expoConfig?.hostUri);
+  return metroHost(Constants.expoConfig?.hostUri);
 }
 
 export function opcionesSupabase() {
@@ -43,6 +43,6 @@ export function opcionesSupabase() {
 }
 
 /** Crea el cliente (una vez, en la raíz de composición). */
-export function crearClienteSupabase(config: DiversoConfig = configDelEntorno(hostDesarrollo())): SupabaseClient {
+export function crearClienteSupabase(config: DiversoConfig = configFromEnv(hostDesarrollo())): SupabaseClient {
   return createClient(config.supabaseUrl, config.supabaseKey, opcionesSupabase());
 }

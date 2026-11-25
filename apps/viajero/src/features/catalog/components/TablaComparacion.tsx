@@ -70,15 +70,15 @@ export function TablaComparacion({
         ))}
       </View>
       {filas.map((fila) => {
-        const esPrecio = fila.icono === 'precio' || fila.icono === 'total';
+        const esPrecio = fila.icon === 'precio' || fila.icon === 'total';
         return (
-          <View key={fila.icono} style={[estilos.fila, { borderTopWidth: 1, borderTopColor: conAlfa(cs.outlineVariant, 0.5) }]}>
+          <View key={fila.icon} style={[estilos.fila, { borderTopWidth: 1, borderTopColor: conAlfa(cs.outlineVariant, 0.5) }]}>
             <View style={{ width: ANCHO_ETIQUETA, paddingTop: 12, paddingRight: 8, paddingBottom: 12 }}>
               <Text altura={1.3} style={{ fontSize: AppText.leyenda, fontWeight: '600', color: cs.onSurfaceVariant }}>
-                {fila.titulo}
+                {fila.title}
               </Text>
             </View>
-            {fila.valores.map((v, i) => (
+            {fila.values.map((v, i) => (
               <Fragment key={i}>
                 {celda(i, <ValorComparado valor={v} esPrecio={esPrecio} destacado={esPrecio && esBarato(i)} />)}
               </Fragment>

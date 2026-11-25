@@ -35,7 +35,7 @@ export * from './utils/bogota-time';
 export * from './utils/formatters';
 export * from './utils/search';
 
-export * from './legal/documento-legal';
+export * from './legal/legal-document';
 export * from './comparison/comparison-row';
 
 export * from './data/services/catalog-api';

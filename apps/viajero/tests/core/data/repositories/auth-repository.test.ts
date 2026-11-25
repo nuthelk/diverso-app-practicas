@@ -2,7 +2,7 @@ import { AuthError } from '@supabase/supabase-js';
 
 import { AuthRepository } from '@/core/data/repositories/auth-repository';
 import { ArgumentError, StateError } from '@/core/errors/programming-errors';
-import { VERSION_LEGAL } from '@/core/legal/documento-legal';
+import { LEGAL_VERSION } from '@/core/legal/legal-document';
 import { UserRole } from '@/core/models/enums';
 
 import { capture } from '../../../support/errors';
@@ -92,7 +92,7 @@ describe('registro y consentimientos', () => {
     expect(p.cuerpo).toMatchObject({
       email: 'nuevo@diverso.test',
       password: 'clave123',
-      data: { nombre: 'Nuevo', rol: 'viajero', consentimiento_version: VERSION_LEGAL },
+      data: { nombre: 'Nuevo', rol: 'viajero', consentimiento_version: LEGAL_VERSION },
     });
   });
 

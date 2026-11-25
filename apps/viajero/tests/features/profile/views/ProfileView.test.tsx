@@ -1,7 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
-import { VERSION_LEGAL } from '@/core';
+import { LEGAL_VERSION } from '@/core';
 import { ocultarAviso } from '@/features/compartido/aviso-flotante';
 import { ProfileView } from '@/features/profile/views/ProfileView';
 import { temaClaro } from '@/ui/theme';
@@ -99,7 +99,7 @@ test('secciones: apariencia, confianza y documentos legales con la versión vige
   expect(screen.getByText('Compra protegida')).toBeOnTheScreen();
   expect(screen.getByText('Tus datos')).toBeOnTheScreen();
   expect(screen.getByText(/Ley 1581 de 2012 \(Habeas Data\)/)).toBeOnTheScreen();
-  expect(screen.getAllByText(`Versión ${VERSION_LEGAL}`)).toHaveLength(2);
+  expect(screen.getAllByText(`Versión ${LEGAL_VERSION}`)).toHaveLength(2);
 });
 
 test('los documentos legales se abren encima del perfil', async () => {

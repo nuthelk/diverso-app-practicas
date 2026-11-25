@@ -124,7 +124,7 @@ describe('pago en Android/iOS (WebView)', () => {
     await pagar();
 
     expect(reservas.creadas).toEqual([{ planDateId: 'fecha-1', pax: 1 }]);
-    expect(pasarela.iniciadas).toEqual([{ bookingId: 'nueva-1', redirectUrl: diversoConfig.pagoRetornoMovil }]);
+    expect(pasarela.iniciadas).toEqual([{ bookingId: 'nueva-1', redirectUrl: diversoConfig.mobilePaymentReturnUrl }]);
     expect(screen.getByText('Pago de prueba con Wompi')).toBeOnTheScreen();
     expect(webview?.source).toEqual({ uri: pasarela.checkoutUrl });
 

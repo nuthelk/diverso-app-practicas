@@ -2,7 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
 import { useState } from 'react';
 
-import { DocumentoLegal, VERSION_LEGAL } from '@/core';
+import { LegalDocument, LEGAL_VERSION } from '@/core';
 import { ConsentimientoProvider } from '@/features/legal/view-models/ConsentimientoProvider';
 import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes';
 import { ConsentView } from '@/features/legal/views/ConsentView';
@@ -189,27 +189,27 @@ describe('ConsentView', () => {
 describe('LegalView', () => {
   test('muestra versión, título, resumen, aviso de borrador y secciones con encabezados semánticos', async () => {
     await renderPantalla(<LegalView docId="privacidad" />);
-    const doc = DocumentoLegal.porId('privacidad')!;
+    const doc = LegalDocument.byId('privacidad')!;
 
     expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
-    expect(screen.getByText(`VERSIÓN ${VERSION_LEGAL.toUpperCase()}`)).toBeOnTheScreen();
-    expect(screen.getByText(doc.titulo)).toBeOnTheScreen();
-    expect(screen.getByText(doc.resumen)).toBeOnTheScreen();
+    expect(screen.getByText(`VERSIÓN ${LEGAL_VERSION.toUpperCase()}`)).toBeOnTheScreen();
+    expect(screen.getByText(doc.title)).toBeOnTheScreen();
+    expect(screen.getByText(doc.summary)).toBeOnTheScreen();
     expect(
       screen.getByText(
         'Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del responsable antes del lanzamiento comercial.',
       ),
     ).toBeOnTheScreen();
-    for (const seccion of doc.secciones) {
-      expect(screen.getByRole('header', { name: seccion.titulo })).toBeOnTheScreen();
-      for (const parrafo of seccion.parrafos) expect(screen.getByText(parrafo)).toBeOnTheScreen();
+    for (const seccion of doc.sections) {
+      expect(screen.getByRole('header', { name: seccion.title })).toBeOnTheScreen();
+      for (const parrafo of seccion.paragraphs) expect(screen.getByText(parrafo)).toBeOnTheScreen();
     }
   });
 
   test('el texto es seleccionable (SelectionArea)', async () => {
     await renderPantalla(<LegalView docId="terminos-viajeros" />);
-    const doc = DocumentoLegal.porId('terminos-viajeros')!;
-    expect(screen.getByText(doc.titulo).props.selectable).toBe(true);
+    const doc = LegalDocument.byId('terminos-viajeros')!;
+    expect(screen.getByText(doc.title).props.selectable).toBe(true);
   });
 
   test('un documento inexistente avisa', async () => {

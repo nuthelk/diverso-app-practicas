@@ -2,7 +2,7 @@ import { useRouter, type Href } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { VERSION_LEGAL } from '@/core';
+import { LEGAL_VERSION } from '@/core';
 import { useDependencies } from '@/composition';
 import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotante';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
@@ -136,7 +136,7 @@ function FilaLegal({ icono, titulo, onPress }: { icono: IconoNombre; titulo: str
             <Text altura={1.5} style={{ fontSize: AppText.subtitulo, letterSpacing: 0.5, color: cs.onSurface }}>
               {titulo}
             </Text>
-            <Text style={{ color: cs.onSurfaceVariant }}>{`Versión ${VERSION_LEGAL}`}</Text>
+            <Text style={{ color: cs.onSurfaceVariant }}>{`Versión ${LEGAL_VERSION}`}</Text>
           </View>
           <View style={{ width: 16 }} />
           <Icono nombre="chevron_right_rounded" size={24} color={cs.onSurfaceVariant} />

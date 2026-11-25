@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { Fragment } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { DocumentoLegal, VERSION_LEGAL } from '@/core';
+import { LegalDocument, LEGAL_VERSION } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { Text } from '@/ui/components';
@@ -18,7 +18,7 @@ export function LegalView({ docId }: { docId: string }) {
   const tema = useTheme();
   const cs = tema.colorScheme;
   const router = useRouter();
-  const doc = DocumentoLegal.porId(docId);
+  const doc = LegalDocument.byId(docId);
 
   return (
     <View style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
@@ -30,15 +30,15 @@ export function LegalView({ docId }: { docId: string }) {
       ) : (
         <ScrollView contentContainerStyle={estilos.lista}>
           <Text selectable style={{ fontSize: AppText.nota, fontWeight: '700', letterSpacing: 1.2, color: cs.outline }}>
-            {`VERSIÓN ${VERSION_LEGAL.toUpperCase()}`}
+            {`VERSIÓN ${LEGAL_VERSION.toUpperCase()}`}
           </Text>
           <View style={{ height: 8 }} />
           <Text selectable altura={1.2} style={{ fontSize: AppText.encabezado2xl, fontWeight: '800', letterSpacing: -0.6 }}>
-            {doc.titulo}
+            {doc.title}
           </Text>
           <View style={{ height: 8 }} />
           <Text selectable altura={1.5} style={{ fontSize: AppText.enfasis, color: cs.onSurfaceVariant }}>
-            {doc.resumen}
+            {doc.summary}
           </Text>
           <View style={{ height: 18 }} />
           <View
@@ -51,13 +51,13 @@ export function LegalView({ docId }: { docId: string }) {
               Borrador para el piloto académico: debe revisarlo un abogado y completarse con los datos del responsable antes del lanzamiento comercial.
             </Text>
           </View>
-          {doc.secciones.map((s) => (
-            <Fragment key={s.titulo}>
+          {doc.sections.map((s) => (
+            <Fragment key={s.title}>
               <View style={{ height: 26 }} />
               <Text selectable accessibilityRole="header" style={{ fontSize: AppText.subtitulo, fontWeight: '700' }}>
-                {s.titulo}
+                {s.title}
               </Text>
-              {s.parrafos.map((p) => (
+              {s.paragraphs.map((p) => (
                 <Fragment key={p}>
                   <View style={{ height: 10 }} />
                   <Text selectable altura={1.65} style={{ fontSize: AppText.cuerpoGrande, color: cs.onSurface }}>

@@ -35,7 +35,7 @@ export const AppRoutes = {
   agencias: '/agencias',
   reservas: '/reservas',
   perfil: '/perfil',
-  pagoResultado: diversoConfig.pagoResultadoPath,
+  pagoResultado: diversoConfig.paymentResultPath,
   comparar: '/comparar',
   resenaBase: '/resena',
 
@@ -71,11 +71,11 @@ export const AppRoutes = {
 
   /** Vuelta de Wompi: verifica en el servidor el pago de la transacción. */
   pagoDeTransaccion: (transactionId: string) =>
-    `${diversoConfig.pagoResultadoPath}?id=${codificarComponenteQuery(transactionId)}`,
+    `${diversoConfig.paymentResultPath}?id=${codificarComponenteQuery(transactionId)}`,
 
   /** «Ya pagué, verificar»: verifica el pago más reciente de una reserva. */
   pagoDeReserva: (bookingId: string) =>
-    `${diversoConfig.pagoResultadoPath}?reserva=${codificarComponenteQuery(bookingId)}`,
+    `${diversoConfig.paymentResultPath}?reserva=${codificarComponenteQuery(bookingId)}`,
 
   /** Comparador de planes: los ids viajan en la URL (`?ids=a,b,c`) y la pantalla carga los planes. */
   compararPlanes: (ids: Iterable<string>) => `/comparar?ids=${[...ids].map(codificarComponenteQuery).join(',')}`,

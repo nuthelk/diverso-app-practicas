@@ -3,7 +3,7 @@
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-import { configDesde } from '@/core/config/diverso-config';
+import { configFrom } from '@/core/config/diverso-config';
 import { BookingRepository } from '@/core/data/repositories/booking-repository';
 import { BookingApiSupabase } from '@/core/data/services/booking-api';
 import { EdgeFunctionsApiSupabase } from '@/core/data/services/edge-functions-api';
@@ -37,7 +37,7 @@ const {
   EXPO_PUBLIC_SUPABASE_KEY: claveEnv,
   SUPABASE_SERVICE_ROLE_KEY: llaveEnv,
 } = process.env;
-const config = configDesde({ url: urlEnv, key: claveEnv });
+const config = configFrom({ url: urlEnv, key: claveEnv });
 const llaveServicio = llaveEnv ?? '';
 
 const describeConLlave = llaveServicio === '' ? describe.skip : describe;

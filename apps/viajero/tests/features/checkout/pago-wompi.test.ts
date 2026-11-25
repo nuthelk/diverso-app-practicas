@@ -42,9 +42,9 @@ describe('redirección de retorno de Wompi (WebView en Android/iOS)', () => {
   });
 
   test('la URL de retorno que se pide a pagos-iniciar en móvil es la interceptada', () => {
-    expect(diversoConfig.pagoRetornoMovil).toBe('https://diverso.app/pago/resultado');
+    expect(diversoConfig.mobilePaymentReturnUrl).toBe('https://diverso.app/pago/resultado');
     // En pruebas (no web) se usa la de móvil.
-    expect(urlRetornoPago()).toBe(diversoConfig.pagoRetornoMovil);
+    expect(urlRetornoPago()).toBe(diversoConfig.mobilePaymentReturnUrl);
   });
 
   test('en web la URL de retorno es el origen de la app + /pago/resultado (misma pestaña)', () => {

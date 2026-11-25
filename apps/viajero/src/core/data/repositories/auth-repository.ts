@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { ArgumentError, StateError } from '../../errors/programming-errors';
-import { VERSION_LEGAL } from '../../legal/documento-legal';
+import { LEGAL_VERSION } from '../../legal/legal-document';
 import type { Row } from '../../models/row';
 import { Profile } from '../../models/profile';
 
@@ -46,7 +46,7 @@ export class AuthRepository {
     const { error } = await this.client.auth.signUp({
       email,
       password,
-      options: { data: { nombre, rol: 'viajero', consentimiento_version: VERSION_LEGAL } },
+      options: { data: { nombre, rol: 'viajero', consentimiento_version: LEGAL_VERSION } },
     });
     if (error) throw error;
   }
@@ -63,7 +63,7 @@ export class AuthRepository {
   /** Registra la aceptación de un documento en su versión vigente (falla con VERSION_DESACTUALIZADA si no coincide). */
   async registrarConsentimiento(tipo: string): Promise<void> {
     await this.client
-      .rpc('registrar_consentimiento', { p_tipo: tipo, p_version: VERSION_LEGAL, p_origen: 'app' })
+      .rpc('registrar_consentimiento', { p_tipo: tipo, p_version: LEGAL_VERSION, p_origen: 'app' })
       .throwOnError();
   }
 
