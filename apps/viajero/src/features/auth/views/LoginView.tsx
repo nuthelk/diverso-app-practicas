@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffectEvent, useState } from 'react';
+import { BackHandler, KeyboardAvoidingView, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDependencies } from '@/composition';
@@ -54,6 +55,21 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
     setAutovalidar(false);
     vm.alternarModo();
   };
+
+  // «Crea tu cuenta» es un modo de esta misma pantalla, no otra en la pila: el atrás de Android
+  // vuelve a «Entrar» en vez de cerrar la app. En «Entrar» no se toca (el sistema hace lo suyo).
+  const volverAEntrar = useEffectEvent(alternarModo);
+  const { esRegistro } = vm;
+  useFocusEffect(
+    useCallback(() => {
+      if (!esRegistro) return;
+      const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => {
+        volverAEntrar();
+        return true;
+      });
+      return () => suscripcion.remove();
+    }, [esRegistro]),
+  );
 
   const ancha = width > AppTheme.bpCompact;
   const formulario = (

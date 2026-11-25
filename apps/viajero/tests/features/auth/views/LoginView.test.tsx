@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { DeviceEventEmitter, Platform, StyleSheet } from 'react-native';
+import { BackHandler, DeviceEventEmitter, Platform, StyleSheet } from 'react-native';
 
 import { LoginView } from '@/features/auth/views/LoginView';
 
@@ -252,6 +252,52 @@ describe('avisos de los campos', () => {
     await escribir('Correo', 'ana');
 
     expect(screen.queryByText('Correo inválido')).toBeNull();
+  });
+});
+
+describe('atrás del sistema (Android)', () => {
+  // «Crea tu cuenta» es un modo de la misma pantalla: sin esto el atrás cerraría la app.
+  type Escucha = Parameters<typeof BackHandler.addEventListener>[1];
+  let escuchas: Escucha[] = [];
+  let espia: jest.SpyInstance;
+  beforeEach(() => {
+    escuchas = [];
+    espia = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_evento, escucha) => {
+      escuchas.push(escucha);
+      return { remove: () => void escuchas.splice(escuchas.indexOf(escucha), 1) };
+    });
+  });
+  afterEach(() => espia.mockRestore());
+
+  /** Lo que hace Android: avisa a las escuchas de la más nueva a la más vieja hasta que una lo consume. */
+  const atras = async () => {
+    let consumido = false;
+    await act(async () => {
+      consumido = [...escuchas].reverse().some((e) => (e as () => unknown)() === true);
+    });
+    return consumido;
+  };
+
+  test('en «Crea tu cuenta» vuelve a «Entrar» en vez de cerrar la app', async () => {
+    await abrir({ cuentaDemo: false });
+    await tocar('Crear cuenta nueva');
+    expect(screen.getByText('Crea tu cuenta')).toBeOnTheScreen();
+
+    expect(await atras()).toBe(true);
+
+    expect(screen.queryByText('Crea tu cuenta')).toBeNull();
+    expect(screen.getByText('Crear cuenta nueva')).toBeOnTheScreen();
+    expect(screen.getByText('Entrar')).toBeOnTheScreen();
+  });
+
+  test('en «Entrar» no lo intercepta: el sistema hace lo de siempre', async () => {
+    await abrir({ cuentaDemo: false });
+    expect(await atras()).toBe(false);
+
+    // Tras ir y volver de «Crea tu cuenta» tampoco queda ninguna escucha que lo consuma.
+    await tocar('Crear cuenta nueva');
+    await tocar('Ya tengo cuenta — entrar');
+    expect(await atras()).toBe(false);
   });
 });
 
