@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { LoginView } from '@/features/auth/views/LoginView';
 
@@ -152,20 +153,21 @@ describe('textos y enlaces', () => {
     expect(routerFalso.push.mock.calls).toEqual([['/legal/privacidad'], ['/legal/terminos-viajeros']]);
   });
 
-  test('en pantallas anchas (> 640) la marca pasa al panel y el formulario no la repite', async () => {
+  test('el logo es solo el colibrí, centrado y sin la palabra «Diverso»; en pantallas anchas pasa al panel', async () => {
     const promesa =
       'Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.';
     await abrir({ cuentaDemo: false });
-    // Angosta: el colibrí grande sin caja y el nombre encabezan el formulario; la promesa no.
+    // Angosta: el colibrí grande, sin caja ni nombre, centrado; la promesa no.
     expect(screen.getByTestId('colibri-bienvenida')).toBeOnTheScreen();
-    expect(screen.getByText('Diverso')).toBeOnTheScreen();
+    expect(StyleSheet.flatten(screen.getByTestId('marca-login').props.style).alignItems).toBe('center');
+    expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.queryByText(promesa)).toBeNull();
 
     await fijarVentana(1024, 800);
 
     expect(screen.getByTestId('panel-marca')).toBeOnTheScreen();
     expect(screen.getByText(promesa)).toBeOnTheScreen();
-    expect(screen.getAllByText('Diverso')).toHaveLength(1);
+    expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.getAllByTestId('diverso-logo', { includeHiddenElements: true })).toHaveLength(1);
   });
 });

@@ -27,8 +27,8 @@ export interface ErroresLogin {
  * Formulario de acceso (entrar o crear cuenta). Los campos y sus avisos son de la pantalla
  * (sobreviven al cambio de diseño ancho/angosto); lo demás sale del view model.
  *
- * [conMarca]: en pantallas angostas el formulario abre con la marca (el colibrí grande, sin caja,
- * y el nombre). En anchas la marca vive en el panel de la izquierda y aquí no se repite.
+ * [conMarca]: en pantallas angostas el formulario abre con la marca: solo el colibrí, grande,
+ * centrado y sin caja ni nombre. En anchas vive en el panel de la izquierda y aquí no se repite.
  */
 export function FormularioLogin({
   vm,
@@ -55,9 +55,8 @@ export function FormularioLogin({
   return (
     <View style={estilos.formulario}>
       {conMarca ? (
-        <View style={estilos.marca}>
-          <ColibriDeBienvenida size={104} color={cs.primary} />
-          <Text style={[estilos.nombreMarca, { color: cs.primary }]}>Diverso</Text>
+        <View testID="marca-login" style={estilos.marca}>
+          <ColibriDeBienvenida size={112} color={cs.primary} />
         </View>
       ) : null}
       <Text accessibilityRole="header" style={estilos.titulo}>
@@ -176,8 +175,7 @@ export function FormularioLogin({
 
 const estilos = StyleSheet.create({
   formulario: { width: '100%', maxWidth: 420, paddingHorizontal: 24, alignSelf: 'center' },
-  marca: { alignItems: 'flex-start', marginBottom: 36 },
-  nombreMarca: { marginTop: 10, fontSize: 30, fontWeight: '800', letterSpacing: -1 },
+  marca: { alignItems: 'center', marginBottom: 32 },
   titulo: { fontSize: AppText.tituloPagina, fontWeight: '800', letterSpacing: -0.8 },
   entreCampos: { height: 14 },
   aviso: { marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 16 },
