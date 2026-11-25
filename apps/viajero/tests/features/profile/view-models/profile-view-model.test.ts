@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
 import { Profile, UserRole } from '@/core';
-import { inicialDe, NOMBRE_POR_DEFECTO, useProfileViewModel } from '@/features/profile/view-models/useProfileViewModel';
+import { initialOf, DEFAULT_NAME, useProfileViewModel } from '@/features/profile/view-models/useProfileViewModel';
 
 import { AuthFalso } from '../../../support/auth-falso';
 import { compuerta } from '../../../support/compuerta';
@@ -12,7 +12,7 @@ import { compuerta } from '../../../support/compuerta';
  * `profile_view_model_test.dart`.
  *
  * Diferencia con Dart: supabase-js no da el correo de forma síncrona (`currentUserEmail()` es una
- * promesa), así que el VM lo lee en `cargar()`, aparte del perfil (si el perfil falla, el correo
+ * promesa), así que el VM lo lee en `load()`, aparte del perfil (si el perfil falla, el correo
  * igual se ve).
  */
 
@@ -21,35 +21,35 @@ beforeEach(() => {
   auth = new AuthFalso();
 });
 
-async function crear() {
-  const cargandos: boolean[] = [];
+async function setup() {
+  const loadingStates: boolean[] = [];
   const r = await renderHook(() => {
     const vm = useProfileViewModel({ auth });
-    if (cargandos[cargandos.length - 1] !== vm.cargando) cargandos.push(vm.cargando);
+    if (loadingStates[loadingStates.length - 1] !== vm.loading) loadingStates.push(vm.loading);
     return vm;
   });
-  return { ...r, cargandos };
+  return { ...r, loadingStates };
 }
 
 test('antes de cargar: cargando, «Viajero» con inicial V', async () => {
-  const { result } = await crear();
-  expect(result.current.cargando).toBe(true);
-  expect(result.current.perfil).toBeNull();
+  const { result } = await setup();
+  expect(result.current.loading).toBe(true);
+  expect(result.current.profile).toBeNull();
   expect(result.current.error).toBeNull();
-  expect(result.current.nombre).toBe('Viajero');
-  expect(NOMBRE_POR_DEFECTO).toBe('Viajero');
-  expect(result.current.inicial).toBe('V');
+  expect(result.current.name).toBe('Viajero');
+  expect(DEFAULT_NAME).toBe('Viajero');
+  expect(result.current.initial).toBe('V');
 });
 
 test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el correo de la sesión', async () => {
   auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: 'ana' });
-  const { result, cargandos } = await crear();
+  const { result, loadingStates } = await setup();
 
-  await act(() => result.current.cargar());
+  await act(() => result.current.load());
 
-  expect(cargandos).toEqual([true, false]);
-  expect(result.current.nombre).toBe('ana');
-  expect(result.current.inicial).toBe('A');
+  expect(loadingStates).toEqual([true, false]);
+  expect(result.current.name).toBe('ana');
+  expect(result.current.initial).toBe('A');
   expect(result.current.email).toBe('ana@correo.test');
   expect(result.current.error).toBeNull();
   expect(auth.cargasDePerfil).toBe(1);
@@ -57,69 +57,69 @@ test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el c
 
 test('nombre vacío: la inicial es V (no se rompe)', async () => {
   auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '' });
-  const { result } = await crear();
-  await act(() => result.current.cargar());
+  const { result } = await setup();
+  await act(() => result.current.load());
 
-  expect(result.current.inicial).toBe('V');
+  expect(result.current.initial).toBe('V');
 });
 
 test('la inicial es la primera letra completa, aunque sea un emoji (sin partir el carácter)', async () => {
   auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '😀 Ana' });
-  const { result } = await crear();
-  await act(() => result.current.cargar());
+  const { result } = await setup();
+  await act(() => result.current.load());
 
-  expect(result.current.inicial).toBe('😀');
+  expect(result.current.initial).toBe('😀');
 });
 
-test('inicialDe: grafema completo (emoji con tono de piel, letra con tilde combinada) y mayúscula', () => {
-  expect(inicialDe('👍🏽 Ana')).toBe('👍🏽');
-  expect(inicialDe('émile')).toBe('É');
-  expect(inicialDe('ñandú')).toBe('Ñ');
-  expect(inicialDe('')).toBe('V');
+test('initialOf: grafema completo (emoji con tono de piel, letra con tilde combinada) y mayúscula', () => {
+  expect(initialOf('👍🏽 Ana')).toBe('👍🏽');
+  expect(initialOf('émile')).toBe('É');
+  expect(initialOf('ñandú')).toBe('Ñ');
+  expect(initialOf('')).toBe('V');
 });
 
 test('sin correo en la sesión, el correo es vacío', async () => {
   auth.email = null;
-  const { result } = await crear();
-  await act(() => result.current.cargar());
+  const { result } = await setup();
+  await act(() => result.current.load());
   expect(result.current.email).toBe('');
 });
 
 test('error: queda visible en `error`, sigue «Viajero» (con el correo) y reintentar lo limpia', async () => {
   auth.falloAlCargarPerfil = new Error('sin red');
-  const { result } = await crear();
-  await act(() => result.current.cargar());
+  const { result } = await setup();
+  await act(() => result.current.load());
 
   expect(result.current.error).toBe('No pudimos cargar tu perfil.');
-  expect(result.current.cargando).toBe(false);
-  expect(result.current.perfil).toBeNull();
-  expect(result.current.nombre).toBe('Viajero');
+  expect(result.current.loading).toBe(false);
+  expect(result.current.profile).toBeNull();
+  expect(result.current.name).toBe('Viajero');
   expect(result.current.email).toBe('ana@correo.test');
 
   auth.falloAlCargarPerfil = null;
-  await act(() => result.current.cargar());
+  await act(() => result.current.load());
 
   expect(result.current.error).toBeNull();
-  expect(result.current.nombre).toBe('Ana');
+  expect(result.current.name).toBe('Ana');
 });
 
-test('cerrarSesion: true y la sesión se cierra', async () => {
-  const { result } = await crear();
+test('signOut: true y la sesión se cierra', async () => {
+  const { result } = await setup();
   let ok: boolean | null = false;
   await act(async () => {
-    ok = await result.current.cerrarSesion();
+    ok = await result.current.signOut();
   });
   expect(ok).toBe(true);
   expect(await auth.currentUserId()).toBeNull();
 });
 
-test('cerrarSesion que falla: false, y la sesión sigue abierta', async () => {
+test('signOut que falla: false, y la sesión sigue abierta', async () => {
   auth.falloAlSalir = new Error('sin red');
-  const { result } = await crear();
+  const { result } = await setup();
 
   let ok: boolean | null = true;
   await act(async () => {
-    ok = await result.current.cerrarSesion();
+    ok = await result.current.signOut();
   });
   expect(ok).toBe(false);
   expect(await auth.currentUserId()).toBe('viajero-1');
@@ -127,38 +127,38 @@ test('cerrarSesion que falla: false, y la sesión sigue abierta', async () => {
 
 test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
   auth.compuertaPerfil = compuerta();
-  const { result, unmount } = await crear();
-  let carga!: Promise<void>;
+  const { result, unmount } = await setup();
+  let loadPromise!: Promise<void>;
   await act(async () => {
-    carga = result.current.cargar();
+    loadPromise = result.current.load();
   });
   await unmount();
   auth.compuertaPerfil.completar();
 
-  await expect(carga).resolves.toBeUndefined();
+  await expect(loadPromise).resolves.toBeUndefined();
 });
 
-test('cerrarSesion: mientras cierra, `cerrandoSesion`; un segundo pedido no vuelve a llamar a signOut', async () => {
-  const salida = compuerta();
-  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => salida.promesa);
-  const { result } = await crear();
-  expect(result.current.cerrandoSesion).toBe(false);
+test('signOut: mientras cierra, `signingOut`; un segundo pedido no vuelve a llamar a signOut', async () => {
+  const signOutGate = compuerta();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promesa);
+  const { result } = await setup();
+  expect(result.current.signingOut).toBe(false);
 
-  let primera!: Promise<boolean | null>;
-  let segunda!: Promise<boolean | null>;
+  let first!: Promise<boolean | null>;
+  let second!: Promise<boolean | null>;
   await act(async () => {
-    primera = result.current.cerrarSesion();
-    segunda = result.current.cerrarSesion();
+    first = result.current.signOut();
+    second = result.current.signOut();
   });
 
   expect(signOut).toHaveBeenCalledTimes(1);
-  expect(result.current.cerrandoSesion).toBe(true);
+  expect(result.current.signingOut).toBe(true);
 
   await act(async () => {
-    salida.completar();
-    await primera;
+    signOutGate.completar();
+    await first;
   });
-  expect(await primera).toBe(true);
-  expect(await segunda).toBeNull(); // ignorado: no es un fallo que haya que avisar
-  expect(result.current.cerrandoSesion).toBe(false);
+  expect(await first).toBe(true);
+  expect(await second).toBeNull(); // ignorado: no es un fallo que haya que avisar
+  expect(result.current.signingOut).toBe(false);
 });

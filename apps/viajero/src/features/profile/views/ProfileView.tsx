@@ -11,8 +11,8 @@ import { AppRoutes } from '@/router';
 import { Divider, Icon, OutlinedButton, SectionLabel, Text, TextButton, PageTitle, type IconName } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
-import { SelectorApariencia } from '../components/SelectorApariencia';
-import { TarjetaInfo } from '../components/TarjetaInfo';
+import { AppearancePicker } from '../components/AppearancePicker';
+import { InfoCard } from '../components/InfoCard';
 import { useProfileViewModel, type ProfileViewModel } from '../view-models/useProfileViewModel';
 
 /**
@@ -21,67 +21,67 @@ import { useProfileViewModel, type ProfileViewModel } from '../view-models/usePr
  * Agencias y Reservas, en Flutter no es keep-alive: carga al montarse.
  */
 export function ProfileView() {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const router = useRouter();
   const { auth } = useDependencies();
   const vm = useProfileViewModel({ auth });
-  const { cargar } = vm;
+  const { load } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
-  const cerrarSesion = async () => {
-    if ((await vm.cerrarSesion()) === false) showSnackbar('No pudimos cerrar la sesión. Intenta de nuevo.');
+  const handleSignOut = async () => {
+    if ((await vm.signOut()) === false) showSnackbar('No pudimos cerrar la sesión. Intenta de nuevo.');
   };
 
   return (
-    <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-ProfileView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title={<PageTitle text="Perfil" />} />
-      <ScrollView contentContainerStyle={estilos.lista}>
+      <ScrollView contentContainerStyle={styles.list}>
         {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
-        <View testID="columna-perfil" style={estilos.columna}>
-          <Identidad vm={vm} />
+        <View testID="columna-perfil" style={styles.column}>
+          <Identity vm={vm} />
           <View style={{ height: 28 }} />
           <SectionLabel text="Apariencia" />
-          <SelectorApariencia />
+          <AppearancePicker />
           <View style={{ height: 24 }} />
           <SectionLabel text="Confianza" />
-          <TarjetaInfo
-            icono="verified_user_rounded"
-            titulo="Compra protegida"
-            cuerpo="Solo mostramos agencias con RNT vigente y matrícula mercantil verificadas por el equipo Diverso. Si una agencia cambia sus datos o se le vence el RNT, sus planes se ocultan hasta revalidarla."
+          <InfoCard
+            icon="verified_user_rounded"
+            title="Compra protegida"
+            body="Solo mostramos agencias con RNT vigente y matrícula mercantil verificadas por el equipo Diverso. Si una agencia cambia sus datos o se le vence el RNT, sus planes se ocultan hasta revalidarla."
           />
           <View style={{ height: 12 }} />
-          <TarjetaInfo
-            icono="privacy_tip_rounded"
-            titulo="Tus datos"
-            cuerpo="Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, actualizar o pedir la supresión de tus datos en cualquier momento."
+          <InfoCard
+            icon="privacy_tip_rounded"
+            title="Tus datos"
+            body="Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, actualizar o pedir la supresión de tus datos en cualquier momento."
           />
           <View style={{ height: 24 }} />
           <SectionLabel text="Documentos legales" />
           <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card, overflow: 'hidden' }}>
-            <FilaLegal
-              icono="shield_outlined"
-              titulo="Política de tratamiento de datos"
+            <LegalRow
+              icon="shield_outlined"
+              title="Política de tratamiento de datos"
               onPress={() => router.push(AppRoutes.legal('privacidad') as Href)}
             />
             <Divider color={withAlpha(cs.outlineVariant, 0.5)} style={{ marginLeft: 56 }} />
-            <FilaLegal
-              icono="description_outlined"
-              titulo="Términos y condiciones"
+            <LegalRow
+              icon="description_outlined"
+              title="Términos y condiciones"
               onPress={() => router.push(AppRoutes.legal('terminos-viajeros') as Href)}
             />
           </View>
           <View style={{ height: 28 }} />
           <OutlinedButton
             accessibilityLabel="Cerrar sesión"
-            onPress={vm.cerrandoSesion ? null : () => void cerrarSesion()}
+            onPress={vm.signingOut ? null : () => void handleSignOut()}
             style={{ paddingLeft: 16 }}
           >
-            {vm.cerrandoSesion ? <ButtonSpinner /> : <Icon name="logout_rounded" size={18} color={cs.error} />}
-            <Text style={{ color: vm.cerrandoSesion ? undefined : cs.error }}>Cerrar sesión</Text>
+            {vm.signingOut ? <ButtonSpinner /> : <Icon name="logout_rounded" size={18} color={cs.error} />}
+            <Text style={{ color: vm.signingOut ? undefined : cs.error }}>Cerrar sesión</Text>
           </OutlinedButton>
         </View>
       </ScrollView>
@@ -91,22 +91,22 @@ export function ProfileView() {
 }
 
 /** Avatar, nombre y correo; si el perfil no cargó, un aviso con «Reintentar». */
-function Identidad({ vm }: { vm: ProfileViewModel }) {
+function Identity({ vm }: { vm: ProfileViewModel }) {
   const cs = useTheme().colorScheme;
   return (
-    <View style={estilos.identidad}>
-      <View style={[estilos.avatar, { backgroundColor: cs.primaryContainer }]}>
-        <Text style={{ fontSize: AppText.heading3xl, fontWeight: '800', color: cs.onPrimaryContainer }}>{vm.inicial}</Text>
+    <View style={styles.identity}>
+      <View style={[styles.avatar, { backgroundColor: cs.primaryContainer }]}>
+        <Text style={{ fontSize: AppText.heading3xl, fontWeight: '800', color: cs.onPrimaryContainer }}>{vm.initial}</Text>
       </View>
       <View style={{ height: 12 }} />
       <Text style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' }}>
-        {vm.nombre}
+        {vm.name}
       </Text>
       <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant, textAlign: 'center' }}>{vm.email}</Text>
       {vm.error !== null ? (
-        <View style={estilos.error}>
+        <View style={styles.error}>
           <Text style={{ fontSize: AppText.detail, color: cs.error, textAlign: 'center' }}>{vm.error}</Text>
-          <TextButton text="Reintentar" onPress={() => void vm.cargar()} />
+          <TextButton text="Reintentar" onPress={() => void vm.load()} />
         </View>
       ) : null}
     </View>
@@ -117,24 +117,24 @@ function Identidad({ vm }: { vm: ProfileViewModel }) {
  * `ListTile` de un documento legal: ícono, título (16), «Versión …» (14 onSurfaceVariant) y
  * chevron; dos líneas → alto 72.
  */
-function FilaLegal({ icono, titulo, onPress }: { icono: IconName; titulo: string; onPress: () => void }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+function LegalRow({ icon, title, onPress }: { icon: IconName; title: string; onPress: () => void }) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={titulo} onPress={onPress} style={estilos.fila}>
+    <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={styles.row}>
       {({ pressed }) => (
         <>
           {pressed ? (
             <View
               pointerEvents="none"
-              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, tema.components.pressedOpacity) }]}
+              style={[StyleSheet.absoluteFill, { backgroundColor: withAlpha(cs.onSurface, theme.components.pressedOpacity) }]}
             />
           ) : null}
-          <Icon name={icono} size={24} color={cs.onSurfaceVariant} />
+          <Icon name={icon} size={24} color={cs.onSurfaceVariant} />
           <View style={{ width: 16 }} />
-          <View style={estilos.flex}>
+          <View style={styles.flex}>
             <Text height={1.5} style={{ fontSize: AppText.subtitle, letterSpacing: 0.5, color: cs.onSurface }}>
-              {titulo}
+              {title}
             </Text>
             <Text style={{ color: cs.onSurfaceVariant }}>{`Versión ${LEGAL_VERSION}`}</Text>
           </View>
@@ -147,14 +147,14 @@ function FilaLegal({ icono, titulo, onPress }: { icono: IconName; titulo: string
 }
 
 /** Ancho máximo de la columna del perfil en pantallas anchas. */
-const ANCHO_MAXIMO = 720;
+const MAX_WIDTH = 720;
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  lista: { paddingLeft: 20, paddingTop: 12, paddingRight: 20, paddingBottom: 24 },
-  columna: { width: '100%', maxWidth: ANCHO_MAXIMO, alignSelf: 'center' },
-  identidad: { alignItems: 'center' },
+  list: { paddingLeft: 20, paddingTop: 12, paddingRight: 20, paddingBottom: 24 },
+  column: { width: '100%', maxWidth: MAX_WIDTH, alignSelf: 'center' },
+  identity: { alignItems: 'center' },
   avatar: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
   error: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },
-  fila: { flexDirection: 'row', alignItems: 'center', minHeight: 72, paddingHorizontal: 16, paddingVertical: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 72, paddingHorizontal: 16, paddingVertical: 8 },
 });

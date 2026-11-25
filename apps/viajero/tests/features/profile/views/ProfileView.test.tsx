@@ -22,15 +22,15 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * `profile_view_test.dart` (+ apariencia y documentos legales).
  */
 
-async function abrir(auth: AuthFalso) {
+async function renderProfile(auth: AuthFalso) {
   await fijarVentana(800, 1600);
   // El tema arranca en «Sistema», como la app (no se persiste).
   await renderPantalla(<ProfileView />, { dependencias: dependenciasDePrueba({ auth }), modo: 'system' });
   await asentarPantalla();
 }
 
-const tocar = async (texto: string) => {
-  await fireEvent.press(screen.getByText(texto));
+const tap = async (text: string) => {
+  await fireEvent.press(screen.getByText(text));
   await asentarPantalla();
 };
 
@@ -41,7 +41,7 @@ afterEach(async () => {
 });
 
 test('muestra el nombre, la inicial y el correo del viajero', async () => {
-  await abrir(new AuthFalso());
+  await renderProfile(new AuthFalso());
 
   expect(screen.getByText('Perfil')).toBeOnTheScreen();
   expect(screen.getByText('Ana')).toBeOnTheScreen();
@@ -53,7 +53,7 @@ test('muestra el nombre, la inicial y el correo del viajero', async () => {
 test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el nombre', async () => {
   const auth = new AuthFalso();
   auth.falloAlCargarPerfil = new Error('sin red');
-  await abrir(auth);
+  await renderProfile(auth);
 
   expect(screen.getByText('Viajero')).toBeOnTheScreen();
   expect(screen.getByText('V')).toBeOnTheScreen();
@@ -64,7 +64,7 @@ test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el 
   );
 
   auth.falloAlCargarPerfil = null;
-  await tocar('Reintentar');
+  await tap('Reintentar');
 
   expect(screen.getByText('Ana')).toBeOnTheScreen();
   expect(screen.queryByText('No pudimos cargar tu perfil.')).toBeNull();
@@ -72,9 +72,9 @@ test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el 
 
 test('«Cerrar sesión» cierra la sesión', async () => {
   const auth = new AuthFalso();
-  await abrir(auth);
+  await renderProfile(auth);
 
-  await tocar('Cerrar sesión');
+  await tap('Cerrar sesión');
 
   expect(await auth.currentUserId()).toBeNull();
 });
@@ -82,16 +82,16 @@ test('«Cerrar sesión» cierra la sesión', async () => {
 test('si cerrar la sesión falla lo dice en un aviso', async () => {
   const auth = new AuthFalso();
   auth.falloAlSalir = new Error('sin red');
-  await abrir(auth);
+  await renderProfile(auth);
 
-  await tocar('Cerrar sesión');
+  await tap('Cerrar sesión');
 
   expect(screen.getByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeOnTheScreen();
   expect(await auth.currentUserId()).toBe('viajero-1');
 });
 
 test('secciones: apariencia, confianza y documentos legales con la versión vigente', async () => {
-  await abrir(new AuthFalso());
+  await renderProfile(new AuthFalso());
 
   expect(screen.getByText('APARIENCIA')).toBeOnTheScreen();
   expect(screen.getByText('CONFIANZA')).toBeOnTheScreen();
@@ -103,65 +103,65 @@ test('secciones: apariencia, confianza y documentos legales con la versión vige
 });
 
 test('los documentos legales se abren encima del perfil', async () => {
-  await abrir(new AuthFalso());
+  await renderProfile(new AuthFalso());
 
-  await tocar('Política de tratamiento de datos');
+  await tap('Política de tratamiento de datos');
   expect(routerFalso.push).toHaveBeenLastCalledWith('/legal/privacidad');
 
-  await tocar('Términos y condiciones');
+  await tap('Términos y condiciones');
   expect(routerFalso.push).toHaveBeenLastCalledWith('/legal/terminos-viajeros');
 });
 
 test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia el tema', async () => {
-  await abrir(new AuthFalso());
-  const segmento = (nombre: string) => screen.getByRole('button', { name: nombre });
+  await renderProfile(new AuthFalso());
+  const segment = (name: string) => screen.getByRole('button', { name });
 
-  expect(segmento('Sistema')).toBeSelected();
+  expect(segment('Sistema')).toBeSelected();
 
-  await fireEvent.press(segmento('Oscuro'));
+  await fireEvent.press(segment('Oscuro'));
   await asentarPantalla();
-  expect(segmento('Oscuro')).toBeSelected();
-  expect(segmento('Sistema')).not.toBeSelected();
+  expect(segment('Oscuro')).toBeSelected();
+  expect(segment('Sistema')).not.toBeSelected();
   // El tema efectivo cambió: el título usa el onSurface del modo oscuro.
   expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).not.toBe(lightTheme.colorScheme.onSurface);
 
-  await fireEvent.press(segmento('Claro'));
+  await fireEvent.press(segment('Claro'));
   await asentarPantalla();
-  expect(segmento('Claro')).toBeSelected();
+  expect(segment('Claro')).toBeSelected();
   expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).toBe(lightTheme.colorScheme.onSurface);
 });
 
 test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos toques, una sola llamada', async () => {
   const auth = new AuthFalso();
-  const salida = compuerta();
-  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => salida.promesa);
-  await abrir(auth);
-  const boton = () => screen.getByRole('button', { name: 'Cerrar sesión' });
+  const signOutGate = compuerta();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promesa);
+  await renderProfile(auth);
+  const button = () => screen.getByRole('button', { name: 'Cerrar sesión' });
 
-  await fireEvent.press(boton());
-  await fireEvent.press(boton());
+  await fireEvent.press(button());
+  await fireEvent.press(button());
   await asentarPantalla();
 
   expect(signOut).toHaveBeenCalledTimes(1);
-  expect(boton()).toBeDisabled();
+  expect(button()).toBeDisabled();
   expect(screen.getByTestId('girador-de-boton')).toBeOnTheScreen();
   // El segundo toque se ignora: no es un fallo que haya que avisar.
   expect(screen.queryByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeNull();
 
-  salida.fallar(new Error('sin red'));
+  signOutGate.fallar(new Error('sin red'));
   await asentarPantalla();
 
-  expect(boton()).toBeEnabled();
+  expect(button()).toBeEnabled();
   expect(screen.queryByTestId('girador-de-boton')).toBeNull();
   expect(screen.getByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeOnTheScreen();
 });
 
 test('en pantallas anchas el contenido va en una columna centrada de 720 como máximo', async () => {
-  await abrir(new AuthFalso());
+  await renderProfile(new AuthFalso());
   await fijarVentana(1280, 900);
 
-  const columna = StyleSheet.flatten(screen.getByTestId('columna-perfil').props.style) ?? {};
-  expect(columna.maxWidth).toBe(720);
-  expect(columna.alignSelf).toBe('center');
-  expect(columna.width).toBe('100%');
+  const column = StyleSheet.flatten(screen.getByTestId('columna-perfil').props.style) ?? {};
+  expect(column.maxWidth).toBe(720);
+  expect(column.alignSelf).toBe('center');
+  expect(column.width).toBe('100%');
 });

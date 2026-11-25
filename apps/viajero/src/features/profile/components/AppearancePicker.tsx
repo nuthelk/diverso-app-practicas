@@ -8,9 +8,9 @@ import { AppRadii, useTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
  * del tema (`useThemeMode`, el `ThemeModeViewModel`). No se persiste (§3.10): al reiniciar la app
  * vuelve a «Sistema», igual que en Flutter.
  */
-export function SelectorApariencia() {
+export function AppearancePicker() {
   const cs = useTheme().colorScheme;
-  const { mode: modo, setMode: setModo } = useThemeMode();
+  const { mode, setMode } = useThemeMode();
   return (
     <View style={{ padding: 6, backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadii.card }}>
       <SegmentedButton<ThemeMode>
@@ -19,8 +19,8 @@ export function SelectorApariencia() {
           { value: 'light', label: 'Claro', icon: 'light_mode_rounded' },
           { value: 'dark', label: 'Oscuro', icon: 'dark_mode_rounded' },
         ]}
-        selected={modo}
-        onChange={setModo}
+        selected={mode}
+        onChange={setMode}
       />
     </View>
   );
