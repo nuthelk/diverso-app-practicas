@@ -151,8 +151,14 @@ export function Chip({
   );
 }
 
-/** Alias con el nombre de Flutter para los chips de filtro con ✕. */
-export const InputChip = Chip;
+/**
+ * Chip de filtro con ✕ (el `InputChip` de Material 3): la misma píldora transparente con borde de
+ * 1 px `outlineVariant`. Sin borde, «Jericó ✕» o «Hasta $ 450.000 ✕» se leían como texto suelto.
+ */
+export function InputChip({ style, ...props }: ChipProps) {
+  const cs = useTheme().colorScheme;
+  return <Chip {...props} style={[{ borderWidth: 1, borderColor: cs.outlineVariant }, style]} />;
+}
 
 export interface Segmento<T extends string> {
   valor: T;

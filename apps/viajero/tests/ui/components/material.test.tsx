@@ -182,13 +182,15 @@ describe('TextField', () => {
 });
 
 describe('InputChip', () => {
-  it('transparente, etiqueta 13 w600 onSurface y botón de borrar', async () => {
+  it('píldora transparente con borde 1 px outlineVariant (input chip de M3), etiqueta 13 w600 onSurface y botón de borrar', async () => {
     const onBorrar = jest.fn();
     await renderConTema(
       <InputChip icono="location_on_outlined" etiqueta="Guatapé" onBorrar={onBorrar} etiquetaBorrar="Quitar destino" />,
     );
     const chip = estilo(screen.getByTestId('input-chip'));
     expect(chip.backgroundColor).toBe('transparent');
+    // Sin borde se leía como texto suelto junto a los demás filtros.
+    expect([chip.borderWidth, chip.borderColor]).toEqual([1, cs.outlineVariant]);
     expect(chip.borderRadius).toBe(999);
     expect(chip.height).toBe(32);
     const t = estilo(screen.getByText('Guatapé'));
