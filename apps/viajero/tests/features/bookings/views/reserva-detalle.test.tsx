@@ -249,6 +249,12 @@ describe('detalle de la reserva', () => {
     expect(screen.getByText('Cancelar')).toBeOnTheScreen();
   });
 
+  test('itinerario: la línea de tiempo termina en el último paso (2 pasos, 1 tramo)', async () => {
+    await abrir('/reservas/res-1', [reserva()]);
+
+    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(1);
+  });
+
   test('carga en frío por id (sin extra) con BookingRepository.reserva', async () => {
     const { consultas } = await abrir('/reservas/res-1', [reserva()]);
 

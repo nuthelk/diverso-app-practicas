@@ -149,7 +149,7 @@ function ContenidoFicha({ plan, resenas }: { plan: Plan; resenas: readonly Revie
         <>
           <SectionLabel texto="Itinerario" />
           {plan.itinerario.map((paso, i) => (
-            <PasoItinerario key={`${i}-${paso.hora}`} paso={paso} />
+            <PasoItinerario key={`${i}-${paso.hora}`} paso={paso} ultimo={i === plan.itinerario.length - 1} />
           ))}
           <View style={{ height: 24 }} />
         </>

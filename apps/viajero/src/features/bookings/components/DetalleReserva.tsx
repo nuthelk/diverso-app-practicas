@@ -77,7 +77,7 @@ export function DetalleReserva({ onVolver, ...props }: AccionesProps & { onVolve
             <View style={{ height: 24 }} />
             <SectionLabel texto="Itinerario" />
             {plan.itinerario.map((paso, i) => (
-              <PasoItinerario key={i} paso={paso} />
+              <PasoItinerario key={i} paso={paso} ultimo={i === plan.itinerario.length - 1} />
             ))}
           </>
         ) : null}

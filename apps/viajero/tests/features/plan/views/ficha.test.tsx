@@ -305,6 +305,12 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
     expect(screen.getByText('PUNTO DE ENCUENTRO')).toBeOnTheScreen();
     expect(screen.getByText('Parque de Santa Fe')).toBeOnTheScreen();
   });
+
+  test('itinerario: la línea de tiempo termina en el último paso (12 pasos, 11 tramos)', async () => {
+    await abrir(new CatalogoFalso({ detalles: { 'plan-1': planLargo() } }));
+
+    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(11);
+  });
 });
 
 describe('pantallas anchas', () => {

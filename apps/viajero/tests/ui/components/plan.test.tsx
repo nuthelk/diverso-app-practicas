@@ -86,4 +86,16 @@ describe('PasoItinerario', () => {
     expect(act.fontSize).toBe(14);
     expect(act.lineHeight).toBeCloseTo(14 * 1.45, 5);
   });
+
+  it('la línea de tiempo une los puntos y termina en el último (no sigue por debajo)', async () => {
+    await renderConTema(
+      <>
+        <PasoItinerario paso={{ hora: '8:00', actividad: 'Desayuno típico' }} />
+        <PasoItinerario paso={{ hora: '9:00', actividad: 'Caminata' }} />
+        <PasoItinerario paso={{ hora: '12:00', actividad: 'Regreso' }} ultimo />
+      </>,
+    );
+    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(2);
+    expect(screen.getByText('Regreso')).toBeOnTheScreen();
+  });
 });

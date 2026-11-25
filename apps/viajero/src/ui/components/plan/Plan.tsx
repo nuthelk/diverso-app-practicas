@@ -63,8 +63,11 @@ export interface PasoItinerarioDatos {
   actividad: string;
 }
 
-/** Un paso del itinerario: hora (62, a la derecha), punto + línea de tiempo y la actividad. */
-export function PasoItinerario({ paso }: { paso: PasoItinerarioDatos }) {
+/**
+ * Un paso del itinerario: hora (62, a la derecha), punto + línea de tiempo y la actividad. La línea
+ * baja hasta el punto del paso siguiente: el [ultimo] no la dibuja (terminaría en el vacío).
+ */
+export function PasoItinerario({ paso, ultimo = false }: { paso: PasoItinerarioDatos; ultimo?: boolean }) {
   const cs = useTheme().colorScheme;
   return (
     <View style={estilos.fila}>
@@ -77,7 +80,9 @@ export function PasoItinerario({ paso }: { paso: PasoItinerarioDatos }) {
       <View style={{ width: 14 }} />
       <View style={estilos.linea}>
         <View style={[estilos.punto, { backgroundColor: cs.primary }]} />
-        <View style={[estilos.flex, { width: 1.6, backgroundColor: cs.outlineVariant }]} />
+        {ultimo ? null : (
+          <View testID="linea-itinerario" style={[estilos.flex, { width: 1.6, backgroundColor: cs.outlineVariant }]} />
+        )}
       </View>
       <View style={{ width: 14 }} />
       <View style={[estilos.flex, { paddingBottom: 16 }]}>
