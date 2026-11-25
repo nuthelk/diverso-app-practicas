@@ -49,6 +49,28 @@ const RELLENO_V = 14;
 const IZQUIERDA = 20;
 const ANCHO_PREFIJO = 48;
 
+/**
+ * Geometría del campo (Material 3, «filled»). Con etiqueta la caja mide 56: 24 arriba para que la
+ * etiqueta flote DENTRO (a 8 del borde, 12 px de alto) y 8 abajo; así el borde de foco nunca la
+ * atraviesa ni la etiqueta pisa el texto. Sin etiqueta (p. ej. el buscador, solo pista): 14 y 14.
+ */
+export function medidasCampo({ conEtiqueta, lineas, anchoBorde }: { conEtiqueta: boolean; lineas: number; anchoBorde: number }) {
+  const arriba = conEtiqueta ? 24 : RELLENO_V;
+  const abajo = conEtiqueta ? 8 : RELLENO_V;
+  const altoContenido = ALTO_LINEA * Math.max(1, lineas);
+  const altoCaja = arriba + altoContenido + abajo;
+  return {
+    arriba,
+    abajo,
+    altoContenido,
+    altoCaja,
+    // Reposo: centrada en la caja (o en la primera línea si es multilínea).
+    topReposo: lineas > 1 ? arriba + 4 : (altoCaja - 16) / 2,
+    // Flotando: dentro de la caja, nunca encima del borde.
+    topFlotando: Math.max(8, anchoBorde),
+  };
+}
+
 export function TextField({
   valor,
   onChangeText,
@@ -92,12 +114,13 @@ export function TextField({
   const borde = hayError ? (foco ? input.bordeFocoError : input.bordeError) : foco ? input.bordeFoco : null;
   const anchoBorde = borde?.width ?? 0;
   const izquierdaContenido = icono ? ANCHO_PREFIJO + 4 : IZQUIERDA;
-  const altoContenido = multilinea ? ALTO_LINEA * lineas : ALTO_LINEA;
-  const altoCaja = RELLENO_V * 2 + altoContenido;
+  const { arriba, abajo, altoContenido, altoCaja, topReposo, topFlotando } = medidasCampo({
+    conEtiqueta: !!etiqueta,
+    lineas,
+    anchoBorde,
+  });
 
   const colorEtiqueta = hayError ? cs.error : foco ? cs.primary : cs.onSurfaceVariant;
-  // Reposo: centrada en la línea (o arriba si es multilínea). Flotando: 12 px, a -6 del borde.
-  const topReposo = multilinea ? RELLENO_V + 4 : (altoCaja - 16) / 2;
   const fuente = Platform.OS === 'android' || Platform.OS === 'web' ? familiaRoboto('400') : undefined;
   const cuerpo = textTheme.bodyLarge;
 
@@ -116,14 +139,15 @@ export function TextField({
             // El borde de Flutter se pinta encima, no empuja el contenido.
             paddingLeft: Math.max(0, (icono ? 0 : IZQUIERDA) - anchoBorde),
             paddingRight: Math.max(0, (sufijo ? 0 : IZQUIERDA) - anchoBorde),
-            paddingVertical: Math.max(0, RELLENO_V - anchoBorde),
+            paddingTop: Math.max(0, arriba - anchoBorde),
+            paddingBottom: Math.max(0, abajo - anchoBorde),
             alignItems: multilinea ? 'flex-start' : 'center',
             opacity: deshabilitado ? 0.38 : 1,
           },
         ]}
       >
         {icono ? (
-          <View style={[estilos.prefijo, { marginLeft: -anchoBorde, marginRight: 4 }]}>
+          <View style={[estilos.prefijo, { marginLeft: -anchoBorde, marginRight: 4 }, multilinea ? null : estirar(arriba, abajo, anchoBorde)]}>
             <Icono nombre={icono} size={24} color={cs.onSurfaceVariant} />
           </View>
         ) : null}
@@ -163,25 +187,24 @@ export function TextField({
         {/* Como el suffixIcon de Flutter: se centra en todo el alto de la caja SIN agrandarla (un
             IconButton de 48 dentro de una caja de 52 la estiraba a 76). */}
         {sufijo ? (
-          <View testID="sufijo" style={[estilos.sufijo, { marginRight: -anchoBorde, marginVertical: -(RELLENO_V - anchoBorde) }]}>
+          <View testID="sufijo" style={[estilos.sufijo, { marginRight: -anchoBorde }, estirar(arriba, abajo, anchoBorde)]}>
             {sufijo}
           </View>
         ) : null}
         {etiqueta ? (
           <Animated.View
+            testID="etiqueta-flotante"
             pointerEvents="none"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             style={[
               estilos.etiqueta,
               {
-                left: progreso.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [izquierdaContenido - anchoBorde, IZQUIERDA - anchoBorde],
-                }),
+                // Siempre alineada con el texto: flotando dentro de la caja no puede ir sobre el ícono.
+                left: izquierdaContenido - anchoBorde,
                 top: progreso.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [topReposo - anchoBorde, -6 - anchoBorde],
+                  outputRange: [topReposo - anchoBorde, topFlotando - anchoBorde],
                 }),
               },
             ]}
@@ -221,9 +244,17 @@ export function TextField({
   );
 }
 
+/**
+ * Ícono o botón a los lados: ocupa TODO el alto de la caja (márgenes negativos iguales al relleno)
+ * y se centra ahí, como el prefixIcon/suffixIcon de Flutter; no la agranda.
+ */
+function estirar(arriba: number, abajo: number, anchoBorde: number) {
+  return { alignSelf: 'stretch' as const, marginTop: -(arriba - anchoBorde), marginBottom: -(abajo - anchoBorde) };
+}
+
 const estilos = StyleSheet.create({
   caja: { flexDirection: 'row' },
-  prefijo: { width: ANCHO_PREFIJO, height: ALTO_LINEA, alignItems: 'center', justifyContent: 'center' },
+  prefijo: { width: ANCHO_PREFIJO, minHeight: ALTO_LINEA, alignItems: 'center', justifyContent: 'center' },
   sufijo: { alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, padding: 0, margin: 0 },
   etiqueta: { position: 'absolute', right: IZQUIERDA },

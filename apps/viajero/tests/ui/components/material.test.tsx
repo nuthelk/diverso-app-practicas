@@ -12,6 +12,7 @@ import {
   Text,
   TextButton,
   TextField,
+  medidasCampo,
 } from '@/ui/components';
 import { temaClaro, temaOscuro } from '@/ui/theme';
 
@@ -143,7 +144,7 @@ describe('IconButton', () => {
 });
 
 describe('TextField', () => {
-  it('relleno negro 4 %, radio 14, alto 52; texto bodyLarge; etiqueta que flota al enfocar', async () => {
+  it('relleno negro 4 %, radio 14, alto 56 con etiqueta; texto bodyLarge; etiqueta que flota al enfocar', async () => {
     const onChangeText = jest.fn();
     await renderConTema(
       <TextField etiqueta="Correo" icono="mail_outline_rounded" valor="" onChangeText={onChangeText} />,
@@ -151,7 +152,7 @@ describe('TextField', () => {
     const caja = estilo(screen.getByTestId('text-field'));
     expect(caja.backgroundColor).toBe('rgba(0, 0, 0, 0.04)');
     expect(caja.borderRadius).toBe(14);
-    expect(caja.minHeight).toBe(52);
+    expect(caja.minHeight).toBe(56);
     const input = screen.getByLabelText('Correo');
     const ti = estilo(input);
     expect([ti.fontSize, ti.letterSpacing, ti.color]).toEqual([16, 0.5, '#1D1B20']);
@@ -173,9 +174,10 @@ describe('TextField', () => {
     expect([e.fontSize, e.letterSpacing, e.color]).toEqual([12, 0.4, cs.error]);
   });
 
-  it('pista (hint) sin etiqueta', async () => {
+  it('pista (hint) sin etiqueta: caja de 52', async () => {
     await renderConTema(<TextField pista="Buscar destino…" valor="" onChangeText={() => {}} />);
     expect(screen.getByPlaceholderText('Buscar destino…')).toBeOnTheScreen();
+    expect(estilo(screen.getByTestId('text-field')).minHeight).toBe(52);
   });
 });
 
@@ -255,12 +257,48 @@ describe('Card, Divider y SegmentedButton', () => {
 });
 
 describe('TextField con sufijo', () => {
-  test('el sufijo (p. ej. un IconButton de 48) se centra en la caja sin agrandarla, como el suffixIcon de Flutter', async () => {
+  test('el sufijo (p. ej. un IconButton de 48) ocupa todo el alto de la caja sin agrandarla, como el suffixIcon de Flutter', async () => {
     await renderConTema(
       <TextField valor="" onChangeText={() => {}} etiqueta="Contraseña" sufijo={<IconButton icono="clear" tooltip="Borrar" onPress={() => {}} />} />,
     );
     const sufijo = StyleSheet.flatten(screen.getByTestId('sufijo').props.style);
-    // Caja: 14 de relleno arriba y abajo + 24 de línea = 52. Con -14 de margen el botón de 48 ocupa 20 < 24.
-    expect(sufijo.marginVertical).toBe(-14);
+    // Con etiqueta la caja es 24 arriba + 24 de línea + 8 abajo: los márgenes negativos lo estiran a 56.
+    expect([sufijo.marginTop, sufijo.marginBottom]).toEqual([-24, -8]);
+  });
+});
+
+describe('TextField: etiqueta con ícono', () => {
+  test('flotando, la etiqueta se alinea con el texto (no se monta sobre el ícono)', async () => {
+    await renderConTema(<TextField etiqueta="Correo" icono="mail_outline_rounded" valor="ana@correo.test" onChangeText={() => {}} />);
+    // Ícono: 48 de ancho + 4 de aire → el texto y la etiqueta empiezan en 52.
+    expect(StyleSheet.flatten(screen.getByTestId('etiqueta-flotante', { includeHiddenElements: true }).props.style).left).toBe(52);
+  });
+
+  test('sin ícono, la etiqueta empieza donde el texto (20)', async () => {
+    await renderConTema(<TextField etiqueta="Tu nombre" valor="Ana" onChangeText={() => {}} />);
+    expect(StyleSheet.flatten(screen.getByTestId('etiqueta-flotante', { includeHiddenElements: true }).props.style).left).toBe(20);
+  });
+});
+
+describe('medidasCampo (M3 filled)', () => {
+  test('con etiqueta: 56 de alto y la etiqueta flotante DENTRO de la caja, sin pisar el texto ni el borde', () => {
+    for (const anchoBorde of [0, 1.2, 1.6, 2]) {
+      const m = medidasCampo({ conEtiqueta: true, lineas: 1, anchoBorde });
+      expect(m.altoCaja).toBe(56);
+      // Flotando: 12 px de alto desde topFlotando; el borde ocupa [0, anchoBorde] y el texto empieza en `arriba`.
+      expect(m.topFlotando).toBeGreaterThanOrEqual(anchoBorde);
+      expect(m.topFlotando + 12).toBeLessThanOrEqual(m.arriba);
+      expect(m.topReposo).toBe((56 - 16) / 2);
+    }
+  });
+
+  test('sin etiqueta: 14 arriba y abajo, 52 de alto', () => {
+    expect(medidasCampo({ conEtiqueta: false, lineas: 1, anchoBorde: 0 })).toMatchObject({ arriba: 14, abajo: 14, altoCaja: 52 });
+  });
+
+  test('multilínea con etiqueta: la etiqueta en reposo arranca en la primera línea', () => {
+    const m = medidasCampo({ conEtiqueta: true, lineas: 5, anchoBorde: 0 });
+    expect(m.altoCaja).toBe(24 + 24 * 5 + 8);
+    expect(m.topReposo).toBe(m.arriba + 4);
   });
 });

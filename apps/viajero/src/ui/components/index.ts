@@ -8,7 +8,7 @@ export {
   type BotonProps,
   type IconButtonProps,
 } from './material/Botones';
-export { TextField, type TextFieldProps } from './material/TextField';
+export { medidasCampo, TextField, type TextFieldProps } from './material/TextField';
 export {
   Card,
   Chip,
