@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { DeviceEventEmitter, Platform, StyleSheet } from 'react-native';
 
 import { LoginView } from '@/features/auth/views/LoginView';
 
@@ -183,5 +183,106 @@ describe('contraseña', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'Ocultar contraseña' }));
     expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(true);
+  });
+});
+
+describe('avisos de los campos', () => {
+  test('antes del primer envío escribir no muestra avisos', async () => {
+    await abrir({ cuentaDemo: false });
+
+    await escribir('Correo', 'ana');
+    await escribir('Contraseña', '12');
+
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+    expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
+  });
+
+  test('tras un envío fallido, corregir un campo quita su aviso (y romperlo lo vuelve a mostrar)', async () => {
+    await abrir({ cuentaDemo: false });
+    await tocar('Entrar');
+    expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
+
+    await escribir('Correo', 'ana@correo.test');
+
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+    expect(screen.getByText('Mínimo 6 caracteres')).toBeOnTheScreen();
+
+    await escribir('Contraseña', 'secreto1');
+    expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
+
+    await escribir('Correo', 'ana');
+    expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
+  });
+
+  test('tras un envío fallido, «Usar cuenta demo» rellena y quita los avisos', async () => {
+    await abrir({ cuentaDemo: true });
+    await tocar('Entrar');
+    expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
+
+    await tocar('Usar cuenta demo');
+
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+    expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
+  });
+
+  test('cambiar entre «Entrar» y «Crear cuenta» limpia los avisos del intento anterior', async () => {
+    await abrir({ cuentaDemo: false });
+    await tocar('Entrar');
+    expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
+
+    await tocar('Crear cuenta nueva');
+
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+    expect(screen.queryByText('Mínimo 6 caracteres')).toBeNull();
+
+    await tocar('Crear cuenta');
+    expect(screen.getByText('Escribe tu nombre')).toBeOnTheScreen();
+
+    await tocar('Ya tengo cuenta — entrar');
+
+    expect(screen.queryByText('Escribe tu nombre')).toBeNull();
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+  });
+
+  test('tras cambiar de modo, escribir vuelve a no mostrar avisos hasta el próximo envío', async () => {
+    await abrir({ cuentaDemo: false });
+    await tocar('Entrar');
+    await tocar('Crear cuenta nueva');
+
+    await escribir('Correo', 'ana');
+
+    expect(screen.queryByText('Correo inválido')).toBeNull();
+  });
+});
+
+describe('teclado', () => {
+  // Expo SDK 58: Android es edge-to-edge y la ventana ya no se achica con el teclado; sin
+  // `behavior` el teclado taparía «Entrar» también en Android.
+  test.each([
+    ['ios', 'keyboardWillShow'],
+    ['android', 'keyboardDidShow'],
+  ] as const)('en %s el formulario deja sitio al teclado (relleno inferior)', async (so, evento) => {
+    const original = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { configurable: true, get: () => so });
+    try {
+      await abrir({ cuentaDemo: false });
+      const contenedor = screen.getByTestId('teclado-login');
+      await fireEvent(contenedor, 'layout', {
+        persist: () => {},
+        nativeEvent: { layout: { x: 0, y: 0, width: 420, height: 1000 } },
+      });
+
+      await act(async () => {
+        DeviceEventEmitter.emit(evento, {
+          duration: 0,
+          easing: 'keyboard',
+          endCoordinates: { screenX: 0, screenY: 700, width: 420, height: 300 },
+        });
+      });
+
+      expect(StyleSheet.flatten(screen.getByTestId('teclado-login').props.style).paddingBottom).toBe(300);
+    } finally {
+      Object.defineProperty(Platform, 'OS', { configurable: true, get: () => original });
+    }
   });
 });

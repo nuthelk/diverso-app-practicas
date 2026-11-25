@@ -37,6 +37,7 @@ export function FormularioLogin({
   conMarca,
   onCampo,
   onEnviar,
+  onAlternarModo,
   onUsarCuentaDemo,
 }: {
   vm: LoginViewModel;
@@ -45,6 +46,8 @@ export function FormularioLogin({
   conMarca: boolean;
   onCampo: (campo: keyof CamposLogin, valor: string) => void;
   onEnviar: () => void;
+  /** Cambia entre entrar y crear cuenta (la pantalla limpia además los avisos de los campos). */
+  onAlternarModo: () => void;
   onUsarCuentaDemo: () => void;
 }) {
   const cs = useTheme().colorScheme;
@@ -156,7 +159,7 @@ export function FormularioLogin({
       <View style={{ height: 10 }} />
       <TextButton
         texto={vm.esRegistro ? 'Ya tengo cuenta — entrar' : 'Crear cuenta nueva'}
-        onPress={vm.alternarModo}
+        onPress={onAlternarModo}
         style={estilos.centro}
       />
       {vm.ofreceCuentaDemo ? (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDependencies } from '@/composition';
@@ -23,20 +23,37 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
   const { width } = useWindowDimensions();
   const [campos, setCampos] = useState<CamposLogin>({ nombre: '', email: '', password: '' });
   const [errores, setErrores] = useState<ErroresLogin>({});
+  /**
+   * Tras un envío fallido los avisos se recalculan al escribir (`AutovalidateMode.onUserInteraction`
+   * después del submit): corregir un campo quita su aviso. Antes del primer envío no se avisa nada.
+   */
+  const [autovalidar, setAutovalidar] = useState(false);
 
-  /** `Form.validate()`: valida los campos visibles y deja los avisos hasta el próximo envío. */
+  /** Cambia los campos y, si ya hubo un envío fallido, revalida con los valores nuevos. */
+  const actualizar = (cambios: Partial<CamposLogin>) => {
+    const nuevos = { ...campos, ...cambios };
+    setCampos(nuevos);
+    if (autovalidar) setErrores(validarCampos(nuevos, vm.esRegistro));
+  };
+
+  /** `Form.validate()`: valida los campos visibles; si algo falla, pasa a revalidar al escribir. */
   const validar = (): boolean => {
-    const nuevos: ErroresLogin = {
-      nombre: vm.esRegistro && campos.nombre.trim().length < 2 ? 'Escribe tu nombre' : null,
-      email: !campos.email.includes('@') ? 'Correo inválido' : null,
-      password: campos.password.length < 6 ? 'Mínimo 6 caracteres' : null,
-    };
+    const nuevos = validarCampos(campos, vm.esRegistro);
     setErrores(nuevos);
-    return !nuevos.nombre && !nuevos.email && !nuevos.password;
+    const valido = !nuevos.nombre && !nuevos.email && !nuevos.password;
+    if (!valido) setAutovalidar(true);
+    return valido;
   };
 
   const enviar = () =>
     void vm.enviar({ formularioValido: validar(), nombre: campos.nombre, email: campos.email, password: campos.password });
+
+  /** Otro modo, otro formulario: los avisos del intento anterior no aplican. */
+  const alternarModo = () => {
+    setErrores({});
+    setAutovalidar(false);
+    vm.alternarModo();
+  };
 
   const ancha = width > AppTheme.bpCompact;
   const formulario = (
@@ -45,9 +62,10 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
       conMarca={!ancha}
       campos={campos}
       errores={errores}
-      onCampo={(campo, valor) => setCampos((antes) => ({ ...antes, [campo]: valor }))}
+      onCampo={(campo, valor) => actualizar({ [campo]: valor })}
       onEnviar={enviar}
-      onUsarCuentaDemo={() => setCampos((antes) => ({ ...antes, email: CORREO_DEMO, password: CLAVE_DEMO }))}
+      onAlternarModo={alternarModo}
+      onUsarCuentaDemo={() => actualizar({ email: CORREO_DEMO, password: CLAVE_DEMO })}
     />
   );
 
@@ -65,8 +83,9 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
   }
   return (
     <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      {/* iOS no achica la ventana con el teclado: sin esto taparía «Entrar». Android ya lo hace. */}
-      <KeyboardAvoidingView style={estilos.pantalla} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
+          esto el teclado taparía «Entrar». `padding` en ambas: con `height` el KAV pierde el flex. */}
+      <KeyboardAvoidingView testID="teclado-login" style={estilos.pantalla} behavior="padding">
         <ScrollView
           contentContainerStyle={[AppInsets.pantalla, estilos.centrado]}
           keyboardShouldPersistTaps="handled"
@@ -77,6 +96,15 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+/** Avisos de cada campo visible (`validator` de cada `TextFormField`); `null` si está bien. */
+function validarCampos(campos: CamposLogin, esRegistro: boolean): ErroresLogin {
+  return {
+    nombre: esRegistro && campos.nombre.trim().length < 2 ? 'Escribe tu nombre' : null,
+    email: !campos.email.includes('@') ? 'Correo inválido' : null,
+    password: campos.password.length < 6 ? 'Mínimo 6 caracteres' : null,
+  };
 }
 
 const estilos = StyleSheet.create({
