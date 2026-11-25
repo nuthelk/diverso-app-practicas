@@ -21,25 +21,24 @@ import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
 const pendientesDePrueba = ['tratamiento_datos', 'terminos_viajero'];
 
 /**
- * Pantallas (placeholder) que llegaron a montarse, aunque sea un instante: una pantalla real
- * cargaría sus datos al montarse (`reservas.consultas` en el test de Flutter), así que «no se
- * monta» es lo que garantiza que no carga nada.
+ * Cargas de datos que llegaron a pedirse a los repositorios (`reservas.consultas` en el test de
+ * Flutter): «no carga nada» se comprueba aquí, no con un render. Cada llamada queda anotada como
+ * `Repo.metodo(args)` y nunca resuelve, así la pantalla queda cargando y no hay efectos tardíos.
  */
-const mockMontadas: string[] = [];
-jest.mock('@/features/shell/components/PantallaPendiente', () => {
-  const real = jest.requireActual('@/features/shell/components/PantallaPendiente');
-  const React = require('react');
-  return {
-    PantallaPendiente: (props: { nombre: string }) => {
-      React.useEffect(() => {
-        mockMontadas.push(props.nombre);
-      }, [props.nombre]);
-      return React.createElement(real.PantallaPendiente, props);
+const cargas: string[] = [];
+function registrador<T extends object>(nombre: string): T {
+  return new Proxy({} as T, {
+    get(_objetivo, clave) {
+      if (typeof clave === 'symbol' || clave === 'then') return undefined;
+      return (...args: unknown[]) => {
+        cargas.push(`${nombre}.${String(clave)}(${args.map((a) => JSON.stringify(a)).join(', ')})`);
+        return new Promise(() => {});
+      };
     },
-  };
-});
+  });
+}
 beforeEach(() => {
-  mockMontadas.length = 0;
+  cargas.length = 0;
 });
 
 const pantallaConsentimiento = () => screen.queryByText('Antes de continuar');
@@ -47,7 +46,16 @@ const barraInferior = () => screen.queryByTestId('barra-inferior');
 const avisoSinVerificar = () => screen.queryByText(/No pudimos verificar tu autorización/);
 
 async function arrancar(auth: AuthFalso, url = '/') {
-  return arrancarApp(url, dependenciasDePrueba({ auth }));
+  return arrancarApp(
+    url,
+    dependenciasDePrueba({
+      auth,
+      reservas: registrador('BookingRepository'),
+      catalogo: registrador('CatalogRepository'),
+      resenas: registrador('ReviewRepository'),
+      pasarela: registrador('PaymentGateway'),
+    }),
+  );
 }
 
 async function marcarCasillasYAceptar() {
@@ -250,7 +258,7 @@ describe('guardia: mientras se verifica el consentimiento', () => {
     expect(r.getPathname()).toBe('/consentimiento');
     expect(r.getPathnameWithParams()).toBe('/consentimiento?desde=%2Freservas%2Fb-1');
     expect(pantallaVisible('ReservaDetalleView')).toBeNull();
-    expect(mockMontadas).toEqual([]);
+    expect(cargas).toEqual([]);
     expect(screen.getByTestId('consentimiento-verificando')).toBeOnTheScreen();
 
     await responder(auth.abiertas[0], []);
@@ -264,9 +272,8 @@ describe('guardia: mientras se verifica el consentimiento', () => {
 
     expect(r.getPathname()).toBe('/reservas/b-1');
     expect(pantallaVisible('ReservaDetalleView')).toBeOnTheScreen();
-    expect(screen.getByText('bookingId: "b-1"')).toBeOnTheScreen();
-    // Se montó una sola vez, ya con el consentimiento confirmado (T7: y cargó la reserva b-1).
-    expect(mockMontadas).toEqual(['ReservaDetalleView']);
+    // Cargó la reserva b-1 una sola vez, y recién con el consentimiento confirmado.
+    expect(cargas).toEqual(['BookingRepository.reserva("b-1")']);
   });
 
   test('V1: pendiente, tras aceptar se llega al enlace original', async () => {
@@ -373,7 +380,7 @@ describe('guardia: con error o pendiente nada protegido se abre', () => {
         expect(r.getPathname()).toBe(esperado);
         if (!url.startsWith('/legal/')) expect(pantallaConsentimiento()).toBeOnTheScreen();
         expect(screen.queryAllByTestId(/^pantalla-/)).toHaveLength(0);
-        expect(mockMontadas).toEqual([]);
+        expect(cargas).toEqual([]);
       });
     }
   }
@@ -393,6 +400,6 @@ describe('guardia: con error o pendiente nada protegido se abre', () => {
     expect(r.getPathname()).toBe('/consentimiento');
     expect(pantallaVisible('PlanDetailView')).toBeNull();
     expect(pantallaConsentimiento()).toBeOnTheScreen();
-    expect(mockMontadas).toEqual([]);
+    expect(cargas).toEqual([]);
   });
 });

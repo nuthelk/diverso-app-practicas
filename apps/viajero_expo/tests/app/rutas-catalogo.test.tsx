@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { act, fireEvent, screen } from 'expo-router/testing-library';
 
 import { AgenciaResumen, ExperienceCategory, Plan, PlanStatus } from '@/core';
@@ -102,7 +102,7 @@ describe('/comparar?ids=…', () => {
     const { r, catalogo } = await abrir(AppRoutes.legal('privacidad'));
 
     dejarPlanesParaComparar([plan('p1'), plan('p2')]);
-    await act(async () => router.push(AppRoutes.compararPlanes(['p1', 'p2'])));
+    await act(async () => router.push(AppRoutes.compararPlanes(['p1', 'p2']) as Href));
     await asentar();
 
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();

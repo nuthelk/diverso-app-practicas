@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
 import { StyleSheet } from 'react-native';
 
@@ -156,7 +156,7 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
     { initialUrl: '/' },
   );
   await asentar();
-  await act(async () => router.push(AppRoutes.legal('privacidad')));
+  await act(async () => router.push(AppRoutes.legal('privacidad') as Href));
   await asentar();
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
   const fondo = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
