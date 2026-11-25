@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { BookingStatus, sinCortes } from '@/core';
+import { BookingStatus, noLineBreaks } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
@@ -69,7 +69,7 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
             <EmptyState
               icono="event_busy_rounded"
               titulo="Reserva cancelada"
-              mensaje={sinCortes(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
+              mensaje={noLineBreaks(`La reserva ${reserva.code} está cancelada.${reembolso === null ? '' : ` ${reembolso}.`}`)}
               accion={<FilledButton variante="tonal" texto="Ver mis reservas" onPress={irAReservas} />}
             />
           </Estado>

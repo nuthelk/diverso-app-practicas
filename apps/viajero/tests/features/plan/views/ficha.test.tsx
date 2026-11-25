@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import {
   Agency,
   ExperienceCategory,
-  formatFechaCorta,
+  formatShortDate,
   ItineraryStep,
   Plan,
   PlanDate,
@@ -96,8 +96,8 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     await abrir(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba({ dates: fechas }) } }));
 
     for (const [id, textos] of [
-      ['f-1', [formatFechaCorta(fechas[0]!.date), '10 cupos']],
-      ['f-2', [formatFechaCorta(fechas[1]!.date), '¡Últimos 2!']],
+      ['f-1', [formatShortDate(fechas[0]!.date), '10 cupos']],
+      ['f-2', [formatShortDate(fechas[1]!.date), '¡Últimos 2!']],
     ] as const) {
       const chip = within(screen.getByTestId(`fecha-${id}`));
       for (const texto of textos) {

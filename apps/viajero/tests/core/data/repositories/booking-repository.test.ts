@@ -5,7 +5,7 @@ import { Booking } from '@/core/models/booking';
 import { BookingStatus } from '@/core/models/enums';
 import type { Row } from '@/core/models/row';
 import { LABEL_REFUND_STATUS, RefundStatus } from '@/core/models/refund';
-import { fechaLocal } from '@/core/utils/fechas';
+import { localDate } from '@/core/utils/dates';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
 import { capture, httpError, postgrestError } from '../../../support/errors';
@@ -104,7 +104,7 @@ describe('crearReserva', () => {
     expect(r.code).toBe('DIV-AB12');
     expect(r.totalAmount).toBe(300000);
     expect(r.planTitle).toBe('Guatapé');
-    expect(r.date).toEqual(fechaLocal(2026, 11, 20));
+    expect(r.date).toEqual(localDate(2026, 11, 20));
   });
 
   test('sin plan_titulo ni fecha: título vacío y fecha nula', async () => {

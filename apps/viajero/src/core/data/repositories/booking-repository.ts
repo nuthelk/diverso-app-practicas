@@ -3,7 +3,7 @@ import { Booking } from '../../models/booking';
 import { CreatedBooking } from '../../models/created-booking';
 import { asDouble, asString, asStringOr } from '../../models/row';
 import { CancellationResult, CancellationPreview } from '../../models/refund';
-import { parsearFecha } from '../../utils/fechas';
+import { parseDate } from '../../utils/dates';
 import type { BookingApi } from '../services/booking-api';
 import type { EdgeFunctionsApi } from '../services/edge-functions-api';
 import { llamarEdgeFunction } from './llamar-edge-function';
@@ -29,7 +29,7 @@ export class BookingRepository {
         code: asString(map['codigo']),
         totalAmount: asDouble(map['monto_total']),
         planTitle: asStringOr(map['plan_titulo'], ''),
-        date: map['fecha'] == null ? null : parsearFecha(String(map['fecha'])),
+        date: map['fecha'] == null ? null : parseDate(String(map['fecha'])),
       });
     } catch (e) {
       throw DiversoError.fromPostgrest(e);

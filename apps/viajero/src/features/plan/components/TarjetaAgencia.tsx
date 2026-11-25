@@ -1,7 +1,7 @@
 import { useRouter, type Href } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { AgencySummary, formatFechaTexto, type Agency } from '@/core';
+import { AgencySummary, formatDateInText, type Agency } from '@/core';
 import { AppRoutes } from '@/router';
 import { AgencyAvatar, Icono, Text, VerifiedBadge } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
@@ -37,7 +37,7 @@ export function TarjetaAgencia({ agency }: { agency: Agency }) {
         <Text style={{ fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant }}>{`Agencia local · RNT ${agency.rntNumber}`}</Text>
         {agency.rntValidUntil !== null ? (
           <Text style={{ fontSize: AppText.leyenda, color: cs.onSurfaceVariant }}>
-            {`RNT vigente hasta el ${formatFechaTexto(agency.rntValidUntil)}`}
+            {`RNT vigente hasta el ${formatDateInText(agency.rntValidUntil)}`}
           </Text>
         ) : null}
         {agency.isVerified ? (

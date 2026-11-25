@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { formatCOP, formatFechaCorta, valuesOf, ExperienceCategory } from '@/core';
+import { formatCOP, formatShortDate, valuesOf, ExperienceCategory } from '@/core';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
 import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, IconButton, InputChip, TextField, TituloPagina } from '@/ui/components';
@@ -101,7 +101,7 @@ export function CatalogView() {
                   <InputChip icono="location_on_outlined" tamanoIcono={15} etiqueta={vm.destino} onBorrar={() => void vm.setDestino(null)} />
                 ) : null}
                 {vm.fecha !== null ? (
-                  <InputChip icono="event_outlined" tamanoIcono={15} etiqueta={formatFechaCorta(vm.fecha)} onBorrar={() => void vm.setFecha(null)} />
+                  <InputChip icono="event_outlined" tamanoIcono={15} etiqueta={formatShortDate(vm.fecha)} onBorrar={() => void vm.setFecha(null)} />
                 ) : null}
                 {vm.precioMax !== null ? (
                   <InputChip

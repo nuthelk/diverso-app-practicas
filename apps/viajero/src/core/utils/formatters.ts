@@ -6,13 +6,13 @@
  */
 
 /** Índice = `Date#getDay()` (0 = domingo). Patrón `EEEE`. */
-export const DIAS_LARGOS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'] as const;
+export const LONG_DAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'] as const;
 
 /** Índice = `Date#getDay()` (0 = domingo). Patrón `EEE`. */
-export const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] as const;
+export const SHORT_DAY_NAMES = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] as const;
 
 /** Índice = `Date#getMonth()` (0 = enero). Patrón `MMMM`. */
-export const MESES_LARGOS = [
+export const LONG_MONTH_NAMES = [
   'enero',
   'febrero',
   'marzo',
@@ -28,7 +28,7 @@ export const MESES_LARGOS = [
 ] as const;
 
 /** Índice = `Date#getMonth()` (0 = enero). Patrón `MMM` («sept», no «sep», como CLDR/intl). */
-export const MESES_CORTOS = [
+export const SHORT_MONTH_NAMES = [
   'ene',
   'feb',
   'mar',
@@ -44,11 +44,11 @@ export const MESES_CORTOS = [
 ] as const;
 
 /** Formatea un monto en pesos colombianos: 165000 → "$ 165.000" (sin decimales). */
-export function formatCOP(monto: number): string {
+export function formatCOP(amount: number): string {
   // NumberFormat('#,##0') de Dart redondea la mitad alejándose de cero (Math.round no: -0.5 → -0).
-  const entero = Math.round(Math.abs(monto));
-  const miles = String(entero).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `$ ${monto < 0 && entero !== 0 ? '-' : ''}${miles}`;
+  const whole = Math.round(Math.abs(amount));
+  const thousands = String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `$ ${amount < 0 && whole !== 0 ? '-' : ''}${thousands}`;
 }
 
 /** Espacio que no parte la línea (U+00A0). */
@@ -60,23 +60,23 @@ const NBSP = '\u00A0';
  * final de una línea y la cifra abajo. `formatCOP` no cambia (paridad con `intl` de Dart y lo que
  * comparan muchas vistas): esto se aplica solo a la LÍNEA que lo contiene.
  */
-export function sinCortes(texto: string): string {
-  return texto.replace(/\$ (?=-?\d)/g, `$${NBSP}`).replace(/(\d) %/g, `$1${NBSP}%`);
+export function noLineBreaks(text: string): string {
+  return text.replace(/\$ (?=-?\d)/g, `$${NBSP}`).replace(/(\d) %/g, `$1${NBSP}%`);
 }
 
 /** Fecha de plan (sin hora): "sáb, 3 oct". Patrón Dart `EEE, d MMM`. */
-export function formatFechaCorta(fecha: Date): string {
-  return `${DIAS_CORTOS[fecha.getDay()]}, ${fecha.getDate()} ${MESES_CORTOS[fecha.getMonth()]}`;
+export function formatShortDate(date: Date): string {
+  return `${SHORT_DAY_NAMES[date.getDay()]}, ${date.getDate()} ${SHORT_MONTH_NAMES[date.getMonth()]}`;
 }
 
 /** Fecha de plan larga: "sábado 3 de octubre de 2026". Patrón Dart `EEEE d 'de' MMMM 'de' y`. */
-export function formatFechaLarga(fecha: Date): string {
-  return `${DIAS_LARGOS[fecha.getDay()]} ${formatFechaTexto(fecha)}`;
+export function formatLongDate(date: Date): string {
+  return `${LONG_DAY_NAMES[date.getDay()]} ${formatDateInText(date)}`;
 }
 
 /** Fecha para usar dentro de una frase: "24 de octubre de 2026". Patrón Dart `d 'de' MMMM 'de' y`. */
-export function formatFechaTexto(fecha: Date): string {
-  return `${fecha.getDate()} de ${MESES_LARGOS[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+export function formatDateInText(date: Date): string {
+  return `${date.getDate()} de ${LONG_MONTH_NAMES[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
-export { fechaToIso } from './fechas';
+export { dateToIso } from './dates';

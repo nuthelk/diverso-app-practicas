@@ -1,8 +1,8 @@
 import { buildComparisonRows } from '@/core/comparison/comparison-row';
 import { ExperienceCategory, PlanStatus } from '@/core/models/enums';
 import { Plan, PlanDate } from '@/core/models/plan';
-import { fechaLocal, fechaToIso } from '@/core/utils/fechas';
-import { hoyBogota } from '@/core/utils/hora-bogota';
+import { localDate, dateToIso } from '@/core/utils/dates';
+import { todayInBogota } from '@/core/utils/bogota-time';
 
 const plan = ({
   reviews = 0,
@@ -61,8 +61,8 @@ describe('buildComparisonRows (extra del port)', () => {
   });
 
   test('incluidos, próximos cupos y cancelación', () => {
-    const hoy = hoyBogota();
-    const enTres = fechaLocal(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
+    const hoy = todayInBogota();
+    const enTres = localDate(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
     const conFecha = plan({
       includesTransport: true,
       cancellationPolicy: 'Gratis hasta 48 h antes',
@@ -74,6 +74,6 @@ describe('buildComparisonRows (extra del port)', () => {
     expect(fila('comida')).toEqual(['—', '—']);
     expect(fila('cupos')).toEqual([`7 el ${enTres.getDate()}/${enTres.getMonth() + 1}`, 'Sin fechas']);
     expect(fila('cancelacion')).toEqual(['Gratis hasta 48 h antes', '—']);
-    expect(fechaToIso(enTres)).toMatch(/^\d{4}-\d\d-\d\d$/);
+    expect(dateToIso(enTres)).toMatch(/^\d{4}-\d\d-\d\d$/);
   });
 });

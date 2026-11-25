@@ -1,13 +1,13 @@
 import { Booking } from '@/core/models/booking';
 import { BookingStatus } from '@/core/models/enums';
 import { PlanDate } from '@/core/models/plan';
-import { fechaLocal, fechaUtc } from '@/core/utils/fechas';
+import { localDate, utcDate } from '@/core/utils/dates';
 
 /**
  * «Próxima» y «Reseñable» dependen de la salida congelada de la reserva (`bookings.salida_at`),
  * no de la fecha del plan ni de un margen de un día. El reloj se inyecta: nada depende de la hora real.
  */
-const now = fechaUtc(2026, 10, 25, 15, 0);
+const now = utcDate(2026, 10, 25, 15, 0);
 const MIN = 60_000;
 const DAY = 24 * 60 * MIN;
 const plus = (d: Date, ms: number) => new Date(d.getTime() + ms);
@@ -60,10 +60,10 @@ describe('esFutura', () => {
 
   test('sin salida congelada usa la fecha del plan', () => {
     expect(
-      booking({ planDate: fechaLocal(2026, 10, 26) }).isUpcoming(fechaLocal(2026, 10, 25, 23)),
+      booking({ planDate: localDate(2026, 10, 26) }).isUpcoming(localDate(2026, 10, 25, 23)),
     ).toBe(true);
     expect(
-      booking({ planDate: fechaLocal(2026, 10, 24) }).isUpcoming(fechaLocal(2026, 10, 25, 23)),
+      booking({ planDate: localDate(2026, 10, 24) }).isUpcoming(localDate(2026, 10, 25, 23)),
     ).toBe(false);
   });
 
@@ -149,14 +149,14 @@ describe('Booking.fromMap', () => {
 
   test('lee la salida congelada con su zona horaria', () => {
     const b = Booking.fromMap(row('2026-10-27T13:00:00+00:00'));
-    expect(b.departureAt).toEqual(fechaUtc(2026, 10, 27, 13));
+    expect(b.departureAt).toEqual(utcDate(2026, 10, 27, 13));
     expect(b.isUpcoming(now)).toBe(true);
   });
 
   test('sin salida_at queda en null y conResena la conserva', () => {
     expect(Booking.fromMap(row()).departureAt).toBeNull();
     const b = Booking.fromMap(row('2026-10-27T13:00:00+00:00')).withReview();
-    expect(b.departureAt).toEqual(fechaUtc(2026, 10, 27, 13));
+    expect(b.departureAt).toEqual(utcDate(2026, 10, 27, 13));
     expect(b.hasReview).toBe(true);
   });
 });

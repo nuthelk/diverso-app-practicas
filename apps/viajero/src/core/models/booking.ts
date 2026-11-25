@@ -9,7 +9,7 @@ import {
 import { asBoolOr, asDoubleOr, asInt, isRow, type Row, listOf, asString, asStringOr } from './row';
 import { Plan, PlanDate } from './plan';
 import { LABEL_REFUND_STATUS, RefundStatus, Refund } from './refund';
-import { parsearFecha } from '../utils/fechas';
+import { parseDate } from '../utils/dates';
 
 export interface PaymentData {
   id: string;
@@ -199,8 +199,8 @@ export class Booking {
       pax: asInt(map['pax']),
       totalAmount: asDoubleOr(map['monto_total'], 0),
       status: enumFromDb(valuesOf(BookingStatus), map['estado'] as string | null) ?? BookingStatus.pendingPayment,
-      createdAt: parsearFecha(asString(map['created_at'])),
-      departureAt: departure == null ? null : parsearFecha(asString(departure)),
+      createdAt: parseDate(asString(map['created_at'])),
+      departureAt: departure == null ? null : parseDate(asString(departure)),
       planDate: isRow(pd) ? PlanDate.fromMap(pd) : null,
       plan: isRow(planMap) ? Plan.fromMap(planMap) : null,
       payments: listOf(map['payments'], Payment.fromMap),

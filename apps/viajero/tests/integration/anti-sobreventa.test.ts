@@ -11,8 +11,8 @@ import { DiversoError } from '@/core/errors/diverso-error';
 import { CreatedBooking } from '@/core/models/created-booking';
 import { BookingStatus } from '@/core/models/enums';
 import { asDouble, asInt, isRow, asString, asStringOr, type Row } from '@/core/models/row';
-import { fechaToIso } from '@/core/utils/fechas';
-import { hoyBogota } from '@/core/utils/hora-bogota';
+import { dateToIso } from '@/core/utils/dates';
+import { todayInBogota } from '@/core/utils/bogota-time';
 
 /**
  * Prueba de integración contra el Supabase local de Diverso (docker). Verifica el requisito central
@@ -64,7 +64,7 @@ function nuevoCliente(clave: string): SupabaseClient {
  * de hoy puede haber salido ya (create_booking la rechaza con FECHA_YA_SALIO y cancelar_reserva con
  * RESERVA_YA_SALIO).
  */
-const hoyIso = (): string => fechaToIso(hoyBogota());
+const hoyIso = (): string => dateToIso(todayInBogota());
 
 describeConLlave('anti-sobreventa (integración contra el Supabase local)', () => {
   let client: SupabaseClient;

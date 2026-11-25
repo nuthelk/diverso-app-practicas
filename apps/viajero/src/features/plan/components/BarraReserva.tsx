@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, View, type TextStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { formatCOP, formatFechaCorta, type Plan, type PlanDate } from '@/core';
+import { formatCOP, formatShortDate, type Plan, type PlanDate } from '@/core';
 import { FilledButton, Icono, Text, TextButton } from '@/ui/components';
 import { AppRadios, AppText, conAlfa, Curvas, Duraciones, useTheme } from '@/ui/theme';
 
@@ -109,7 +109,7 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
       testID={`fecha-${fecha.id}`}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${formatFechaCorta(fecha.date)}, ${cupos}`}
+      accessibilityLabel={`${formatShortDate(fecha.date)}, ${cupos}`}
       accessibilityState={{ selected: seleccionada }}
     >
       <Animated.View
@@ -119,7 +119,7 @@ function ChipFecha({ fecha, seleccionada, onPress }: { fecha: PlanDate; seleccio
         ]}
       >
         <TextoSinCorte estilo={{ fontSize: AppText.detalle, fontWeight: '700', color: seleccionada ? cs.onPrimary : cs.onSurface }}>
-          {formatFechaCorta(fecha.date)}
+          {formatShortDate(fecha.date)}
         </TextoSinCorte>
         <TextoSinCorte
           estilo={{

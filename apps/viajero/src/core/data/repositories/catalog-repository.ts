@@ -2,9 +2,9 @@ import { AgencySummary } from '../../models/agency-summary';
 import { asString } from '../../models/row';
 import { type CatalogFilters, CatalogSort } from '../../models/catalog-filters';
 import { Plan } from '../../models/plan';
-import { normalizarBusqueda } from '../../utils/busqueda';
-import { fechaToIso } from '../../utils/fechas';
-import { hoyBogota } from '../../utils/hora-bogota';
+import { normalizeSearch } from '../../utils/search';
+import { dateToIso } from '../../utils/dates';
+import { todayInBogota } from '../../utils/bogota-time';
 import type { CatalogApi } from '../services/catalog-api';
 
 /** Catálogo público. NO traduce errores: salen crudos de PostgREST (como en Dart). */
@@ -21,18 +21,18 @@ export class CatalogRepository {
    * del servidor.
    */
   async search(filtros: CatalogFilters = {}): Promise<Plan[]> {
-    const busqueda = normalizarBusqueda(filtros.text ?? '');
+    const busqueda = normalizeSearch(filtros.text ?? '');
     const destino = filtros.destination ?? null;
     const dia = filtros.date ?? null;
     const filas = await this.api.planesPublicados({
       // Las reservas vencidas se liberan en el servidor (pg_cron cada 5 min).
-      desde: fechaToIso(hoyBogota()),
+      desde: dateToIso(todayInBogota()),
       orden: filtros.sort ?? CatalogSort.rating,
       busqueda: busqueda === '' ? null : busqueda,
       categoria: filtros.category ?? null,
       destino: destino === null || destino === '' ? null : destino,
       precioMax: filtros.maxPrice ?? null,
-      fecha: dia === null ? null : fechaToIso(dia),
+      fecha: dia === null ? null : dateToIso(dia),
       agencyId: filtros.agencyId ?? null,
     });
     const planes = filas.map(Plan.fromMap);
@@ -59,7 +59,7 @@ export class CatalogRepository {
 
   /** Ficha del plan con sus fechas desde hoy (Bogotá). Falla si no existe. */
   async planDetalle(planId: string): Promise<Plan> {
-    return Plan.fromMap(await this.api.plan(planId, { desde: fechaToIso(hoyBogota()) }));
+    return Plan.fromMap(await this.api.plan(planId, { desde: dateToIso(todayInBogota()) }));
   }
 
   /**

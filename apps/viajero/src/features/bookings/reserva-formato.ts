@@ -1,10 +1,10 @@
 import {
   BookingStatus,
-  DIAS_CORTOS,
+  SHORT_DAY_NAMES,
   LABEL_REFUND_STATUS,
   RefundStatus,
   formatCOP,
-  MESES_CORTOS,
+  SHORT_MONTH_NAMES,
   type Booking,
   type CancellationResult,
   type CancellationPreview,
@@ -24,7 +24,7 @@ const dosCifras = (n: number) => String(n).padStart(2, '0');
 export function textoSalida(b: Booking): string | null {
   const salida = b.departure;
   if (salida === null) return null;
-  const dia = `${DIAS_CORTOS[salida.getDay()]} ${salida.getDate()} ${MESES_CORTOS[salida.getMonth()]}`;
+  const dia = `${SHORT_DAY_NAMES[salida.getDay()]} ${salida.getDate()} ${SHORT_MONTH_NAMES[salida.getMonth()]}`;
   return b.departureAt === null ? dia : `${dia} · ${dosCifras(salida.getHours())}:${dosCifras(salida.getMinutes())}`;
 }
 

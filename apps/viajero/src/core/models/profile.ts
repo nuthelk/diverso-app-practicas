@@ -1,6 +1,6 @@
 import { enumFromDb, UserRole, valuesOf, VerificationStatus } from './enums';
 import { asDoubleOr, type Row, asString, asStringOr, asStringOrNull } from './row';
-import { intentarParsearFecha } from '../utils/fechas';
+import { tryParseDate } from '../utils/dates';
 
 export interface ProfileData {
   id: string;
@@ -116,7 +116,7 @@ export class Agency {
         enumFromDb(valuesOf(VerificationStatus), map['estado_verificacion'] as string | null) ??
         VerificationStatus.pending,
       commissionPct: asDoubleOr(map['comision_pct'], 12),
-      rntValidUntil: rnt == null ? null : intentarParsearFecha(String(rnt)),
+      rntValidUntil: rnt == null ? null : tryParseDate(String(rnt)),
     });
   }
 }

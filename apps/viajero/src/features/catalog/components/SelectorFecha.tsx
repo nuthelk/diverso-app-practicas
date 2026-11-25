@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { MESES_LARGOS, formatFechaCorta } from '@/core';
+import { LONG_MONTH_NAMES, formatShortDate } from '@/core';
 import { IconButton, Text, TextButton } from '@/ui/components';
 import { AppText, conAlfa, useTheme } from '@/ui/theme';
 
@@ -56,13 +56,13 @@ export function SelectorFecha({
           <View style={estilos.cabecera}>
             <Text style={{ fontSize: AppText.leyenda, fontWeight: '500', color: cs.onSurfaceVariant }}>Seleccionar fecha</Text>
             <Text style={{ fontSize: 32, fontWeight: '400', marginTop: 20, color: cs.onSurfaceVariant }} altura={1.25}>
-              {formatFechaCorta(elegida)}
+              {formatShortDate(elegida)}
             </Text>
           </View>
           <View style={[estilos.divisor, { backgroundColor: cs.outlineVariant }]} />
           <View style={estilos.mes}>
             <Text style={{ flex: 1, fontSize: AppText.cuerpo, fontWeight: '600', color: cs.onSurfaceVariant }}>
-              {`${MESES_LARGOS[mes.getMonth()]} de ${mes.getFullYear()}`}
+              {`${LONG_MONTH_NAMES[mes.getMonth()]} de ${mes.getFullYear()}`}
             </Text>
             {/* Sin `chevron_left` en el mapa de íconos: el mismo glifo girado. */}
             <View style={estilos.girado}>
@@ -89,7 +89,7 @@ export function SelectorFecha({
                   disabled={!habilitado}
                   onPress={() => setElegida(dia)}
                   accessibilityRole="button"
-                  accessibilityLabel={formatFechaCorta(dia)}
+                  accessibilityLabel={formatShortDate(dia)}
                   accessibilityState={{ disabled: !habilitado, selected: sel }}
                   style={estilos.celda}
                 >

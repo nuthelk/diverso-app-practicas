@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react-native';
 
-import { formatFechaCorta } from '@/core';
+import { formatShortDate } from '@/core';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
 import { CatalogoFalso } from '../../../support/catalogo-falso';
@@ -200,13 +200,13 @@ describe('detalles de la hoja', () => {
     const calendario = within(screen.getByTestId('selector-fecha'));
     await fireEvent.press(calendario.getByText('Aceptar'));
 
-    expect(hoja().getByRole('button', { name: formatFechaCorta(manana) })).toBeOnTheScreen();
+    expect(hoja().getByRole('button', { name: formatShortDate(manana) })).toBeOnTheScreen();
     expect(hoja().getByRole('button', { name: 'Quitar fecha' })).toBeOnTheScreen();
     await aplicar();
 
     const fecha = catalogo.busquedas.at(-1)!.date!;
     expect([fecha.getFullYear(), fecha.getMonth(), fecha.getDate()]).toEqual([manana.getFullYear(), manana.getMonth(), manana.getDate()]);
-    expect(screen.getByText(formatFechaCorta(manana))).toBeOnTheScreen();
+    expect(screen.getByText(formatShortDate(manana))).toBeOnTheScreen();
 
     await abrirHoja();
     await fireEvent.press(hoja().getByRole('button', { name: 'Quitar fecha' }));

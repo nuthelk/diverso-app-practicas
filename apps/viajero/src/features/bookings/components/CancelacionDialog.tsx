@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { sinCortes, type CancellationPreview } from '@/core';
+import { noLineBreaks, type CancellationPreview } from '@/core';
 import { FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -44,7 +44,7 @@ export function CancelacionDialog({
           </Text>
           <View style={{ height: 12 }} />
           <Text style={{ fontWeight: '600', color: vista.applies ? cs.primary : cs.error }}>
-            {sinCortes(textoPoliticaCancelacion(vista))}
+            {noLineBreaks(textoPoliticaCancelacion(vista))}
           </Text>
           <View style={{ height: 24 }} />
           <View style={estilos.acciones}>

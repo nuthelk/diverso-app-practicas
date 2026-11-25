@@ -1,5 +1,5 @@
 import { asInt, isRow, type Row, asString, asStringOrNull } from './row';
-import { parsearFecha } from '../utils/fechas';
+import { parseDate } from '../utils/dates';
 
 export interface ReviewData {
   id: string;
@@ -47,7 +47,7 @@ export class Review {
       travelerId: asString(map['viajero_id']),
       rating: asInt(map['calificacion']),
       comment: asStringOrNull(map['comentario']),
-      createdAt: parsearFecha(asString(map['created_at'])),
+      createdAt: parseDate(asString(map['created_at'])),
       travelerName: isRow(profile) ? asStringOrNull(profile['nombre']) : null,
     });
   }

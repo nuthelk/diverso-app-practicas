@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
 
-import { EMOJI_EXPERIENCE_CATEGORY, formatFechaLarga, type Plan, type PlanDate } from '@/core';
+import { EMOJI_EXPERIENCE_CATEGORY, formatLongDate, type Plan, type PlanDate } from '@/core';
 import { Text } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
 
@@ -27,7 +27,7 @@ export function ResumenPlan({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
         </Text>
         <View style={{ height: 5 }} />
         <Text style={{ fontSize: AppText.leyendaGrande, color: cs.onSurfaceVariant }}>
-          {`${formatFechaLarga(fecha.date)} · ${plan.destination}`}
+          {`${formatLongDate(fecha.date)} · ${plan.destination}`}
         </Text>
         {plan.meetingPoint !== '' ? (
           <Text numberOfLines={1} style={{ fontSize: AppText.leyenda, color: cs.onSurfaceVariant }}>

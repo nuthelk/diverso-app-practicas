@@ -13,8 +13,8 @@ import {
   asStrings,
 } from './row';
 import { Agency } from './profile';
-import { fechaToIso, fechaUtc, mismoDia, parsearFecha } from '../utils/fechas';
-import { OFFSET_BOGOTA_MS } from '../utils/hora-bogota';
+import { dateToIso, utcDate, isSameDay, parseDate } from '../utils/dates';
+import { BOGOTA_OFFSET_MS } from '../utils/bogota-time';
 
 /** Elemento del `jsonb` `plans.itinerario`. */
 export class ItineraryStep {
@@ -79,7 +79,7 @@ export class PlanDate {
     return new PlanDate({
       id: asString(map['id']),
       planId: asString(map['plan_id']),
-      date: parsearFecha(asString(map['fecha'])),
+      date: parseDate(asString(map['fecha'])),
       totalSpots: asInt(map['cupo_total']),
       availableSpots: asInt(map['cupo_disponible']),
     });
@@ -89,7 +89,7 @@ export class PlanDate {
   toInsertMap(): Row {
     return {
       plan_id: this.planId,
-      fecha: fechaToIso(this.date),
+      fecha: dateToIso(this.date),
       cupo_total: this.totalSpots,
       cupo_disponible: this.availableSpots,
     };
@@ -196,8 +196,8 @@ export class Plan {
    * Misma cuenta que el servidor (`(fecha + hora_salida) at time zone 'America/Bogota'`).
    */
   departureOf(date: PlanDate): Date {
-    const day = fechaUtc(date.date.getFullYear(), date.date.getMonth() + 1, date.date.getDate());
-    return new Date(day.getTime() + this.departureMinutes * 60_000 + OFFSET_BOGOTA_MS);
+    const day = utcDate(date.date.getFullYear(), date.date.getMonth() + 1, date.date.getDate());
+    return new Date(day.getTime() + this.departureMinutes * 60_000 + BOGOTA_OFFSET_MS);
   }
 
   /** La salida de [date] ya ocurrió (o es justo ahora): ya no se puede reservar ni pagar. */
@@ -219,7 +219,7 @@ export class Plan {
 
   /** Hay una salida reservable el día [day] (filtro de fecha del catálogo). */
   hasDepartureOn(day: Date, now: Date = new Date()): boolean {
-    return this.availableDatesAt(now).some((d) => mismoDia(d.date, day));
+    return this.availableDatesAt(now).some((d) => isSameDay(d.date, day));
   }
 
   static fromMap(map: Row): Plan {

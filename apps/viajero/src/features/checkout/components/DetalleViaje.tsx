@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { formatCOP, formatFechaLarga, type Booking } from '@/core';
+import { formatCOP, formatLongDate, type Booking } from '@/core';
 import { Divider, Icono, Text, type IconoNombre } from '@/ui/components';
 import { AppInsets, AppRadios, AppText, useTheme } from '@/ui/theme';
 
@@ -20,7 +20,7 @@ export function DetalleViaje({ booking }: { booking: Booking }) {
         {plan?.title ?? 'Tu plan'}
       </Text>
       <View style={{ height: 12 }} />
-      {fecha !== null ? <Fila icono="event_rounded" texto={formatFechaLarga(fecha)} /> : null}
+      {fecha !== null ? <Fila icono="event_rounded" texto={formatLongDate(fecha)} /> : null}
       <Fila icono="group_rounded" texto={`${booking.pax} ${booking.pax === 1 ? 'persona' : 'personas'}`} />
       {puntoEncuentro !== '' ? <Fila icono="flag_rounded" texto={puntoEncuentro} /> : null}
       {/* `Divider(height: 22)`: 22 de alto con la línea al centro. */}

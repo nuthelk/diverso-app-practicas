@@ -1,6 +1,6 @@
 import { BookingStatus, enumFromDb, PaymentMethodOption, valuesOf } from './enums';
 import { asInt, type Row, asString, asStringOrNull } from './row';
-import { parsearFecha } from '../utils/fechas';
+import { parseDate } from '../utils/dates';
 
 /** Respuesta de `pagos-iniciar`: dónde pagar en Wompi (sandbox) y hasta cuándo. */
 export class StartedCheckout {
@@ -25,7 +25,7 @@ export class StartedCheckout {
       checkoutUrl: asString(map['checkout_url']),
       reference: asString(map['referencia']),
       amountInCents: asInt(map['amount_in_cents']),
-      expiresAt: parsearFecha(asString(map['expira_at'])),
+      expiresAt: parseDate(asString(map['expira_at'])),
     });
   }
 }

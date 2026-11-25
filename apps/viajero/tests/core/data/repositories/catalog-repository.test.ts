@@ -3,8 +3,8 @@ import type { CatalogApi, ParametrosPlanes } from '@/core/data/services/catalog-
 import { ExperienceCategory } from '@/core/models/enums';
 import type { Row } from '@/core/models/row';
 import { CatalogSort } from '@/core/models/catalog-filters';
-import { fechaLocal, fechaToIso } from '@/core/utils/fechas';
-import { hoyBogota } from '@/core/utils/hora-bogota';
+import { localDate, dateToIso } from '@/core/utils/dates';
+import { todayInBogota } from '@/core/utils/bogota-time';
 
 /** Api falsa del catálogo: devuelve las filas indicadas y guarda con qué filtros se le pidió. */
 class CatalogApiFalsa implements CatalogApi {
@@ -43,22 +43,22 @@ const plan = (id: string, { fecha, cupos = 5, hora = '06:00:00' }: { fecha: Date
   precio_cop: 100000,
   hora_salida: hora,
   plan_dates: [
-    { id: `pd-${id}`, plan_id: id, fecha: fechaToIso(fecha), cupo_total: 10, cupo_disponible: cupos },
+    { id: `pd-${id}`, plan_id: id, fecha: dateToIso(fecha), cupo_total: 10, cupo_disponible: cupos },
   ],
 });
 
 const agencia = (id: string): Row => ({ id, nombre: `Agencia ${id}` });
 
-const hoy = hoyBogota();
-const enTresDias = fechaLocal(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
-const enCuatroDias = fechaLocal(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 4);
+const hoy = todayInBogota();
+const enTresDias = localDate(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 3);
+const enCuatroDias = localDate(hoy.getFullYear(), hoy.getMonth() + 1, hoy.getDate() + 4);
 
 describe('search: lo que se le pide a la Api', () => {
   test('sin filtros: desde hoy (Bogotá), orden por puntaje y nada más', async () => {
     const api = new CatalogApiFalsa();
     await new CatalogRepository({ api }).search({});
     expect(api.ultimaBusqueda).toStrictEqual({
-      desde: fechaToIso(hoy),
+      desde: dateToIso(hoy),
       orden: CatalogSort.rating,
       busqueda: null,
       categoria: null,
@@ -105,7 +105,7 @@ describe('search: lo que se le pide a la Api', () => {
   test('la fecha elegida viaja como YYYY-MM-DD', async () => {
     const api = new CatalogApiFalsa();
     await new CatalogRepository({ api }).search({ date: enTresDias });
-    expect(api.ultimaBusqueda!.fecha).toBe(fechaToIso(enTresDias));
+    expect(api.ultimaBusqueda!.fecha).toBe(dateToIso(enTresDias));
   });
 });
 
@@ -166,7 +166,7 @@ describe('agencias, detalle y destinos', () => {
     api.filaPlan = plan('p9', { fecha: enTresDias });
     const p = await new CatalogRepository({ api }).planDetalle('p9');
     expect(p.id).toBe('p9');
-    expect(api.ultimoDetalle).toEqual({ planId: 'p9', desde: fechaToIso(hoy) });
+    expect(api.ultimoDetalle).toEqual({ planId: 'p9', desde: dateToIso(hoy) });
   });
 
   test('destinos: sin repetidos y ordenados', async () => {

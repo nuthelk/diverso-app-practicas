@@ -5,7 +5,7 @@ import { ItineraryStep, Plan, PlanDate } from '@/core/models/plan';
 import { Agency, Profile } from '@/core/models/profile';
 import { RefundStatus, CancellationResult } from '@/core/models/refund';
 import { Review } from '@/core/models/review';
-import { fechaLocal, fechaUtc } from '@/core/utils/fechas';
+import { localDate, utcDate } from '@/core/utils/dates';
 
 /** Modelos sin test en el núcleo Dart: mapeo de columnas y valores por defecto. */
 describe('Profile y Agency', () => {
@@ -29,13 +29,13 @@ describe('Profile y Agency', () => {
       commissionPct: 12,
       logoUrl: null,
     });
-    expect(a.rntValidUntil).toEqual(fechaLocal(2027, 1, 15));
+    expect(a.rntValidUntil).toEqual(localDate(2027, 1, 15));
     expect(Agency.fromMap({ id: 'a', nombre: 'R', numero_rnt: '1', rnt_vigente_hasta: 'xx' }).rntValidUntil).toBeNull();
   });
 
   test('verificada: estado verificado y RNT vigente hasta hoy inclusive (fecha del teléfono)', () => {
     const today = new Date();
-    const day = (delta: number) => fechaLocal(today.getFullYear(), today.getMonth() + 1, today.getDate() + delta);
+    const day = (delta: number) => localDate(today.getFullYear(), today.getMonth() + 1, today.getDate() + delta);
     const agency = (status: VerificationStatus, until: Date | null) =>
       new Agency({
         id: 'a',
@@ -85,7 +85,7 @@ describe('Plan', () => {
   });
 
   test('PlanDate: tieneCupos y toInsertMap con fecha YYYY-MM-DD', () => {
-    const d = new PlanDate({ id: 'd', planId: 'p', date: fechaLocal(2026, 3, 7), totalSpots: 10, availableSpots: 0 });
+    const d = new PlanDate({ id: 'd', planId: 'p', date: localDate(2026, 3, 7), totalSpots: 10, availableSpots: 0 });
     expect(d.hasSpots).toBe(false);
     expect(d.toInsertMap()).toEqual({ plan_id: 'p', fecha: '2026-03-07', cupo_total: 10, cupo_disponible: 0 });
     expect(new ItineraryStep({ time: '7', activity: 'a' }).toMap()).toEqual({ hora: '7', actividad: 'a' });
@@ -101,7 +101,7 @@ describe('pagos, cancelación y reseñas', () => {
       expira_at: '2026-10-25T10:30:00-05:00',
     });
     expect(c.amount).toBe(300000);
-    expect(c.expiresAt).toEqual(fechaUtc(2026, 10, 25, 15, 30));
+    expect(c.expiresAt).toEqual(utcDate(2026, 10, 25, 15, 30));
   });
 
   test('PagoVerificado: estado desconocido → error; método desconocido → otro; mensajes', () => {
@@ -150,7 +150,7 @@ describe('pagos, cancelación y reseñas', () => {
     const othersReview = Review.fromMap({ ...base, profiles: null });
     expect(othersReview.travelerName).toBeNull();
     expect(othersReview.comment).toBeNull();
-    expect(othersReview.createdAt).toEqual(fechaUtc(2026, 10, 25, 10));
+    expect(othersReview.createdAt).toEqual(utcDate(2026, 10, 25, 10));
   });
 
   test('CreatedBooking guarda lo que devuelve create_booking', () => {

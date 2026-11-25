@@ -2,7 +2,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 
 import { BookingRepository } from '@/core/data/repositories/booking-repository';
 import { BookingApiSupabase } from '@/core/data/services/booking-api';
-import { fechaUtc } from '@/core/utils/fechas';
+import { utcDate } from '@/core/utils/dates';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
 import { crearSupabaseFalso, cuerpoErrorPostgrest, sesionFalsa } from '../../../support/supabase-falso';
@@ -85,7 +85,7 @@ describe('BookingApiSupabase', () => {
     await new BookingApiSupabase({ client }).pendientesDe({
       viajeroId: 'v-1',
       planDateId: 'pd-1',
-      creadaDespuesDe: fechaUtc(2026, 10, 25, 9, 30),
+      creadaDespuesDe: utcDate(2026, 10, 25, 9, 30),
     });
     expect(pedidos[0]!.params).toEqual({
       select: ['*'],

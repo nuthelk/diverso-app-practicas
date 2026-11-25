@@ -1,11 +1,11 @@
 import {
   formatCOP,
-  formatFechaCorta,
-  formatFechaLarga,
-  formatFechaTexto,
-  sinCortes,
+  formatShortDate,
+  formatLongDate,
+  formatDateInText,
+  noLineBreaks,
 } from '@/core/utils/formatters';
-import { fechaLocal } from '@/core/utils/fechas';
+import { localDate } from '@/core/utils/dates';
 
 /**
  * Paridad con `intl` de Dart (locale `es` / `es_CO`). Los valores esperados salen de correr
@@ -24,8 +24,8 @@ describe('formatCOP', () => {
     [165000, '$ 165.000'],
     [1234567, '$ 1.234.567'],
     [1000000000, '$ 1.000.000.000'],
-  ])('%p → %p', (monto, esperado) => {
-    expect(formatCOP(monto)).toBe(esperado);
+  ])('%p → %p', (amount, expected) => {
+    expect(formatCOP(amount)).toBe(expected);
   });
 
   test('sin decimales: redondea la mitad alejándose de cero (como Dart)', () => {
@@ -48,22 +48,22 @@ describe('sinCortes (montos dentro de una línea que puede partirse)', () => {
   const NBSP = '\u00A0';
 
   test('el «$» queda pegado al número: la línea no puede partirse entre ellos', () => {
-    expect(sinCortes(`Total ${formatCOP(399000)}`)).toBe(`Total $${NBSP}399.000`);
-    expect(sinCortes(formatCOP(-1000))).toBe(`$${NBSP}-1.000`);
+    expect(noLineBreaks(`Total ${formatCOP(399000)}`)).toBe(`Total $${NBSP}399.000`);
+    expect(noLineBreaks(formatCOP(-1000))).toBe(`$${NBSP}-1.000`);
   });
 
   test('el «%» tampoco se separa de su número', () => {
-    expect(sinCortes('Reembolso de prueba pendiente · 100 % · $ 399.000')).toBe(
+    expect(noLineBreaks('Reembolso de prueba pendiente · 100 % · $ 399.000')).toBe(
       `Reembolso de prueba pendiente · 100${NBSP}% · $${NBSP}399.000`,
     );
   });
 
   test('cambia todas las apariciones y deja intacto el resto del texto', () => {
-    expect(sinCortes('de $ 1.000 a $ 2.000 (50 %) y 2 personas')).toBe(
+    expect(noLineBreaks('de $ 1.000 a $ 2.000 (50 %) y 2 personas')).toBe(
       `de $${NBSP}1.000 a $${NBSP}2.000 (50${NBSP}%) y 2 personas`,
     );
-    expect(sinCortes('Sin reembolso')).toBe('Sin reembolso');
-    expect(sinCortes('cuesta $ y punto')).toBe('cuesta $ y punto');
+    expect(noLineBreaks('Sin reembolso')).toBe('Sin reembolso');
+    expect(noLineBreaks('cuesta $ y punto')).toBe('cuesta $ y punto');
   });
 
   test('formatCOP no cambia (paridad con intl de Dart): solo la línea que lo contiene', () => {
@@ -72,7 +72,7 @@ describe('sinCortes (montos dentro de una línea que puede partirse)', () => {
 });
 
 describe('fechas en español (intl es)', () => {
-  const meses: [number, string, string, string][] = [
+  const months: [number, string, string, string][] = [
     [1, 'sáb, 3 ene', 'sábado 3 de enero de 2026', '3 de enero de 2026'],
     [2, 'mar, 3 feb', 'martes 3 de febrero de 2026', '3 de febrero de 2026'],
     [3, 'mar, 3 mar', 'martes 3 de marzo de 2026', '3 de marzo de 2026'],
@@ -87,16 +87,16 @@ describe('fechas en español (intl es)', () => {
     [12, 'jue, 3 dic', 'jueves 3 de diciembre de 2026', '3 de diciembre de 2026'],
   ];
 
-  test.each(meses)('mes %p', (mes, corta, larga, texto) => {
-    const d = fechaLocal(2026, mes, 3);
-    expect(formatFechaCorta(d)).toBe(corta);
-    expect(formatFechaLarga(d)).toBe(larga);
-    expect(formatFechaTexto(d)).toBe(texto);
+  test.each(months)('mes %p', (month, shortText, longText, text) => {
+    const d = localDate(2026, month, 3);
+    expect(formatShortDate(d)).toBe(shortText);
+    expect(formatLongDate(d)).toBe(longText);
+    expect(formatDateInText(d)).toBe(text);
   });
 
   test('los siete días de la semana', () => {
-    const dias = Array.from({ length: 7 }, (_, i) => fechaLocal(2026, 10, 4 + i));
-    expect(dias.map(formatFechaCorta)).toEqual([
+    const days = Array.from({ length: 7 }, (_, i) => localDate(2026, 10, 4 + i));
+    expect(days.map(formatShortDate)).toEqual([
       'dom, 4 oct',
       'lun, 5 oct',
       'mar, 6 oct',
@@ -105,7 +105,7 @@ describe('fechas en español (intl es)', () => {
       'vie, 9 oct',
       'sáb, 10 oct',
     ]);
-    expect(dias.map(formatFechaLarga)).toEqual([
+    expect(days.map(formatLongDate)).toEqual([
       'domingo 4 de octubre de 2026',
       'lunes 5 de octubre de 2026',
       'martes 6 de octubre de 2026',
@@ -117,6 +117,6 @@ describe('fechas en español (intl es)', () => {
   });
 
   test('el año no se rellena con ceros (patrón y)', () => {
-    expect(formatFechaLarga(fechaLocal(5, 1, 1))).toBe('sábado 1 de enero de 5');
+    expect(formatLongDate(localDate(5, 1, 1))).toBe('sábado 1 de enero de 5');
   });
 });

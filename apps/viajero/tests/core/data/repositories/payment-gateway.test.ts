@@ -3,7 +3,7 @@ import { DiversoError } from '@/core/errors/diverso-error';
 import { ArgumentError } from '@/core/errors/programming-errors';
 import { BookingStatus, LABEL_PAYMENT_METHOD, PaymentMethodOption } from '@/core/models/enums';
 import { VerifiedPaymentStatus } from '@/core/models/payment-checkout';
-import { fechaUtc } from '@/core/utils/fechas';
+import { utcDate } from '@/core/utils/dates';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
 import { capture, httpError, networkError } from '../../../support/errors';
@@ -37,7 +37,7 @@ describe('WompiPaymentGateway.iniciar', () => {
     expect(r.reference).toBe('DIV-ABC123-1');
     expect(r.amountInCents).toBe(30000000);
     expect(r.amount).toBe(300000);
-    expect(r.expiresAt).toEqual(fechaUtc(2026, 10, 25, 15, 30));
+    expect(r.expiresAt).toEqual(utcDate(2026, 10, 25, 15, 30));
   });
 
   test('RESERVA_VENCIDA (409): reserva vencida sin cobro', async () => {

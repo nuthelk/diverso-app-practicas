@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { formatFechaLarga } from '@/core';
+import { formatLongDate } from '@/core';
 import { FilledButton, Icono, Text, TextField } from '@/ui/components';
 import { AppInsets, AppText, conAlfa, Duraciones, useTheme } from '@/ui/theme';
 
@@ -43,7 +43,7 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
                 <>
                   <View style={{ height: 4 }} />
                   <Text style={{ fontSize: AppText.detalle, color: cs.onSurfaceVariant, textAlign: 'center' }}>
-                    {formatFechaLarga(fecha)}
+                    {formatLongDate(fecha)}
                   </Text>
                 </>
               ) : null}

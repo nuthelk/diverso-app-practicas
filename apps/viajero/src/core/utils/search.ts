@@ -2,7 +2,7 @@
  * Letras con tilde (en minúscula) y su letra base. Equivale al diccionario `unaccent` de
  * PostgreSQL para el español y lenguas vecinas.
  */
-const SIN_TILDE: Record<string, string> = {
+const UNACCENTED: Record<string, string> = {
   á: 'a',
   à: 'a',
   â: 'a',
@@ -32,10 +32,10 @@ const SIN_TILDE: Record<string, string> = {
   ÿ: 'y',
 };
 
-const TILDE = new RegExp(`[${Object.keys(SIN_TILDE).join('')}]`, 'g');
+const ACCENTED = new RegExp(`[${Object.keys(UNACCENTED).join('')}]`, 'g');
 // `%` y `_` son comodines de ILIKE, `*` lo es en PostgREST y `\` escapa en ILIKE.
-const COMODINES = /[%_*\\]/g;
-const ESPACIOS = /\s+/g;
+const WILDCARDS = /[%_*\\]/g;
+const WHITESPACE = /\s+/g;
 
 /**
  * Normaliza el texto del buscador igual que la columna `plans.busqueda` (migración 0011:
@@ -43,11 +43,11 @@ const ESPACIOS = /\s+/g;
  * Los comodines que escriba el viajero (`% _ *` y `\`) se vuelven espacios para que se
  * busquen como texto y no como patrón; los espacios sobrantes se colapsan.
  */
-export function normalizarBusqueda(texto: string): string {
-  return texto
+export function normalizeSearch(text: string): string {
+  return text
     .toLowerCase()
-    .replace(TILDE, (c) => SIN_TILDE[c] ?? c)
-    .replace(COMODINES, ' ')
-    .replace(ESPACIOS, ' ')
+    .replace(ACCENTED, (c) => UNACCENTED[c] ?? c)
+    .replace(WILDCARDS, ' ')
+    .replace(WHITESPACE, ' ')
     .trim();
 }

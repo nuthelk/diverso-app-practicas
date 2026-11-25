@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { formatCOP, formatFechaCorta } from '@/core';
+import { formatCOP, formatShortDate } from '@/core';
 import { FilledButton, Icono, IconButton, OutlinedButton, SectionLabel, Text, TextField } from '@/ui/components';
 import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
 
@@ -87,13 +87,13 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
         <View style={estilos.fila}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
+            accessibilityLabel={fecha === null ? 'Cualquier fecha' : formatShortDate(fecha)}
             onPress={() => setEligiendoFecha(true)}
             style={[estilos.opcionFecha, { backgroundColor: cs.surfaceContainerHigh }]}
           >
             <Icono nombre="calendar_month_rounded" size={19} color={cs.primary} />
             <Text style={{ marginLeft: 10, fontWeight: '600', fontSize: AppText.cuerpo }}>
-              {fecha === null ? 'Cualquier fecha' : formatFechaCorta(fecha)}
+              {fecha === null ? 'Cualquier fecha' : formatShortDate(fecha)}
             </Text>
           </Pressable>
           {fecha !== null ? (

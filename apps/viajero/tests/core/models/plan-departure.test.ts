@@ -1,7 +1,7 @@
 import { DiversoError } from '@/core/errors/diverso-error';
 import { ExperienceCategory, PlanStatus } from '@/core/models/enums';
 import { Plan, PlanDate } from '@/core/models/plan';
-import { fechaLocal, fechaUtc } from '@/core/utils/fechas';
+import { localDate, utcDate } from '@/core/utils/dates';
 
 import { postgrestError } from '../../support/errors';
 
@@ -11,8 +11,8 @@ import { postgrestError } from '../../support/errors';
  *
  * «Ahora» de los tests = lunes 2 de noviembre de 2026, 15:30 en Bogotá (20:30 UTC).
  */
-const now = fechaUtc(2026, 11, 2, 20, 30);
-const today = fechaLocal(2026, 11, 2);
+const now = utcDate(2026, 11, 2, 20, 30);
+const today = localDate(2026, 11, 2);
 /** `Duration(hours: h, minutes: m)` → minutos desde la medianoche. */
 const hm = (h: number, m = 0) => h * 60 + m;
 
@@ -49,26 +49,26 @@ describe('fechasDisponiblesA: salidas que ya partieron', () => {
     'la hora de salida es de Bogotá, no UTC: a las 21:00 Bogotá (02:00 UTC del día siguiente) ' +
       'una salida de hoy a las 22:00 sigue visible',
     () => {
-      const bogotaNight = fechaUtc(2026, 11, 3, 2, 0);
+      const bogotaNight = utcDate(2026, 11, 3, 2, 0);
       const p = plan(hm(22), [planDate(today)]);
       expect(p.availableDatesAt(bogotaNight)).toHaveLength(1);
-      expect(p.availableDatesAt(fechaUtc(2026, 11, 3, 3, 1))).toHaveLength(0);
+      expect(p.availableDatesAt(utcDate(2026, 11, 3, 3, 1))).toHaveLength(0);
     },
   );
 
   test('mañana a la misma hora → visible; ayer → oculta', () => {
     const p = plan(hm(6), [
-      planDate(fechaLocal(2026, 11, 1), { id: 'ayer' }),
-      planDate(fechaLocal(2026, 11, 3), { id: 'manana' }),
+      planDate(localDate(2026, 11, 1), { id: 'ayer' }),
+      planDate(localDate(2026, 11, 3), { id: 'manana' }),
     ]);
     expect(p.availableDatesAt(now).map((d) => d.id)).toEqual(['manana']);
   });
 
   test('mantiene el orden por fecha y sigue ocultando las fechas sin cupos', () => {
     const p = plan(hm(6), [
-      planDate(fechaLocal(2026, 11, 5), { id: 'tarde' }),
-      planDate(fechaLocal(2026, 11, 4), { id: 'agotada', spots: 0 }),
-      planDate(fechaLocal(2026, 11, 3), { id: 'pronto' }),
+      planDate(localDate(2026, 11, 5), { id: 'tarde' }),
+      planDate(localDate(2026, 11, 4), { id: 'agotada', spots: 0 }),
+      planDate(localDate(2026, 11, 3), { id: 'pronto' }),
       planDate(today, { id: 'salio' }),
     ]);
     expect(p.availableDatesAt(now).map((d) => d.id)).toEqual(['pronto', 'tarde']);
@@ -77,13 +77,13 @@ describe('fechasDisponiblesA: salidas que ya partieron', () => {
   test('yaSalio: misma regla para una fecha concreta (checkout)', () => {
     const p = plan(hm(6), [planDate(today)]);
     expect(p.hasDeparted(p.dates[0]!, now)).toBe(true);
-    expect(p.hasDeparted(planDate(fechaLocal(2026, 11, 3)), now)).toBe(false);
+    expect(p.hasDeparted(planDate(localDate(2026, 11, 3)), now)).toBe(false);
   });
 
   test('fechasDisponibles (reloj real) oculta una salida de hace 1 minuto y muestra una de dentro de 1', () => {
     // Campos UTC de este instante = reloj de pared de Bogotá.
     const bogota = new Date(Date.now() - 5 * 3600_000);
-    const day = (t: Date) => fechaLocal(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+    const day = (t: Date) => localDate(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
     const time = (t: Date) => hm(t.getUTCHours(), t.getUTCMinutes());
     const ago = new Date(bogota.getTime() - 60_000);
     const soon = new Date(bogota.getTime() + 5 * 60_000);
@@ -112,21 +112,21 @@ describe('Plan.fromMap con filas como las devuelve PostgREST', () => {
 
   test('22:00 del 2026-11-02 en Bogotá es 03:00 UTC del 2026-11-03', () => {
     const p = planRow('22:00:00', ['2026-11-02']);
-    expect(p.departureOf(p.dates[0]!)).toEqual(fechaUtc(2026, 11, 3, 3));
+    expect(p.departureOf(p.dates[0]!)).toEqual(utcDate(2026, 11, 3, 3));
   });
 
   test('el «ahora» puede venir en UTC o en hora local: mismo resultado en el límite (15:30 Bogotá)', () => {
     const p = planRow('15:30:00', ['2026-11-02']);
     const local = (d: Date) =>
-      fechaLocal(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes());
-    expect(p.availableDatesAt(local(fechaUtc(2026, 11, 2, 20, 29)))).toHaveLength(1);
-    expect(p.availableDatesAt(local(fechaUtc(2026, 11, 2, 20, 30)))).toHaveLength(0);
+      localDate(d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes());
+    expect(p.availableDatesAt(local(utcDate(2026, 11, 2, 20, 29)))).toHaveLength(1);
+    expect(p.availableDatesAt(local(utcDate(2026, 11, 2, 20, 30)))).toHaveLength(0);
   });
 
   test('salida a las 00:00 de Bogotá (05:00 UTC): visible a las 23:59 del día anterior, oculta a las 00:00', () => {
     const p = planRow('00:00:00', ['2026-11-03']);
-    expect(p.availableDatesAt(fechaUtc(2026, 11, 3, 4, 59))).toHaveLength(1);
-    expect(p.availableDatesAt(fechaUtc(2026, 11, 3, 5))).toHaveLength(0);
+    expect(p.availableDatesAt(utcDate(2026, 11, 3, 4, 59))).toHaveLength(1);
+    expect(p.availableDatesAt(utcDate(2026, 11, 3, 5))).toHaveLength(0);
   });
 });
 
@@ -136,7 +136,7 @@ describe('tieneSalidaEl (filtro de fecha del catálogo)', () => {
     const upcoming = plan(hm(18), [planDate(today)]);
     expect(departed.hasDepartureOn(today, now)).toBe(false);
     expect(upcoming.hasDepartureOn(today, now)).toBe(true);
-    expect(upcoming.hasDepartureOn(fechaLocal(2026, 11, 3), now)).toBe(false);
+    expect(upcoming.hasDepartureOn(localDate(2026, 11, 3), now)).toBe(false);
   });
 });
 

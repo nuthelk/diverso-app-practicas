@@ -30,10 +30,10 @@ export * from './errors/diverso-error';
 export * from './errors/function-error';
 export * from './errors/programming-errors';
 
-export * from './utils/fechas';
-export * from './utils/hora-bogota';
+export * from './utils/dates';
+export * from './utils/bogota-time';
 export * from './utils/formatters';
-export * from './utils/busqueda';
+export * from './utils/search';
 
 export * from './legal/documento-legal';
 export * from './comparison/comparison-row';

@@ -1,5 +1,5 @@
 import { asBoolOr, asDoubleOr, asIntOr, type Row, asString, asStringOr } from './row';
-import { parsearFecha } from '../utils/fechas';
+import { parseDate } from '../utils/dates';
 import { formatCOP } from '../utils/formatters';
 
 /**
@@ -77,7 +77,7 @@ export class Refund {
       percentage: asIntOr(map['porcentaje'], 0),
       status: refundStatusFromServer(map['estado']),
       reason: asStringOr(map['motivo'], ''),
-      createdAt: parsearFecha(asString(map['created_at'])),
+      createdAt: parseDate(asString(map['created_at'])),
     });
   }
 
