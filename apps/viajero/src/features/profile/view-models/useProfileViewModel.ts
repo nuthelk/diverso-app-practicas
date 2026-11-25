@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 import type { AuthRepository, Profile, Publico } from '@/core';
 
@@ -50,14 +50,28 @@ export function useProfileViewModel({ auth }: { auth: Publico<AuthRepository> })
     }
   }, [auth]);
 
-  /** Cierra la sesión (el guard lleva al login). `false` si no se pudo. */
-  const cerrarSesion = useCallback(async (): Promise<boolean> => {
+  const [cerrandoSesion, setCerrandoSesion] = useState(false);
+  /** Espejo síncrono de [cerrandoSesion]: un segundo toque antes del re-render ya lo ve. */
+  const cerrando = useRef(false);
+
+  /**
+   * Cierra la sesión (el guard lleva al login). `false` si no se pudo. Mientras dura,
+   * [cerrandoSesion]: otro pedido no vuelve a llamar a `signOut` y devuelve `null` (ignorado, no
+   * es un fallo que haya que avisar).
+   */
+  const cerrarSesion = useCallback(async (): Promise<boolean | null> => {
+    if (cerrando.current) return null;
+    cerrando.current = true;
+    setCerrandoSesion(true);
     try {
       await auth.signOut();
       return true;
     } catch (e) {
       console.warn('ProfileViewModel.cerrarSesion:', e);
       return false;
+    } finally {
+      cerrando.current = false;
+      setCerrandoSesion(false);
     }
   }, [auth]);
 
@@ -68,6 +82,8 @@ export function useProfileViewModel({ auth }: { auth: Publico<AuthRepository> })
     /** Mensaje para el usuario si el perfil no se pudo cargar. */
     error: estado.error,
     email: estado.email,
+    /** Se está cerrando la sesión: el botón se deshabilita y muestra un indicador. */
+    cerrandoSesion,
     nombre,
     inicial: inicialDe(nombre),
     cargar,

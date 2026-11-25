@@ -6,6 +6,7 @@ import { VERSION_LEGAL } from '@/core';
 import { useDependencies } from '@/composition';
 import { AvisoFlotante, mostrarAviso } from '@/features/compartido/aviso-flotante';
 import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
 import { AppRoutes } from '@/router';
 import { Divider, Icono, OutlinedButton, SectionLabel, Text, TextButton, TituloPagina, type IconoNombre } from '@/ui/components';
 import { AppRadios, AppText, conAlfa, useTheme } from '@/ui/theme';
@@ -32,50 +33,57 @@ export function ProfileView() {
   }, [cargar]);
 
   const cerrarSesion = async () => {
-    if (!(await vm.cerrarSesion())) mostrarAviso('No pudimos cerrar la sesión. Intenta de nuevo.');
+    if ((await vm.cerrarSesion()) === false) mostrarAviso('No pudimos cerrar la sesión. Intenta de nuevo.');
   };
 
   return (
     <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.fondoPagina }]}>
       <BarraSuperior titulo={<TituloPagina texto="Perfil" />} />
       <ScrollView contentContainerStyle={estilos.lista}>
-        <Identidad vm={vm} />
-        <View style={{ height: 28 }} />
-        <SectionLabel texto="Apariencia" />
-        <SelectorApariencia />
-        <View style={{ height: 24 }} />
-        <SectionLabel texto="Confianza" />
-        <TarjetaInfo
-          icono="verified_user_rounded"
-          titulo="Compra protegida"
-          cuerpo="Solo mostramos agencias con RNT vigente y matrícula mercantil verificadas por el equipo Diverso. Si una agencia cambia sus datos o se le vence el RNT, sus planes se ocultan hasta revalidarla."
-        />
-        <View style={{ height: 12 }} />
-        <TarjetaInfo
-          icono="privacy_tip_rounded"
-          titulo="Tus datos"
-          cuerpo="Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, actualizar o pedir la supresión de tus datos en cualquier momento."
-        />
-        <View style={{ height: 24 }} />
-        <SectionLabel texto="Documentos legales" />
-        <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card, overflow: 'hidden' }}>
-          <FilaLegal
-            icono="shield_outlined"
-            titulo="Política de tratamiento de datos"
-            onPress={() => router.push(AppRoutes.legal('privacidad') as Href)}
+        {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
+        <View testID="columna-perfil" style={estilos.columna}>
+          <Identidad vm={vm} />
+          <View style={{ height: 28 }} />
+          <SectionLabel texto="Apariencia" />
+          <SelectorApariencia />
+          <View style={{ height: 24 }} />
+          <SectionLabel texto="Confianza" />
+          <TarjetaInfo
+            icono="verified_user_rounded"
+            titulo="Compra protegida"
+            cuerpo="Solo mostramos agencias con RNT vigente y matrícula mercantil verificadas por el equipo Diverso. Si una agencia cambia sus datos o se le vence el RNT, sus planes se ocultan hasta revalidarla."
           />
-          <Divider color={conAlfa(cs.outlineVariant, 0.5)} style={{ marginLeft: 56 }} />
-          <FilaLegal
-            icono="description_outlined"
-            titulo="Términos y condiciones"
-            onPress={() => router.push(AppRoutes.legal('terminos-viajeros') as Href)}
+          <View style={{ height: 12 }} />
+          <TarjetaInfo
+            icono="privacy_tip_rounded"
+            titulo="Tus datos"
+            cuerpo="Tratamos tus datos conforme a la Ley 1581 de 2012 (Habeas Data), únicamente para gestionar tu cuenta y tus reservas. Puedes consultar, actualizar o pedir la supresión de tus datos en cualquier momento."
           />
+          <View style={{ height: 24 }} />
+          <SectionLabel texto="Documentos legales" />
+          <View style={{ backgroundColor: cs.surfaceContainerLow, borderRadius: AppRadios.card, overflow: 'hidden' }}>
+            <FilaLegal
+              icono="shield_outlined"
+              titulo="Política de tratamiento de datos"
+              onPress={() => router.push(AppRoutes.legal('privacidad') as Href)}
+            />
+            <Divider color={conAlfa(cs.outlineVariant, 0.5)} style={{ marginLeft: 56 }} />
+            <FilaLegal
+              icono="description_outlined"
+              titulo="Términos y condiciones"
+              onPress={() => router.push(AppRoutes.legal('terminos-viajeros') as Href)}
+            />
+          </View>
+          <View style={{ height: 28 }} />
+          <OutlinedButton
+            accessibilityLabel="Cerrar sesión"
+            onPress={vm.cerrandoSesion ? null : () => void cerrarSesion()}
+            style={{ paddingLeft: 16 }}
+          >
+            {vm.cerrandoSesion ? <GiradorDeBoton /> : <Icono nombre="logout_rounded" size={18} color={cs.error} />}
+            <Text style={{ color: vm.cerrandoSesion ? undefined : cs.error }}>Cerrar sesión</Text>
+          </OutlinedButton>
         </View>
-        <View style={{ height: 28 }} />
-        <OutlinedButton accessibilityLabel="Cerrar sesión" onPress={() => void cerrarSesion()} style={{ paddingLeft: 16 }}>
-          <Icono nombre="logout_rounded" size={18} color={cs.error} />
-          <Text style={{ color: cs.error }}>Cerrar sesión</Text>
-        </OutlinedButton>
       </ScrollView>
       <AvisoFlotante sobreBarraInferior />
     </View>
@@ -138,9 +146,13 @@ function FilaLegal({ icono, titulo, onPress }: { icono: IconoNombre; titulo: str
   );
 }
 
+/** Ancho máximo de la columna del perfil en pantallas anchas. */
+const ANCHO_MAXIMO = 720;
+
 const estilos = StyleSheet.create({
   flex: { flex: 1 },
   lista: { paddingLeft: 20, paddingTop: 12, paddingRight: 20, paddingBottom: 24 },
+  columna: { width: '100%', maxWidth: ANCHO_MAXIMO, alignSelf: 'center' },
   identidad: { alignItems: 'center' },
   avatar: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
   error: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' },

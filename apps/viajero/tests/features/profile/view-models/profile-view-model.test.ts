@@ -105,7 +105,7 @@ test('error: queda visible en `error`, sigue «Viajero» (con el correo) y reint
 
 test('cerrarSesion: true y la sesión se cierra', async () => {
   const { result } = await crear();
-  let ok = false;
+  let ok: boolean | null = false;
   await act(async () => {
     ok = await result.current.cerrarSesion();
   });
@@ -117,7 +117,7 @@ test('cerrarSesion que falla: false, y la sesión sigue abierta', async () => {
   auth.falloAlSalir = new Error('sin red');
   const { result } = await crear();
 
-  let ok = true;
+  let ok: boolean | null = true;
   await act(async () => {
     ok = await result.current.cerrarSesion();
   });
@@ -136,4 +136,29 @@ test('desmontada: una carga que termina después no avisa a nadie ni lanza', asy
   auth.compuertaPerfil.completar();
 
   await expect(carga).resolves.toBeUndefined();
+});
+
+test('cerrarSesion: mientras cierra, `cerrandoSesion`; un segundo pedido no vuelve a llamar a signOut', async () => {
+  const salida = compuerta();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => salida.promesa);
+  const { result } = await crear();
+  expect(result.current.cerrandoSesion).toBe(false);
+
+  let primera!: Promise<boolean | null>;
+  let segunda!: Promise<boolean | null>;
+  await act(async () => {
+    primera = result.current.cerrarSesion();
+    segunda = result.current.cerrarSesion();
+  });
+
+  expect(signOut).toHaveBeenCalledTimes(1);
+  expect(result.current.cerrandoSesion).toBe(true);
+
+  await act(async () => {
+    salida.completar();
+    await primera;
+  });
+  expect(await primera).toBe(true);
+  expect(await segunda).toBeNull(); // ignorado: no es un fallo que haya que avisar
+  expect(result.current.cerrandoSesion).toBe(false);
 });

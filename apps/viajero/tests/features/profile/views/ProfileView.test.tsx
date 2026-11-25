@@ -7,6 +7,7 @@ import { ProfileView } from '@/features/profile/views/ProfileView';
 import { temaClaro } from '@/ui/theme';
 
 import { AuthFalso } from '../../../support/auth-falso';
+import { compuerta } from '../../../support/compuerta';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
@@ -128,4 +129,39 @@ test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia 
   await asentarPantalla();
   expect(segmento('Claro')).toBeSelected();
   expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).toBe(temaClaro.colorScheme.onSurface);
+});
+
+test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos toques, una sola llamada', async () => {
+  const auth = new AuthFalso();
+  const salida = compuerta();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => salida.promesa);
+  await abrir(auth);
+  const boton = () => screen.getByRole('button', { name: 'Cerrar sesión' });
+
+  await fireEvent.press(boton());
+  await fireEvent.press(boton());
+  await asentarPantalla();
+
+  expect(signOut).toHaveBeenCalledTimes(1);
+  expect(boton()).toBeDisabled();
+  expect(screen.getByTestId('girador-de-boton')).toBeOnTheScreen();
+  // El segundo toque se ignora: no es un fallo que haya que avisar.
+  expect(screen.queryByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeNull();
+
+  salida.fallar(new Error('sin red'));
+  await asentarPantalla();
+
+  expect(boton()).toBeEnabled();
+  expect(screen.queryByTestId('girador-de-boton')).toBeNull();
+  expect(screen.getByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeOnTheScreen();
+});
+
+test('en pantallas anchas el contenido va en una columna centrada de 720 como máximo', async () => {
+  await abrir(new AuthFalso());
+  await fijarVentana(1280, 900);
+
+  const columna = StyleSheet.flatten(screen.getByTestId('columna-perfil').props.style) ?? {};
+  expect(columna.maxWidth).toBe(720);
+  expect(columna.alignSelf).toBe('center');
+  expect(columna.width).toBe('100%');
 });
