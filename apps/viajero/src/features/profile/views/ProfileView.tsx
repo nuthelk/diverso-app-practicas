@@ -5,8 +5,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { LEGAL_VERSION } from '@/core';
 import { useDependencies } from '@/composition';
 import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
-import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
+import { TopBar } from '@/features/shell/components/TopBar';
+import { ButtonSpinner } from '@/features/shell/components/ButtonSpinner';
 import { AppRoutes } from '@/router';
 import { Divider, Icon, OutlinedButton, SectionLabel, Text, TextButton, PageTitle, type IconName } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
@@ -38,7 +38,7 @@ export function ProfileView() {
 
   return (
     <View testID="pantalla-ProfileView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo={<PageTitle text="Perfil" />} />
+      <TopBar title={<PageTitle text="Perfil" />} />
       <ScrollView contentContainerStyle={estilos.lista}>
         {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
         <View testID="columna-perfil" style={estilos.columna}>
@@ -80,7 +80,7 @@ export function ProfileView() {
             onPress={vm.cerrandoSesion ? null : () => void cerrarSesion()}
             style={{ paddingLeft: 16 }}
           >
-            {vm.cerrandoSesion ? <GiradorDeBoton /> : <Icon name="logout_rounded" size={18} color={cs.error} />}
+            {vm.cerrandoSesion ? <ButtonSpinner /> : <Icon name="logout_rounded" size={18} color={cs.error} />}
             <Text style={{ color: vm.cerrandoSesion ? undefined : cs.error }}>Cerrar sesión</Text>
           </OutlinedButton>
         </View>

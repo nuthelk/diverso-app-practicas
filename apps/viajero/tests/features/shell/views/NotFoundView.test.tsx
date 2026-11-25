@@ -1,6 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 
-import { PaginaNoEncontradaView } from '@/features/shell/views/PaginaNoEncontradaView';
+import { NotFoundView } from '@/features/shell/views/NotFoundView';
 
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { icon } from '../../../ui/support/render-with-theme';
@@ -12,7 +12,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 beforeEach(reiniciarRouterFalso);
 
 test('dice que no existe, muestra la ubicación y lleva al inicio', async () => {
-  await renderPantalla(<PaginaNoEncontradaView ubicacion="/esta/no/existe?x=1" />);
+  await renderPantalla(<NotFoundView location="/esta/no/existe?x=1" />);
 
   expect(screen.getByText('No encontramos esta página')).toBeOnTheScreen();
   expect(screen.getByText('El enlace puede estar mal escrito o la página ya no existe.')).toBeOnTheScreen();

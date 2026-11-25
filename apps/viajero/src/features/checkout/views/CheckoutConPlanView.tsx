@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import type { Plan, PlanDate } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { OutlinedButton, SectionLabel } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -43,7 +43,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
   const { pendiente, error, bookingId } = vm;
   return (
     <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Confirmar y pagar" onVolver={() => volverSeguro(router, AppRoutes.plan(plan.id))} />
+      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, AppRoutes.plan(plan.id))} />
       <ScrollView testID="checkout-scroll" style={estilos.pantalla} contentContainerStyle={estilos.lista}>
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}
         {pendiente !== null ? (

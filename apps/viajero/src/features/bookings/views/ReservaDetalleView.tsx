@@ -7,7 +7,7 @@ import { useDependencies } from '@/composition';
 import { irA } from '@/features/checkout/ir-a';
 import { useAbrirPago } from '@/features/checkout/useAbrirPago';
 import { Snackbar } from '@/features/shared/snackbar';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, useTheme } from '@/ui/theme';
@@ -86,7 +86,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   /** Marco de las pantallas sin reserva (cargando / error): barra con «Volver». */
   const marco = (cuerpo: ReactNode) => (
     <View testID="pantalla-ReservaDetalleView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo={null} onVolver={volver} />
+      <TopBar title={null} onBack={volver} />
       <View style={estilos.flex}>{cuerpo}</View>
       <Snackbar />
     </View>

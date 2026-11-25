@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { BookingStatus, noLineBreaks } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -87,7 +87,7 @@ function Estado({ children }: { children: ReactNode }) {
   const router = useRouter();
   return (
     <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
+      <TopBar title="" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
       {children}
     </View>
   );

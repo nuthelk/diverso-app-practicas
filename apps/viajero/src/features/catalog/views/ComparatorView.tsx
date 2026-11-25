@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -62,7 +62,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
 
   return (
     <View testID="pantalla-ComparatorView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Comparar planes" onVolver={() => volverSeguro(router, AppRoutes.explorar)} />
+      <TopBar title="Comparar planes" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
       {cuerpo}
     </View>
   );

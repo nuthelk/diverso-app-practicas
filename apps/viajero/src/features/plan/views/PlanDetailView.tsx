@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import type { Plan, Review } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import {
   CollapsibleHeader,
@@ -55,7 +55,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
     cuerpo = (
       <>
         {/* En Flutter el error no tenía cómo volver; abierta en frío dejaba al viajero atrapado. */}
-        <BarraSuperior titulo="" onVolver={volver} />
+        <TopBar title="" onBack={volver} />
         <EmptyState
           icon="cloud_off_rounded"
           title="No pudimos cargar el plan"

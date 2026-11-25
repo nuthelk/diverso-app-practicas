@@ -7,7 +7,7 @@ import { useDependencies } from '@/composition';
 import { useAbrirPago } from '@/features/checkout/useAbrirPago';
 import { irA } from '@/features/checkout/ir-a';
 import { Snackbar } from '@/features/shared/snackbar';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, Text, PageTitle } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -132,7 +132,7 @@ export function BookingsView() {
   return (
     <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
-      <BarraSuperior titulo={<PageTitle text="Mis reservas" />} />
+      <TopBar title={<PageTitle text="Mis reservas" />} />
       <PestanasReservas
         pestanas={[`Próximas (${vm.activas.length})`, `Historial (${vm.historial.length})`]}
         seleccionada={pestana}

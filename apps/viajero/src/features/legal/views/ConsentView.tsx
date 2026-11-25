@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
+import { ButtonSpinner } from '@/features/shell/components/ButtonSpinner';
 import { CircularProgressIndicator, FilledButton, Icon, Text, TextButton } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
@@ -86,7 +86,7 @@ export function ConsentView() {
         ) : null}
         <View style={{ height: 24 }} />
         <FilledButton accessibilityLabel="Aceptar y continuar" onPress={guardando ? null : () => void aceptar()}>
-          {guardando ? <GiradorDeBoton /> : <Text>Aceptar y continuar</Text>}
+          {guardando ? <ButtonSpinner /> : <Text>Aceptar y continuar</Text>}
         </FilledButton>
       </>
     );

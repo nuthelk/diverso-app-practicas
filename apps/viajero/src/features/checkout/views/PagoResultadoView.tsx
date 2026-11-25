@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { BookingStatus, VerifiedPaymentStatus, type DiversoError, type VerifiedPayment } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -46,7 +46,7 @@ export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoVie
 
   return (
     <View testID="pantalla-PagoResultadoView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Resultado del pago" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
+      <TopBar title="Resultado del pago" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
       <Contenido vm={vm} irAReservas={() => irA(router, AppRoutes.reservas)} reintentar={(id) => void vm.intentarDeNuevo(id, abrirPago)} />
       {modalPago}
     </View>

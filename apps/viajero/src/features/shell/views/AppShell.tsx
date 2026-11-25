@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router/tabs';
 
 import { useTheme } from '@/ui/theme';
 
-import { BarraInferior, DESTINOS } from '../components/BarraInferior';
+import { BottomBar, TABS } from '../components/BottomBar';
 
 /**
  * Shell de pestañas (layout de `src/app/(tabs)`): Explorar `/`, Agencias, Reservas y Perfil con
@@ -15,23 +15,23 @@ import { BarraInferior, DESTINOS } from '../components/BarraInferior';
 /**
  * Orden en que se DECLARAN las pestañas: el mismo en que Expo Router arma su estado inicial. Si
  * difiere, React Navigation despacha ROUTE_NAMES_CHANGED al arrancar y, como la acción apunta a una
- * key que ya no existe, en desarrollo sale un error rojo. El orden VISUAL lo pone la barra (DESTINOS).
+ * key que ya no existe, en desarrollo sale un error rojo. El orden VISUAL lo pone la barra (TABS).
  */
-const ORDEN_DEL_NAVEGADOR = ['index', 'perfil', 'agencias', 'reservas'] as const;
+const NAVIGATOR_ORDER = ['index', 'perfil', 'agencias', 'reservas'] as const;
 
 export function AppShell() {
-  const tema = useTheme();
+  const theme = useTheme();
   return (
     <Tabs
-      tabBar={(props) => <BarraInferior {...props} />}
+      tabBar={(props) => <BottomBar {...props} />}
       screenOptions={{
         headerShown: false,
         animation: 'fade',
-        sceneStyle: { backgroundColor: tema.pageBackground },
+        sceneStyle: { backgroundColor: theme.pageBackground },
       }}
     >
-      {ORDEN_DEL_NAVEGADOR.map((ruta) => (
-        <Tabs.Screen key={ruta} name={ruta} options={{ title: DESTINOS.find((d) => d.ruta === ruta)?.etiqueta }} />
+      {NAVIGATOR_ORDER.map((routeName) => (
+        <Tabs.Screen key={routeName} name={routeName} options={{ title: TABS.find((d) => d.routeName === routeName)?.label }} />
       ))}
     </Tabs>
   );

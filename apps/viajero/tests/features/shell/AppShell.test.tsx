@@ -12,10 +12,10 @@ import { lightTheme, ThemeProvider } from '@/ui/theme';
  * páginas son marcadores. Port de `app_shell_test.dart`.
  */
 
-const estilo = (el: { props: { style?: unknown } }) => StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
+const styleOf = (el: { props: { style?: unknown } }) => StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
 const cs = lightTheme.colorScheme;
 
-function Envoltura({ children }: { children: ReactNode }) {
+function Wrapper({ children }: { children: ReactNode }) {
   return (
     <SafeAreaProvider
       initialMetrics={{ frame: { x: 0, y: 0, width: 400, height: 800 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}
@@ -25,62 +25,62 @@ function Envoltura({ children }: { children: ReactNode }) {
   );
 }
 
-const pagina = (texto: string) => () => <Text testID={`pagina ${texto}`}>{texto}</Text>;
+const page = (text: string) => () => <Text testID={`pagina ${text}`}>{text}</Text>;
 
-async function abrir() {
+async function renderShell() {
   const r = await renderRouter(
     {
       '(tabs)/_layout': AppShell,
-      '(tabs)/index': pagina('Página explorar'),
-      '(tabs)/agencias': pagina('Página agencias'),
-      '(tabs)/reservas': pagina('Página reservas'),
-      '(tabs)/perfil': pagina('Página perfil'),
+      '(tabs)/index': page('Página explorar'),
+      '(tabs)/agencias': page('Página agencias'),
+      '(tabs)/reservas': page('Página reservas'),
+      '(tabs)/perfil': page('Página perfil'),
     },
-    { initialUrl: '/', wrapper: Envoltura },
+    { initialUrl: '/', wrapper: Wrapper },
   );
   return r;
 }
 
-const barra = () => screen.getByTestId('barra-inferior');
-const destino = (etiqueta: string) => within(barra()).getByRole('tab', { name: etiqueta });
+const bar = () => screen.getByTestId('barra-inferior');
+const tab = (label: string) => within(bar()).getByRole('tab', { name: label });
 
 afterEach(() => jest.useRealTimers());
 
 test('tiene cuatro destinos: Explorar, Agencias, Reservas, Perfil', async () => {
-  await abrir();
-  expect(within(barra()).getAllByRole('tab')).toHaveLength(4);
-  for (const etiqueta of ['Explorar', 'Agencias', 'Reservas', 'Perfil']) {
-    expect(within(barra()).getByText(etiqueta)).toBeOnTheScreen();
+  await renderShell();
+  expect(within(bar()).getAllByRole('tab')).toHaveLength(4);
+  for (const label of ['Explorar', 'Agencias', 'Reservas', 'Perfil']) {
+    expect(within(bar()).getByText(label)).toBeOnTheScreen();
   }
 });
 
 test('el destino activo cambia al tocar y muestra su página', async () => {
-  const r = await abrir();
-  expect(destino('Explorar')).toBeSelected();
+  const r = await renderShell();
+  expect(tab('Explorar')).toBeSelected();
   expect(screen.getByText('Página explorar')).toBeOnTheScreen();
 
-  await fireEvent.press(destino('Agencias'));
-  expect(destino('Agencias')).toBeSelected();
+  await fireEvent.press(tab('Agencias'));
+  expect(tab('Agencias')).toBeSelected();
   expect(screen.getByText('Página agencias')).toBeOnTheScreen();
   expect(r.getPathname()).toBe('/agencias');
 
-  await fireEvent.press(destino('Perfil'));
-  expect(destino('Perfil')).toBeSelected();
-  expect(destino('Explorar')).not.toBeSelected();
+  await fireEvent.press(tab('Perfil'));
+  expect(tab('Perfil')).toBeSelected();
+  expect(tab('Explorar')).not.toBeSelected();
   expect(screen.getByText('Página perfil')).toBeOnTheScreen();
   expect(r.getPathname()).toBe('/perfil');
 });
 
 test('tocar la pestaña activa no navega ni recrea su página', async () => {
-  const r = await abrir();
-  await fireEvent.press(destino('Explorar'));
+  const r = await renderShell();
+  await fireEvent.press(tab('Explorar'));
   expect(r.getPathname()).toBe('/');
   expect(screen.getByText('Página explorar')).toBeOnTheScreen();
 });
 
 test('está pegada al borde inferior y ocupa todo el ancho (no flota)', async () => {
-  await abrir();
-  const s = estilo(barra());
+  await renderShell();
+  const s = styleOf(bar());
   expect(s.position).not.toBe('absolute');
   expect(s.marginHorizontal ?? 0).toBe(0);
   expect(s.marginBottom ?? 0).toBe(0);
@@ -88,34 +88,34 @@ test('está pegada al borde inferior y ocupa todo el ancho (no flota)', async ()
 });
 
 test('es sólida, con línea superior sutil', async () => {
-  await abrir();
-  const barraNav = estilo(screen.getByTestId('navigation-bar'));
-  expect(barraNav.backgroundColor).toBe(lightTheme.components.navigationBar.backgroundColor);
-  expect(barraNav.backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
-  expect(within(barra()).getByTestId('divider')).toBeOnTheScreen();
-  expect(estilo(within(barra()).getByTestId('divider')).backgroundColor).toBe(lightTheme.components.navigationBar.divider);
+  await renderShell();
+  const navBar = styleOf(screen.getByTestId('navigation-bar'));
+  expect(navBar.backgroundColor).toBe(lightTheme.components.navigationBar.backgroundColor);
+  expect(navBar.backgroundColor).toMatch(/^#[0-9A-F]{6}$/i);
+  expect(within(bar()).getByTestId('divider')).toBeOnTheScreen();
+  expect(styleOf(within(bar()).getByTestId('divider')).backgroundColor).toBe(lightTheme.components.navigationBar.divider);
 });
 
 test('íconos más grandes y el activo en verde con su píldora', async () => {
-  await abrir();
-  const activo = within(barra()).getByTestId('icono-explore_rounded', { includeHiddenElements: true });
-  expect(estilo(activo).fontSize).toBeGreaterThanOrEqual(28);
-  expect(estilo(activo).color).toBe(cs.primary);
-  expect(estilo(within(destino('Explorar')).getByTestId('indicador', { includeHiddenElements: true })).backgroundColor).toBe(
+  await renderShell();
+  const active = within(bar()).getByTestId('icono-explore_rounded', { includeHiddenElements: true });
+  expect(styleOf(active).fontSize).toBeGreaterThanOrEqual(28);
+  expect(styleOf(active).color).toBe(cs.primary);
+  expect(styleOf(within(tab('Explorar')).getByTestId('indicador', { includeHiddenElements: true })).backgroundColor).toBe(
     cs.primaryContainer,
   );
-  const inactivo = within(barra()).getByTestId('icono-storefront_outlined', { includeHiddenElements: true });
-  expect(estilo(inactivo).fontSize).toBeGreaterThanOrEqual(28);
-  expect(estilo(inactivo).color).toBe(cs.onSurfaceVariant);
-  expect(within(destino('Agencias')).queryByTestId('indicador', { includeHiddenElements: true })).toBeNull();
+  const inactive = within(bar()).getByTestId('icono-storefront_outlined', { includeHiddenElements: true });
+  expect(styleOf(inactive).fontSize).toBeGreaterThanOrEqual(28);
+  expect(styleOf(inactive).color).toBe(cs.onSurfaceVariant);
+  expect(within(tab('Agencias')).queryByTestId('indicador', { includeHiddenElements: true })).toBeNull();
 });
 
 test('cada destino lleva sus íconos de Flutter (contorno inactivo, relleno activo)', async () => {
-  await abrir();
-  const ids = (nombre: string) => within(barra()).queryAllByTestId(`icono-${nombre}`, { includeHiddenElements: true }).length;
+  await renderShell();
+  const ids = (name: string) => within(bar()).queryAllByTestId(`icono-${name}`, { includeHiddenElements: true }).length;
   expect([ids('explore_rounded'), ids('storefront_outlined'), ids('receipt_long_outlined'), ids('person_outline_rounded')]).toEqual([1, 1, 1, 1]);
   await act(async () => {
-    await fireEvent.press(destino('Reservas'));
+    await fireEvent.press(tab('Reservas'));
   });
   expect([ids('explore_outlined'), ids('receipt_long_rounded')]).toEqual([1, 1]);
 });

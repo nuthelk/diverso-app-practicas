@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useDependencies } from '@/composition';
 import { irA } from '@/features/checkout/ir-a';
 import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -88,7 +88,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
 
   return (
     <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Tu reseña" onVolver={() => volverSeguro(router, AppRoutes.reservas)} />
+      <TopBar title="Tu reseña" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
       <View style={estilos.flex}>{cuerpo}</View>
       <Snackbar />
     </View>

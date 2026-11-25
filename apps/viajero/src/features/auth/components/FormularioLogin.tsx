@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes';
-import { GiradorDeBoton } from '@/features/shell/components/GiradorDeBoton';
+import { ButtonSpinner } from '@/features/shell/components/ButtonSpinner';
 import { AppRoutes } from '@/router';
 import { FilledButton, Icon, IconButton, OutlinedButton, Text, TextButton, TextField } from '@/ui/components';
 import { AppText, useTheme } from '@/ui/theme';
@@ -154,7 +154,7 @@ export function FormularioLogin({
         onPress={vm.cargando ? null : onEnviar}
         style={estilos.principal}
       >
-        {vm.cargando ? <GiradorDeBoton /> : <Text>{vm.esRegistro ? 'Crear cuenta' : 'Entrar'}</Text>}
+        {vm.cargando ? <ButtonSpinner /> : <Text>{vm.esRegistro ? 'Crear cuenta' : 'Entrar'}</Text>}
       </FilledButton>
       <View style={{ height: 10 }} />
       <TextButton

@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, AppRadii, useTheme } from '@/ui/theme';
@@ -84,7 +84,7 @@ export function AgenciaView({ agencyId }: AgenciaViewProps) {
 function AvisoAgencia({ onVolver, children }: { onVolver: () => void; children: ReactNode }) {
   return (
     <View style={estilos.flex}>
-      <BarraSuperior titulo="" onVolver={onVolver} />
+      <TopBar title="" onBack={onVolver} />
       <View style={estilos.flex}>{children}</View>
     </View>
   );

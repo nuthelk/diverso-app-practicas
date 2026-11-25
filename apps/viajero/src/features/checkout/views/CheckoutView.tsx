@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
@@ -78,7 +78,7 @@ function EstadoCheckout({ children, volverA }: { children: ReactNode; volverA: s
   const router = useRouter();
   return (
     <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Confirmar y pagar" onVolver={() => volverSeguro(router, volverA)} />
+      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, volverA)} />
       {children}
     </View>
   );

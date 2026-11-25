@@ -4,7 +4,7 @@ import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } fro
 
 import { useDependencies } from '@/composition';
 import { formatCOP, formatShortDate, valuesOf, ExperienceCategory } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, IconButton, InputChip, TextField, PageTitle } from '@/ui/components';
 import { AppInsets, AppTheme, useTheme } from '@/ui/theme';
@@ -56,7 +56,7 @@ export function CatalogView() {
   return (
     <View testID="pantalla-CatalogView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* El título va en la barra, fuera del scroll: las tarjetas no pasan bajo la barra de estado. */}
-      <BarraSuperior titulo={<PageTitle text="Descubre Antioquia" />} />
+      <TopBar title={<PageTitle text="Descubre Antioquia" />} />
       <ScrollView
         testID="catalogo-scroll"
         style={estilos.flex}

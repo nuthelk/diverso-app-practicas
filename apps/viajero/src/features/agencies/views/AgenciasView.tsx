@@ -4,7 +4,7 @@ import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } fro
 import { useDependencies } from '@/composition';
 import { LABEL_AGENCY_SORT, AgencySort, valuesOf } from '@/core';
 import { Grilla } from '@/features/catalog/components/Grilla';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { EmptyState, FilledButton, SegmentedButton, Skeleton, PageTitle } from '@/ui/components';
 import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
 
@@ -42,7 +42,7 @@ export function AgenciasView() {
 
   return (
     <View testID="pantalla-AgenciasView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo={<PageTitle text="Agencias" />} />
+      <TopBar title={<PageTitle text="Agencias" />} />
       <ScrollView
         testID="agencias-scroll"
         style={estilos.flex}

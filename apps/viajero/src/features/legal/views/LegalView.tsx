@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { LegalDocument, LEGAL_VERSION } from '@/core';
-import { BarraSuperior } from '@/features/shell/components/BarraSuperior';
+import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
 import { Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
@@ -22,7 +22,7 @@ export function LegalView({ docId }: { docId: string }) {
 
   return (
     <View style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <BarraSuperior titulo="Documentos legales" onVolver={() => volverSeguro(router, AppRoutes.explorar)} />
+      <TopBar title="Documentos legales" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
       {doc === null ? (
         <View style={estilos.centro}>
           <Text>Documento no encontrado.</Text>
