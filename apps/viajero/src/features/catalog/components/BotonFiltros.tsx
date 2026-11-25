@@ -8,8 +8,8 @@ import { FiltrosSheet, type FiltrosDelCatalogo } from './FiltrosSheet';
 
 /**
  * Botón junto al buscador que abre la hoja de filtros (`boton_filtros.dart`); la insignia cuenta
- * los filtros activos (oculta en 0). El fondo es negro al 5 % FIJO, también en oscuro (gotcha 19:
- * se preserva tal cual).
+ * los filtros activos (oculta en 0). El fondo es el relleno de los campos del tema, el mismo del
+ * buscador de al lado. En Flutter era negro al 5 % fijo y en oscuro el botón no se veía (gotcha 19).
  */
 export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos: number } }) {
   const tema = useTheme();
@@ -20,7 +20,7 @@ export function BotonFiltros({ vm }: { vm: FiltrosDelCatalogo & { filtrosActivos
         variante="filledTonal"
         icono="tune_rounded"
         tooltip="Filtros y orden"
-        colorFondo="rgba(0, 0, 0, 0.05)"
+        colorFondo={tema.componentes.input.fillColor}
         colorIcono={tema.colorScheme.onSurface}
         style={estilos.boton}
         onPress={() => setAbierta(true)}
