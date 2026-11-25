@@ -17,8 +17,19 @@ import 'react-native-url-polyfill/auto';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-import { type DiversoConfig, diversoConfig } from '../../config/diverso-config';
+import { configDelEntorno, type DiversoConfig, hostDeMetro } from '../../config/diverso-config';
+
+/**
+ * En desarrollo, en un dispositivo, el Supabase local vive en el PC que sirve Metro: se usa su
+ * host (LAN, o 127.0.0.1 con `--localhost` + `adb reverse`). En web y en producción, nada.
+ */
+function hostDesarrollo(): string | undefined {
+  if (!__DEV__ || Platform.OS === 'web') return undefined;
+  return hostDeMetro(Constants.expoConfig?.hostUri);
+}
 
 export function opcionesSupabase() {
   return {
@@ -32,6 +43,6 @@ export function opcionesSupabase() {
 }
 
 /** Crea el cliente (una vez, en la raíz de composición). */
-export function crearClienteSupabase(config: DiversoConfig = diversoConfig): SupabaseClient {
+export function crearClienteSupabase(config: DiversoConfig = configDelEntorno(hostDesarrollo())): SupabaseClient {
   return createClient(config.supabaseUrl, config.supabaseKey, opcionesSupabase());
 }
