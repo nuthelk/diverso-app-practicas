@@ -152,17 +152,33 @@ describe('textos y enlaces', () => {
     expect(routerFalso.push.mock.calls).toEqual([['/legal/privacidad'], ['/legal/terminos-viajeros']]);
   });
 
-  test('en pantallas anchas (> 640) se ve el panel de marca', async () => {
+  test('en pantallas anchas (> 640) la marca pasa al panel y el formulario no la repite', async () => {
+    const promesa =
+      'Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.';
     await abrir({ cuentaDemo: false });
-    expect(screen.queryByText('Diverso')).toBeNull();
+    // Angosta: el colibrí grande sin caja y el nombre encabezan el formulario; la promesa no.
+    expect(screen.getByTestId('colibri-bienvenida')).toBeOnTheScreen();
+    expect(screen.getByText('Diverso')).toBeOnTheScreen();
+    expect(screen.queryByText(promesa)).toBeNull();
 
     await fijarVentana(1024, 800);
 
-    expect(screen.getByText('Diverso')).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        'Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('panel-marca')).toBeOnTheScreen();
+    expect(screen.getByText(promesa)).toBeOnTheScreen();
+    expect(screen.getAllByText('Diverso')).toHaveLength(1);
+    expect(screen.getAllByTestId('diverso-logo', { includeHiddenElements: true })).toHaveLength(1);
+  });
+});
+
+describe('contraseña', () => {
+  test('el ojo muestra y oculta la contraseña', async () => {
+    await abrir({ cuentaDemo: false });
+    expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(true);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Mostrar contraseña' }));
+    expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(false);
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Ocultar contraseña' }));
+    expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(true);
   });
 });

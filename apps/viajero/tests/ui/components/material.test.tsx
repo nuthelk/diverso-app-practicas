@@ -253,3 +253,14 @@ describe('Card, Divider y SegmentedButton', () => {
     expect(iconos('check_rounded')).toHaveLength(0);
   });
 });
+
+describe('TextField con sufijo', () => {
+  test('el sufijo (p. ej. un IconButton de 48) se centra en la caja sin agrandarla, como el suffixIcon de Flutter', async () => {
+    await renderConTema(
+      <TextField valor="" onChangeText={() => {}} etiqueta="Contraseña" sufijo={<IconButton icono="clear" tooltip="Borrar" onPress={() => {}} />} />,
+    );
+    const sufijo = StyleSheet.flatten(screen.getByTestId('sufijo').props.style);
+    // Caja: 14 de relleno arriba y abajo + 24 de línea = 52. Con -14 de margen el botón de 48 ocupa 20 < 24.
+    expect(sufijo.marginVertical).toBe(-14);
+  });
+});

@@ -93,9 +93,12 @@ const mapa = {
   tune_rounded: ['MI', 'tune'],
   verified_rounded: ['MI', 'verified'],
   verified_user_rounded: ['MI', 'verified-user'],
+  // Nuevos de la app Expo (no venían de Flutter).
+  visibility_off_outlined: ['MCI', 'eye-off-outline'],
+  visibility_outlined: ['MCI', 'eye-outline'],
 } as const satisfies Record<string, readonly [Familia, string]>;
 
-/** Todos los íconos que usa la app Flutter (`rg Icons\.` en apps/viajero y diverso_core). */
+/** Íconos de la app: los de la versión Flutter más los nuevos (nombres al estilo de Flutter). */
 export type IconoNombre = keyof typeof mapa;
 
 export interface IconoProps {

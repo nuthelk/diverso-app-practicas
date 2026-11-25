@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDependencies } from '@/composition';
@@ -38,9 +38,11 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
   const enviar = () =>
     void vm.enviar({ formularioValido: validar(), nombre: campos.nombre, email: campos.email, password: campos.password });
 
+  const ancha = width > AppTheme.bpCompact;
   const formulario = (
     <FormularioLogin
       vm={vm}
+      conMarca={!ancha}
       campos={campos}
       errores={errores}
       onCampo={(campo, valor) => setCampos((antes) => ({ ...antes, [campo]: valor }))}
@@ -49,7 +51,7 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
     />
   );
 
-  if (width > AppTheme.bpCompact) {
+  if (ancha) {
     return (
       <View style={[estilos.fila, { backgroundColor: tema.fondoPagina }]}>
         <View style={estilos.mitad}>
@@ -63,9 +65,16 @@ export function LoginView({ mostrarCuentaDemo = __DEV__ }: { mostrarCuentaDemo?:
   }
   return (
     <SafeAreaView style={[estilos.pantalla, { backgroundColor: tema.fondoPagina }]}>
-      <ScrollView contentContainerStyle={[AppInsets.pantalla, estilos.centrado]} keyboardShouldPersistTaps="handled">
-        {formulario}
-      </ScrollView>
+      {/* iOS no achica la ventana con el teclado: sin esto taparía «Entrar». Android ya lo hace. */}
+      <KeyboardAvoidingView style={estilos.pantalla} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={[AppInsets.pantalla, estilos.centrado]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
+          {formulario}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

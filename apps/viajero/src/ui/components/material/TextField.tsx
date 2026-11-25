@@ -160,7 +160,13 @@ export function TextField({
             multilinea ? { lineHeight: ALTO_LINEA, textAlignVertical: 'top' } : null,
           ]}
         />
-        {sufijo ? <View style={[estilos.sufijo, { marginRight: -anchoBorde }]}>{sufijo}</View> : null}
+        {/* Como el suffixIcon de Flutter: se centra en todo el alto de la caja SIN agrandarla (un
+            IconButton de 48 dentro de una caja de 52 la estiraba a 76). */}
+        {sufijo ? (
+          <View testID="sufijo" style={[estilos.sufijo, { marginRight: -anchoBorde, marginVertical: -(RELLENO_V - anchoBorde) }]}>
+            {sufijo}
+          </View>
+        ) : null}
         {etiqueta ? (
           <Animated.View
             pointerEvents="none"
