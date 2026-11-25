@@ -55,6 +55,18 @@ function useGuardia({
  * [listo]: fuentes cargadas. Hasta entonces, y mientras se lee la sesión guardada, no se monta
  * ninguna pantalla (la splash sigue visible).
  */
+/** Transición de cada ruta del stack raíz (las demás: sharedAxisX). */
+const OPCIONES_POR_RUTA = {
+  login: opcionesDePantalla.fadeThrough,
+  // `PopScope(canPop: false)`: sin gesto atrás en iOS (el botón de Android lo bloquea la vista).
+  consentimiento: { ...opcionesDePantalla.fadeThrough, gestureEnabled: false },
+  '(tabs)': opcionesDePantalla.fadeThrough,
+  'pago/resultado': opcionesDePantalla.fadeThrough,
+  'reserva/[bookingId]': opcionesDePantalla.zoomIn,
+};
+type OpcionesRuta = (typeof OPCIONES_POR_RUTA)[keyof typeof OPCIONES_POR_RUTA];
+const opcionesDeRuta = (nombre: string): OpcionesRuta | undefined => (OPCIONES_POR_RUTA as Record<string, OpcionesRuta>)[nombre];
+
 export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
   const tema = useTheme();
   const sesion = useSesion();
@@ -67,11 +79,14 @@ export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
   return (
     <>
       <Stack
-        screenOptions={{
+        // Opciones por nombre de ruta, sin lista de Stack.Screen: declararlas en otro orden que el
+        // canónico de Expo Router despachaba ROUTE_NAMES_CHANGED en cada arranque (error rojo).
+        screenOptions={({ route }) => ({
           headerShown: false,
           contentStyle: { backgroundColor: tema.fondoPagina },
           ...opcionesDePantalla.sharedAxisX,
-        }}
+          ...opcionesDeRuta(route.name),
+        })}
         screenLayout={({ route, children }) =>
           preparado &&
           pantallaVisible({
@@ -85,14 +100,7 @@ export function NavegacionDeLaApp({ listo }: { listo: boolean }) {
             <View style={{ flex: 1, backgroundColor: tema.fondoPagina }} />
           )
         }
-      >
-        <Stack.Screen name="login" options={opcionesDePantalla.fadeThrough} />
-        {/* `PopScope(canPop: false)`: sin gesto atrás en iOS (el botón de Android lo bloquea la vista). */}
-        <Stack.Screen name="consentimiento" options={{ ...opcionesDePantalla.fadeThrough, gestureEnabled: false }} />
-        <Stack.Screen name="(tabs)" options={opcionesDePantalla.fadeThrough} />
-        <Stack.Screen name="pago/resultado" options={opcionesDePantalla.fadeThrough} />
-        <Stack.Screen name="reserva/[bookingId]" options={opcionesDePantalla.zoomIn} />
-      </Stack>
+      />
       <StatusBar style={tema.brillo === 'dark' ? 'light' : 'dark'} />
     </>
   );

@@ -30,10 +30,12 @@ export function BarraInferior({ state, emitter, navigateToTab, insets }: BottomT
         accessibilityRole="tablist"
         style={[estilos.barra, { backgroundColor: nav.backgroundColor, minHeight: nav.height + insets.bottom, paddingBottom: insets.bottom }]}
       >
-        {state.routes.map((route, i) => {
-          const destino = DESTINOS.find((d) => d.ruta === route.name);
-          if (!destino) return null;
-          const activo = i === state.index;
+        {/* Orden de la marca (DESTINOS), no el del navegador: Expo Router guarda las pestañas en su
+            orden canónico y declararlas en otro orden hacía que despachara ROUTE_NAMES_CHANGED. */}
+        {DESTINOS.map((destino) => {
+          const route = state.routes.find((r) => r.name === destino.ruta);
+          if (!route) return null;
+          const activo = state.routes[state.index]?.key === route.key;
           const color = activo ? nav.colorSeleccionado : nav.colorNoSeleccionado;
           const alTocar = () => {
             const evento = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });

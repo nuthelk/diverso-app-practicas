@@ -12,6 +12,13 @@ import { BarraInferior, DESTINOS } from '../components/BarraInferior';
  *
  * El consentimiento no se pide aquí: lo decide el guard de la raíz (`NavegacionDeLaApp`).
  */
+/**
+ * Orden en que se DECLARAN las pestañas: el mismo en que Expo Router arma su estado inicial. Si
+ * difiere, React Navigation despacha ROUTE_NAMES_CHANGED al arrancar y, como la acción apunta a una
+ * key que ya no existe, en desarrollo sale un error rojo. El orden VISUAL lo pone la barra (DESTINOS).
+ */
+const ORDEN_DEL_NAVEGADOR = ['index', 'perfil', 'agencias', 'reservas'] as const;
+
 export function AppShell() {
   const tema = useTheme();
   return (
@@ -23,8 +30,8 @@ export function AppShell() {
         sceneStyle: { backgroundColor: tema.fondoPagina },
       }}
     >
-      {DESTINOS.map((d) => (
-        <Tabs.Screen key={d.ruta} name={d.ruta} options={{ title: d.etiqueta }} />
+      {ORDEN_DEL_NAVEGADOR.map((ruta) => (
+        <Tabs.Screen key={ruta} name={ruta} options={{ title: DESTINOS.find((d) => d.ruta === ruta)?.etiqueta }} />
       ))}
     </Tabs>
   );
