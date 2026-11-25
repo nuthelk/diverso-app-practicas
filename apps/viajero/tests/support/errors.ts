@@ -1,12 +1,12 @@
 import { PostgrestError } from '@supabase/supabase-js';
 
-import { ErrorFuncion } from '@/core/errors/error-funcion';
+import { FunctionError } from '@/core/errors/function-error';
 
 /**
  * Error de PostgREST como lo lanza supabase-js con `.throwOnError()` (equivale a
  * `PostgrestException(message: …, code: …, details: …)` de los tests Dart).
  */
-export function errorPostgrest(
+export function postgrestError(
   message: string,
   extra: { code?: string; details?: string | null } = {},
 ): PostgrestError {
@@ -19,19 +19,19 @@ export function errorPostgrest(
 }
 
 /** Respuesta no‑2xx de una Edge Function (equivale a `FunctionException(status, details)`). */
-export function errorHttp(status: number, cuerpo: Record<string, unknown>): ErrorFuncion {
-  return new ErrorFuncion(status, cuerpo);
+export function httpError(status: number, body: Record<string, unknown>): FunctionError {
+  return new FunctionError(status, body);
 }
 
 /** Fallo de red al llamar a una Edge Function (equivale a `FunctionsFetchException`, status 0). */
-export function errorSinRed(detalle: unknown = 'offline'): ErrorFuncion {
-  return new ErrorFuncion(0, detalle);
+export function networkError(detail: unknown = 'offline'): FunctionError {
+  return new FunctionError(0, detail);
 }
 
-/** Espera a que [accion] falle y devuelve el error (para revisar sus campos). */
-export async function capturar<E = unknown>(accion: () => Promise<unknown>): Promise<E> {
+/** Espera a que [action] falle y devuelve el error (para revisar sus campos). */
+export async function capture<E = unknown>(action: () => Promise<unknown>): Promise<E> {
   try {
-    await accion();
+    await action();
   } catch (e) {
     return e as E;
   }

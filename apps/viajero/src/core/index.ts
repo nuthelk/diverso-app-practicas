@@ -27,8 +27,8 @@ export * from './models/review';
 export * from './models/catalog-filters';
 
 export * from './errors/diverso-error';
-export * from './errors/error-funcion';
-export * from './errors/errores-programacion';
+export * from './errors/function-error';
+export * from './errors/programming-errors';
 
 export * from './utils/fechas';
 export * from './utils/hora-bogota';

@@ -1,7 +1,7 @@
 import { ReviewRepository } from '@/core/data/repositories/review-repository';
 import { DiversoError } from '@/core/errors/diverso-error';
 
-import { capturar } from '../../../support/errores';
+import { capture } from '../../../support/errors';
 import { crearSupabaseFalso, cuerpoErrorPostgrest } from '../../../support/supabase-falso';
 
 /** `ReviewRepository` no tiene test en Dart: se prueba contra el Supabase falso (HTTP). */
@@ -36,7 +36,7 @@ describe('porPlan', () => {
 
   test('límite configurable y errores crudos (no se traducen, como en Dart)', async () => {
     const { client, pedidos } = crearSupabaseFalso(() => ({ status: 401, cuerpo: cuerpoErrorPostgrest('JWT expired', { code: 'PGRST301' }) }));
-    const e = await capturar(() => new ReviewRepository({ client }).porPlan('p-1', { limit: 5 }));
+    const e = await capture(() => new ReviewRepository({ client }).porPlan('p-1', { limit: 5 }));
     expect(pedidos[0]!.params['limit']).toEqual(['5']);
     expect(e).not.toBeInstanceOf(DiversoError);
     expect(e).toMatchObject({ message: 'JWT expired' });
@@ -65,10 +65,10 @@ describe('crear', () => {
       status: 403,
       cuerpo: cuerpoErrorPostgrest('new row violates row-level security policy for table "reviews"', { code: '42501' }),
     }));
-    const e = await capturar<DiversoError>(() =>
+    const e = await capture<DiversoError>(() =>
       new ReviewRepository({ client }).crear({ bookingId: 'b-1', calificacion: 5 }),
     );
     expect(e).toBeInstanceOf(DiversoError);
-    expect(e.codigo).toBe('ERROR_BD');
+    expect(e.code).toBe('ERROR_BD');
   });
 });

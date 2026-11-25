@@ -149,7 +149,7 @@ test('un error del servidor se muestra con su mensaje en español', async () => 
   reservas.falloAlCrear = new DiversoError('SIN_CUPO');
   const { result } = await crear();
   await act(() => result.current.pagar(fecha, abrir(true)));
-  expect(result.current.error).toBe(new DiversoError('SIN_CUPO').mensajeUsuario);
+  expect(result.current.error).toBe(new DiversoError('SIN_CUPO').userMessage);
   expect(result.current.bookingId).toBeNull();
   expect(result.current.procesando).toBe(false);
 });
@@ -161,7 +161,7 @@ test('un error del servidor al abrir el pago se muestra y no pierde la reserva',
       throw new DiversoError('RESERVA_VENCIDA');
     }),
   );
-  expect(result.current.error).toBe(new DiversoError('RESERVA_VENCIDA').mensajeUsuario);
+  expect(result.current.error).toBe(new DiversoError('RESERVA_VENCIDA').userMessage);
   expect(result.current.bookingId).toBe('nueva-1');
 });
 

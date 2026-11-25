@@ -1,15 +1,15 @@
 import { WompiPaymentGateway } from '@/core/data/repositories/payment-gateway';
 import { DiversoError } from '@/core/errors/diverso-error';
-import { ArgumentError } from '@/core/errors/errores-programacion';
+import { ArgumentError } from '@/core/errors/programming-errors';
 import { BookingStatus, LABEL_PAYMENT_METHOD, PaymentMethodOption } from '@/core/models/enums';
 import { VerifiedPaymentStatus } from '@/core/models/payment-checkout';
 import { fechaUtc } from '@/core/utils/fechas';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
-import { capturar, errorHttp, errorSinRed } from '../../../support/errores';
+import { capture, httpError, networkError } from '../../../support/errors';
 
 const fallo = (accion: () => Promise<unknown>) =>
-  capturar<DiversoError>(accion).then((e) => {
+  capture<DiversoError>(accion).then((e) => {
     expect(e).toBeInstanceOf(DiversoError);
     return e;
   });
@@ -41,10 +41,10 @@ describe('WompiPaymentGateway.iniciar', () => {
   });
 
   test('RESERVA_VENCIDA (409): reserva vencida sin cobro', async () => {
-    const inv = new EdgeFunctionsFalsas(() => errorHttp(409, { error: 'RESERVA_VENCIDA', mensaje: 'x' }));
+    const inv = new EdgeFunctionsFalsas(() => httpError(409, { error: 'RESERVA_VENCIDA', mensaje: 'x' }));
     const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).iniciar({ bookingId: 'b', redirectUrl: 'u' }));
-    expect(e.codigo).toBe('RESERVA_VENCIDA');
-    expect(e.mensajeUsuario).toContain('venció');
+    expect(e.code).toBe('RESERVA_VENCIDA');
+    expect(e.userMessage).toContain('venció');
   });
 
   test('REDIRECT_NO_PERMITIDO, NO_ES_DUENO y ESTADO_INVALIDO tienen mensaje propio', async () => {
@@ -56,27 +56,27 @@ describe('WompiPaymentGateway.iniciar', () => {
       [401, 'NO_AUTENTICADO'],
     ];
     for (const [status, codigo] of casos) {
-      const inv = new EdgeFunctionsFalsas(() => errorHttp(status, { error: codigo }));
+      const inv = new EdgeFunctionsFalsas(() => httpError(status, { error: codigo }));
       const e = await fallo(() =>
         new WompiPaymentGateway({ edgeFunctions: inv }).iniciar({ bookingId: 'b', redirectUrl: 'u' }),
       );
-      expect(e.codigo).toBe(codigo);
-      expect(e.mensajeUsuario).not.toContain('Algo salió mal');
+      expect(e.code).toBe(codigo);
+      expect(e.userMessage).not.toContain('Algo salió mal');
     }
   });
 
   test('SOLO_MODO_PRUEBA (503) → «La pasarela de prueba no está configurada»', async () => {
-    const inv = new EdgeFunctionsFalsas(() => errorHttp(503, { error: 'SOLO_MODO_PRUEBA' }));
+    const inv = new EdgeFunctionsFalsas(() => httpError(503, { error: 'SOLO_MODO_PRUEBA' }));
     const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).iniciar({ bookingId: 'b', redirectUrl: 'u' }));
-    expect(e.codigo).toBe('SOLO_MODO_PRUEBA');
-    expect(e.mensajeUsuario).toContain('La pasarela de prueba no está configurada');
+    expect(e.code).toBe('SOLO_MODO_PRUEBA');
+    expect(e.userMessage).toContain('La pasarela de prueba no está configurada');
   });
 
   test('sin red (FunctionsFetchError, status 0) → SIN_CONEXION', async () => {
-    const inv = new EdgeFunctionsFalsas(() => errorSinRed('offline'));
+    const inv = new EdgeFunctionsFalsas(() => networkError('offline'));
     const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).iniciar({ bookingId: 'b', redirectUrl: 'u' }));
-    expect(e.codigo).toBe('SIN_CONEXION');
-    expect(e.mensajeUsuario).toContain('conexión');
+    expect(e.code).toBe('SIN_CONEXION');
+    expect(e.userMessage).toContain('conexión');
   });
 });
 
@@ -151,16 +151,16 @@ describe('WompiPaymentGateway.verificar', () => {
   });
 
   test('MONTO_NO_COINCIDE (409)', async () => {
-    const inv = new EdgeFunctionsFalsas(() => errorHttp(409, { error: 'MONTO_NO_COINCIDE' }));
+    const inv = new EdgeFunctionsFalsas(() => httpError(409, { error: 'MONTO_NO_COINCIDE' }));
     const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).verificar({ transactionId: 't' }));
-    expect(e.codigo).toBe('MONTO_NO_COINCIDE');
-    expect(e.mensajeUsuario).toContain('no coincide');
+    expect(e.code).toBe('MONTO_NO_COINCIDE');
+    expect(e.userMessage).toContain('no coincide');
   });
 
   test('aprobación tardía (409 RESERVA_VENCIDA + aprobado_tarde): reembolso automático', async () => {
     for (const reembolso of ['aprobado', 'pendiente', 'rechazado']) {
       const inv = new EdgeFunctionsFalsas(() =>
-        errorHttp(409, {
+        httpError(409, {
           error: 'RESERVA_VENCIDA',
           estado_pago: 'aprobado_tarde',
           reembolso,
@@ -168,35 +168,35 @@ describe('WompiPaymentGateway.verificar', () => {
         }),
       );
       const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).verificar({ transactionId: 't' }));
-      expect(e.codigo).toBe('RESERVA_VENCIDA');
-      expect(e.aprobadoTarde).toBe(true);
-      expect(e.mensajeUsuario).toContain('ya había vencido');
-      expect(e.mensajeUsuario).toContain(`reembolso de prueba ${reembolso}`);
+      expect(e.code).toBe('RESERVA_VENCIDA');
+      expect(e.approvedLate).toBe(true);
+      expect(e.userMessage).toContain('ya había vencido');
+      expect(e.userMessage).toContain(`reembolso de prueba ${reembolso}`);
     }
   });
 
   test('WOMPI_NO_DISPONIBLE y WOMPI_NO_AUTORIZADO (502)', async () => {
-    const noDisp = new EdgeFunctionsFalsas(() => errorHttp(502, { error: 'WOMPI_NO_DISPONIBLE' }));
+    const noDisp = new EdgeFunctionsFalsas(() => httpError(502, { error: 'WOMPI_NO_DISPONIBLE' }));
     const e1 = await fallo(() => new WompiPaymentGateway({ edgeFunctions: noDisp }).verificar({ bookingId: 'b' }));
-    expect(e1.codigo).toBe('WOMPI_NO_DISPONIBLE');
-    expect(e1.mensajeUsuario).toContain('Wompi no está disponible');
-    const noAut = new EdgeFunctionsFalsas(() => errorHttp(502, { error: 'WOMPI_NO_AUTORIZADO' }));
+    expect(e1.code).toBe('WOMPI_NO_DISPONIBLE');
+    expect(e1.userMessage).toContain('Wompi no está disponible');
+    const noAut = new EdgeFunctionsFalsas(() => httpError(502, { error: 'WOMPI_NO_AUTORIZADO' }));
     const e2 = await fallo(() => new WompiPaymentGateway({ edgeFunctions: noAut }).verificar({ bookingId: 'b' }));
-    expect(e2.codigo).toBe('WOMPI_NO_AUTORIZADO');
+    expect(e2.code).toBe('WOMPI_NO_AUTORIZADO');
   });
 
   test('TRANSACCION_NO_EXISTE y REFERENCIA_DESCONOCIDA (404) invitan a verificar después', async () => {
     for (const codigo of ['TRANSACCION_NO_EXISTE', 'REFERENCIA_DESCONOCIDA']) {
-      const inv = new EdgeFunctionsFalsas(() => errorHttp(404, { error: codigo }));
+      const inv = new EdgeFunctionsFalsas(() => httpError(404, { error: codigo }));
       const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).verificar({ transactionId: 't' }));
-      expect(e.codigo).toBe(codigo);
-      expect(e.mensajeUsuario).toContain('No encontramos ese pago');
+      expect(e.code).toBe(codigo);
+      expect(e.userMessage).toContain('No encontramos ese pago');
     }
   });
 
   test('un 500 sin código no filtra detalles internos', async () => {
-    const inv = new EdgeFunctionsFalsas(() => errorHttp(500, { error: 'ERROR_INTERNO', mensaje: 'Error interno.' }));
+    const inv = new EdgeFunctionsFalsas(() => httpError(500, { error: 'ERROR_INTERNO', mensaje: 'Error interno.' }));
     const e = await fallo(() => new WompiPaymentGateway({ edgeFunctions: inv }).verificar({ bookingId: 'b' }));
-    expect(e.mensajeUsuario).toContain('servidor');
+    expect(e.userMessage).toContain('servidor');
   });
 });

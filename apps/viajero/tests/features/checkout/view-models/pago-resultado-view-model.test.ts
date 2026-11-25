@@ -93,7 +93,7 @@ test('error del servidor: queda la falla con su mensaje y no se reintenta', asyn
   const { result } = await crear(pasarela);
   await act(() => result.current.verificar());
 
-  expect(result.current.falla?.codigo).toBe('MONTO_NO_COINCIDE');
+  expect(result.current.falla?.code).toBe('MONTO_NO_COINCIDE');
   expect(result.current.resultado).toBeNull();
   expect(result.current.cargando).toBe(false);
   expect(pasarela.verificaciones).toHaveLength(1);
@@ -102,7 +102,7 @@ test('error del servidor: queda la falla con su mensaje y no se reintenta', asyn
 test('error inesperado: falla ERROR_INESPERADO en vez de romper la pantalla', async () => {
   const { result } = await crear(new PasarelaFalsa([new Error('boom')]));
   await act(() => result.current.verificar());
-  expect(result.current.falla?.codigo).toBe('ERROR_INESPERADO');
+  expect(result.current.falla?.code).toBe('ERROR_INESPERADO');
   expect(result.current.resultado).toBeNull();
 });
 
@@ -221,7 +221,7 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
         throw new DiversoError('RESERVA_VENCIDA');
       }),
     );
-    expect(result.current.errorReintento).toBe(new DiversoError('RESERVA_VENCIDA').mensajeUsuario);
+    expect(result.current.errorReintento).toBe(new DiversoError('RESERVA_VENCIDA').userMessage);
     expect(result.current.reintentandoPago).toBe(false);
   });
 

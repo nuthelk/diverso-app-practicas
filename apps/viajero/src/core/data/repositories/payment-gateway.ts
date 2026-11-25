@@ -1,4 +1,4 @@
-import { ArgumentError } from '../../errors/errores-programacion';
+import { ArgumentError } from '../../errors/programming-errors';
 import { StartedCheckout, VerifiedPayment } from '../../models/payment-checkout';
 import type { EdgeFunctionsApi } from '../services/edge-functions-api';
 import { llamarEdgeFunction } from './llamar-edge-function';

@@ -8,7 +8,7 @@ import {
   urlRetornoPago,
 } from '@/features/checkout/pago-wompi';
 
-import { capturar } from '../../support/errores';
+import { capture } from '../../support/errors';
 
 /**
  * Apertura del pago de Wompi sin navegador ni WebView. Port 1:1 de `pago_wompi_test.dart` y
@@ -78,10 +78,10 @@ describe('abrirEnLaMismaVentana (web)', () => {
   });
 
   test('si el navegador no abre Wompi: ERROR_NAVEGADOR, no un pago a medias', async () => {
-    const e = await capturar<DiversoError>(() => abrirEnLaMismaVentana(url, () => false));
+    const e = await capture<DiversoError>(() => abrirEnLaMismaVentana(url, () => false));
     expect(e).toBeInstanceOf(DiversoError);
-    expect(e.codigo).toBe('ERROR_NAVEGADOR');
-    expect(e.mensajeUsuario).not.toBe('');
+    expect(e.code).toBe('ERROR_NAVEGADOR');
+    expect(e.userMessage).not.toBe('');
   });
 });
 

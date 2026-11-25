@@ -43,7 +43,7 @@ test('cargar trae la reserva por id', async () => {
 test('una reserva inexistente muestra el mensaje del servidor', async () => {
   const { result } = await crear(new ReservasFalsas(), 'nope');
   await act(() => result.current.cargar());
-  expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').mensajeUsuario);
+  expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').userMessage);
   expect(result.current.reserva).toBeNull();
   expect(result.current.cargando).toBe(false);
 });

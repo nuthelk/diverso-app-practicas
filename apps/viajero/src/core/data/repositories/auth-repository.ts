@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { ArgumentError, StateError } from '../../errors/errores-programacion';
+import { ArgumentError, StateError } from '../../errors/programming-errors';
 import { VERSION_LEGAL } from '../../legal/documento-legal';
 import type { Row } from '../../models/row';
 import { Profile } from '../../models/profile';

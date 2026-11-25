@@ -83,7 +83,7 @@ export function usePagoResultadoViewModel(
       }
     } catch (e) {
       if (e instanceof DiversoError) {
-        cambiar({ errorReintento: e.mensajeUsuario }, false);
+        cambiar({ errorReintento: e.userMessage }, false);
       } else {
         console.warn('PagoResultadoViewModel.intentarDeNuevo:', e);
         cambiar({ errorReintento: 'No pudimos iniciar el pago. Intenta de nuevo.' }, false);

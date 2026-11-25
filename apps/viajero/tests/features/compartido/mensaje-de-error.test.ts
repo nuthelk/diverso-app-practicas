@@ -1,7 +1,7 @@
 import { DiversoError } from '@/core';
 import { mensajeDeError } from '@/features/compartido/mensaje-de-error';
 
-import { errorPostgrest } from '../../support/errores';
+import { postgrestError } from '../../support/errors';
 
 /** `mensaje_de_error.dart`: texto para el viajero de CUALQUIER error que llegue a un view model. */
 test('un DiversoError usa su mensaje propio', () => {
@@ -11,8 +11,8 @@ test('un DiversoError usa su mensaje propio', () => {
 });
 
 test('un error de PostgREST se traduce por su código', () => {
-  expect(mensajeDeError(errorPostgrest('RESERVA_NO_EXISTE'))).toBe('No encontramos esa reserva.');
-  expect(mensajeDeError(errorPostgrest('otra cosa'))).toBe('Error de conexión. Revisa tu internet e intenta de nuevo.');
+  expect(mensajeDeError(postgrestError('RESERVA_NO_EXISTE'))).toBe('No encontramos esa reserva.');
+  expect(mensajeDeError(postgrestError('otra cosa'))).toBe('Error de conexión. Revisa tu internet e intenta de nuevo.');
 });
 
 test('cualquier otra cosa es un error inesperado', () => {

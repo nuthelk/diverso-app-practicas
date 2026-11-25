@@ -67,7 +67,7 @@ describe('carga de la reserva', () => {
     const { result } = await crear();
     await act(() => result.current.cargar());
 
-    expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').mensajeUsuario);
+    expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').userMessage);
     expect(result.current.reserva).toBeNull();
     expect(result.current.puedeResenar).toBe(false);
 

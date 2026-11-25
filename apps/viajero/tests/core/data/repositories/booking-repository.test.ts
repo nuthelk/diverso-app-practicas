@@ -8,7 +8,7 @@ import { LABEL_REFUND_STATUS, RefundStatus } from '@/core/models/refund';
 import { fechaLocal } from '@/core/utils/fechas';
 
 import { EdgeFunctionsFalsas } from '../../../support/edge-functions-falsas';
-import { capturar, errorHttp, errorPostgrest } from '../../../support/errores';
+import { capture, httpError, postgrestError } from '../../../support/errors';
 
 /**
  * Api falsa: devuelve las filas que se le indiquen y registra qué se le pidió. No sabe nada de
@@ -74,7 +74,7 @@ const fila = (id: string, estado = 'confirmada'): Row => ({
   created_at: '2026-10-25T10:00:00+00:00',
 });
 
-const error = (accion: () => Promise<unknown>) => capturar<DiversoError>(accion).then((e) => {
+const error = (accion: () => Promise<unknown>) => capture<DiversoError>(accion).then((e) => {
   expect(e).toBeInstanceOf(DiversoError);
   return e;
 });
@@ -117,25 +117,25 @@ describe('crearReserva', () => {
 
   test('un error de PostgREST sale como DiversoError con su código', async () => {
     const api = new BookingApiFalsa();
-    api.falla = errorPostgrest('SIN_CUPO', { code: 'P0001' });
+    api.falla = postgrestError('SIN_CUPO', { code: 'P0001' });
     const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
-    expect(e.codigo).toBe('SIN_CUPO');
-    expect(e.mensajeUsuario).toContain('cupos');
+    expect(e.code).toBe('SIN_CUPO');
+    expect(e.userMessage).toContain('cupos');
   });
 
   test('RESERVA_PENDIENTE_EXISTENTE conserva el id de la reserva existente', async () => {
     const api = new BookingApiFalsa();
-    api.falla = errorPostgrest('RESERVA_PENDIENTE_EXISTENTE', { code: 'P0001', details: 'b-9' });
+    api.falla = postgrestError('RESERVA_PENDIENTE_EXISTENTE', { code: 'P0001', details: 'b-9' });
     const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
-    expect(e.codigo).toBe('RESERVA_PENDIENTE_EXISTENTE');
-    expect(e.detalle?.['booking_id']).toBe('b-9');
+    expect(e.code).toBe('RESERVA_PENDIENTE_EXISTENTE');
+    expect(e.details?.['booking_id']).toBe('b-9');
   });
 
   test('un fallo que no es de PostgREST sale como ERROR_INESPERADO', async () => {
     const api = new BookingApiFalsa();
     api.falla = new Error('se cayó');
     const e = await error(() => repo(api).crearReserva({ planDateId: 'pd-1', pax: 2 }));
-    expect(e.codigo).toBe('ERROR_INESPERADO');
+    expect(e.code).toBe('ERROR_INESPERADO');
   });
 });
 
@@ -183,15 +183,15 @@ describe('reserva (por id)', () => {
   test('no existe: RESERVA_NO_EXISTE (no se convierte en ERROR_INESPERADO)', async () => {
     const api = new BookingApiFalsa();
     const e = await error(() => repo(api).reserva('nada'));
-    expect(e.codigo).toBe('RESERVA_NO_EXISTE');
+    expect(e.code).toBe('RESERVA_NO_EXISTE');
     expect(api.consultas).toEqual(['reserva']);
   });
 
   test('un error de PostgREST sale como DiversoError', async () => {
     const api = new BookingApiFalsa();
-    api.falla = errorPostgrest('NO_AUTENTICADO', { code: 'P0001' });
+    api.falla = postgrestError('NO_AUTENTICADO', { code: 'P0001' });
     const e = await error(() => repo(api).reserva('b1'));
-    expect(e.codigo).toBe('NO_AUTENTICADO');
+    expect(e.code).toBe('NO_AUTENTICADO');
   });
 });
 
@@ -227,9 +227,9 @@ describe('reservaPendiente (ventana de 30 minutos)', () => {
 
   test('un error de PostgREST sale como DiversoError', async () => {
     const api = new BookingApiFalsa();
-    api.falla = errorPostgrest('algo raro');
+    api.falla = postgrestError('algo raro');
     const e = await error(() => repo(api).reservaPendiente('pd-1'));
-    expect(e.codigo).toBe('ERROR_BD');
+    expect(e.code).toBe('ERROR_BD');
   });
 });
 
@@ -251,9 +251,9 @@ describe('vistaPreviaCancelacion', () => {
 
   test('un error de PostgREST sale como DiversoError', async () => {
     const api = new BookingApiFalsa();
-    api.falla = errorPostgrest('NO_ES_DUENO', { code: 'P0001' });
+    api.falla = postgrestError('NO_ES_DUENO', { code: 'P0001' });
     const e = await error(() => repo(api).vistaPreviaCancelacion('b'));
-    expect(e.codigo).toBe('NO_ES_DUENO');
+    expect(e.code).toBe('NO_ES_DUENO');
   });
 });
 
@@ -304,8 +304,8 @@ describe('cancelar (reservas-cancelar)', () => {
   });
 
   test('errores de la función: ESTADO_INVALIDO', async () => {
-    const edge = new EdgeFunctionsFalsas(() => errorHttp(409, { error: 'ESTADO_INVALIDO' }));
+    const edge = new EdgeFunctionsFalsas(() => httpError(409, { error: 'ESTADO_INVALIDO' }));
     const e = await error(() => repo(new BookingApiFalsa(), edge).cancelar('b-1'));
-    expect(e.codigo).toBe('ESTADO_INVALIDO');
+    expect(e.code).toBe('ESTADO_INVALIDO');
   });
 });

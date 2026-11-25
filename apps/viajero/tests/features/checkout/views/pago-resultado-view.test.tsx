@@ -43,7 +43,7 @@ test('«Intentar de nuevo» pide el checkout de la misma reserva y muestra el er
   await fireEvent.press(await screen.findByText('Intentar de nuevo'));
 
   expect(pasarela.iniciadas.map((i) => i.bookingId)).toEqual(['res-1']);
-  expect(await screen.findByText(new DiversoError('RESERVA_VENCIDA').mensajeUsuario)).toBeOnTheScreen();
+  expect(await screen.findByText(new DiversoError('RESERVA_VENCIDA').userMessage)).toBeOnTheScreen();
   // El botón se libera para volver a intentar.
   expect(screen.getByRole('button', { name: 'Intentar de nuevo' })).toBeEnabled();
 });

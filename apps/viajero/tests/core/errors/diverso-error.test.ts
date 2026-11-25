@@ -1,7 +1,7 @@
-import { DiversoError, mensajeDeError } from '@/core/errors/diverso-error';
-import { ErrorFuncion } from '@/core/errors/error-funcion';
+import { DiversoError, userMessageFor } from '@/core/errors/diverso-error';
+import { FunctionError } from '@/core/errors/function-error';
 
-import { errorPostgrest } from '../../support/errores';
+import { postgrestError } from '../../support/errors';
 
 /**
  * `create_booking` rechaza una segunda reserva pendiente del mismo viajero para la misma fecha
@@ -10,59 +10,59 @@ import { errorPostgrest } from '../../support/errores';
 describe('DiversoError.fromPostgrest', () => {
   test('RESERVA_PENDIENTE_EXISTENTE lleva el id de la reserva existente y un mensaje claro', () => {
     const e = DiversoError.fromPostgrest(
-      errorPostgrest('RESERVA_PENDIENTE_EXISTENTE', {
+      postgrestError('RESERVA_PENDIENTE_EXISTENTE', {
         code: 'P0001',
         details: 'b0e1f2a3-0000-4000-8000-000000000001',
       }),
     );
-    expect(e.codigo).toBe('RESERVA_PENDIENTE_EXISTENTE');
-    expect(e.detalle?.['booking_id']).toBe('b0e1f2a3-0000-4000-8000-000000000001');
-    expect(e.mensajeUsuario).toContain('reserva pendiente');
-    expect(e.mensajeUsuario).toContain('esta fecha');
+    expect(e.code).toBe('RESERVA_PENDIENTE_EXISTENTE');
+    expect(e.details?.['booking_id']).toBe('b0e1f2a3-0000-4000-8000-000000000001');
+    expect(e.userMessage).toContain('reserva pendiente');
+    expect(e.userMessage).toContain('esta fecha');
   });
 
   test('RESERVA_YA_SALIO (pagar o cancelar tras la salida) se reconoce y se explica', () => {
-    const e = DiversoError.fromPostgrest(errorPostgrest('RESERVA_YA_SALIO', { code: 'P0001' }));
-    expect(e.codigo).toBe('RESERVA_YA_SALIO');
-    expect(e.mensajeUsuario).toBe(
+    const e = DiversoError.fromPostgrest(postgrestError('RESERVA_YA_SALIO', { code: 'P0001' }));
+    expect(e.code).toBe('RESERVA_YA_SALIO');
+    expect(e.userMessage).toBe(
       'Este viaje ya salió, así que la reserva ya no se puede pagar ni cancelar.',
     );
     // También cuando llega desde la Edge Function con {error, mensaje}.
-    expect(new DiversoError('RESERVA_YA_SALIO').mensajeUsuario).toContain('ya salió');
+    expect(new DiversoError('RESERVA_YA_SALIO').userMessage).toContain('ya salió');
   });
 
   test('PRESERVE: los códigos de antes se siguen reconociendo', () => {
-    const e = DiversoError.fromPostgrest(errorPostgrest('SIN_CUPO', { code: 'P0001' }));
-    expect(e.codigo).toBe('SIN_CUPO');
-    expect(e.detalle).toBeNull();
-    expect(e.mensajeUsuario).toContain('cupos');
-    expect(DiversoError.fromPostgrest(errorPostgrest('algo raro')).codigo).toBe('ERROR_BD');
+    const e = DiversoError.fromPostgrest(postgrestError('SIN_CUPO', { code: 'P0001' }));
+    expect(e.code).toBe('SIN_CUPO');
+    expect(e.details).toBeNull();
+    expect(e.userMessage).toContain('cupos');
+    expect(DiversoError.fromPostgrest(postgrestError('algo raro')).code).toBe('ERROR_BD');
   });
 });
 
 describe('DiversoError.fromPostgrest (extra del port)', () => {
   test('busca el código por «contiene», en el orden de Dart, y conserva el mensaje recortado', () => {
-    const e = DiversoError.fromPostgrest(errorPostgrest('  error: SIN_CUPO y PAX_INVALIDO  '));
-    expect(e.codigo).toBe('SIN_CUPO');
-    expect(e.mensaje).toBe('error: SIN_CUPO y PAX_INVALIDO');
+    const e = DiversoError.fromPostgrest(postgrestError('  error: SIN_CUPO y PAX_INVALIDO  '));
+    expect(e.code).toBe('SIN_CUPO');
+    expect(e.rawMessage).toBe('error: SIN_CUPO y PAX_INVALIDO');
   });
 
   test('RESERVA_PENDIENTE_EXISTENTE sin detail: detalle null', () => {
-    expect(DiversoError.fromPostgrest(errorPostgrest('RESERVA_PENDIENTE_EXISTENTE')).detalle).toBeNull();
+    expect(DiversoError.fromPostgrest(postgrestError('RESERVA_PENDIENTE_EXISTENTE')).details).toBeNull();
     expect(
-      DiversoError.fromPostgrest(errorPostgrest('RESERVA_PENDIENTE_EXISTENTE', { details: '' })).detalle,
+      DiversoError.fromPostgrest(postgrestError('RESERVA_PENDIENTE_EXISTENTE', { details: '' })).details,
     ).toBeNull();
   });
 
   test('el error plano {message, code, details, hint} de supabase-js (sin throwOnError) también cuenta', () => {
     const e = DiversoError.fromPostgrest({ message: 'NO_ES_DUENO', code: 'P0001', details: null, hint: null });
-    expect(e.codigo).toBe('NO_ES_DUENO');
+    expect(e.code).toBe('NO_ES_DUENO');
   });
 
   test('lo que no es de PostgREST sale como ERROR_INESPERADO', () => {
     const e = DiversoError.fromPostgrest(new TypeError('Network request failed'));
-    expect(e.codigo).toBe('ERROR_INESPERADO');
-    expect(e.mensaje).toContain('Network request failed');
+    expect(e.code).toBe('ERROR_INESPERADO');
+    expect(e.rawMessage).toContain('Network request failed');
     expect(e).toBeInstanceOf(DiversoError);
     expect(e).toBeInstanceOf(Error);
   });
@@ -70,28 +70,28 @@ describe('DiversoError.fromPostgrest (extra del port)', () => {
 
 describe('DiversoError.fromFunction (orden de Dart)', () => {
   test('1. cuerpo {error, mensaje} con código: gana sobre el status', () => {
-    const e = DiversoError.fromFunction(new ErrorFuncion(500, { error: 'RESERVA_VENCIDA', mensaje: 'x', y: 1 }));
-    expect(e.codigo).toBe('RESERVA_VENCIDA');
-    expect(e.mensaje).toBe('x');
-    expect(e.detalle).toEqual({ error: 'RESERVA_VENCIDA', mensaje: 'x', y: 1 });
+    const e = DiversoError.fromFunction(new FunctionError(500, { error: 'RESERVA_VENCIDA', mensaje: 'x', y: 1 }));
+    expect(e.code).toBe('RESERVA_VENCIDA');
+    expect(e.rawMessage).toBe('x');
+    expect(e.details).toEqual({ error: 'RESERVA_VENCIDA', mensaje: 'x', y: 1 });
   });
 
   test('2. status 0 (sin red) → SIN_CONEXION', () => {
-    expect(DiversoError.fromFunction(new ErrorFuncion(0, 'offline')).codigo).toBe('SIN_CONEXION');
+    expect(DiversoError.fromFunction(new FunctionError(0, 'offline')).code).toBe('SIN_CONEXION');
   });
 
   test('3. status ≥ 500 sin código → ERROR_SERVIDOR; 4. el resto → ERROR_FUNCION', () => {
-    expect(DiversoError.fromFunction(new ErrorFuncion(502, 'Bad gateway')).codigo).toBe('ERROR_SERVIDOR');
-    expect(DiversoError.fromFunction(new ErrorFuncion(400, { otra: 'cosa' })).codigo).toBe('ERROR_FUNCION');
-    expect(DiversoError.fromFunction(new ErrorFuncion(200, null)).codigo).toBe('ERROR_FUNCION');
+    expect(DiversoError.fromFunction(new FunctionError(502, 'Bad gateway')).code).toBe('ERROR_SERVIDOR');
+    expect(DiversoError.fromFunction(new FunctionError(400, { otra: 'cosa' })).code).toBe('ERROR_FUNCION');
+    expect(DiversoError.fromFunction(new FunctionError(200, null)).code).toBe('ERROR_FUNCION');
   });
 
   test('aprobadoTarde solo con estado_pago = aprobado_tarde', () => {
     expect(
-      DiversoError.fromFunction(new ErrorFuncion(409, { error: 'RESERVA_VENCIDA', estado_pago: 'aprobado_tarde' }))
-        .aprobadoTarde,
+      DiversoError.fromFunction(new FunctionError(409, { error: 'RESERVA_VENCIDA', estado_pago: 'aprobado_tarde' }))
+        .approvedLate,
     ).toBe(true);
-    expect(new DiversoError('RESERVA_VENCIDA').aprobadoTarde).toBe(false);
+    expect(new DiversoError('RESERVA_VENCIDA').approvedLate).toBe(false);
   });
 });
 
@@ -137,21 +137,21 @@ describe('mensajeDeError: tabla 1:1 con mensaje_usuario.dart', () => {
     ['SERVICIO_NO_DISPONIBLE', 'El servidor tuvo un problema. Intenta de nuevo en un momento.'],
     ['ERROR_BD', 'Error de conexión. Revisa tu internet e intenta de nuevo.'],
     ['OTRO_CODIGO', 'Algo salió mal (OTRO_CODIGO). Intenta de nuevo.'],
-  ])('%s', (codigo, texto) => {
-    expect(mensajeDeError(new DiversoError(codigo))).toBe(texto);
+  ])('%s', (code, text) => {
+    expect(userMessageFor(new DiversoError(code))).toBe(text);
   });
 
   test('RESERVA_VENCIDA con aprobación tardía nombra el estado del reembolso (o «en proceso»)', () => {
-    const tarde = (reembolso: unknown) =>
-      new DiversoError('RESERVA_VENCIDA', null, { estado_pago: 'aprobado_tarde', reembolso }).mensajeUsuario;
-    expect(tarde('aprobado')).toBe(
+    const late = (refund: unknown) =>
+      new DiversoError('RESERVA_VENCIDA', null, { estado_pago: 'aprobado_tarde', reembolso: refund }).userMessage;
+    expect(late('aprobado')).toBe(
       'Tu pago llegó cuando la reserva ya había vencido, así que no se confirmó. ' +
         'Te lo devolvemos automáticamente (reembolso de prueba aprobado).',
     );
-    expect(tarde('pendiente')).toContain('(reembolso de prueba pendiente)');
-    expect(tarde('rechazado')).toContain('(reembolso de prueba rechazado)');
-    expect(tarde('no_aplica')).toContain('(reembolso de prueba en proceso)');
-    expect(tarde(null)).toContain('(reembolso de prueba en proceso)');
+    expect(late('pendiente')).toContain('(reembolso de prueba pendiente)');
+    expect(late('rechazado')).toContain('(reembolso de prueba rechazado)');
+    expect(late('no_aplica')).toContain('(reembolso de prueba en proceso)');
+    expect(late(null)).toContain('(reembolso de prueba en proceso)');
   });
 
   test('toString / message conserva el código para los logs', () => {

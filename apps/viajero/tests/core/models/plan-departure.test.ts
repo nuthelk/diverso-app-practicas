@@ -3,7 +3,7 @@ import { ExperienceCategory, PlanStatus } from '@/core/models/enums';
 import { Plan, PlanDate } from '@/core/models/plan';
 import { fechaLocal, fechaUtc } from '@/core/utils/fechas';
 
-import { errorPostgrest } from '../../support/errores';
+import { postgrestError } from '../../support/errors';
 
 /**
  * Una fecha de plan solo se ofrece mientras su salida (fecha + `plans.hora_salida`, hora de Bogotá,
@@ -165,13 +165,13 @@ describe('Plan.fromMap: hora_salida', () => {
 
 describe('FECHA_YA_SALIO', () => {
   test('el RPC create_booking la reporta y la app la explica', () => {
-    const e = DiversoError.fromPostgrest(errorPostgrest('FECHA_YA_SALIO', { code: 'P0001' }));
-    expect(e.codigo).toBe('FECHA_YA_SALIO');
-    expect(e.mensajeUsuario).toBe('Esta salida ya partió. Elige otra fecha.');
+    const e = DiversoError.fromPostgrest(postgrestError('FECHA_YA_SALIO', { code: 'P0001' }));
+    expect(e.code).toBe('FECHA_YA_SALIO');
+    expect(e.userMessage).toBe('Esta salida ya partió. Elige otra fecha.');
   });
 
   test('RESERVA_YA_SALIO (pagar o cancelar tras la salida) ya no dice solo «cancelar»', () => {
-    const text = new DiversoError('RESERVA_YA_SALIO').mensajeUsuario;
+    const text = new DiversoError('RESERVA_YA_SALIO').userMessage;
     expect(text).toContain('ya salió');
     expect(text).toContain('pagar');
   });

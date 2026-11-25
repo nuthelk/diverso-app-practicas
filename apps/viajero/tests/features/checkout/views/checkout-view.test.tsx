@@ -169,7 +169,7 @@ describe('pago en Android/iOS (WebView)', () => {
     await abrir({ pasarela });
     await screen.findByText('¿Cuántos viajan?');
     await pagar();
-    expect(await screen.findByText(new DiversoError('RESERVA_VENCIDA').mensajeUsuario)).toBeOnTheScreen();
+    expect(await screen.findByText(new DiversoError('RESERVA_VENCIDA').userMessage)).toBeOnTheScreen();
   });
 });
 

@@ -2,8 +2,8 @@ import type { DiversoError } from './diverso-error';
 import { RefundStatus, refundStatusFromServer } from '../models/refund';
 
 /** Texto en español que se le muestra al viajero para cada código de [DiversoError] (1:1 con Dart). */
-export function mensajeDeError(e: DiversoError): string {
-  switch (e.codigo) {
+export function userMessageFor(e: DiversoError): string {
+  switch (e.code) {
     case 'SIN_CUPO':
       return 'Se acabaron los cupos para esa fecha. Prueba otra fecha u otro plan.';
     case 'ESTADO_INVALIDO':
@@ -33,13 +33,13 @@ export function mensajeDeError(e: DiversoError): string {
     case 'NO_AUTENTICADO':
       return 'Tu sesión expiró. Inicia sesión de nuevo.';
     case 'RESERVA_VENCIDA': {
-      if (e.aprobadoTarde) {
-        const estado = refundStatusFromServer(e.detalle?.['reembolso']);
+      if (e.approvedLate) {
+        const status = refundStatusFromServer(e.details?.['reembolso']);
         // Dart usa `estado.name`: aprobado / pendiente / rechazado.
-        const texto = estado === RefundStatus.notApplicable ? 'en proceso' : estado;
+        const text = status === RefundStatus.notApplicable ? 'en proceso' : status;
         return (
           'Tu pago llegó cuando la reserva ya había vencido, así que no se confirmó. ' +
-          `Te lo devolvemos automáticamente (reembolso de prueba ${texto}).`
+          `Te lo devolvemos automáticamente (reembolso de prueba ${text}).`
         );
       }
       return 'Tu reserva venció (los cupos se retienen 30 minutos). Vuelve a reservar.';
@@ -70,6 +70,6 @@ export function mensajeDeError(e: DiversoError): string {
     case 'ERROR_BD':
       return 'Error de conexión. Revisa tu internet e intenta de nuevo.';
     default:
-      return `Algo salió mal (${e.codigo}). Intenta de nuevo.`;
+      return `Algo salió mal (${e.code}). Intenta de nuevo.`;
   }
 }

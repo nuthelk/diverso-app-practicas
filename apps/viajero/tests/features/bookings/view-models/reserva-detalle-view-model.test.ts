@@ -64,7 +64,7 @@ describe('carga', () => {
 
     expect(result.current.reserva).toBeNull();
     expect(result.current.cargando).toBe(false);
-    expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').mensajeUsuario);
+    expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').userMessage);
 
     repo.lista = [reservaDePrueba({ salida: enDias(2) })];
     await act(() => result.current.cargar());

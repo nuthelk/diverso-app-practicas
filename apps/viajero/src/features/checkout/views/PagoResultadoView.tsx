@@ -95,12 +95,12 @@ function ErrorVerificacion({
   verificar: () => void;
   irAReservas: () => void;
 }) {
-  const definitivo = falla.aprobadoTarde || falla.codigo === 'MONTO_NO_COINCIDE';
+  const definitivo = falla.approvedLate || falla.code === 'MONTO_NO_COINCIDE';
   return (
     <EmptyState
-      icono={falla.aprobadoTarde ? 'history_toggle_off_rounded' : 'error_outline_rounded'}
-      titulo={falla.aprobadoTarde ? 'Tu reserva había vencido' : 'No pudimos verificar el pago'}
-      mensaje={falla.mensajeUsuario}
+      icono={falla.approvedLate ? 'history_toggle_off_rounded' : 'error_outline_rounded'}
+      titulo={falla.approvedLate ? 'Tu reserva había vencido' : 'No pudimos verificar el pago'}
+      mensaje={falla.userMessage}
       accion={
         <Acciones>
           {!definitivo ? <FilledButton texto="Reintentar" onPress={verificar} /> : null}

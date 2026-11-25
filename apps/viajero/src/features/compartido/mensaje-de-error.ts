@@ -8,5 +8,5 @@ import { DiversoError } from '@/core';
  */
 export function mensajeDeError(error: unknown): string {
   const falla = error instanceof DiversoError ? error : DiversoError.fromPostgrest(error);
-  return falla.mensajeUsuario;
+  return falla.userMessage;
 }

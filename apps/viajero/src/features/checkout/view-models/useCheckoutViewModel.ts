@@ -97,7 +97,7 @@ export function useCheckoutViewModel(
       await accion();
     } catch (e) {
       if (e instanceof DiversoError) {
-        cambiar({ error: e.mensajeUsuario }, false);
+        cambiar({ error: e.userMessage }, false);
       } else {
         console.warn('CheckoutViewModel._ejecutar:', e);
         cambiar({ error: 'No pudimos iniciar el pago. Intenta de nuevo.' }, false);
@@ -125,7 +125,7 @@ export function useCheckoutViewModel(
         } catch (e) {
           // El servidor también impide la segunda pendiente (otra pestaña o dispositivo la abrió
           // entre la consulta y el alta): se muestra el mismo aviso en vez de un error.
-          if (!(e instanceof DiversoError) || e.codigo !== 'RESERVA_PENDIENTE_EXISTENTE') throw e;
+          if (!(e instanceof DiversoError) || e.code !== 'RESERVA_PENDIENTE_EXISTENTE') throw e;
           const pendiente = await reservas.reservaPendiente(fecha.id);
           cambiar({ pendiente }, false);
           if (pendiente === null) throw e;

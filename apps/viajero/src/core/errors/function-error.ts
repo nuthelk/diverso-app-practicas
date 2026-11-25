@@ -5,13 +5,13 @@
  * - `FunctionsFetchError` / `FunctionsRelayError` (red caída o relay) → `status` 0.
  * - 2xx cuyo cuerpo no es un objeto JSON → `status` de la respuesta y `details` = lo que llegó.
  */
-export class ErrorFuncion extends Error {
+export class FunctionError extends Error {
   readonly status: number;
   readonly details: unknown;
 
   constructor(status: number, details: unknown) {
-    super(`ErrorFuncion(${status})`);
-    this.name = 'ErrorFuncion';
+    super(`FunctionError(${status})`);
+    this.name = 'FunctionError';
     this.status = status;
     this.details = details;
   }

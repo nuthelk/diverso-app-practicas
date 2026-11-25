@@ -1,11 +1,11 @@
 import { AuthError } from '@supabase/supabase-js';
 
 import { AuthRepository } from '@/core/data/repositories/auth-repository';
-import { ArgumentError, StateError } from '@/core/errors/errores-programacion';
+import { ArgumentError, StateError } from '@/core/errors/programming-errors';
 import { VERSION_LEGAL } from '@/core/legal/documento-legal';
 import { UserRole } from '@/core/models/enums';
 
-import { capturar } from '../../../support/errores';
+import { capture } from '../../../support/errors';
 import { crearSupabaseFalso, sesionFalsa, type Responder } from '../../../support/supabase-falso';
 
 /** `AuthRepository` no tiene test en Dart: se prueba contra el Supabase falso (GoTrue + PostgREST). */
@@ -57,7 +57,7 @@ describe('sesión', () => {
 
   test('credenciales malas: lanza el AuthError crudo (no se traduce, como en Dart)', async () => {
     const { repo } = crear();
-    const e = await capturar(() => repo.signIn({ email: 'ana@diverso.test', password: 'mala' }));
+    const e = await capture(() => repo.signIn({ email: 'ana@diverso.test', password: 'mala' }));
     expect(e).toBeInstanceOf(AuthError);
     expect(await repo.currentUserId()).toBeNull();
   });
@@ -98,7 +98,7 @@ describe('registro y consentimientos', () => {
 
   test('sin aceptar los documentos: ArgumentError y no llama al servidor', async () => {
     const { repo, pedidos } = crear();
-    const e = await capturar<Error>(() =>
+    const e = await capture<Error>(() =>
       repo.signUpViajero({ nombre: 'N', email: 'n@d.co', password: 'x', aceptaDocumentos: false }),
     );
     expect(e).toBeInstanceOf(ArgumentError);

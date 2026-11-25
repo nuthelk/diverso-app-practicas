@@ -5,7 +5,7 @@ import {
   type SupabaseClient,
 } from '@supabase/supabase-js';
 
-import { ErrorFuncion } from '../../errors/error-funcion';
+import { FunctionError } from '../../errors/function-error';
 import { isRow, type Row } from '../../models/row';
 
 /**
@@ -15,7 +15,7 @@ import { isRow, type Row } from '../../models/row';
 export interface EdgeFunctionsApi {
   /**
    * Llama a [funcion] con el cuerpo JSON y devuelve el JSON de la respuesta 2xx. Cualquier fallo
-   * se lanza como [ErrorFuncion] (como `FunctionException` en Dart).
+   * se lanza como [FunctionError] (como `FunctionException` en Dart).
    */
   invocar(funcion: string, cuerpo: Row): Promise<Row>;
 }
@@ -43,10 +43,10 @@ async function cuerpoDe(respuesta: Response | undefined): Promise<unknown> {
 async function aErrorFuncion(error: unknown): Promise<unknown> {
   if (error instanceof FunctionsHttpError) {
     const respuesta = error.context as Response | undefined;
-    return new ErrorFuncion(respuesta?.status ?? 500, await cuerpoDe(respuesta));
+    return new FunctionError(respuesta?.status ?? 500, await cuerpoDe(respuesta));
   }
   if (error instanceof FunctionsFetchError || error instanceof FunctionsRelayError) {
-    return new ErrorFuncion(0, error.message);
+    return new FunctionError(0, error.message);
   }
   return error;
 }
@@ -62,6 +62,6 @@ export class EdgeFunctionsApiSupabase implements EdgeFunctionsApi {
     const { data, error, response } = await this.client.functions.invoke(funcion, { body: cuerpo });
     if (error) throw await aErrorFuncion(error);
     if (isRow(data)) return data;
-    throw new ErrorFuncion(response?.status ?? 200, data);
+    throw new FunctionError(response?.status ?? 200, data);
   }
 }

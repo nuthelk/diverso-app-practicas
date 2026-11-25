@@ -1,5 +1,5 @@
 import { DiversoError } from '../../errors/diverso-error';
-import { ErrorFuncion } from '../../errors/error-funcion';
+import { FunctionError } from '../../errors/function-error';
 import type { Row } from '../../models/row';
 import type { EdgeFunctionsApi } from '../services/edge-functions-api';
 
@@ -8,7 +8,7 @@ export async function llamarEdgeFunction(edgeFunctions: EdgeFunctionsApi, funcio
   try {
     return await edgeFunctions.invocar(funcion, cuerpo);
   } catch (e) {
-    if (e instanceof ErrorFuncion) throw DiversoError.fromFunction(e);
+    if (e instanceof FunctionError) throw DiversoError.fromFunction(e);
     throw e;
   }
 }

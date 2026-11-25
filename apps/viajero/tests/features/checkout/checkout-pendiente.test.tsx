@@ -107,7 +107,7 @@ describe('useCheckoutViewModel', () => {
     const c = await crear();
     await act(() => c.current.pagar(fecha, abrir(true)));
     expect(c.current.pendiente).toBeNull();
-    expect(c.current.error).toBe(new DiversoError('SIN_CUPO').mensajeUsuario);
+    expect(c.current.error).toBe(new DiversoError('SIN_CUPO').userMessage);
     expect(abiertos).toEqual([]);
   });
 

@@ -5,7 +5,7 @@ import { isRow, type Row } from '@/core/models/row';
  * Edge Functions falsas: registran cada llamada y devuelven (o lanzan) lo que se les indique,
  * igual que `EdgeFunctionsApiSupabase` ya normalizada (sin red). Equivale a
  * `edge_functions_falsas.dart`: si [respuesta] devuelve un objeto JSON, es la respuesta 2xx; si
- * devuelve cualquier otra cosa (p. ej. `errorHttp(409, {...})`), se lanza.
+ * devuelve cualquier otra cosa (p. ej. `httpError(409, {...})`), se lanza.
  */
 export class EdgeFunctionsFalsas implements EdgeFunctionsApi {
   readonly llamadas: [funcion: string, cuerpo: Row][] = [];

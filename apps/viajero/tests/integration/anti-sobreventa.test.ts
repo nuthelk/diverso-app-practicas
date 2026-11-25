@@ -236,7 +236,7 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       const fallida = fallidas[0]!;
       const error = fallida.ok ? null : fallida.error;
       expect(error).toBeInstanceOf(DiversoError);
-      expect((error as DiversoError).codigo).toBe('SIN_CUPO');
+      expect((error as DiversoError).code).toBe('SIN_CUPO');
 
       // 4. El cupo quedó exactamente en 0 (sin sobreventa).
       const { data: despues } = await client
@@ -271,9 +271,9 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       expect(error).not.toBeNull(); // la segunda reserva pendiente debe rechazarse
       expect(error).toBeInstanceOf(DiversoError);
       const diverso = error as DiversoError;
-      expect(diverso.codigo).toBe('RESERVA_PENDIENTE_EXISTENTE');
+      expect(diverso.code).toBe('RESERVA_PENDIENTE_EXISTENTE');
       // el error trae el id de la reserva existente
-      expect(diverso.detalle?.['booking_id']).toBe(primera.bookingId);
+      expect(diverso.details?.['booking_id']).toBe(primera.bookingId);
       expect(await cupoDe(planDateId)).toBe(cupo - 1); // el rechazo no retiene cupos
     } finally {
       await limpiar([primera.bookingId]);
