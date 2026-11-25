@@ -173,6 +173,43 @@ describe('estados de la carga', () => {
     expect(() => (result.current.reservas as Booking[]).push(reservaDePrueba({ id: 'x' }))).toThrow(TypeError);
   });
 
+  test('refrescar no pasa por «cargando»: la lista sigue a la vista hasta que llega la nueva', async () => {
+    const { result, cargandos } = await crear(repo);
+    await act(() => result.current.cargar());
+    expect(cargandos).toEqual([true, false]);
+
+    repo.compuerta = compuerta();
+    repo.lista = [reservaDePrueba(), reservaDePrueba({ id: 'res-2' })];
+    let refresco!: Promise<void>;
+    await act(async () => {
+      refresco = result.current.refrescar();
+    });
+
+    // Mientras llega: la lista vieja, sin esqueleto (la vista no la desmonta y no pierde el scroll).
+    expect(result.current.cargando).toBe(false);
+    expect(result.current.reservas.map((b) => b.id)).toEqual(['res-1']);
+
+    await act(async () => {
+      repo.compuerta!.completar();
+      await refresco;
+    });
+
+    expect(cargandos).toEqual([true, false]);
+    expect(result.current.reservas.map((b) => b.id)).toEqual(['res-1', 'res-2']);
+    expect(repo.consultasLista).toBe(2);
+  });
+
+  test('refrescar que falla avisa igual que cargar', async () => {
+    const { result } = await crear(repo);
+    await act(() => result.current.cargar());
+    repo.fallo = new Error('sin red');
+
+    await act(() => result.current.refrescar());
+
+    expect(result.current.error).toBe('No pudimos cargar tus reservas.');
+    expect(result.current.cargando).toBe(false);
+  });
+
   test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
     repo.compuerta = compuerta();
     const { result, unmount } = await crear(repo);

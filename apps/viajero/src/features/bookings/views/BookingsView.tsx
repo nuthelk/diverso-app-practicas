@@ -23,9 +23,11 @@ import { useBookingsViewModel } from '../view-models/useBookingsViewModel';
  * Pestaña «Reservas» (`BookingsView`): próximas e historial con acciones de pago, reseña y
  * cancelación. El estado vive en `useBookingsViewModel` (MVVM).
  *
- * Conserva su estado al cambiar de pestaña (el shell no la desmonta: keep-alive) y al volver del
- * detalle SOLO se recarga si el detalle informa cambios (así no pierde el desplazamiento); al
- * volver de la reseña se recarga siempre (como Flutter). Ver `paso-entre-pantallas.ts`.
+ * Conserva su estado al cambiar de pestaña (el shell no la desmonta: keep-alive). Al volver del
+ * detalle o de la reseña SOLO se recarga si informan cambios (el detalle, «hubo cambios»; la reseña,
+ * «publicada»), y en segundo plano: la lista sigue montada (sin esqueleto) y no pierde el
+ * desplazamiento. En Flutter se recargaba siempre al volver de la reseña; esto es deliberado. Ver
+ * `paso-entre-pantallas.ts`.
  */
 export function BookingsView() {
   const tema = useTheme();
@@ -37,7 +39,7 @@ export function BookingsView() {
   const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, abrirPago);
   const alVolver = useAlVolver();
   const [pestana, setPestana] = useState(0);
-  const { cargar } = vm;
+  const { cargar, refrescar } = vm;
 
   useEffect(() => {
     void cargar();
@@ -49,14 +51,16 @@ export function BookingsView() {
   const abrirDetalle = (b: Booking) => {
     adelantarReserva(b);
     alVolver(AppRoutes.reservaDetalle(b.id), (cambio) => {
-      if (cambio === true) void cargar();
+      if (cambio === true) void refrescar();
     });
     router.push(AppRoutes.reservaDetalle(b.id) as Href);
   };
 
   const resenar = (b: Booking) => {
     adelantarReserva(b);
-    alVolver(AppRoutes.resena(b.id), () => void cargar());
+    alVolver(AppRoutes.resena(b.id), (publicada) => {
+      if (publicada === true) void refrescar();
+    });
     router.push(AppRoutes.resena(b.id) as Href);
   };
 

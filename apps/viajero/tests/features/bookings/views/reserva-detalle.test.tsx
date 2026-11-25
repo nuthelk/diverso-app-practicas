@@ -25,7 +25,8 @@ import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantall
 
 import { arrancarApp, asentar } from '../../../support/app';
 import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
-import { PublicadorDeResenasFalso } from '../../../support/reservas-falsas';
+import { compuerta } from '../../../support/compuerta';
+import { PublicadorDeResenasFalso, ReservasFalsas } from '../../../support/reservas-falsas';
 import { textoCrudo } from '../../../support/texto-crudo';
 
 /**
@@ -366,6 +367,48 @@ describe('detalle de la reserva', () => {
     expect(resenas.creadas).toEqual([{ bookingId: 'res-1', calificacion: 5, comentario: '' }]);
     expect(r.getPathname()).toBe('/reservas/res-1');
     expect(screen.getByText('Ya dejaste tu reseña')).toBeOnTheScreen();
+    expect(screen.queryByText('Reseñar')).toBeNull();
+  });
+
+  // Volver de «Tu reseña» sin publicar no cambia nada: recargar devolvía la lista al principio
+  // (en Flutter se recargaba siempre; esto es una mejora deliberada).
+  test('volver de «Tu reseña» sin publicar no recarga «Mis reservas» (conserva el desplazamiento)', async () => {
+    const reservas = new ReservasFalsas([reserva({ salida: enDias(-5) })]);
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas, resenas: new PublicadorDeResenasFalso() }));
+    await tocar('Historial (1)');
+    expect(reservas.consultasLista).toBe(1);
+
+    await tocar('Reseñar');
+    expect(r.getPathname()).toBe('/resena/res-1');
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+    await asentar();
+
+    expect(r.getPathname()).toBe('/reservas');
+    expect(reservas.consultasLista).toBe(1);
+    expect(screen.getByText('Reseñar')).toBeOnTheScreen();
+  });
+
+  test('publicar la reseña recarga «Mis reservas» sin desmontar la lista (sin volver al esqueleto)', async () => {
+    const reservas = new ReservasFalsas([reserva({ salida: enDias(-5) })]);
+    const resenas = new PublicadorDeResenasFalso();
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas, resenas }));
+    await tocar('Historial (1)');
+    await tocar('Reseñar');
+
+    // La recarga queda colgada: así se ve qué muestra la lista MIENTRAS recarga.
+    reservas.compuerta = compuerta();
+    await tocar('Publicar reseña');
+
+    expect(r.getPathname()).toBe('/reservas');
+    expect(reservas.consultasLista).toBe(2);
+    expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
+    expect(screen.getByTestId('lista-reservas')).toBeOnTheScreen();
+    expect(screen.getByText('Street food tour')).toBeOnTheScreen();
+
+    reservas.lista = [new Booking({ ...reservas.lista[0]!, tieneResena: true })];
+    await act(async () => reservas.compuerta!.completar());
+    await asentar();
+
     expect(screen.queryByText('Reseñar')).toBeNull();
   });
 

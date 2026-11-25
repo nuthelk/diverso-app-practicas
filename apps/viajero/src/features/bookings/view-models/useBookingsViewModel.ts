@@ -21,8 +21,9 @@ const vacia: readonly Booking[] = Object.freeze([]);
 export function useBookingsViewModel({ reservas, reloj }: { reservas: Publico<BookingRepository>; reloj?: Reloj }) {
   const [estado, setEstado] = useState<EstadoLista>({ lista: vacia, cargando: true, error: null });
 
-  const cargar = useCallback(async (): Promise<void> => {
-    setEstado((e) => ({ ...e, cargando: true, error: null }));
+  /** Pide la lista; [enSegundoPlano] deja la actual a la vista (sin «cargando») hasta que llega. */
+  const pedir = useCallback(async (enSegundoPlano: boolean): Promise<void> => {
+    setEstado((e) => (enSegundoPlano ? { ...e, error: null } : { ...e, cargando: true, error: null }));
     try {
       const lista = Object.freeze([...(await reservas.misReservas())]);
       setEstado({ lista, cargando: false, error: null });
@@ -31,6 +32,16 @@ export function useBookingsViewModel({ reservas, reloj }: { reservas: Publico<Bo
       setEstado((s) => ({ ...s, cargando: false, error: 'No pudimos cargar tus reservas.' }));
     }
   }, [reservas]);
+
+  /** Carga con «cargando» (la vista muestra el esqueleto): al abrir y al reintentar. */
+  const cargar = useCallback(() => pedir(false), [pedir]);
+
+  /**
+   * Vuelve a pedir la lista SIN pasar por «cargando»: la vista no desmonta la lista (no vuelve al
+   * esqueleto) y conserva el desplazamiento hasta que llega la nueva. Si falla, avisa igual que
+   * [cargar].
+   */
+  const refrescar = useCallback(() => pedir(true), [pedir]);
 
   const acciones = useReservaAcciones({ reservas, reloj, cargar });
   const { esVigente } = acciones;
@@ -56,6 +67,7 @@ export function useBookingsViewModel({ reservas, reloj }: { reservas: Publico<Bo
     activas,
     historial,
     cargar,
+    refrescar,
     ...acciones,
   };
 }
