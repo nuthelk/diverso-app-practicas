@@ -1,7 +1,7 @@
 import { screen } from 'expo-router/testing-library';
 
 import { DiversoError, ExperienceCategory, Plan, PlanStatus } from '@/core';
-import { olvidarPlanesParaComparar } from '@/features/catalog/planes-para-comparar';
+import { forgetPlansToCompare } from '@/features/catalog/plans-to-compare';
 
 import { arrancarApp, pantallaVisible } from '../support/app';
 import { AuthFalso } from '../support/auth-falso';
@@ -46,7 +46,7 @@ async function abrir(url: string, catalogo = new Catalogo()) {
 }
 
 beforeEach(() => {
-  olvidarPlanesParaComparar();
+  forgetPlansToCompare();
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => {

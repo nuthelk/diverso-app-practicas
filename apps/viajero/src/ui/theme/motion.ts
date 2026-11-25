@@ -48,7 +48,7 @@ export function interval(start: number, end: number, curve: (t: number) => numbe
 export const Durations = {
   /** Pulso del skeleton (repeat reverse, opacidad .45 → 1, easeInOut). */
   skeleton: 1100,
-  /** `ChipCategoria` (color/borde, easeOut). */
+  /** `CategoryChip` (color/borde, easeOut). */
   categoryChip: 180,
   /** Chips de fecha de `BarraReserva` (easeOut). */
   dateChip: 160,

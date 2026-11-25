@@ -24,10 +24,10 @@ beforeEach(reiniciarRouterFalso);
 describe('PlanCard', () => {
   test('el botón de comparar NO está dentro del botón de la tarjeta (en web sería <button> en <button>)', async () => {
     const toggle = jest.fn();
-    await renderPantalla(<PlanCard plan={plan} onToggleComparar={toggle} />);
+    await renderPantalla(<PlanCard plan={plan} onToggleCompare={toggle} />);
 
-    const tarjeta = screen.getByTestId('plan-card-plan-1');
-    expect(within(tarjeta).queryByRole('button', { name: 'Agregar al comparador' })).toBeNull();
+    const card = screen.getByTestId('plan-card-plan-1');
+    expect(within(card).queryByRole('button', { name: 'Agregar al comparador' })).toBeNull();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Agregar al comparador' }));
     expect(toggle).toHaveBeenCalledWith(plan);
@@ -41,16 +41,16 @@ describe('PlanCard', () => {
 
   test('la píldora de duración es oscura translúcida con texto blanco: se lee sobre fotos claras', async () => {
     await renderPantalla(<PlanCard plan={plan} />);
-    const pildora = screen.getByTestId('pildora-duracion');
-    const fondo = String(StyleSheet.flatten(pildora.props.style).backgroundColor);
-    const m = fondo.match(/rgba\((\d+), ?(\d+), ?(\d+), ?([\d.]+)\)/);
+    const pill = screen.getByTestId('pildora-duracion');
+    const background = String(StyleSheet.flatten(pill.props.style).backgroundColor);
+    const m = background.match(/rgba\((\d+), ?(\d+), ?(\d+), ?([\d.]+)\)/);
     expect(m).not.toBeNull();
     const [r, g, b, a] = m!.slice(1).map(Number) as [number, number, number, number];
     // Negro (no blanco) y con cuerpo suficiente para que el blanco contraste sobre un cielo.
     expect(r + g + b).toBe(0);
     expect(a).toBeGreaterThanOrEqual(0.35);
     expect(a).toBeLessThan(0.6);
-    const texto = within(pildora).getByText(plan.durationText);
-    expect(StyleSheet.flatten(texto.props.style).color).toBe('#FFFFFF');
+    const text = within(pill).getByText(plan.durationText);
+    expect(StyleSheet.flatten(text.props.style).color).toBe('#FFFFFF');
   });
 });

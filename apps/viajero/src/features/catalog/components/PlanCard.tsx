@@ -9,13 +9,13 @@ import { Card, Icon, IconButton, PriceText, PlanScore, Text, VerifiedBadge } fro
 import { AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Alto de la portada de la tarjeta (y de su esqueleto). */
-export const ALTO_PORTADA_PLAN = 168;
+export const PLAN_COVER_HEIGHT = 168;
 
 /**
  * Tarjeta de plan del catálogo (`plan_card.dart`): foto protagonista con degradado, destino y
  * duración sobre la imagen, cupos de la próxima salida, sello de agencia verificada, precio final
  * visible desde el inicio y botón de comparar. Toda la tarjeta abre `/plan/:id`.
- * [onToggleComparar] null oculta el botón de comparar (página de una agencia).
+ * [onToggleCompare] null oculta el botón de comparar (página de una agencia).
  *
  * `memo`: escribir en el buscador cambia el estado del catálogo y re-pinta la vista en cada tecla;
  * las tarjetas (props estables: el plan, un booleano y un callback de useCallback) no se repintan.
@@ -23,12 +23,12 @@ export const ALTO_PORTADA_PLAN = 168;
  */
 export const PlanCard = memo(function PlanCard({
   plan,
-  comparada = false,
-  onToggleComparar,
+  isCompared = false,
+  onToggleCompare,
 }: {
   plan: Plan;
-  comparada?: boolean;
-  onToggleComparar?: ((plan: Plan) => void) | null;
+  isCompared?: boolean;
+  onToggleCompare?: ((plan: Plan) => void) | null;
 }) {
   const cs = useTheme().colorScheme;
   const router = useRouter();
@@ -38,26 +38,26 @@ export const PlanCard = memo(function PlanCard({
   // En Flutter el IconButton vivía dentro del InkWell; visualmente queda en el mismo lugar.
   // flexGrow: en la grilla la tarjeta llena la celda como en SliverGrid; en la lista no cambia nada.
   return (
-    <View style={estilos.envoltura}>
+    <View style={styles.wrapper}>
       <Card
         testID={`plan-card-${plan.id}`}
         color={cs.surfaceContainerLow}
         onPress={() => router.push(AppRoutes.plan(plan.id) as Href)}
         accessibilityLabel={plan.title}
-        style={estilos.envoltura}
+        style={styles.wrapper}
       >
-        <ContenidoPlanCard plan={plan} />
+        <PlanCardContent plan={plan} />
       </Card>
-      {onToggleComparar ? (
-        <View style={estilos.comparar}>
+      {onToggleCompare ? (
+        <View style={styles.compare}>
           <IconButton
-            icon={comparada ? 'check_rounded' : 'compare_arrows_rounded'}
+            icon={isCompared ? 'check_rounded' : 'compare_arrows_rounded'}
             iconSize={19}
-            tooltip={comparada ? 'Quitar del comparador' : 'Agregar al comparador'}
-            backgroundColor={comparada ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
-            iconColor={comparada ? cs.onPrimary : '#FFFFFF'}
-            style={estilos.compacto}
-            onPress={() => onToggleComparar(plan)}
+            tooltip={isCompared ? 'Quitar del comparador' : 'Agregar al comparador'}
+            backgroundColor={isCompared ? cs.primary : 'rgba(0, 0, 0, 0.28)'}
+            iconColor={isCompared ? cs.onPrimary : '#FFFFFF'}
+            style={styles.compact}
+            onPress={() => onToggleCompare(plan)}
           />
         </View>
       ) : null}
@@ -65,23 +65,23 @@ export const PlanCard = memo(function PlanCard({
   );
 });
 
-function ContenidoPlanCard({ plan }: { plan: Plan }) {
+function PlanCardContent({ plan }: { plan: Plan }) {
   const cs = useTheme().colorScheme;
-  const proxima = plan.availableDates[0];
+  const nextDate = plan.availableDates[0];
   return (
     <>
-      <View style={{ height: ALTO_PORTADA_PLAN }}>
-        <PortadaPlan plan={plan} />
+      <View style={{ height: PLAN_COVER_HEIGHT }}>
+        <PlanCover plan={plan} />
         {/* Degradado negro 22 % → transparente (45 %) → 45 %, en dos tramos. */}
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <View testID="degradado-portada" style={[estilos.flex, DEGRADADO_PORTADA]} />
+          <View testID="degradado-portada" style={[styles.flex, COVER_GRADIENT]} />
         </View>
         {plan.agency?.isVerified === true ? (
-          <View style={estilos.sello}>
+          <View style={styles.seal}>
             <VerifiedBadge onPhoto compact />
           </View>
         ) : null}
-        <View style={estilos.destino}>
+        <View style={styles.destination}>
           <Icon name="location_on_rounded" size={14} color="#FFFFFF" />
           <View style={{ width: 3 }} />
           <Text numberOfLines={1} style={{ color: '#FFFFFF', fontWeight: '700', fontSize: AppText.detail, flexShrink: 1 }}>
@@ -91,22 +91,22 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           {/* Oscura translúcida (no blanca): el texto blanco se lee igual sobre un cielo o una pared clara. */}
           <View
             testID="pildora-duracion"
-            style={[estilos.pildora, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
+            style={[styles.pill, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
           >
             <Text style={{ color: '#FFFFFF', fontSize: AppText.note, fontWeight: '600' }}>{plan.durationText}</Text>
           </View>
         </View>
-        {proxima ? (
-          <View style={[estilos.cupos, estilos.pildora, { backgroundColor: '#FFFFFF' }]}>
+        {nextDate ? (
+          <View style={[styles.spots, styles.pill, { backgroundColor: '#FFFFFF' }]}>
             <Icon name="event_available_rounded" size={12} color={cs.primary} />
             <View style={{ width: 3 }} />
             <Text style={{ fontSize: AppText.note, fontWeight: '700', color: cs.primary }}>
-              {`${proxima.availableSpots} cupos`}
+              {`${nextDate.availableSpots} cupos`}
             </Text>
           </View>
         ) : null}
       </View>
-      <View style={estilos.contenido}>
+      <View style={styles.content}>
         <Text
           numberOfLines={2}
           ellipsizeMode="tail"
@@ -116,9 +116,9 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
           {plan.title}
         </Text>
         <View style={{ height: 8 }} />
-        <View style={estilos.fila}>
+        <View style={styles.row}>
           <PlanScore plan={plan} />
-          <View style={estilos.flex} />
+          <View style={styles.flex} />
           <PriceText amount={plan.priceCop} />
         </View>
       </View>
@@ -127,13 +127,13 @@ function ContenidoPlanCard({ plan }: { plan: Plan }) {
 }
 
 /** Foto de portada; sin foto (o si falla), el emoji de la categoría sobre primaryContainer. */
-function PortadaPlan({ plan }: { plan: Plan }) {
+function PlanCover({ plan }: { plan: Plan }) {
   const cs = useTheme().colorScheme;
-  const [fallo, setFallo] = useState(false);
-  const foto = plan.mainPhoto;
-  if (foto === null || fallo) {
+  const [failed, setFailed] = useState(false);
+  const photo = plan.mainPhoto;
+  if (photo === null || failed) {
     return (
-      <View testID="portada-respaldo" style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
+      <View testID="portada-respaldo" style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
         <Text style={{ fontSize: AppText.photoEmoji }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       </View>
     );
@@ -141,36 +141,36 @@ function PortadaPlan({ plan }: { plan: Plan }) {
   return (
     <Image
       testID="portada-foto"
-      source={{ uri: foto }}
+      source={{ uri: photo }}
       contentFit="cover"
       // Listas a 120 Hz: conserva el bitmap anterior entre cargas.
       recyclingKey={plan.id}
       style={StyleSheet.absoluteFill}
-      onError={() => setFallo(true)}
+      onError={() => setFailed(true)}
       accessible={false}
     />
   );
 }
 
-const CSS_DEGRADADO = 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)';
+const GRADIENT_CSS = 'linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.45) 100%)';
 
 /**
  * `LinearGradient` de Flutter con `backgroundImage` (estable en React Native; la misma propiedad
  * sirve en web). No hace falta una dependencia de degradados.
  */
-const DEGRADADO_PORTADA: ViewStyle = { backgroundImage: CSS_DEGRADADO };
+const COVER_GRADIENT: ViewStyle = { backgroundImage: GRADIENT_CSS };
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  envoltura: { flexGrow: 1 },
-  centro: { alignItems: 'center', justifyContent: 'center' },
-  fila: { flexDirection: 'row', alignItems: 'center' },
-  sello: { position: 'absolute', top: 10, left: 10 },
-  comparar: { position: 'absolute', top: 6, right: 6 },
+  wrapper: { flexGrow: 1 },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  seal: { position: 'absolute', top: 10, left: 10 },
+  compare: { position: 'absolute', top: 6, right: 6 },
   // VisualDensity.compact: 40 - 8.
-  compacto: { width: 32, height: 32, borderRadius: 16 },
-  destino: { position: 'absolute', left: 12, bottom: 10, right: 96, flexDirection: 'row', alignItems: 'center' },
-  cupos: { position: 'absolute', right: 12, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  pildora: { borderRadius: AppRadii.pill, flexDirection: 'row', alignItems: 'center' },
-  contenido: { paddingLeft: 14, paddingTop: 12, paddingRight: 14, paddingBottom: 14 },
+  compact: { width: 32, height: 32, borderRadius: 16 },
+  destination: { position: 'absolute', left: 12, bottom: 10, right: 96, flexDirection: 'row', alignItems: 'center' },
+  spots: { position: 'absolute', right: 12, bottom: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  pill: { borderRadius: AppRadii.pill, flexDirection: 'row', alignItems: 'center' },
+  content: { paddingLeft: 14, paddingTop: 12, paddingRight: 14, paddingBottom: 14 },
 });

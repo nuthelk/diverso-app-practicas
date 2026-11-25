@@ -6,8 +6,8 @@ import { formatCOP, formatShortDate } from '@/core';
 import { FilledButton, Icon, IconButton, OutlinedButton, SectionLabel, Text, TextField } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
-import { DeslizadorPrecio } from './DeslizadorPrecio';
-import { SelectorFecha } from './SelectorFecha';
+import { PriceSlider } from './PriceSlider';
+import { DatePicker } from './DatePicker';
 
 /** Límites del precio máximo por persona (COP). En [PRECIO_MAXIMO] el filtro queda sin límite. */
 export const PRECIO_MINIMO = 50000;
@@ -107,14 +107,14 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
         <SectionLabel text="Precio máximo por persona" />
         <View style={estilos.fila}>
           <View style={estilos.flex}>
-            <DeslizadorPrecio
+            <PriceSlider
               accessibilityLabel="Precio máximo por persona"
-              valor={Math.min(Math.max(precio ?? PRECIO_MAXIMO, PRECIO_MINIMO), PRECIO_MAXIMO)}
+              value={Math.min(Math.max(precio ?? PRECIO_MAXIMO, PRECIO_MINIMO), PRECIO_MAXIMO)}
               min={PRECIO_MINIMO}
               max={PRECIO_MAXIMO}
-              divisiones={DIVISIONES_PRECIO}
-              etiqueta={formatCOP}
-              onCambio={(v) => setPrecio(v >= PRECIO_MAXIMO ? null : v)}
+              divisions={DIVISIONES_PRECIO}
+              label={formatCOP}
+              onChange={(v) => setPrecio(v >= PRECIO_MAXIMO ? null : v)}
             />
           </View>
           <Text
@@ -179,13 +179,13 @@ function ContenidoFiltros({ vm, onCerrar, abajo }: { vm: FiltrosDelCatalogo; onC
         <FilledButton icon="check_rounded" text="Aplicar filtros" onPress={aplicar} style={{ flex: 2 }} />
       </View>
       {eligiendoFecha ? (
-        <SelectorFecha
+        <DatePicker
           visible
-          inicial={fecha ?? new Date(ahora.getTime() + DIA_MS)}
-          primera={ahora}
-          ultima={new Date(ahora.getTime() + 365 * DIA_MS)}
-          onCerrar={() => setEligiendoFecha(false)}
-          onElegir={(f) => {
+          initialDate={fecha ?? new Date(ahora.getTime() + DIA_MS)}
+          firstDate={ahora}
+          lastDate={new Date(ahora.getTime() + 365 * DIA_MS)}
+          onClose={() => setEligiendoFecha(false)}
+          onPick={(f) => {
             setFecha(f);
             setEligiendoFecha(false);
           }}

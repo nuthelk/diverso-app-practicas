@@ -2,8 +2,8 @@ import { fireEvent, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 import { ExperienceCategory, Plan, PlanStatus } from '@/core';
-import { ComparadorPlanes } from '@/features/catalog/components/ComparadorPlanes';
-import { dejarPlanesParaComparar, olvidarPlanesParaComparar } from '@/features/catalog/planes-para-comparar';
+import { PlanComparator } from '@/features/catalog/components/PlanComparator';
+import { setPlansToCompare, forgetPlansToCompare } from '@/features/catalog/plans-to-compare';
 import { ComparatorView } from '@/features/catalog/views/ComparatorView';
 
 import { CatalogoFalso } from '../../../support/catalogo-falso';
@@ -36,14 +36,14 @@ const tres = () => [plan('1', 189000), plan('2', 178000), plan('3', 179000)];
 
 async function abrirTabla(ancho: number, planes = tres()) {
   await fijarVentana(ancho, 1600);
-  await renderPantalla(<ComparadorPlanes planes={planes} />);
+  await renderPantalla(<PlanComparator plans={planes} />);
 }
 
 const anchoDe = (el: { props: Record<string, unknown> }) => StyleSheet.flatten(el.props.style as never).width as number;
 
 beforeEach(() => {
   reiniciarRouterFalso();
-  olvidarPlanesParaComparar();
+  forgetPlansToCompare();
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(async () => {
@@ -139,7 +139,7 @@ describe('pantalla /comparar (comparator_loader)', () => {
 
   test('si el catálogo dejó los mismos planes (mismo orden) no consulta', async () => {
     const catalogo = catalogoCon();
-    dejarPlanesParaComparar([plan('a', 1), plan('b', 2)]);
+    setPlansToCompare([plan('a', 1), plan('b', 2)]);
     await abrir(['a', 'b'], catalogo);
 
     expect(catalogo.detallesPedidos).toEqual([]);

@@ -5,7 +5,7 @@ import { LABEL_EXPERIENCE_CATEGORY, type ExperienceCategory } from '@/core';
 import { Icon, Text, type IconName } from '@/ui/components';
 import { AppRadii, AppText, Curves, Durations, useTheme } from '@/ui/theme';
 
-const ICONOS: Record<ExperienceCategory, IconName> = {
+const ICONS: Record<ExperienceCategory, IconName> = {
   aventura: 'hiking_rounded',
   naturaleza: 'forest_rounded',
   cultura: 'account_balance_rounded',
@@ -19,55 +19,55 @@ const ICONOS: Record<ExperienceCategory, IconName> = {
  * borde primary y contenido onPrimary; si no, transparente con borde outlineVariant. El cambio de
  * color se anima 180 ms easeOut.
  */
-export function ChipCategoria({
-  categoria,
-  seleccionada,
+export function CategoryChip({
+  category,
+  selected,
   onPress,
 }: {
-  categoria: ExperienceCategory;
-  seleccionada: boolean;
+  category: ExperienceCategory;
+  selected: boolean;
   onPress: () => void;
 }) {
   const cs = useTheme().colorScheme;
-  const t = useRef(new Animated.Value(seleccionada ? 1 : 0)).current;
+  const t = useRef(new Animated.Value(selected ? 1 : 0)).current;
   useEffect(() => {
-    const animacion = Animated.timing(t, {
-      toValue: seleccionada ? 1 : 0,
+    const animation = Animated.timing(t, {
+      toValue: selected ? 1 : 0,
       duration: Durations.categoryChip,
       easing: Curves.easeOut.fn,
       useNativeDriver: false,
     });
-    animacion.start();
-    return () => animacion.stop();
-  }, [seleccionada, t]);
-  const contenido = seleccionada ? cs.onPrimary : cs.onSurfaceVariant;
-  const etiqueta = LABEL_EXPERIENCE_CATEGORY[categoria];
+    animation.start();
+    return () => animation.stop();
+  }, [selected, t]);
+  const contentColor = selected ? cs.onPrimary : cs.onSurfaceVariant;
+  const label = LABEL_EXPERIENCE_CATEGORY[category];
 
   return (
     <Pressable
-      testID={`chip-categoria-${categoria}`}
+      testID={`chip-categoria-${category}`}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={etiqueta}
-      accessibilityState={{ selected: seleccionada }}
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
     >
       <Animated.View
         style={[
-          estilos.chip,
+          styles.chip,
           {
             backgroundColor: t.interpolate({ inputRange: [0, 1], outputRange: ['rgba(0,0,0,0)', cs.primary] }),
             borderColor: t.interpolate({ inputRange: [0, 1], outputRange: [cs.outlineVariant, cs.primary] }),
           },
         ]}
       >
-        <Icon name={ICONOS[categoria]} size={16} color={contenido} />
-        <Text style={{ marginLeft: 6, fontSize: AppText.detail, fontWeight: '600', color: contenido }}>{etiqueta}</Text>
+        <Icon name={ICONS[category]} size={16} color={contentColor} />
+        <Text style={{ marginLeft: 6, fontSize: AppText.detail, fontWeight: '600', color: contentColor }}>{label}</Text>
       </Animated.View>
     </Pressable>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

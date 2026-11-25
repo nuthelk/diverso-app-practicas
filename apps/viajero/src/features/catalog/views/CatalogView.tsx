@@ -9,13 +9,13 @@ import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, IconButton, InputChip, TextField, PageTitle } from '@/ui/components';
 import { AppInsets, AppTheme, useTheme } from '@/ui/theme';
 
-import { BandejaAnimada } from '../components/BandejaComparar';
+import { AnimatedCompareTray } from '../components/CompareTray';
 import { BotonFiltros } from '../components/BotonFiltros';
-import { ChipCategoria } from '../components/ChipCategoria';
-import { Grilla } from '../components/Grilla';
+import { CategoryChip } from '../components/CategoryChip';
+import { Grid } from '../components/Grid';
 import { PlanCard } from '../components/PlanCard';
-import { ResultadosSkeleton } from '../components/ResultadosSkeleton';
-import { dejarPlanesParaComparar } from '../planes-para-comparar';
+import { ResultsSkeleton } from '../components/ResultsSkeleton';
+import { setPlansToCompare } from '../plans-to-compare';
 import { MAX_COMPARAR, useCatalogViewModel } from '../view-models/useCatalogViewModel';
 
 /** Padding horizontal de la lista (20 + 20): el ancho útil de la rejilla sale de la ventana. */
@@ -50,7 +50,7 @@ export function CatalogView() {
   };
 
   const tarjeta = (plan: (typeof vm.planes)[number]) => (
-    <PlanCard plan={plan} comparada={vm.comparando(plan)} onToggleComparar={vm.toggleComparar} />
+    <PlanCard plan={plan} isCompared={vm.comparando(plan)} onToggleCompare={vm.toggleComparar} />
   );
 
   return (
@@ -117,14 +117,14 @@ export function CatalogView() {
           ) : null}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ height: 40 }} contentContainerStyle={estilos.categorias}>
             {valuesOf(ExperienceCategory).map((c) => (
-              <ChipCategoria key={c} categoria={c} seleccionada={vm.categoria === c} onPress={() => void vm.toggleCategoria(c)} />
+              <CategoryChip key={c} category={c} selected={vm.categoria === c} onPress={() => void vm.toggleCategoria(c)} />
             ))}
           </ScrollView>
           <View style={{ height: 6 }} />
         </View>
 
         {vm.cargando ? (
-          <ResultadosSkeleton esGrid={esGrid} anchoUtil={width - LADOS_LISTA} />
+          <ResultsSkeleton isGrid={esGrid} usableWidth={width - LADOS_LISTA} />
         ) : vm.error !== null ? (
           <EmptyState
             icon="cloud_off_rounded"
@@ -138,7 +138,7 @@ export function CatalogView() {
         ) : (
           <View testID="resultados" style={AppInsets.roomyList}>
             {esGrid ? (
-              <Grilla items={vm.planes} anchoUtil={width - LADOS_LISTA} clave={(p) => p.id} render={tarjeta} />
+              <Grid items={vm.planes} usableWidth={width - LADOS_LISTA} keyOf={(p) => p.id} render={tarjeta} />
             ) : (
               vm.planes.map((p) => (
                 <View key={p.id} style={AppInsets.betweenCards}>
@@ -150,13 +150,13 @@ export function CatalogView() {
         )}
       </ScrollView>
       {/* La bandeja va debajo de la lista, no encima: el último plan nunca queda tapado. */}
-      <BandejaAnimada
-        seleccion={vm.seleccion}
-        maximo={MAX_COMPARAR}
-        onQuitar={vm.toggleComparar}
-        onLimpiar={vm.limpiarComparar}
-        onComparar={() => {
-          dejarPlanesParaComparar(vm.seleccion);
+      <AnimatedCompareTray
+        selection={vm.seleccion}
+        max={MAX_COMPARAR}
+        onRemove={vm.toggleComparar}
+        onClear={vm.limpiarComparar}
+        onCompare={() => {
+          setPlansToCompare(vm.seleccion);
           router.push(AppRoutes.compararPlanes(vm.seleccion.map((p) => p.id)) as Href);
         }}
       />

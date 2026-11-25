@@ -7,16 +7,16 @@ import { FilledButton, Icon, IconButton, Text, TextButton } from '@/ui/component
 import { AppRadii, AppText, withAlpha, Curves, Durations, Shadows, useTheme } from '@/ui/theme';
 
 /** Desde cuántos planes se puede comparar. */
-export const MINIMO_COMPARAR = 2;
+export const MIN_COMPARE = 2;
 
-const ALTO_MINIATURA = 52;
+const THUMBNAIL_HEIGHT = 52;
 
-interface PropsBandeja {
-  seleccion: readonly Plan[];
-  maximo: number;
-  onQuitar: (plan: Plan) => void;
-  onLimpiar: () => void;
-  onComparar: () => void;
+interface CompareTrayProps {
+  selection: readonly Plan[];
+  max: number;
+  onRemove: (plan: Plan) => void;
+  onClear: () => void;
+  onCompare: () => void;
 }
 
 /**
@@ -24,49 +24,49 @@ interface PropsBandeja {
  * easeInCubic, crece desde arriba + fundido). Sin selección no hay bandeja. Va DEBAJO de la lista
  * (no flota encima): la lista termina donde empieza la bandeja (gotcha 14).
  */
-export function BandejaAnimada(props: PropsBandeja) {
-  const hay = props.seleccion.length > 0;
-  const t = useRef(new Animated.Value(hay ? 1 : 0)).current;
+export function AnimatedCompareTray(props: CompareTrayProps) {
+  const hasSelection = props.selection.length > 0;
+  const t = useRef(new Animated.Value(hasSelection ? 1 : 0)).current;
   // Mientras sale se sigue pintando la última selección.
-  const ultima = useRef(props);
-  if (hay) ultima.current = props;
+  const lastProps = useRef(props);
+  if (hasSelection) lastProps.current = props;
   // Montada mientras haya selección o dure la salida. Se enciende EN EL RENDER (estado derivado de
   // las props) y se apaga recién al terminar la salida: así la salida no re-renderiza la bandeja a
   // mitad de camino. Con un setState al empezar la salida, en el dispositivo la animación terminaba
   // con finished=false y la bandeja quedaba congelada con la selección vieja (en Jest no pasa).
-  const [montada, setMontada] = useState(hay);
-  if (hay && !montada) setMontada(true);
-  const [alto, setAlto] = useState(0);
-  const altura = useMemo(() => (alto > 0 ? t.interpolate({ inputRange: [0, 1], outputRange: [0, alto] }) : undefined), [alto, t]);
-  const habia = useRef(hay);
+  const [mounted, setMounted] = useState(hasSelection);
+  if (hasSelection && !mounted) setMounted(true);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
+  const animatedHeight = useMemo(() => (measuredHeight > 0 ? t.interpolate({ inputRange: [0, 1], outputRange: [0, measuredHeight] }) : undefined), [measuredHeight, t]);
+  const hadSelection = useRef(hasSelection);
 
   useEffect(() => {
-    if (habia.current === hay) return;
-    habia.current = hay;
-    const animacion = Animated.timing(t, {
-      toValue: hay ? 1 : 0,
+    if (hadSelection.current === hasSelection) return;
+    hadSelection.current = hasSelection;
+    const animation = Animated.timing(t, {
+      toValue: hasSelection ? 1 : 0,
       duration: Durations.compareTray,
-      easing: (hay ? Curves.easeOutCubic : Curves.easeInCubic).fn,
+      easing: (hasSelection ? Curves.easeOutCubic : Curves.easeInCubic).fn,
       useNativeDriver: false,
     });
-    animacion.start(({ finished }) => {
-      if (finished && !hay) setMontada(false);
+    animation.start(({ finished }) => {
+      if (finished && !hasSelection) setMounted(false);
     });
-    return () => animacion.stop();
-  }, [hay, t]);
+    return () => animation.stop();
+  }, [hasSelection, t]);
 
-  if (!montada) return null;
+  if (!mounted) return null;
   return (
     <Animated.View
       style={{
         opacity: t,
         // SizeTransition desde arriba: el alto crece de 0 al de la bandeja.
-        height: altura,
+        height: animatedHeight,
         overflow: 'hidden',
       }}
     >
-      <View onLayout={(e) => setAlto(e.nativeEvent.layout.height)}>
-        <BandejaComparar {...ultima.current} />
+      <View onLayout={(e) => setMeasuredHeight(e.nativeEvent.layout.height)}>
+        <CompareTray {...lastProps.current} />
       </View>
     </Animated.View>
   );
@@ -76,18 +76,18 @@ export function BandejaAnimada(props: PropsBandeja) {
  * Bandeja de comparación (`bandeja_comparar.dart`): contador, pista, «Limpiar», una miniatura por
  * plan elegido (foto + título, con ✕), lugares libres y «Comparar (n)», habilitado desde 2.
  */
-export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComparar }: PropsBandeja) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const n = seleccion.length;
-  const puede = n >= MINIMO_COMPARAR;
-  const pista = !puede ? `Elige al menos ${MINIMO_COMPARAR} planes` : n >= maximo ? `Máximo ${maximo} planes` : null;
+export function CompareTray({ selection, max, onRemove, onClear, onCompare }: CompareTrayProps) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const n = selection.length;
+  const canCompare = n >= MIN_COMPARE;
+  const hint = !canCompare ? `Elige al menos ${MIN_COMPARE} planes` : n >= max ? `Máximo ${max} planes` : null;
 
   return (
     <View
       testID="bandeja-comparar"
       style={[
-        estilos.bandeja,
+        styles.tray,
         Shadows.tray,
         {
           backgroundColor: cs.surfaceContainerLowest,
@@ -98,58 +98,58 @@ export function BandejaComparar({ seleccion, maximo, onQuitar, onLimpiar, onComp
         },
       ]}
     >
-      <View style={estilos.fila}>
-        <View style={estilos.flex}>
-          <Text style={{ fontSize: AppText.emphasis, fontWeight: '800', letterSpacing: -0.2 }}>{`${n} de ${maximo} planes`}</Text>
-          {pista ? <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{pista}</Text> : null}
+      <View style={styles.row}>
+        <View style={styles.flex}>
+          <Text style={{ fontSize: AppText.emphasis, fontWeight: '800', letterSpacing: -0.2 }}>{`${n} de ${max} planes`}</Text>
+          {hint ? <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{hint}</Text> : null}
         </View>
-        <TextButton text="Limpiar" onPress={onLimpiar} />
+        <TextButton text="Limpiar" onPress={onClear} />
       </View>
       <View style={{ height: 8 }} />
-      <View style={estilos.fila}>
-        <View style={[estilos.flex, estilos.fila, { alignItems: 'flex-start' }]}>
-          {Array.from({ length: maximo }, (_, i) => {
-            const plan = seleccion[i];
+      <View style={styles.row}>
+        <View style={[styles.flex, styles.row, { alignItems: 'flex-start' }]}>
+          {Array.from({ length: max }, (_, i) => {
+            const plan = selection[i];
             return (
-              <View key={plan ? plan.id : `hueco-${i}`} style={[estilos.flex, i > 0 ? { marginLeft: 8 } : null]}>
-                {plan ? <Miniatura plan={plan} onQuitar={() => onQuitar(plan)} /> : <Hueco />}
+              <View key={plan ? plan.id : `hueco-${i}`} style={[styles.flex, i > 0 ? { marginLeft: 8 } : null]}>
+                {plan ? <Thumbnail plan={plan} onRemove={() => onRemove(plan)} /> : <EmptySlot />}
               </View>
             );
           })}
         </View>
         <View style={{ width: 12 }} />
-        <FilledButton text={`Comparar (${n})`} onPress={puede ? onComparar : null} testID="boton-comparar" />
+        <FilledButton text={`Comparar (${n})`} onPress={canCompare ? onCompare : null} testID="boton-comparar" />
       </View>
     </View>
   );
 }
 
 /** Foto del plan con su ✕ y el título corto debajo. */
-function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const [fallo, setFallo] = useState(false);
-  const foto = plan.mainPhoto;
+function Thumbnail({ plan, onRemove }: { plan: Plan; onRemove: () => void }) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const [failed, setFailed] = useState(false);
+  const photo = plan.mainPhoto;
   return (
     <View>
-      <View testID="foto-miniatura" style={[estilos.miniatura, { height: ALTO_MINIATURA }]}>
-        {foto === null || fallo ? (
-          <View style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
+      <View testID="foto-miniatura" style={[styles.thumbnail, { height: THUMBNAIL_HEIGHT }]}>
+        {photo === null || failed ? (
+          <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
             <Text style={{ fontSize: AppText.headingS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
           </View>
         ) : (
-          <Image source={{ uri: foto }} contentFit="cover" style={StyleSheet.absoluteFill} onError={() => setFallo(true)} accessible={false} />
+          <Image source={{ uri: photo }} contentFit="cover" style={StyleSheet.absoluteFill} onError={() => setFailed(true)} accessible={false} />
         )}
-        <View style={estilos.quitar}>
+        <View style={styles.remove}>
           <IconButton
             variant="filled"
             icon="close_rounded"
             iconSize={14}
             tooltip={`Quitar ${plan.title} de la comparación`}
-            backgroundColor={tema.diverso.controlOverPhoto}
+            backgroundColor={theme.diverso.controlOverPhoto}
             iconColor="#FFFFFF"
-            style={estilos.quitarBoton}
-            onPress={onQuitar}
+            style={styles.removeButton}
+            onPress={onRemove}
           />
         </View>
       </View>
@@ -162,17 +162,17 @@ function Miniatura({ plan, onQuitar }: { plan: Plan; onQuitar: () => void }) {
 }
 
 /** Lugar libre (deja ver cuántos caben): del tamaño de una miniatura y decorativo. */
-function Hueco() {
+function EmptySlot() {
   const cs = useTheme().colorScheme;
   return (
     <View testID="hueco" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View
         testID="hueco-bandeja"
         style={[
-          estilos.miniatura,
-          estilos.centro,
+          styles.thumbnail,
+          styles.center,
           {
-            height: ALTO_MINIATURA,
+            height: THUMBNAIL_HEIGHT,
             backgroundColor: withAlpha(cs.surfaceContainerHigh, 0.4),
             borderWidth: 1,
             borderColor: cs.outlineVariant,
@@ -186,8 +186,8 @@ function Hueco() {
   );
 }
 
-const estilos = StyleSheet.create({
-  bandeja: {
+const styles = StyleSheet.create({
+  tray: {
     borderTopLeftRadius: AppRadii.card,
     borderTopRightRadius: AppRadii.card,
     borderWidth: 1,
@@ -196,10 +196,10 @@ const estilos = StyleSheet.create({
     paddingRight: 16,
     paddingTop: 10,
   },
-  fila: { flexDirection: 'row', alignItems: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
-  centro: { alignItems: 'center', justifyContent: 'center' },
-  miniatura: { borderRadius: AppRadii.control, overflow: 'hidden' },
-  quitar: { position: 'absolute', top: 2, right: 2 },
-  quitarBoton: { width: 24, height: 24, borderRadius: 12 },
+  center: { alignItems: 'center', justifyContent: 'center' },
+  thumbnail: { borderRadius: AppRadii.control, overflow: 'hidden' },
+  remove: { position: 'absolute', top: 2, right: 2 },
+  removeButton: { width: 24, height: 24, borderRadius: 12 },
 });

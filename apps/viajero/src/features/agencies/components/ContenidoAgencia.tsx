@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { RefreshControl, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import type { AgencySummary, Plan } from '@/core';
-import { Grilla } from '@/features/catalog/components/Grilla';
+import { Grid } from '@/features/catalog/components/Grid';
 import { PlanCard } from '@/features/catalog/components/PlanCard';
 import { AgencyAvatar, CollapsibleHeader, pageTitleStyle, SectionLabel, Text, VerifiedBadge } from '@/ui/components';
 import { AppInsets, AppText, AppTheme, useTheme } from '@/ui/theme';
@@ -85,10 +85,10 @@ export function ContenidoAgencia({
       ) : (
         <View style={AppInsets.list}>
           {esGrid ? (
-            <Grilla
+            <Grid
               items={planes}
-              anchoUtil={width - 40}
-              clave={(p) => p.id}
+              usableWidth={width - 40}
+              keyOf={(p) => p.id}
               render={(p) => <PlanCard plan={p} />}
             />
           ) : (

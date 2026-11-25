@@ -3,7 +3,7 @@ import { RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } fro
 
 import { useDependencies } from '@/composition';
 import { LABEL_AGENCY_SORT, AgencySort, valuesOf } from '@/core';
-import { Grilla } from '@/features/catalog/components/Grilla';
+import { Grid } from '@/features/catalog/components/Grid';
 import { TopBar } from '@/features/shell/components/TopBar';
 import { EmptyState, FilledButton, SegmentedButton, Skeleton, PageTitle } from '@/ui/components';
 import { AppInsets, AppRadii, AppTheme, useTheme } from '@/ui/theme';
@@ -80,10 +80,10 @@ export function AgenciasView() {
         ) : (
           <View testID="lista-agencias" style={AppInsets.list}>
             {esGrid ? (
-              <Grilla
+              <Grid
                 items={vm.agencias}
-                anchoUtil={width - 40}
-                clave={(a) => a.id}
+                usableWidth={width - 40}
+                keyOf={(a) => a.id}
                 render={(a) => <AgenciaCard agencia={a} />}
               />
             ) : (

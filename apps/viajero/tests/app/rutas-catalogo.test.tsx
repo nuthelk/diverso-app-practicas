@@ -2,7 +2,7 @@ import { type Href, router } from 'expo-router';
 import { act, fireEvent, screen } from 'expo-router/testing-library';
 
 import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
-import { dejarPlanesParaComparar, olvidarPlanesParaComparar } from '@/features/catalog/planes-para-comparar';
+import { setPlansToCompare, forgetPlansToCompare } from '@/features/catalog/plans-to-compare';
 import { AppRoutes } from '@/router';
 
 import { arrancarApp, asentar, pantallaVisible } from '../support/app';
@@ -39,7 +39,7 @@ async function abrir(url: string, catalogo = catalogoDePrueba()) {
 }
 
 beforeEach(() => {
-  olvidarPlanesParaComparar();
+  forgetPlansToCompare();
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => {
@@ -101,7 +101,7 @@ describe('/comparar?ids=…', () => {
   test('desde el catálogo, el `extra` evita volver a pedir los planes', async () => {
     const { r, catalogo } = await abrir(AppRoutes.legal('privacidad'));
 
-    dejarPlanesParaComparar([plan('p1'), plan('p2')]);
+    setPlansToCompare([plan('p1'), plan('p2')]);
     await act(async () => router.push(AppRoutes.compararPlanes(['p1', 'p2']) as Href));
     await asentar();
 

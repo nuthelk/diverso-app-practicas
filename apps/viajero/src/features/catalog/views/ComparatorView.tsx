@@ -8,8 +8,8 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { ComparadorPlanes } from '../components/ComparadorPlanes';
-import { planesParaComparar } from '../planes-para-comparar';
+import { PlanComparator } from '../components/PlanComparator';
+import { plansToCompare } from '../plans-to-compare';
 import { useComparatorViewModel } from '../view-models/useComparatorViewModel';
 
 export interface ComparatorViewProps {
@@ -27,7 +27,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
   const router = useRouter();
   const { catalogo } = useDependencies();
   // Los ids y el `extra` se fijan al montar (como el `initState` de Flutter).
-  const [inicio] = useState(() => ({ ids, planes: planesParaComparar() }));
+  const [inicio] = useState(() => ({ ids, planes: plansToCompare() }));
   const vm = useComparatorViewModel({ catalogo, ids: inicio.ids, planesIniciales: inicio.planes });
   const { cargar } = vm;
 
@@ -37,7 +37,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
 
   let cuerpo;
   if (vm.planes !== null) {
-    cuerpo = <ComparadorPlanes planes={vm.planes} />;
+    cuerpo = <PlanComparator plans={vm.planes} />;
   } else if (vm.error === null) {
     cuerpo = (
       <View style={estilos.centro}>

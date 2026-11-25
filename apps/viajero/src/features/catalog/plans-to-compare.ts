@@ -7,17 +7,17 @@ import type { Plan } from '@/core';
  * mismo orden (gotcha 5); si no (recarga, deep link, otra selección), carga por id. Vive en
  * memoria: una recarga lo pierde, igual que el `extra`.
  */
-let ultimos: readonly Plan[] | null = null;
+let lastPlans: readonly Plan[] | null = null;
 
-export function dejarPlanesParaComparar(planes: readonly Plan[]): void {
-  ultimos = planes;
+export function setPlansToCompare(plans: readonly Plan[]): void {
+  lastPlans = plans;
 }
 
-export function planesParaComparar(): readonly Plan[] | null {
-  return ultimos;
+export function plansToCompare(): readonly Plan[] | null {
+  return lastPlans;
 }
 
 /** Para tests. */
-export function olvidarPlanesParaComparar(): void {
-  ultimos = null;
+export function forgetPlansToCompare(): void {
+  lastPlans = null;
 }
