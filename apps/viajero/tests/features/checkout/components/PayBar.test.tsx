@@ -36,7 +36,7 @@ afterEach(() => {
 
 const keyboardEvent = (height: number) => ({ endCoordinates: { height, screenX: 0, screenY: 0, width: 400 } }) as KeyboardEvent;
 
-const bottomPadding = () => StyleSheet.flatten(screen.getByTestId('barra-pagar').props.style).paddingBottom;
+const bottomPadding = () => StyleSheet.flatten(screen.getByTestId('pay-bar').props.style).paddingBottom;
 
 async function renderBar() {
   await renderWithTheme(<PayBar total={190000} pax={2} processing={false} onPay={() => {}} />);

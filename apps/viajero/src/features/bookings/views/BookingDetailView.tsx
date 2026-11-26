@@ -85,7 +85,7 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
 
   /** Marco de las pantallas sin reserva (cargando / error): barra con «Volver». */
   const frame = (body: ReactNode) => (
-    <View testID="pantalla-ReservaDetalleView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-BookingDetailView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title={null} onBack={goBack} />
       <View style={styles.flex}>{body}</View>
       <Snackbar />
@@ -95,7 +95,7 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
   const b = vm.booking;
   if (b !== null) {
     return (
-      <View testID="pantalla-ReservaDetalleView" style={styles.flex}>
+      <View testID="screen-BookingDetailView" style={styles.flex}>
         <BookingDetail
           booking={b}
           canCancel={vm.canCancel(b)}

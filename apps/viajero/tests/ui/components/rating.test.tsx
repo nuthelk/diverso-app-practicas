@@ -70,7 +70,7 @@ describe('NewBadge', () => {
     expect(s.color).toBe(lightTheme.colorScheme.primary);
     expect(s.fontSize).toBe(11.5);
     expect(s.fontWeight).toBe('700');
-    const box = styleOf(screen.getByTestId('insignia-nueva'));
+    const box = styleOf(screen.getByTestId('new-badge'));
     expect(box.backgroundColor).toBe('rgba(31, 106, 79, 0.1)');
     expect(box.paddingHorizontal).toBe(8);
     expect(box.paddingVertical).toBe(2);

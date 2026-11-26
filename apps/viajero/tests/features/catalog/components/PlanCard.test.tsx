@@ -41,7 +41,7 @@ describe('PlanCard', () => {
 
   test('la píldora de duración es oscura translúcida con texto blanco: se lee sobre fotos claras', async () => {
     await renderScreen(<PlanCard plan={plan} />);
-    const pill = screen.getByTestId('pildora-duracion');
+    const pill = screen.getByTestId('duration-pill');
     const background = String(StyleSheet.flatten(pill.props.style).backgroundColor);
     const m = background.match(/rgba\((\d+), ?(\d+), ?(\d+), ?([\d.]+)\)/);
     expect(m).not.toBeNull();

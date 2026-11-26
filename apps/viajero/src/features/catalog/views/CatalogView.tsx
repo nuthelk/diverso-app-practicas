@@ -54,11 +54,11 @@ export function CatalogView() {
   );
 
   return (
-    <View testID="pantalla-CatalogView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-CatalogView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {/* El título va en la barra, fuera del scroll: las tarjetas no pasan bajo la barra de estado. */}
       <TopBar title={<PageTitle text="Descubre Antioquia" />} />
       <ScrollView
-        testID="catalogo-scroll"
+        testID="catalog-scroll"
         style={styles.flex}
         contentContainerStyle={styles.grow}
         keyboardShouldPersistTaps="handled"
@@ -75,7 +75,7 @@ export function CatalogView() {
               hint="Guatapé, café, parapente…"
               accessibilityLabel="Buscar planes"
               icon="search_rounded"
-              testID="buscador"
+              testID="search-bar"
               suffix={
                 vm.text === '' ? undefined : (
                   <IconButton
@@ -136,7 +136,7 @@ export function CatalogView() {
         ) : vm.plans.length === 0 ? (
           <EmptyState icon="search_off_rounded" title="Sin resultados" message="Prueba con otro destino o quita algunos filtros." />
         ) : (
-          <View testID="resultados" style={AppInsets.roomyList}>
+          <View testID="results" style={AppInsets.roomyList}>
             {isGrid ? (
               <Grid items={vm.plans} usableWidth={width - LIST_SIDE_PADDING} keyOf={(p) => p.id} render={renderCard} />
             ) : (

@@ -52,7 +52,7 @@ export function AgencyAvatar({ agency, size = 46 }: { agency: AgencyAvatarData; 
         />
       ) : (
         <View
-          testID="agency-avatar-iniciales"
+          testID="agency-avatar-initials"
           style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: agencyColor(agency.id) }]}
         >
           <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: size * 0.38, letterSpacing: 0.5 }}>

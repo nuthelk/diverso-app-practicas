@@ -36,12 +36,12 @@ export function BookingPhoto({ booking, dimmed = false }: { booking: Booking; di
 
   const background =
     photo === null ? (
-      fallback('sin-foto-reserva')
+      fallback('booking-no-photo')
     ) : failed ? (
       fallback()
     ) : (
       <Image
-        testID="foto-reserva"
+        testID="booking-photo"
         source={{ uri: photo }}
         contentFit="cover"
         style={StyleSheet.absoluteFill}

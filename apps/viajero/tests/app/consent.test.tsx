@@ -42,7 +42,7 @@ beforeEach(() => {
 });
 
 const consentScreen = () => screen.queryByText('Antes de continuar');
-const bottomBar = () => screen.queryByTestId('barra-inferior');
+const bottomBar = () => screen.queryByTestId('bottom-bar');
 const unverifiedNotice = () => screen.queryByText(/No pudimos verificar tu autorización/);
 
 async function openApp(auth: FakeAuth, url = '/') {
@@ -257,9 +257,9 @@ describe('guardia: mientras se verifica el consentimiento', () => {
 
     expect(r.getPathname()).toBe('/consentimiento');
     expect(r.getPathnameWithParams()).toBe('/consentimiento?desde=%2Freservas%2Fb-1');
-    expect(visibleScreen('ReservaDetalleView')).toBeNull();
+    expect(visibleScreen('BookingDetailView')).toBeNull();
     expect(loads).toEqual([]);
-    expect(screen.getByTestId('consentimiento-verificando')).toBeOnTheScreen();
+    expect(screen.getByTestId('consent-checking')).toBeOnTheScreen();
 
     await respond(auth.openQueries[0], []);
   });
@@ -271,7 +271,7 @@ describe('guardia: mientras se verifica el consentimiento', () => {
     await respond(auth.openQueries[0], []);
 
     expect(r.getPathname()).toBe('/reservas/b-1');
-    expect(visibleScreen('ReservaDetalleView')).toBeOnTheScreen();
+    expect(visibleScreen('BookingDetailView')).toBeOnTheScreen();
     // Cargó la reserva b-1 una sola vez, y recién con el consentimiento confirmado.
     expect(loads).toEqual(['BookingRepository.booking("b-1")']);
   });
@@ -379,7 +379,7 @@ describe('guardia: con error o pendiente nada protegido se abre', () => {
         const expected = url.startsWith('/legal/') ? url : '/consentimiento';
         expect(r.getPathname()).toBe(expected);
         if (!url.startsWith('/legal/')) expect(consentScreen()).toBeOnTheScreen();
-        expect(screen.queryAllByTestId(/^pantalla-/)).toHaveLength(0);
+        expect(screen.queryAllByTestId(/^screen-/)).toHaveLength(0);
         expect(loads).toEqual([]);
       });
     }
@@ -393,7 +393,7 @@ describe('guardia: con error o pendiente nada protegido se abre', () => {
     await act(async () => router.navigate('/reservas/b1'));
     await settle();
     expect(r.getPathname()).toBe('/consentimiento');
-    expect(visibleScreen('ReservaDetalleView')).toBeNull();
+    expect(visibleScreen('BookingDetailView')).toBeNull();
 
     await act(async () => router.push('/plan/p1'));
     await settle();

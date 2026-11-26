@@ -17,7 +17,7 @@ afterEach(() => {
 
 test('sin aviso no pinta nada; con aviso lo anuncia como alerta', async () => {
   await renderWithTheme(<Snackbar />);
-  expect(screen.queryByTestId('aviso-flotante')).toBeNull();
+  expect(screen.queryByTestId('snackbar')).toBeNull();
 
   await act(async () => showSnackbar('Hola'));
 

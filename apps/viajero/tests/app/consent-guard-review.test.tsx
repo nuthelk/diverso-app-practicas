@@ -84,7 +84,7 @@ describe('V1: mientras se verifica el consentimiento', () => {
     await respond(auth.openQueries[0], []);
 
     expect(r.getPathname()).toBe('/reservas/b-1');
-    expect(visibleScreen('ReservaDetalleView')).toBeOnTheScreen();
+    expect(visibleScreen('BookingDetailView')).toBeOnTheScreen();
     expect(queries).toEqual(['b-1']);
   });
 

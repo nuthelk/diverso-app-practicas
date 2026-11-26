@@ -20,7 +20,7 @@ function Sonda() {
   const sesion = useSession();
   const consentimiento = useConsent();
   return (
-    <Text testID="sonda">
+    <Text testID="probe">
       {sesion.loading ? 'cargando' : (sesion.userId ?? 'sin-sesion')}|{consentimiento.state}
     </Text>
   );
@@ -39,7 +39,7 @@ async function montar(auth: FakeAuth) {
   return r;
 }
 
-const sonda = () => screen.getByTestId('sonda').props.children.join('');
+const sonda = () => screen.getByTestId('probe').props.children.join('');
 
 let appState: ReturnType<typeof controlAppState>;
 beforeEach(() => {

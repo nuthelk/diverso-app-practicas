@@ -63,7 +63,7 @@ describe('EmptyState', () => {
     const ic = icon('cloud_off_rounded');
     expect(ic.size).toBe(30);
     expect(ic.color).toBe(lightTheme.colorScheme.onSurfaceVariant);
-    expect(styleOf(screen.getByTestId('empty-state-icono')).backgroundColor).toBe(
+    expect(styleOf(screen.getByTestId('empty-state-icon')).backgroundColor).toBe(
       lightTheme.colorScheme.surfaceContainerHigh,
     );
 
@@ -92,7 +92,7 @@ describe('EmptyState', () => {
   it('sin detalle ni acción', async () => {
     await renderWithTheme(<EmptyState icon="search_off_rounded" title="Nada" message="Probá otro filtro." />);
     expect(screen.getByText('Nada')).toBeOnTheScreen();
-    expect(screen.queryByTestId('empty-state-detalle')).toBeNull();
+    expect(screen.queryByTestId('empty-state-details')).toBeNull();
   });
 });
 

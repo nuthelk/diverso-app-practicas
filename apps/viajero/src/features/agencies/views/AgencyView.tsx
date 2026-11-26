@@ -74,7 +74,7 @@ export function AgencyView({ agencyId }: AgencyViewProps) {
   }
 
   return (
-    <View testID="pantalla-AgenciaView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-AgencyView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {body}
     </View>
   );

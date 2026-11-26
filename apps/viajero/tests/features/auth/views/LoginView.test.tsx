@@ -159,14 +159,14 @@ describe('textos y enlaces', () => {
       'Planes turísticos de agencias antioqueñas verificadas. Precio final desde el inicio, cupos reales y pago protegido.';
     await renderLogin({ demoAccount: false });
     // Angosta: el colibrí grande, sin caja ni nombre, centrado; la promesa no.
-    expect(screen.getByTestId('colibri-bienvenida')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(screen.getByTestId('marca-login').props.style).alignItems).toBe('center');
+    expect(screen.getByTestId('welcome-hummingbird')).toBeOnTheScreen();
+    expect(StyleSheet.flatten(screen.getByTestId('login-brand').props.style).alignItems).toBe('center');
     expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.queryByText(tagline)).toBeNull();
 
     await setWindowSize(1024, 800);
 
-    expect(screen.getByTestId('panel-marca')).toBeOnTheScreen();
+    expect(screen.getByTestId('brand-panel')).toBeOnTheScreen();
     expect(screen.getByText(tagline)).toBeOnTheScreen();
     expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.getAllByTestId('diverso-logo', { includeHiddenElements: true })).toHaveLength(1);
@@ -312,7 +312,7 @@ describe('teclado', () => {
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => os });
     try {
       await renderLogin({ demoAccount: false });
-      const container = screen.getByTestId('teclado-login');
+      const container = screen.getByTestId('login-keyboard');
       await fireEvent(container, 'layout', {
         persist: () => {},
         nativeEvent: { layout: { x: 0, y: 0, width: 420, height: 1000 } },
@@ -326,7 +326,7 @@ describe('teclado', () => {
         });
       });
 
-      expect(StyleSheet.flatten(screen.getByTestId('teclado-login').props.style).paddingBottom).toBe(300);
+      expect(StyleSheet.flatten(screen.getByTestId('login-keyboard').props.style).paddingBottom).toBe(300);
     } finally {
       Object.defineProperty(Platform, 'OS', { configurable: true, get: () => original });
     }

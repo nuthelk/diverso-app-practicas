@@ -23,7 +23,7 @@ export function BottomBar({ state, emitter, navigateToTab, insets }: BottomTabBa
   const theme = useTheme();
   const nav = theme.components.navigationBar;
   return (
-    <View testID="barra-inferior" style={styles.container}>
+    <View testID="bottom-bar" style={styles.container}>
       <Divider />
       <View
         testID="navigation-bar"
@@ -52,7 +52,7 @@ export function BottomBar({ state, emitter, navigateToTab, insets }: BottomTabBa
             >
               <View style={styles.iconBox}>
                 {active ? (
-                  <View testID="indicador" style={[styles.indicator, { backgroundColor: nav.indicatorColor }]} />
+                  <View testID="tab-indicator" style={[styles.indicator, { backgroundColor: nav.indicatorColor }]} />
                 ) : null}
                 <Icon name={active ? tab.activeIcon : tab.icon} size={nav.iconSize} color={color} />
               </View>

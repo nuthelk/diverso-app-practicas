@@ -119,7 +119,7 @@ export function CollapsibleHeader({
     <View style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {focused && photoVisible ? <StatusBar style="light" /> : null}
       <Animated.ScrollView
-        testID="cabecera-scroll"
+        testID="header-scroll"
         scrollEventThrottle={16}
         {...restScroll}
         onScroll={handleScroll}
@@ -168,11 +168,11 @@ export function CollapsibleHeader({
           >
             <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ translateY: scrolled }] }]}>
               <View
-                testID="cabecera-titulo-caja"
+                testID="header-title-box"
                 style={{ position: 'absolute', left: 64, right: 20, top: insets.top, height: BAR_HEIGHT, justifyContent: 'center' }}
               >
                 <Text
-                  testID="cabecera-titulo"
+                  testID="header-title"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                   style={{ fontSize: AppText.headingXs, fontWeight: '800', letterSpacing: -0.4, color: theme.colorScheme.onSurface }}

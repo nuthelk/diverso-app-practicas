@@ -52,10 +52,10 @@ describe('Text base', () => {
   it('un Text anidado hereda del padre, como un TextSpan', async () => {
     await renderWithTheme(
       <Text style={{ fontSize: 20, color: '#FF0000' }}>
-        padre <Text testID="hijo">hijo</Text>
+        padre <Text testID="child">hijo</Text>
       </Text>,
     );
-    const s = styleOf('hijo');
+    const s = styleOf('child');
     expect(s.fontSize).toBe(20);
     expect(s.color).toBe('#FF0000');
   });

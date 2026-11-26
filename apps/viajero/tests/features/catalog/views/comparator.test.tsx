@@ -55,7 +55,7 @@ describe('tabla (comparador_layout_test)', () => {
   test('320 px y 3 planes: precio en una sola línea, columnas legibles y tabla deslizable', async () => {
     await renderTable(320);
 
-    expect(screen.getByTestId('tabla-deslizable')).toBeOnTheScreen();
+    expect(screen.getByTestId('scrollable-table')).toBeOnTheScreen();
     expect(screen.getByText('Desliza la tabla para ver todos los planes')).toBeOnTheScreen();
 
     // El precio no se parte: una sola línea y, si no cabe, se achica.
@@ -64,14 +64,14 @@ describe('tabla (comparador_layout_test)', () => {
     expect(price.props.adjustsFontSizeToFit).toBe(true);
 
     // Cada columna de plan conserva un ancho legible.
-    expect(widthOf(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThanOrEqual(110);
+    expect(widthOf(screen.getAllByTestId('column-0')[0]!)).toBeGreaterThanOrEqual(110);
   });
 
   test('pantalla ancha: las columnas se reparten el ancho, sin quedar angostas', async () => {
     await renderTable(900);
 
-    expect(screen.queryByTestId('tabla-deslizable')).toBeNull();
-    expect(widthOf(screen.getAllByTestId('columna-0')[0]!)).toBeGreaterThan(200);
+    expect(screen.queryByTestId('scrollable-table')).toBeNull();
+    expect(widthOf(screen.getAllByTestId('column-0')[0]!)).toBeGreaterThan(200);
   });
 
   test('el más barato se marca en su columna y cada plan tiene su botón «Ver plan»', async () => {
@@ -79,7 +79,7 @@ describe('tabla (comparador_layout_test)', () => {
 
     expect(screen.getAllByText('Mejor precio')).toHaveLength(1);
     // El sello está en la cabecera de la columna del plan 2 (el más barato).
-    const header2 = screen.getAllByTestId('columna-1')[0]!;
+    const header2 = screen.getAllByTestId('column-1')[0]!;
     expect(within(header2).getByText('Mejor precio')).toBeOnTheScreen();
     expect(within(header2).getByText('Plan 2 con un nombre bastante largo')).toBeOnTheScreen();
     expect(screen.getAllByText('Ver plan')).toHaveLength(3);

@@ -263,7 +263,7 @@ describe('TextField con sufijo', () => {
     await renderWithTheme(
       <TextField value="" onChangeText={() => {}} label="Contraseña" suffix={<IconButton icon="clear" tooltip="Borrar" onPress={() => {}} />} />,
     );
-    const suffix = StyleSheet.flatten(screen.getByTestId('sufijo').props.style);
+    const suffix = StyleSheet.flatten(screen.getByTestId('suffix').props.style);
     // Con etiqueta la caja es 24 arriba + 24 de línea + 8 abajo: los márgenes negativos lo estiran a 56.
     expect([suffix.marginTop, suffix.marginBottom]).toEqual([-24, -8]);
   });
@@ -273,12 +273,12 @@ describe('TextField: etiqueta con ícono', () => {
   test('flotando, la etiqueta se alinea con el texto (no se monta sobre el ícono)', async () => {
     await renderWithTheme(<TextField label="Correo" icon="mail_outline_rounded" value="ana@correo.test" onChangeText={() => {}} />);
     // Ícono: 48 de ancho + 4 de aire → el texto y la etiqueta empiezan en 52.
-    expect(StyleSheet.flatten(screen.getByTestId('etiqueta-flotante', { includeHiddenElements: true }).props.style).left).toBe(52);
+    expect(StyleSheet.flatten(screen.getByTestId('floating-label', { includeHiddenElements: true }).props.style).left).toBe(52);
   });
 
   test('sin ícono, la etiqueta empieza donde el texto (20)', async () => {
     await renderWithTheme(<TextField label="Tu nombre" value="Ana" onChangeText={() => {}} />);
-    expect(StyleSheet.flatten(screen.getByTestId('etiqueta-flotante', { includeHiddenElements: true }).props.style).left).toBe(20);
+    expect(StyleSheet.flatten(screen.getByTestId('floating-label', { includeHiddenElements: true }).props.style).left).toBe(20);
   });
 });
 

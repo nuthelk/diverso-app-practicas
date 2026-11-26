@@ -50,7 +50,7 @@ function planDependencies(p = plan()) {
 
 async function scrollTo(y: number) {
   await act(async () => {
-    fireEvent.scroll(screen.getByTestId('cabecera-scroll'), {
+    fireEvent.scroll(screen.getByTestId('header-scroll'), {
       nativeEvent: {
         contentOffset: { x: 0, y },
         contentSize: { width: 600, height: 3000 },
@@ -71,14 +71,14 @@ describe('tarjeta del catálogo', () => {
     await renderScreen(<PlanCard plan={plan()} />);
     expect(screen.getByText('Nueva')).toBeOnTheScreen();
     expect(screen.queryByText('0.0')).toBeNull();
-    expect(screen.queryAllByTestId('icono-star_rounded', { includeHiddenElements: true })).toHaveLength(0);
+    expect(screen.queryAllByTestId('icon-star_rounded', { includeHiddenElements: true })).toHaveLength(0);
   });
 
   test('PRESERVE: con reseñas sigue mostrando ★ 4.5 y la cantidad', async () => {
     await renderScreen(<PlanCard plan={plan({ reviews: 3, rating: 4.5 })} />);
     expect(screen.getByText('4.5')).toBeOnTheScreen();
     expect(screen.getByText('(3)')).toBeOnTheScreen();
-    expect(screen.queryAllByTestId('icono-star_rounded', { includeHiddenElements: true })).toHaveLength(1);
+    expect(screen.queryAllByTestId('icon-star_rounded', { includeHiddenElements: true })).toHaveLength(1);
     expect(screen.queryByText('Nueva')).toBeNull();
   });
 });
@@ -101,14 +101,14 @@ describe('ficha del plan', () => {
 
 describe('páginas con el título en la barra superior', () => {
   const pages: [string, () => React.JSX.Element, string, string][] = [
-    ['Explorar', () => <CatalogView />, 'Descubre Antioquia', 'catalogo-scroll'],
-    ['Agencias', () => <AgenciesView />, 'Agencias', 'agencias-scroll'],
+    ['Explorar', () => <CatalogView />, 'Descubre Antioquia', 'catalog-scroll'],
+    ['Agencias', () => <AgenciesView />, 'Agencias', 'agencies-scroll'],
   ];
   for (const [name, view, title, scroll] of pages) {
     test(`${name}: el título no está dentro del scroll y usa el título de página grande`, async () => {
       await renderScreen(view(), { dependencies: planDependencies() });
 
-      const bar = within(screen.getByTestId('barra-superior'));
+      const bar = within(screen.getByTestId('top-bar'));
       const text = bar.getByText(title);
       expect(within(screen.getByTestId(scroll)).queryByText(title)).toBeNull();
       const s = StyleSheet.flatten(text.props.style);
@@ -120,7 +120,7 @@ describe('páginas con el título en la barra superior', () => {
   test('en tema oscuro el título y la cabecera también se leen', async () => {
     await renderScreen(<AgenciesView />, { dependencies: planDependencies(), mode: 'dark' });
 
-    const bar = screen.getByTestId('barra-superior');
+    const bar = screen.getByTestId('top-bar');
     expect(StyleSheet.flatten(within(bar).getByText('Agencias').props.style).color).toBe(darkTheme.colorScheme.onSurface);
     expect(StyleSheet.flatten(bar.props.style).backgroundColor).toBe(darkTheme.pageBackground);
   });
@@ -130,26 +130,26 @@ describe('cabecera colapsable', () => {
   test('detalle del plan: sin título en la cabecera con la foto a la vista; al colapsar, sólida con título y «Volver»', async () => {
     await renderScreen(<PlanDetailView planId="plan-1" />, { dependencies: planDependencies() });
 
-    expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
-    expect(within(screen.getByTestId('cabecera-scroll')).getByText('Plan número 1')).toBeOnTheScreen();
+    expect(screen.queryByTestId('header-title')).toBeNull();
+    expect(within(screen.getByTestId('header-scroll')).getByText('Plan número 1')).toBeOnTheScreen();
 
     await scrollTo(2500);
 
-    expect(screen.getByTestId('cabecera-titulo')).toHaveTextContent('Plan número 1');
+    expect(screen.getByTestId('header-title')).toHaveTextContent('Plan número 1');
     expect(screen.getByRole('button', { name: 'Volver' })).toBeOnTheScreen();
   });
 
   test('página de la agencia: sin nombre en la cabecera con la portada; al colapsar, sólida con nombre y «Volver»', async () => {
     await renderScreen(<AgencyView agencyId="ag-rutas" />, { dependencies: planDependencies() });
 
-    expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
+    expect(screen.queryByTestId('header-title')).toBeNull();
     expect(screen.getByText(agency.name)).toBeOnTheScreen();
 
     await scrollTo(2500);
 
-    expect(screen.getByTestId('cabecera-titulo')).toHaveTextContent(agency.name);
+    expect(screen.getByTestId('header-title')).toHaveTextContent(agency.name);
     expect(screen.getByRole('button', { name: 'Volver' })).toBeOnTheScreen();
     // El nombre de la cabecera va entre el botón de volver (64) y el borde derecho (20).
-    expect(screen.getByTestId('cabecera-titulo-caja')).toHaveStyle({ left: 64, right: 20 });
+    expect(screen.getByTestId('header-title-box')).toHaveStyle({ left: 64, right: 20 });
   });
 });

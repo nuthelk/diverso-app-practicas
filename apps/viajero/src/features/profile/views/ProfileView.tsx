@@ -37,11 +37,11 @@ export function ProfileView() {
   };
 
   return (
-    <View testID="pantalla-ProfileView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-ProfileView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title={<PageTitle text="Perfil" />} />
       <ScrollView contentContainerStyle={styles.list}>
         {/* En pantallas anchas (web) una columna centrada: líneas legibles; en celular no cambia. */}
-        <View testID="columna-perfil" style={styles.column}>
+        <View testID="profile-column" style={styles.column}>
           <Identity vm={vm} />
           <View style={{ height: 28 }} />
           <SectionLabel text="Apariencia" />

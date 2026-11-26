@@ -64,7 +64,7 @@ export function ConsentView() {
     );
   } else if (consent.state === ConsentState.checking && !saving) {
     content = (
-      <View style={styles.center} testID="consentimiento-verificando">
+      <View style={styles.center} testID="consent-checking">
         <CircularProgressIndicator />
       </View>
     );

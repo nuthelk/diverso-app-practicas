@@ -68,7 +68,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
     const plan = vm.plan;
     body = (
       <>
-        <View testID="ficha-contenido" style={styles.flex}>
+        <View testID="plan-detail-content" style={styles.flex}>
           <CollapsibleHeader title={plan.title} expandedHeight={300} onBack={goBack} background={<PlanGallery photos={plan.photos} />}>
             <PlanDetailContent plan={plan} reviews={vm.reviews} />
           </CollapsibleHeader>
@@ -87,7 +87,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
   }
 
   return (
-    <View testID="pantalla-PlanDetailView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-PlanDetailView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {body}
     </View>
   );
@@ -98,7 +98,7 @@ function PlanDetailContent({ plan, reviews }: { plan: Plan; reviews: readonly Re
   const cs = useTheme().colorScheme;
   const includesAnything = plan.includes.length > 0 || plan.includesTransport || plan.includesFood || plan.includesLodging;
   return (
-    <View testID="ficha-columna" style={styles.content}>
+    <View testID="plan-detail-column" style={styles.content}>
       <Text height={1.15} accessibilityRole="header" style={{ fontSize: AppText.heading3xl, fontWeight: '800', letterSpacing: -0.8 }}>
         {plan.title}
       </Text>

@@ -17,7 +17,7 @@ function Probe() {
   const { mode, setMode } = useThemeMode();
   changeMode = setMode;
   return (
-    <Text testID="sonda">
+    <Text testID="probe">
       {mode}|{theme.brightness}|{theme.colorScheme.primary}|{theme.pageBackground}
     </Text>
   );
@@ -34,7 +34,7 @@ describe('ThemeProvider (ThemeModeViewModel de Flutter)', () => {
         <Probe />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('sonda')).toHaveTextContent('system|light|#1F6A4F|#FAFAF8');
+    expect(screen.getByTestId('probe')).toHaveTextContent('system|light|#1F6A4F|#FAFAF8');
   });
 
   it('en «system» con el sistema oscuro usa los tokens oscuros', async () => {
@@ -44,7 +44,7 @@ describe('ThemeProvider (ThemeModeViewModel de Flutter)', () => {
         <Probe />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('sonda')).toHaveTextContent('system|dark|#8CD5B3|#101312');
+    expect(screen.getByTestId('probe')).toHaveTextContent('system|dark|#8CD5B3|#101312');
   });
 
   it('setModo cambia el modo efectivo sin importar el sistema', async () => {
@@ -54,9 +54,9 @@ describe('ThemeProvider (ThemeModeViewModel de Flutter)', () => {
       </ThemeProvider>,
     );
     await act(async () => changeMode('dark'));
-    expect(screen.getByTestId('sonda')).toHaveTextContent('dark|dark|#8CD5B3|#101312');
+    expect(screen.getByTestId('probe')).toHaveTextContent('dark|dark|#8CD5B3|#101312');
     await act(async () => changeMode('light'));
-    expect(screen.getByTestId('sonda')).toHaveTextContent('light|light|#1F6A4F|#FAFAF8');
+    expect(screen.getByTestId('probe')).toHaveTextContent('light|light|#1F6A4F|#FAFAF8');
   });
 
   it('no se persiste: un provider nuevo vuelve a «system»', async () => {
@@ -73,7 +73,7 @@ describe('ThemeProvider (ThemeModeViewModel de Flutter)', () => {
         <Probe />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('sonda')).toHaveTextContent('system|light|#1F6A4F|#FAFAF8');
+    expect(screen.getByTestId('probe')).toHaveTextContent('system|light|#1F6A4F|#FAFAF8');
   });
 
   it('cambiar el modo no remonta a los hijos (el router no se recrea)', async () => {

@@ -34,7 +34,7 @@ export function WelcomeHummingbird({ size, color }: { size: number; color: strin
 
   return (
     <Animated.View
-      testID="colibri-bienvenida"
+      testID="welcome-hummingbird"
       style={{
         opacity: arrival,
         transform: [

@@ -35,7 +35,7 @@ export function Grid<T>({
   const rows: T[][] = [];
   for (let i = 0; i < items.length; i += m.columns) rows.push(items.slice(i, i + m.columns));
   return (
-    <View testID="grilla" style={{ gap: m.gap }}>
+    <View testID="grid" style={{ gap: m.gap }}>
       {rows.map((row, f) => (
         <View key={f} style={{ flexDirection: 'row', gap: m.gap }}>
           {row.map((item, c) => (

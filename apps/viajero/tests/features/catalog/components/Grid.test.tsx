@@ -15,7 +15,7 @@ describe('gridMetrics (SliverGridDelegateWithMaxCrossAxisExtent)', () => {
 describe('Grid', () => {
   test('cada fila mide lo que su contenido (sin alto mínimo de Flutter) y estira sus celdas al mismo alto', async () => {
     await render(<Grid items={['a', 'b', 'c', 'd']} usableWidth={984} keyOf={(x) => x} render={(x) => <Text>{x}</Text>} />);
-    const rows = screen.getByTestId('grilla').children as unknown as { props: { style: unknown }; children: unknown[] }[];
+    const rows = screen.getByTestId('grid').children as unknown as { props: { style: unknown }; children: unknown[] }[];
     expect(rows).toHaveLength(2);
     expect(rows.map((f) => f.children.length)).toEqual([3, 1]);
     for (const row of rows) {

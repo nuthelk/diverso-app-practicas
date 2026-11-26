@@ -24,10 +24,10 @@ export function ReviewItem({ review }: { review: Review }) {
   const name = review.travelerName?.trim() ?? '';
   const comment = review.comment ?? '';
   return (
-    <View testID="resena-item" style={[styles.box, AppInsets.card, { backgroundColor: cs.surfaceContainerLow }]}>
+    <View testID="review-item" style={[styles.box, AppInsets.card, { backgroundColor: cs.surfaceContainerLow }]}>
       <View style={styles.row}>
         {/* CircleAvatar(radius 15) de M3: primaryContainer / onPrimaryContainer. */}
-        <View testID="avatar-resena" style={[styles.avatar, { backgroundColor: cs.primaryContainer }]}>
+        <View testID="review-avatar" style={[styles.avatar, { backgroundColor: cs.primaryContainer }]}>
           <Text style={{ fontSize: AppText.detail, fontWeight: '700', color: cs.onPrimaryContainer }}>
             {name === '' ? 'V' : firstCharacter(name).toUpperCase()}
           </Text>

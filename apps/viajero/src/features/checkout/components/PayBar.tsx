@@ -54,7 +54,7 @@ export function PayBar({
   const contentColor = enabled ? cs.onPrimary : withAlpha(cs.onSurface, 0.38);
   return (
     <View
-      testID="barra-pagar"
+      testID="pay-bar"
       style={[
         styles.bar,
         {
@@ -81,7 +81,7 @@ export function PayBar({
         {processing ? (
           // `SizedBox(17×17)` con un indicador de trazo 2 (el «small» de RN mide 20).
           <View style={styles.box17}>
-            <ActivityIndicator testID="pagar-progreso" size="small" color={contentColor} style={styles.indicator} />
+            <ActivityIndicator testID="pay-progress" size="small" color={contentColor} style={styles.indicator} />
           </View>
         ) : (
           <Icon name="lock_rounded" size={17} color={contentColor} />

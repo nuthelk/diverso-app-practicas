@@ -26,7 +26,7 @@ export const testTopInset = metrics.insets.top;
  * tamaño y color que pinta el glifo.
  */
 export function icons(name: string) {
-  return screen.queryAllByTestId(`icono-${name}`, { includeHiddenElements: true }).map((el) => {
+  return screen.queryAllByTestId(`icon-${name}`, { includeHiddenElements: true }).map((el) => {
     const s = StyleSheet.flatten(el.props.style) ?? {};
     return { el, size: s.fontSize as number, color: s.color as string };
   });

@@ -101,7 +101,7 @@ export function LoginView({ showDemoAccount = __DEV__ }: { showDemoAccount?: boo
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       {/* Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
           esto el teclado taparía «Entrar». `padding` en ambas: con `height` el KAV pierde el flex. */}
-      <KeyboardAvoidingView testID="teclado-login" style={styles.screen} behavior="padding">
+      <KeyboardAvoidingView testID="login-keyboard" style={styles.screen} behavior="padding">
         <ScrollView
           contentContainerStyle={[AppInsets.screen, styles.centered]}
           keyboardShouldPersistTaps="handled"

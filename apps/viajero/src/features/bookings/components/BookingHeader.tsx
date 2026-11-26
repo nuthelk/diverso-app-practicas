@@ -27,7 +27,7 @@ const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', '
 export function BookingHeader({ booking, dimmed }: { booking: Booking; dimmed: boolean }) {
   const date = booking.planDate?.date ?? booking.departureAt;
   return (
-    <View testID="encabezado-reserva" style={styles.header}>
+    <View testID="booking-header" style={styles.header}>
       <BookingPhoto booking={booking} dimmed={dimmed} />
       <View pointerEvents="none" style={[StyleSheet.absoluteFill, GRADIENT]} />
       {date ? (
@@ -49,7 +49,7 @@ export function BookingHeader({ booking, dimmed }: { booking: Booking; dimmed: b
 function DateBadge({ date }: { date: Date }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="insignia-fecha" style={[styles.badge, Shadows.badge, { backgroundColor: cs.surface }]}>
+    <View testID="date-badge" style={[styles.badge, Shadows.badge, { backgroundColor: cs.surface }]}>
       <Text
         height={1}
         style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5, color: cs.primary }}

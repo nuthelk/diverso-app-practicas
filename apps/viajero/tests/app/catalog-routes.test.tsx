@@ -50,7 +50,7 @@ afterEach(() => {
 describe('cada id de la URL llega a su repositorio', () => {
   test('/agencia/:id pide esa agencia', async () => {
     const { catalog } = await openApp(AppRoutes.agency('a1'));
-    expect(visibleScreen('AgenciaView')).toBeOnTheScreen();
+    expect(visibleScreen('AgencyView')).toBeOnTheScreen();
     expect(catalog.requestedAgencyIds).toEqual(['a1']);
   });
 

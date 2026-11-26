@@ -194,13 +194,13 @@ export function TextField({
         {/* Como el suffixIcon de Flutter: se centra en todo el alto de la caja SIN agrandarla (un
             IconButton de 48 dentro de una caja de 52 la estiraba a 76). */}
         {suffix ? (
-          <View testID="sufijo" style={[styles.suffix, { marginRight: -borderWidth }, stretchToBox(top, bottom, borderWidth)]}>
+          <View testID="suffix" style={[styles.suffix, { marginRight: -borderWidth }, stretchToBox(top, bottom, borderWidth)]}>
             {suffix}
           </View>
         ) : null}
         {label ? (
           <Animated.View
-            testID="etiqueta-flotante"
+            testID="floating-label"
             pointerEvents="none"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"

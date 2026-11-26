@@ -212,7 +212,7 @@ describe('teclado', () => {
     Object.defineProperty(Platform, 'OS', { configurable: true, get: () => os });
     try {
       await openReview();
-      const container = screen.getByTestId('resena-teclado');
+      const container = screen.getByTestId('review-keyboard');
       // Ocupa toda la ventana (0..800) y el teclado empieza en y = 500: tapa 300 px.
       await fireEvent(container, 'layout', {
         persist: () => {},
@@ -224,7 +224,7 @@ describe('teclado', () => {
         }
       });
 
-      expect(StyleSheet.flatten(screen.getByTestId('resena-teclado').props.style).paddingBottom).toBe(300);
+      expect(StyleSheet.flatten(screen.getByTestId('review-keyboard').props.style).paddingBottom).toBe(300);
     } finally {
       Object.defineProperty(Platform, 'OS', { configurable: true, get: () => originalOS });
       jest.restoreAllMocks();

@@ -25,7 +25,7 @@ function Wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const page = (text: string) => () => <Text testID={`pagina ${text}`}>{text}</Text>;
+const page = (text: string) => () => <Text testID={`page ${text}`}>{text}</Text>;
 
 async function renderShell() {
   const r = await renderRouter(
@@ -41,7 +41,7 @@ async function renderShell() {
   return r;
 }
 
-const bar = () => screen.getByTestId('barra-inferior');
+const bar = () => screen.getByTestId('bottom-bar');
 const tab = (label: string) => within(bar()).getByRole('tab', { name: label });
 
 afterEach(() => jest.useRealTimers());
@@ -98,21 +98,21 @@ test('es sólida, con línea superior sutil', async () => {
 
 test('íconos más grandes y el activo en verde con su píldora', async () => {
   await renderShell();
-  const active = within(bar()).getByTestId('icono-explore_rounded', { includeHiddenElements: true });
+  const active = within(bar()).getByTestId('icon-explore_rounded', { includeHiddenElements: true });
   expect(styleOf(active).fontSize).toBeGreaterThanOrEqual(28);
   expect(styleOf(active).color).toBe(cs.primary);
-  expect(styleOf(within(tab('Explorar')).getByTestId('indicador', { includeHiddenElements: true })).backgroundColor).toBe(
+  expect(styleOf(within(tab('Explorar')).getByTestId('tab-indicator', { includeHiddenElements: true })).backgroundColor).toBe(
     cs.primaryContainer,
   );
-  const inactive = within(bar()).getByTestId('icono-storefront_outlined', { includeHiddenElements: true });
+  const inactive = within(bar()).getByTestId('icon-storefront_outlined', { includeHiddenElements: true });
   expect(styleOf(inactive).fontSize).toBeGreaterThanOrEqual(28);
   expect(styleOf(inactive).color).toBe(cs.onSurfaceVariant);
-  expect(within(tab('Agencias')).queryByTestId('indicador', { includeHiddenElements: true })).toBeNull();
+  expect(within(tab('Agencias')).queryByTestId('tab-indicator', { includeHiddenElements: true })).toBeNull();
 });
 
 test('cada destino lleva sus íconos de Flutter (contorno inactivo, relleno activo)', async () => {
   await renderShell();
-  const ids = (name: string) => within(bar()).queryAllByTestId(`icono-${name}`, { includeHiddenElements: true }).length;
+  const ids = (name: string) => within(bar()).queryAllByTestId(`icon-${name}`, { includeHiddenElements: true }).length;
   expect([ids('explore_rounded'), ids('storefront_outlined'), ids('receipt_long_outlined'), ids('person_outline_rounded')]).toEqual([1, 1, 1, 1]);
   await act(async () => {
     await fireEvent.press(tab('Reservas'));

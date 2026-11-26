@@ -97,7 +97,7 @@ export function WompiPaymentPage({
         </View>
         {progress < 1 ? (
           <View
-            testID="pago-progreso"
+            testID="payment-progress"
             accessibilityRole="progressbar"
             style={[styles.track, { backgroundColor: cs.secondaryContainer }]}
           >
@@ -106,7 +106,7 @@ export function WompiPaymentPage({
         ) : null}
       </View>
       <WebView
-        testID="pago-webview"
+        testID="payment-webview"
         source={{ uri: checkoutUrl }}
         javaScriptEnabled
         domStorageEnabled

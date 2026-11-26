@@ -12,7 +12,7 @@ jest.mock('expo-router', () => require('../../support/fake-expo-router'));
 jest.mock('expo-status-bar', () => {
   const { createElement } = require('react');
   const { View: RNView } = require('react-native');
-  return { StatusBar: ({ style }: { style?: string }) => createElement(RNView, { testID: 'barra-de-estado', barStyle: style }) };
+  return { StatusBar: ({ style }: { style?: string }) => createElement(RNView, { testID: 'status-bar', barStyle: style }) };
 });
 
 /** Lo que calcula `_FondoSolido` + `FlexibleSpaceBar` de Flutter a partir del desplazamiento. */
@@ -53,7 +53,7 @@ describe('CollapsibleHeader', () => {
     renderWithTheme(
       <CollapsibleHeader
         title="Rutas de Antioquia Cultural"
-        background={<View testID="foto" />}
+        background={<View testID="photo" />}
         onBack={onBack}
         expandedHeight={220}
       >
@@ -64,10 +64,10 @@ describe('CollapsibleHeader', () => {
 
   it('con la foto a la vista no hay título en la cabecera; el contenido arranca debajo', async () => {
     await mount();
-    expect(screen.getByTestId('foto')).toBeOnTheScreen();
-    expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
+    expect(screen.getByTestId('photo')).toBeOnTheScreen();
+    expect(screen.queryByTestId('header-title')).toBeNull();
     expect(screen.getAllByText('Rutas de Antioquia Cultural')).toHaveLength(1);
-    expect(screen.getByTestId('cabecera-scroll').props.contentContainerStyle).toMatchObject({
+    expect(screen.getByTestId('header-scroll').props.contentContainerStyle).toMatchObject({
       paddingTop: 220,
     });
   });
@@ -76,7 +76,7 @@ describe('CollapsibleHeader', () => {
     const onBack = jest.fn();
     await mount(onBack);
     await act(async () => {
-      fireEvent.scroll(screen.getByTestId('cabecera-scroll'), {
+      fireEvent.scroll(screen.getByTestId('header-scroll'), {
         nativeEvent: {
           contentOffset: { x: 0, y: 2500 },
           contentSize: { width: 400, height: 3000 },
@@ -84,7 +84,7 @@ describe('CollapsibleHeader', () => {
         },
       });
     });
-    const title = screen.getByTestId('cabecera-titulo');
+    const title = screen.getByTestId('header-title');
     expect(title).toHaveTextContent('Rutas de Antioquia Cultural');
     expect(title.props.numberOfLines).toBe(1);
 
@@ -96,7 +96,7 @@ describe('CollapsibleHeader', () => {
   it('el título va entre el botón de volver (64) y el borde derecho (20), bajo la barra de estado', async () => {
     await mount();
     await act(async () => {
-      fireEvent.scroll(screen.getByTestId('cabecera-scroll'), {
+      fireEvent.scroll(screen.getByTestId('header-scroll'), {
         nativeEvent: {
           contentOffset: { x: 0, y: 2500 },
           contentSize: { width: 400, height: 3000 },
@@ -104,13 +104,13 @@ describe('CollapsibleHeader', () => {
         },
       });
     });
-    const box = screen.getByTestId('cabecera-titulo-caja');
+    const box = screen.getByTestId('header-title-box');
     expect(box.props.style).toMatchObject({ left: 64, right: 20, top: testTopInset, height: 56 });
   });
 
   const collapse = async () => {
     await act(async () => {
-      fireEvent.scroll(screen.getByTestId('cabecera-scroll'), {
+      fireEvent.scroll(screen.getByTestId('header-scroll'), {
         nativeEvent: {
           contentOffset: { x: 0, y: 2500 },
           contentSize: { width: 400, height: 3000 },
@@ -142,10 +142,10 @@ describe('CollapsibleHeader', () => {
 
   it('con la foto a la vista la barra de estado es clara; al colapsar vuelve a la de la app', async () => {
     await mount();
-    expect(screen.queryByTestId('barra-de-estado', { includeHiddenElements: true })?.props.barStyle).toBe('light');
+    expect(screen.queryByTestId('status-bar', { includeHiddenElements: true })?.props.barStyle).toBe('light');
 
     await collapse();
-    expect(screen.queryByTestId('barra-de-estado', { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId('status-bar', { includeHiddenElements: true })).toBeNull();
   });
 });
 

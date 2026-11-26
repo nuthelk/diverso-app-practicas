@@ -45,7 +45,7 @@ export function CategoryChip({
 
   return (
     <Pressable
-      testID={`chip-categoria-${category}`}
+      testID={`category-chip-${category}`}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}

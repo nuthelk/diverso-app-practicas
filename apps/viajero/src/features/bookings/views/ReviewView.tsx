@@ -87,7 +87,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   }
 
   return (
-    <View testID="pantalla-ReviewView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-ReviewView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Tu reseña" onBack={() => safeGoBack(router, AppRoutes.bookings)} />
       <View style={styles.flex}>{body}</View>
       <Snackbar />

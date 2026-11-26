@@ -40,7 +40,7 @@ afterEach(() => jest.restoreAllMocks());
 test('el Modal dibuja bajo la barra de estado y la de navegación (edge-to-edge)', async () => {
   await renderSheet();
 
-  const modal = ancestors(screen.getByTestId('filtros-sheet') as unknown as TreeNode).find((n) => n.type === 'Modal')!;
+  const modal = ancestors(screen.getByTestId('filters-sheet') as unknown as TreeNode).find((n) => n.type === 'Modal')!;
   expect(modal.props.statusBarTranslucent).toBe(true);
   expect(modal.props.navigationBarTranslucent).toBe(true);
 });
@@ -48,20 +48,20 @@ test('el Modal dibuja bajo la barra de estado y la de navegación (edge-to-edge)
 test('«Limpiar» y «Aplicar filtros» son un pie fijo fuera del scroll, con el inset inferior como relleno', async () => {
   await renderSheet();
 
-  const footer = screen.getByTestId('filtros-pie') as unknown as TreeNode;
+  const footer = screen.getByTestId('filters-footer') as unknown as TreeNode;
   expect(within(footer as never).getByText('Limpiar')).toBeOnTheScreen();
   expect(within(footer as never).getByText('Aplicar filtros')).toBeOnTheScreen();
   expect(ancestors(footer).some(isScroll)).toBe(false);
-  expect(ancestors(footer)).toContain(screen.getByTestId('filtros-sheet'));
+  expect(ancestors(footer)).toContain(screen.getByTestId('filters-sheet'));
   expect(styleOf(footer).paddingBottom).toBe(16 + INSETS.bottom);
   // La hoja no repite el inset: lo pone el pie, pegado al borde inferior.
-  expect(styleOf(screen.getByTestId('filtros-sheet') as unknown as TreeNode).paddingBottom ?? 0).toBe(0);
+  expect(styleOf(screen.getByTestId('filters-sheet') as unknown as TreeNode).paddingBottom ?? 0).toBe(0);
 });
 
 test('la lista de destinos no es un scroll anidado: el gesto mueve toda la hoja', async () => {
   await renderSheet();
 
-  const destination = screen.getByTestId('destino-Destino 30') as unknown as TreeNode;
+  const destination = screen.getByTestId('destination-Destino 30') as unknown as TreeNode;
   expect(ancestors(destination).filter(isScroll)).toHaveLength(1);
 });
 
@@ -69,6 +69,6 @@ test('con teclado, la hoja sube con behavior="padding" también en Android', asy
   await renderSheet();
 
   // KeyboardAvoidingView con `padding` compone `paddingBottom` en su View; sin behavior, no.
-  const keyboard = screen.getByTestId('filtros-teclado') as unknown as TreeNode;
+  const keyboard = screen.getByTestId('filters-keyboard') as unknown as TreeNode;
   expect(styleOf(keyboard)).toHaveProperty('paddingBottom');
 });

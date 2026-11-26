@@ -28,7 +28,7 @@ export function EmptyState({
   return (
     <View style={styles.center}>
       <View style={styles.column}>
-        <View testID="empty-state-icono" style={[styles.circle, AppInsets.largeCard, { backgroundColor: cs.surfaceContainerHigh }]}>
+        <View testID="empty-state-icon" style={[styles.circle, AppInsets.largeCard, { backgroundColor: cs.surfaceContainerHigh }]}>
           <Icon name={icon} size={30} color={cs.onSurfaceVariant} />
         </View>
         <View style={{ height: 16 }} />
@@ -45,7 +45,7 @@ export function EmptyState({
           <>
             <View style={{ height: 8 }} />
             <Text
-              testID="empty-state-detalle"
+              testID="empty-state-details"
               height={1.35}
               style={[
                 styles.details,

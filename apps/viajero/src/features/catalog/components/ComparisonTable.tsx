@@ -42,7 +42,7 @@ export function ComparisonTable({
   // Celda de la columna [i]; la del más barato lleva un fondo tenue de punta a punta.
   const cell = (i: number, child: ReactNode, { top = false, bottom = false } = {}) => (
     <View
-      testID={`columna-${i}`}
+      testID={`column-${i}`}
       style={{
         width: columnWidth,
         paddingLeft: 8,
@@ -61,7 +61,7 @@ export function ComparisonTable({
   );
 
   const table = (
-    <View testID="tabla-comparacion" style={{ width: tableWidth }}>
+    <View testID="comparison-table" style={{ width: tableWidth }}>
       {/* Cabecera: foto, título y sello de mejor precio. */}
       <View style={styles.row}>
         <View style={{ width: LABEL_WIDTH }} />
@@ -118,7 +118,7 @@ export function ComparisonTable({
         </Text>
       </View>
       <View style={{ height: 10 }} />
-      <ScrollView testID="tabla-deslizable" horizontal showsHorizontalScrollIndicator>
+      <ScrollView testID="scrollable-table" horizontal showsHorizontalScrollIndicator>
         {table}
       </ScrollView>
     </View>
@@ -161,7 +161,7 @@ function ComparedValue({ value, isPrice, highlighted }: { value: string; isPrice
     const amount = Number(value);
     return (
       <Text
-        testID="valor-precio-comparado"
+        testID="compared-price-value"
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.5}

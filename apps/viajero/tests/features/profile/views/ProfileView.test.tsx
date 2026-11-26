@@ -144,7 +144,7 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
 
   expect(signOut).toHaveBeenCalledTimes(1);
   expect(button()).toBeDisabled();
-  expect(screen.getByTestId('girador-de-boton')).toBeOnTheScreen();
+  expect(screen.getByTestId('button-spinner')).toBeOnTheScreen();
   // El segundo toque se ignora: no es un fallo que haya que avisar.
   expect(screen.queryByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeNull();
 
@@ -152,7 +152,7 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
   await settleScreen();
 
   expect(button()).toBeEnabled();
-  expect(screen.queryByTestId('girador-de-boton')).toBeNull();
+  expect(screen.queryByTestId('button-spinner')).toBeNull();
   expect(screen.getByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeOnTheScreen();
 });
 
@@ -160,7 +160,7 @@ test('en pantallas anchas el contenido va en una columna centrada de 720 como m�
   await renderProfile(new FakeAuth());
   await setWindowSize(1280, 900);
 
-  const column = StyleSheet.flatten(screen.getByTestId('columna-perfil').props.style) ?? {};
+  const column = StyleSheet.flatten(screen.getByTestId('profile-column').props.style) ?? {};
   expect(column.maxWidth).toBe(720);
   expect(column.alignSelf).toBe('center');
   expect(column.width).toBe('100%');

@@ -78,7 +78,7 @@ export function BookingConfirmationView({ bookingId }: BookingConfirmationViewPr
       }
     }
   }
-  return <ZoomIn testID="pantalla-ReservaView">{content}</ZoomIn>;
+  return <ZoomIn testID="screen-BookingConfirmationView">{content}</ZoomIn>;
 }
 
 /** `Scaffold(AppBar())`: barra vacía con «Volver» (sin historial, a Mis reservas). */

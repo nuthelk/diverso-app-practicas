@@ -133,7 +133,7 @@ test('la lista queda debajo del título y las pestañas (no se desplazan con ell
 
   // Flutter mide que la lista no pase por encima: aquí el título y las pestañas están FUERA del
   // área desplazable (la lista ocupa el resto de la pantalla, debajo).
-  const list = screen.getByTestId('lista-reservas');
+  const list = screen.getByTestId('bookings-list');
   expect(within(list).getByText('FUT0')).toBeOnTheScreen();
   expect(within(list).queryByText('Mis reservas')).toBeNull();
   expect(within(list).queryByText('Próximas (9)')).toBeNull();
@@ -144,8 +144,8 @@ describe('tarjeta con la foto del plan', () => {
   test('con foto: imagen de cabecera con la fecha y el estado encima, título y agencia', async () => {
     await renderBookings([bookingIn('FUT', 5, { plan: plan({ photos: ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg'] }) })]);
 
-    expect(screen.getByTestId('foto-reserva')).toBeOnTheScreen();
-    expect(screen.queryByTestId('sin-foto-reserva')).toBeNull();
+    expect(screen.getByTestId('booking-photo')).toBeOnTheScreen();
+    expect(screen.queryByTestId('booking-no-photo')).toBeNull();
     expect(screen.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
     expect(screen.getByText('EcoAndes Viajes')).toBeOnTheScreen();
     // El código es una etiqueta; personas y total son un pie propio.
@@ -155,8 +155,8 @@ describe('tarjeta con la foto del plan', () => {
 
     // La insignia de fecha y la píldora de estado van DENTRO de la cabecera (sobre la foto); el
     // título, debajo (fuera de ella).
-    const header = screen.getByTestId('encabezado-reserva');
-    expect(within(header).getByTestId('insignia-fecha')).toBeOnTheScreen();
+    const header = screen.getByTestId('booking-header');
+    expect(within(header).getByTestId('date-badge')).toBeOnTheScreen();
     expect(within(header).getByText('Confirmada')).toBeOnTheScreen();
     expect(within(header).queryByText('Comuna 13 y memoria')).toBeNull();
   });
@@ -164,10 +164,10 @@ describe('tarjeta con la foto del plan', () => {
   test('sin foto: respaldo en su lugar, sin pedir imagen, con fecha, estado y acciones', async () => {
     await renderBookings([bookingIn('FUT', 5, { plan: plan({ withAgency: false }) })]);
 
-    expect(screen.queryByTestId('foto-reserva')).toBeNull();
-    expect(screen.getByTestId('sin-foto-reserva')).toBeOnTheScreen();
+    expect(screen.queryByTestId('booking-photo')).toBeNull();
+    expect(screen.getByTestId('booking-no-photo')).toBeOnTheScreen();
     expect(screen.getByText('🏘️')).toBeOnTheScreen();
-    expect(screen.getByTestId('insignia-fecha')).toBeOnTheScreen();
+    expect(screen.getByTestId('date-badge')).toBeOnTheScreen();
     expect(screen.getByText('Confirmada')).toBeOnTheScreen();
     expect(screen.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
     expect(screen.queryByText('EcoAndes Viajes')).toBeNull(); // sin agencia no hay línea de agencia
@@ -178,7 +178,7 @@ describe('tarjeta con la foto del plan', () => {
     await renderBookings([bookingIn('FUT', 5)]);
 
     expect(screen.getByText('Plan')).toBeOnTheScreen();
-    expect(screen.getByTestId('sin-foto-reserva')).toBeOnTheScreen();
+    expect(screen.getByTestId('booking-no-photo')).toBeOnTheScreen();
   });
 
   test('el historial se ve más apagado que las próximas', async () => {
@@ -243,7 +243,7 @@ test('PRESERVE: sin reservas muestra el estado vacío', async () => {
 test('«Próximas» vacía: estado vacío (ícono, «Sin viajes próximos», «¡Hora de explorar!») con «Explorar planes»', async () => {
   await renderBookings([bookingIn('PASADA', -5)]);
 
-  expect(screen.queryByTestId('empty-state-icono', { includeHiddenElements: true })).toBeOnTheScreen();
+  expect(screen.queryByTestId('empty-state-icon', { includeHiddenElements: true })).toBeOnTheScreen();
   expect(screen.queryByText('Sin viajes próximos')).toBeOnTheScreen();
   expect(screen.queryByText('¡Hora de explorar!')).toBeOnTheScreen();
 

@@ -20,10 +20,10 @@ import { testDependencies } from '../support/test-dependencies';
 
 afterEach(() => jest.useRealTimers());
 
-const bottomBar = () => screen.queryByTestId('barra-inferior');
+const bottomBar = () => screen.queryByTestId('bottom-bar');
 
 async function goToTab(label: string) {
-  await fireEvent.press(within(screen.getByTestId('barra-inferior')).getByRole('tab', { name: label }));
+  await fireEvent.press(within(screen.getByTestId('bottom-bar')).getByRole('tab', { name: label }));
   await settle();
 }
 
@@ -48,7 +48,7 @@ test('cada pestaña se construye sin dependencias faltantes', async () => {
   const r = await startApp();
 
   const tabs: [string, string, string][] = [
-    ['Agencias', 'AgenciasView', '/agencias'],
+    ['Agencias', 'AgenciesView', '/agencias'],
     ['Reservas', 'BookingsView', '/reservas'],
     ['Perfil', 'ProfileView', '/perfil'],
     ['Explorar', 'CatalogView', '/'],
@@ -63,21 +63,21 @@ test('cada pestaña se construye sin dependencias faltantes', async () => {
 describe('cada ruta de la tabla resuelve con sus parámetros', () => {
   const routes: [string, string, string[]][] = [
     ['/', 'CatalogView', []],
-    ['/agencias', 'AgenciasView', []],
+    ['/agencias', 'AgenciesView', []],
     ['/reservas', 'BookingsView', []],
     ['/perfil', 'ProfileView', []],
     // Pantallas reales (T5): que el id llegue al repositorio lo prueba `catalog-routes.test.tsx`.
-    [AppRoutes.agency('a1'), 'AgenciaView', []],
+    [AppRoutes.agency('a1'), 'AgencyView', []],
     [AppRoutes.plan('p1'), 'PlanDetailView', []],
     // Pantallas reales (T6), con dobles que rechazan: el id que llega a cada repositorio lo prueba
     // `features/checkout/payment-routes.test.tsx`.
     [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['No pudimos cargar el plan']],
-    [AppRoutes.paymentForTransaction('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
-    [AppRoutes.paymentForBooking('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
-    [AppRoutes.booking('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
+    [AppRoutes.paymentForTransaction('tx-77'), 'PaymentResultView', ['No pudimos verificar el pago']],
+    [AppRoutes.paymentForBooking('r1'), 'PaymentResultView', ['No pudimos verificar el pago']],
+    [AppRoutes.booking('b1'), 'BookingConfirmationView', ['No pudimos cargar la reserva']],
     // Pantallas reales (T7), con dobles que rechazan: el id que llega al repositorio lo prueban
     // `consent-guard-review.test.tsx` y `features/bookings/views/*`.
-    [AppRoutes.bookingDetail('b1'), 'ReservaDetalleView', ['No pudimos cargar la reserva']],
+    [AppRoutes.bookingDetail('b1'), 'BookingDetailView', ['No pudimos cargar la reserva']],
     [AppRoutes.review('b1'), 'ReviewView', ['No pudimos cargar la reserva']],
     ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
     ['/comparar', 'ComparatorView', ['Nada para comparar']],
@@ -159,7 +159,7 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
   await act(async () => router.push(AppRoutes.legal('privacidad') as Href));
   await settle();
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
-  const background = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
+  const background = () => StyleSheet.flatten(screen.getByTestId('top-bar').props.style).backgroundColor;
   expect(background()).toBe(lightTheme.pageBackground);
 
   await act(async () => setThemeMode('dark'));

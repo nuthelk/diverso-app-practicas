@@ -114,7 +114,7 @@ describe('ConsentView', () => {
     const auth = new FakeAuth();
     jest.spyOn(auth, 'pendingConsents').mockReturnValue(new Promise(() => {}));
     await renderConsent(auth);
-    expect(screen.getByTestId('consentimiento-verificando')).toBeOnTheScreen();
+    expect(screen.getByTestId('consent-checking')).toBeOnTheScreen();
     expect(screen.queryByText('Aceptar y continuar')).toBeNull();
   });
 

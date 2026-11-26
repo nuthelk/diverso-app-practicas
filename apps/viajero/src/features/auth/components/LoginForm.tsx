@@ -58,7 +58,7 @@ export function LoginForm({
   return (
     <View style={styles.form}>
       {withBrand ? (
-        <View testID="marca-login" style={styles.brand}>
+        <View testID="login-brand" style={styles.brand}>
           <WelcomeHummingbird size={112} color={cs.primary} />
         </View>
       ) : null}

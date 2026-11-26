@@ -32,7 +32,7 @@ export function PlanComparator({ plans }: { plans: readonly Plan[] }) {
     );
   }
   return (
-    <ScrollView testID="comparador-scroll" contentContainerStyle={styles.list}>
+    <ScrollView testID="comparator-scroll" contentContainerStyle={styles.list}>
       <Text style={{ fontSize: AppText.headingXl, fontWeight: '800', letterSpacing: -0.8, color: cs.onSurface }}>
         Elige con toda la información
       </Text>
@@ -53,7 +53,7 @@ function TravelersPicker({ pax, onChange, min, max }: { pax: number; onChange: (
     <View style={styles.row}>
       <Text style={{ flex: 1, fontSize: AppText.body, fontWeight: '600', color: cs.onSurface }}>¿Cuántos viajan?</Text>
       <IconButton variant="outlined" icon="remove_rounded" tooltip="Menos viajeros" onPress={pax > min ? () => onChange(pax - 1) : null} />
-      <Text testID="viajeros" style={{ width: 40, textAlign: 'center', fontSize: AppText.largeSubtitle, fontWeight: '800' }}>
+      <Text testID="travelers-count" style={{ width: 40, textAlign: 'center', fontSize: AppText.largeSubtitle, fontWeight: '800' }}>
         {String(pax)}
       </Text>
       <IconButton variant="outlined" icon="add_rounded" tooltip="Más viajeros" onPress={pax < max ? () => onChange(pax + 1) : null} />

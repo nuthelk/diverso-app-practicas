@@ -77,7 +77,7 @@ function CheckoutFrame({ children, backTo }: { children: ReactNode; backTo: stri
   const theme = useTheme();
   const router = useRouter();
   return (
-    <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Confirmar y pagar" onBack={() => safeGoBack(router, backTo)} />
       {children}
     </View>

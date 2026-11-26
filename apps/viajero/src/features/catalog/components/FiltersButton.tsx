@@ -26,7 +26,7 @@ export function FiltersButton({ vm }: { vm: FiltersSheetModel & { activeFilterCo
         onPress={() => setIsOpen(true)}
       />
       {vm.activeFilterCount > 0 ? (
-        <View testID="insignia-filtros" pointerEvents="none" style={[styles.badge, { backgroundColor: theme.colorScheme.error }]}>
+        <View testID="filters-badge" pointerEvents="none" style={[styles.badge, { backgroundColor: theme.colorScheme.error }]}>
           <Text style={{ color: theme.colorScheme.onError, fontSize: 11, fontWeight: '500', letterSpacing: 0.5 }} height={null}>
             {String(vm.activeFilterCount)}
           </Text>

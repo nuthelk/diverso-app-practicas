@@ -23,7 +23,7 @@ async function renderCatalog() {
   return catalog;
 }
 
-const sheet = () => within(screen.getByTestId('filtros-sheet'));
+const sheet = () => within(screen.getByTestId('filters-sheet'));
 const chips = () => screen.queryAllByTestId('input-chip');
 
 async function openSheet() {
@@ -39,7 +39,7 @@ async function lowerPrice(steps = 2) {
   }
 }
 async function pickDestination(name: string) {
-  await fireEvent.press(sheet().getByTestId(`destino-${name}`));
+  await fireEvent.press(sheet().getByTestId(`destination-${name}`));
 }
 
 beforeEach(resetFakeRouter);
@@ -139,13 +139,13 @@ describe('detalles de la hoja', () => {
   test('el precio arranca «Sin límite» y el máximo (600 000) vuelve a «Sin límite»', async () => {
     const catalog = await renderCatalog();
     await openSheet();
-    expect(sheet().getByTestId('valor-precio')).toHaveTextContent('Sin límite');
+    expect(sheet().getByTestId('price-value')).toHaveTextContent('Sin límite');
 
     await lowerPrice(1);
-    expect(sheet().getByTestId('valor-precio')).toHaveTextContent('$ 550.000');
+    expect(sheet().getByTestId('price-value')).toHaveTextContent('$ 550.000');
 
     await fireEvent(sheet().getByRole('adjustable'), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
-    expect(sheet().getByTestId('valor-precio')).toHaveTextContent('Sin límite');
+    expect(sheet().getByTestId('price-value')).toHaveTextContent('Sin límite');
     await apply();
     expect(catalog.searches.at(-1)!.maxPrice).toBeNull();
   });
@@ -155,20 +155,20 @@ describe('detalles de la hoja', () => {
     await openSheet();
 
     await lowerPrice(20);
-    expect(sheet().getByTestId('valor-precio')).toHaveTextContent('$ 50.000');
+    expect(sheet().getByTestId('price-value')).toHaveTextContent('$ 50.000');
     const value = sheet().getByRole('adjustable').props.accessibilityValue;
     expect(value).toMatchObject({ min: 50000, max: 600000, now: 50000 });
   });
 
   test('la insignia cuenta los filtros activos y cada chip se borra por separado', async () => {
     const catalog = await renderCatalog();
-    expect(screen.queryByTestId('insignia-filtros')).toBeNull();
+    expect(screen.queryByTestId('filters-badge')).toBeNull();
     await openSheet();
     await pickDestination('Jardín');
     await lowerPrice(3);
     await apply();
 
-    expect(screen.getByTestId('insignia-filtros')).toHaveTextContent('2');
+    expect(screen.getByTestId('filters-badge')).toHaveTextContent('2');
     expect(screen.getByText('Hasta $ 450.000')).toBeOnTheScreen();
 
     const priceChip = chips().find((c) => within(c).queryByText('Hasta $ 450.000') !== null)!;
@@ -176,7 +176,7 @@ describe('detalles de la hoja', () => {
 
     expect(catalog.searches.at(-1)!.maxPrice).toBeNull();
     expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
-    expect(screen.getByTestId('insignia-filtros')).toHaveTextContent('1');
+    expect(screen.getByTestId('filters-badge')).toHaveTextContent('1');
   });
 
   test('el buscador de destinos filtra sin distinguir mayúsculas', async () => {
@@ -185,8 +185,8 @@ describe('detalles de la hoja', () => {
 
     await fireEvent.changeText(sheet().getByLabelText('Buscar destino…'), 'JARD');
 
-    expect(sheet().queryByTestId('destino-Guatapé')).toBeNull();
-    expect(sheet().getByTestId('destino-Jardín')).toBeOnTheScreen();
+    expect(sheet().queryByTestId('destination-Guatapé')).toBeNull();
+    expect(sheet().getByTestId('destination-Jardín')).toBeOnTheScreen();
     expect(sheet().getByText('Todos los destinos')).toBeOnTheScreen();
   });
 
@@ -197,7 +197,7 @@ describe('detalles de la hoja', () => {
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const calendar = within(screen.getByTestId('selector-fecha'));
+    const calendar = within(screen.getByTestId('date-picker'));
     await fireEvent.press(calendar.getByText('Aceptar'));
 
     expect(sheet().getByRole('button', { name: formatShortDate(tomorrow) })).toBeOnTheScreen();

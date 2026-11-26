@@ -89,7 +89,7 @@ export function Snackbar({ aboveBottomBar = false }: { aboveBottomBar?: boolean 
       style={[styles.layer, { bottom: 10 + (aboveBottomBar ? 0 : bottom) }]}
     >
       <View
-        testID="aviso-flotante"
+        testID="snackbar"
         accessible
         accessibilityRole="alert"
         accessibilityLiveRegion="polite"

@@ -41,10 +41,10 @@ export function AgenciesView() {
   };
 
   return (
-    <View testID="pantalla-AgenciasView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-AgenciesView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title={<PageTitle text="Agencias" />} />
       <ScrollView
-        testID="agencias-scroll"
+        testID="agencies-scroll"
         style={styles.flex}
         contentContainerStyle={styles.grow}
         alwaysBounceVertical
@@ -78,7 +78,7 @@ export function AgenciesView() {
             message="Cuando una agencia verificada publique planes, la verás aquí."
           />
         ) : (
-          <View testID="lista-agencias" style={AppInsets.list}>
+          <View testID="agencies-list" style={AppInsets.list}>
             {isGrid ? (
               <Grid
                 items={vm.agencies}

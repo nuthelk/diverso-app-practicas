@@ -26,7 +26,7 @@ export function TopBar({
   const top = useSafeAreaInsets().top;
   return (
     <View
-      testID="barra-superior"
+      testID="top-bar"
       style={[styles.bar, { paddingTop: top, backgroundColor: appBar.backgroundColor }]}
     >
       <View style={[styles.row, { height: appBar.toolbarHeight }]}>

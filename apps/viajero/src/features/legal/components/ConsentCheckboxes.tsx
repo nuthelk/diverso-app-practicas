@@ -20,7 +20,7 @@ function Checkbox({ value, error }: { value: boolean; error: boolean }) {
   return (
     <View style={styles.checkboxArea}>
       <View
-        testID="casilla"
+        testID="checkbox"
         style={[
           styles.box,
           { borderColor: color, backgroundColor: value ? (error ? cs.error : cs.primary) : 'transparent' },

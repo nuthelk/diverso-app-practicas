@@ -28,7 +28,7 @@ export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (c
   return (
     // Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
     // `padding` en AMBAS taparía el comentario y «Publicar reseña». En web no hace nada.
-    <KeyboardAvoidingView testID="resena-teclado" style={styles.flex} behavior="padding">
+    <KeyboardAvoidingView testID="review-keyboard" style={styles.flex} behavior="padding">
       <ScrollView contentContainerStyle={[AppInsets.screen, styles.center]} keyboardShouldPersistTaps="handled">
         <View style={styles.column}>
           {plan !== null ? (

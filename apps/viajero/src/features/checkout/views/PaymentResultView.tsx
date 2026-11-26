@@ -45,7 +45,7 @@ export function PaymentResultView({ transactionId, bookingId }: PaymentResultVie
   }, [approvedBookingId, router]);
 
   return (
-    <View testID="pantalla-PagoResultadoView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-PaymentResultView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Resultado del pago" onBack={() => safeGoBack(router, AppRoutes.bookings)} />
       <Content vm={vm} goToBookings={() => goTo(router, AppRoutes.bookings)} retry={(id) => void vm.retryPayment(id, openPayment)} />
       {paymentModal}

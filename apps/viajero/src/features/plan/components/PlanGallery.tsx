@@ -25,11 +25,11 @@ export function PlanGallery({ photos }: { photos: readonly string[] }) {
   }, [scale]);
 
   if (photos.length === 0) {
-    return <View testID="galeria-vacia" style={[StyleSheet.absoluteFill, { backgroundColor: cs.primaryContainer }]} />;
+    return <View testID="empty-gallery" style={[StyleSheet.absoluteFill, { backgroundColor: cs.primaryContainer }]} />;
   }
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { transform: [{ scale }] }]}>
-      <ScrollView testID="galeria-plan" horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={StyleSheet.absoluteFill}>
+      <ScrollView testID="plan-gallery" horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={StyleSheet.absoluteFill}>
         {photos.map((url, i) => (
           <GalleryPhoto key={`${i}-${url}`} url={url} width={width} />
         ))}

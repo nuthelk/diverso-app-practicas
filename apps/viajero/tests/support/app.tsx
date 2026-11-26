@@ -34,7 +34,7 @@ export async function settle(times = 8) {
   }
 }
 
-/** La pantalla placeholder (o real) que se ve, por su testID `pantalla-<Nombre>`. */
+/** La pantalla placeholder (o real) que se ve, por su testID `screen-<Nombre>`. */
 export function visibleScreen(name: string) {
-  return screen.queryByTestId(`pantalla-${name}`);
+  return screen.queryByTestId(`screen-${name}`);
 }

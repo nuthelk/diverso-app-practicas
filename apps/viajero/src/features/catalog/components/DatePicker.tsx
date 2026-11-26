@@ -52,7 +52,7 @@ export function DatePicker({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable accessibilityLabel="Cerrar" style={[styles.scrim, { backgroundColor: 'rgba(0,0,0,0.54)' }]} onPress={onClose}>
-        <Pressable testID="selector-fecha" style={[styles.dialog, { backgroundColor: cs.surfaceContainerHigh }]}>
+        <Pressable testID="date-picker" style={[styles.dialog, { backgroundColor: cs.surfaceContainerHigh }]}>
           <View style={styles.header}>
             <Text style={{ fontSize: AppText.caption, fontWeight: '500', color: cs.onSurfaceVariant }}>Seleccionar fecha</Text>
             <Text style={{ fontSize: 32, fontWeight: '400', marginTop: 20, color: cs.onSurfaceVariant }} height={1.25}>

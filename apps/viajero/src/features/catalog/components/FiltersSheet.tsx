@@ -41,9 +41,9 @@ export function FiltersSheet({ visible, vm, onClose }: { visible: boolean; vm: F
   const bottomInset = useSafeAreaInsets().bottom;
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}>
-      <KeyboardAvoidingView testID="filtros-teclado" behavior="padding" style={styles.root}>
+      <KeyboardAvoidingView testID="filters-keyboard" behavior="padding" style={styles.root}>
         <Pressable accessibilityLabel="Cerrar" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.32)' }]} onPress={onClose} />
-        <View testID="filtros-sheet" style={[styles.sheet, { backgroundColor: cs.surfaceContainerLow }]}>
+        <View testID="filters-sheet" style={[styles.sheet, { backgroundColor: cs.surfaceContainerLow }]}>
           {/* showDragHandle: 32 × 4, onSurfaceVariant al 40 %, 22 de aire arriba y abajo. */}
           <View style={styles.handle}>
             <View style={[styles.handleBar, { backgroundColor: withAlpha(cs.onSurfaceVariant, 0.4) }]} />
@@ -80,7 +80,7 @@ function FiltersContent({ vm, onClose, bottomInset }: { vm: FiltersSheetModel; o
   const now = new Date();
   return (
     <>
-      <ScrollView testID="filtros-scroll" keyboardShouldPersistTaps="handled" style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView testID="filters-scroll" keyboardShouldPersistTaps="handled" style={styles.scroll} contentContainerStyle={styles.content}>
         <Text style={{ fontSize: AppText.headingL, fontWeight: '800', letterSpacing: -0.5 }}>Filtros</Text>
         <View style={{ height: 22 }} />
         <SectionLabel text="Fecha del plan" />
@@ -118,7 +118,7 @@ function FiltersContent({ vm, onClose, bottomInset }: { vm: FiltersSheetModel; o
             />
           </View>
           <Text
-            testID="valor-precio"
+            testID="price-value"
             style={{ width: 110, textAlign: 'right', fontWeight: '700', fontSize: AppText.smallBody }}
           >
             {price === null || price === 0 ? 'Sin límite' : formatCOP(price)}
@@ -135,7 +135,7 @@ function FiltersContent({ vm, onClose, bottomInset }: { vm: FiltersSheetModel; o
           hint="Buscar destino…"
           icon="search_rounded"
           returnKeyType="search"
-          testID="buscar-destino"
+          testID="destination-search"
         />
         <View style={{ height: 8 }} />
         {options.map((d, i) => {
@@ -144,7 +144,7 @@ function FiltersContent({ vm, onClose, bottomInset }: { vm: FiltersSheetModel; o
           return (
             <Pressable
               key={d}
-              testID={isAll ? 'destino-todos' : `destino-${d}`}
+              testID={isAll ? 'destination-all' : `destination-${d}`}
               accessibilityRole="button"
               accessibilityLabel={d}
               accessibilityState={{ selected: isSelected }}
@@ -173,7 +173,7 @@ function FiltersContent({ vm, onClose, bottomInset }: { vm: FiltersSheetModel; o
         })}
       </ScrollView>
       {/* Pie fijo: siempre visible por larga que sea la lista; el inset inferior es su relleno. */}
-      <View testID="filtros-pie" style={[styles.footer, { paddingBottom: 16 + bottomInset, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
+      <View testID="filters-footer" style={[styles.footer, { paddingBottom: 16 + bottomInset, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
         <OutlinedButton text="Limpiar" onPress={clear} style={styles.flex} />
         <View style={{ width: 12 }} />
         <FilledButton icon="check_rounded" text="Aplicar filtros" onPress={apply} style={{ flex: 2 }} />

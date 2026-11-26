@@ -45,7 +45,7 @@ describe('AgencyAvatar', () => {
     expect(circle.width).toBe(46);
     expect(circle.height).toBe(46);
     expect(circle.borderRadius).toBe(23);
-    expect(styleOf(screen.getByTestId('agency-avatar-iniciales')).backgroundColor).toBe('#4F4A8A');
+    expect(styleOf(screen.getByTestId('agency-avatar-initials')).backgroundColor).toBe('#4F4A8A');
   });
 
   it('logo vacío cuenta como sin logo', async () => {

@@ -18,7 +18,7 @@ export function PlanAgencyCard({ agency }: { agency: Agency }) {
   const summary = new AgencySummary({ id: agency.id, name: agency.name, city: agency.city, logoUrl: agency.logoUrl });
   return (
     <Pressable
-      testID="tarjeta-agencia"
+      testID="plan-agency-card"
       accessibilityRole="button"
       accessibilityLabel={agency.name}
       onPress={() => router.push(AppRoutes.agency(agency.id) as Href)}
@@ -31,7 +31,7 @@ export function PlanAgencyCard({ agency }: { agency: Agency }) {
     >
       <AgencyAvatar agency={summary} size={44} />
       <View style={{ width: 12 }} />
-      <View testID="tarjeta-agencia-textos" style={styles.flex}>
+      <View testID="plan-agency-card-texts" style={styles.flex}>
         <Text style={{ fontWeight: '700', fontSize: AppText.emphasis }}>{agency.name}</Text>
         <View style={{ height: 2 }} />
         <Text style={{ fontSize: AppText.largeCaption, color: cs.onSurfaceVariant }}>{`Agencia local · RNT ${agency.rntNumber}`}</Text>
@@ -41,7 +41,7 @@ export function PlanAgencyCard({ agency }: { agency: Agency }) {
           </Text>
         ) : null}
         {agency.isVerified ? (
-          <View testID="sello-agencia" style={styles.seal}>
+          <View testID="agency-seal" style={styles.seal}>
             <VerifiedBadge />
           </View>
         ) : null}

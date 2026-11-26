@@ -32,7 +32,7 @@ test('el aviso empieza donde empieza el texto de las casillas (después del áre
   await renderCheckboxes({ showError: true });
 
   // El texto de cada fila arranca justo después del área táctil de la casilla.
-  const checkboxArea = screen.getAllByTestId('casilla', { includeHiddenElements: true })[0]!.parent!;
+  const checkboxArea = screen.getAllByTestId('checkbox', { includeHiddenElements: true })[0]!.parent!;
   const checkboxWidth = StyleSheet.flatten(checkboxArea.props.style).width;
   expect(checkboxWidth).toBe(48);
 

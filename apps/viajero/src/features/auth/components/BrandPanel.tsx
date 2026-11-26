@@ -10,7 +10,7 @@ import { AppText, withAlpha, useTheme } from '@/ui/theme';
 export function BrandPanel() {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="panel-marca" style={[styles.panel, { backgroundColor: cs.primary }]}>
+    <View testID="brand-panel" style={[styles.panel, { backgroundColor: cs.primary }]}>
       <DiversoLogo size={120} color={cs.onPrimary} />
       <View style={{ height: 28 }} />
       <Text height={1.55} style={[styles.tagline, { fontSize: AppText.subtitle, color: withAlpha(cs.onPrimary, 0.85) }]}>

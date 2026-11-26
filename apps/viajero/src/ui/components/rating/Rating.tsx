@@ -52,7 +52,7 @@ export function NewBadge({ text = 'Nueva' }: { text?: string }) {
   const cs = useTheme().colorScheme;
   return (
     <View
-      testID="insignia-nueva"
+      testID="new-badge"
       style={[styles.pill, { backgroundColor: withAlpha(cs.primary, 0.1), paddingHorizontal: 8, paddingVertical: 2 }]}
     >
       <Text style={{ fontSize: AppText.label, fontWeight: '700', color: cs.primary }}>{text}</Text>

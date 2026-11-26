@@ -66,8 +66,8 @@ async function openAt(catalog: FakeCatalogRepository, url = '/agencias') {
 function namesOnScreen() {
   const all = [rutas, eco, cafe];
   return screen
-    .getAllByTestId(/^agencia-card-/)
-    .map((el) => all.find((a) => el.props.testID === `agencia-card-${a.id}`)?.name);
+    .getAllByTestId(/^agency-card-/)
+    .map((el) => all.find((a) => el.props.testID === `agency-card-${a.id}`)?.name);
 }
 
 beforeEach(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));
@@ -104,7 +104,7 @@ describe('lista de agencias', () => {
     expect(namesOnScreen()).toEqual(['Café y Montaña Tours', 'Rutas de Antioquia Cultural', 'EcoAndes Viajes']);
     for (const label of ['Puntaje', 'Más planes', 'Nombre']) expect(screen.getByText(label)).toBeOnTheScreen();
     // Sin ✓ en el segmento elegido.
-    expect(screen.queryByTestId('icono-check_rounded', { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId('icon-check_rounded', { includeHiddenElements: true })).toBeNull();
 
     await fireEvent.press(screen.getByText('Más planes'));
     expect(namesOnScreen()).toEqual(['EcoAndes Viajes', 'Café y Montaña Tours', 'Rutas de Antioquia Cultural']);
@@ -150,7 +150,7 @@ describe('lista de agencias', () => {
     await openAt(catalog);
     expect(catalog.agencyQueries).toBe(1);
 
-    const refreshControl = screen.getByTestId('agencias-scroll').props.refreshControl;
+    const refreshControl = screen.getByTestId('agencies-scroll').props.refreshControl;
     await act(async () => refreshControl.props.onRefresh());
     expect(catalog.agencyQueries).toBe(2);
   });
@@ -167,7 +167,7 @@ describe('lista de agencias', () => {
 describe('página de agencia', () => {
   test('/agencia/:id carga por id y muestra sus datos y sus planes', async () => {
     await openAt(testCatalog(), '/agencia/ag-rutas');
-    const page = within(screen.getByTestId('pantalla-AgenciaView'));
+    const page = within(screen.getByTestId('screen-AgencyView'));
     expect(page.getAllByText('Rutas de Antioquia Cultural').length).toBeGreaterThanOrEqual(1);
     expect(page.getByText('RA')).toBeOnTheScreen();
     expect(page.getByText('4.5')).toBeOnTheScreen();
@@ -224,7 +224,7 @@ describe('página de agencia', () => {
     await fireEvent.press(screen.getByText('Rutas de Antioquia Cultural'));
     await settle();
     expect(router.canGoBack()).toBe(true);
-    await fireEvent.press(within(screen.getByTestId('pantalla-AgenciaView')).getByRole('button', { name: 'Volver' }));
+    await fireEvent.press(within(screen.getByTestId('screen-AgencyView')).getByRole('button', { name: 'Volver' }));
     await settle();
     expect(r.getPathname()).toBe('/agencias');
   });

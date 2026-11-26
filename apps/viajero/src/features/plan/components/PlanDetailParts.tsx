@@ -7,7 +7,7 @@ import { AppRadii, AppText, useTheme } from '@/ui/theme';
 export function IncludesPill({ icon, text, isLongText = false }: { icon: IconName; text: string; isLongText?: boolean }) {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="incluye-pill" style={[styles.pill, { backgroundColor: cs.surfaceContainerLow }]}>
+    <View testID="includes-pill" style={[styles.pill, { backgroundColor: cs.surfaceContainerLow }]}>
       <Icon name={icon} size={15} color={cs.primary} />
       <View style={{ width: 6 }} />
       <Text
@@ -26,7 +26,7 @@ export function PlanDetailSkeleton() {
   // AspectRatio(1.4) a todo el ancho.
   const { width } = useWindowDimensions();
   return (
-    <View testID="detalle-skeleton">
+    <View testID="plan-detail-skeleton">
       <Skeleton height={width / 1.4} radius={0} />
       <View style={{ padding: 22 }}>
         <Skeleton width={260} height={24} />

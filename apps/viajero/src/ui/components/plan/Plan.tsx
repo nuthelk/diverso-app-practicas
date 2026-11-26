@@ -37,7 +37,7 @@ export function CancellationCard({ text }: { text: string }) {
   const cs = useTheme().colorScheme;
   return (
     <View
-      testID="tarjeta-cancelacion"
+      testID="cancellation-card"
       style={[
         styles.row,
         AppInsets.card,
@@ -81,7 +81,7 @@ export function ItineraryStepRow({ step, isLast = false }: { step: ItineraryStep
       <View style={styles.line}>
         <View style={[styles.dot, { backgroundColor: cs.primary }]} />
         {isLast ? null : (
-          <View testID="linea-itinerario" style={[styles.flex, { width: 1.6, backgroundColor: cs.outlineVariant }]} />
+          <View testID="itinerary-line" style={[styles.flex, { width: 1.6, backgroundColor: cs.outlineVariant }]} />
         )}
       </View>
       <View style={{ width: 14 }} />

@@ -85,7 +85,7 @@ export function CompareTray({ selection, max, onRemove, onClear, onCompare }: Co
 
   return (
     <View
-      testID="bandeja-comparar"
+      testID="compare-tray"
       style={[
         styles.tray,
         Shadows.tray,
@@ -111,14 +111,14 @@ export function CompareTray({ selection, max, onRemove, onClear, onCompare }: Co
           {Array.from({ length: max }, (_, i) => {
             const plan = selection[i];
             return (
-              <View key={plan ? plan.id : `hueco-${i}`} style={[styles.flex, i > 0 ? { marginLeft: 8 } : null]}>
+              <View key={plan ? plan.id : `empty-slot-${i}`} style={[styles.flex, i > 0 ? { marginLeft: 8 } : null]}>
                 {plan ? <Thumbnail plan={plan} onRemove={() => onRemove(plan)} /> : <EmptySlot />}
               </View>
             );
           })}
         </View>
         <View style={{ width: 12 }} />
-        <FilledButton text={`Comparar (${n})`} onPress={canCompare ? onCompare : null} testID="boton-comparar" />
+        <FilledButton text={`Comparar (${n})`} onPress={canCompare ? onCompare : null} testID="compare-button" />
       </View>
     </View>
   );
@@ -132,7 +132,7 @@ function Thumbnail({ plan, onRemove }: { plan: Plan; onRemove: () => void }) {
   const photo = plan.mainPhoto;
   return (
     <View>
-      <View testID="foto-miniatura" style={[styles.thumbnail, { height: THUMBNAIL_HEIGHT }]}>
+      <View testID="thumbnail-photo" style={[styles.thumbnail, { height: THUMBNAIL_HEIGHT }]}>
         {photo === null || failed ? (
           <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
             <Text style={{ fontSize: AppText.headingS }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
@@ -165,9 +165,9 @@ function Thumbnail({ plan, onRemove }: { plan: Plan; onRemove: () => void }) {
 function EmptySlot() {
   const cs = useTheme().colorScheme;
   return (
-    <View testID="hueco" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View testID="empty-slot" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View
-        testID="hueco-bandeja"
+        testID="empty-slot-box"
         style={[
           styles.thumbnail,
           styles.center,

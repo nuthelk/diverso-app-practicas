@@ -42,7 +42,7 @@ export function CheckoutWithPlanView({ plan, planDate }: { plan: Plan; planDate:
 
   const { pending, error, bookingId } = vm;
   return (
-    <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Confirmar y pagar" onBack={() => safeGoBack(router, AppRoutes.plan(plan.id))} />
       <ScrollView testID="checkout-scroll" style={styles.screen} contentContainerStyle={styles.list}>
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}

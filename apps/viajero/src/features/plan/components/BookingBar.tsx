@@ -37,7 +37,7 @@ export function BookingBar({
 
   if (selectedDate === null) {
     return (
-      <View testID="barra-reserva" style={[styles.surface, surface]}>
+      <View testID="booking-bar" style={[styles.surface, surface]}>
         <View style={[styles.noDates, { paddingBottom: 16 + insets.bottom }]}>
           <Icon name="event_busy_rounded" color={cs.onSurfaceVariant} />
           <View style={{ width: 10 }} />
@@ -51,7 +51,7 @@ export function BookingBar({
 
   // SafeArea(minimum: 20, 10, 20, 12): el mayor entre el inset del sistema y el mínimo.
   return (
-    <View testID="barra-reserva" style={[styles.surface, surface]}>
+    <View testID="booking-bar" style={[styles.surface, surface]}>
       <View
         style={{
           paddingLeft: Math.max(20, insets.left),
@@ -61,7 +61,7 @@ export function BookingBar({
         }}
       >
         <ScrollView
-          testID="fechas-reserva"
+          testID="booking-dates"
           horizontal
           showsHorizontalScrollIndicator={false}
           style={{ height: 62 }}
@@ -106,7 +106,7 @@ function DateChip({ planDate, selected, onPress }: { planDate: PlanDate; selecte
   const spotsText = isFewSpots ? `¡Últimos ${planDate.availableSpots}!` : `${planDate.availableSpots} cupos`;
   return (
     <Pressable
-      testID={`fecha-${planDate.id}`}
+      testID={`date-${planDate.id}`}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${formatShortDate(planDate.date)}, ${spotsText}`}

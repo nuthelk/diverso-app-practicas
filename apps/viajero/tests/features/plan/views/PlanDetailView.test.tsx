@@ -99,7 +99,7 @@ describe('barra de reserva (detalle_fechas_test)', () => {
       ['f-1', [formatShortDate(dates[0]!.date), '10 cupos']],
       ['f-2', [formatShortDate(dates[1]!.date), '¡Últimos 2!']],
     ] as const) {
-      const chip = within(screen.getByTestId(`fecha-${id}`));
+      const chip = within(screen.getByTestId(`date-${id}`));
       for (const text of texts) {
         const visible = chip.getByText(text);
         expect(visible.props.numberOfLines).toBe(1);
@@ -119,7 +119,7 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     await renderPlanDetail(catalogWithThreeDates());
     const shapes = () =>
       ['f-1', 'f-2', 'f-3'].map((id) =>
-        within(screen.getByTestId(`fecha-${id}`))
+        within(screen.getByTestId(`date-${id}`))
           .getAllByText(/./, { includeHiddenElements: true })
           .map((t) => {
             const { color: _color, ...rest } = styleOf(t);
@@ -199,14 +199,14 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
         logoUrl,
       }),
     });
-  const card = () => within(screen.getByTestId('tarjeta-agencia'));
+  const card = () => within(screen.getByTestId('plan-agency-card'));
 
   test('sin logo: iniciales «RA» sobre el color de la agencia, sin pedir imagen', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency() } }));
 
     expect(card().getByText('RA')).toBeOnTheScreen();
     expect(card().queryByTestId('agency-avatar-logo')).toBeNull();
-    expect(card().getByTestId('agency-avatar-iniciales')).toHaveStyle({ backgroundColor: agencyColor('ag-rutas') });
+    expect(card().getByTestId('agency-avatar-initials')).toHaveStyle({ backgroundColor: agencyColor('ag-rutas') });
   });
 
   test('con logo_url: muestra la imagen', async () => {
@@ -217,9 +217,9 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
   test('celular angosto (320): el sello va debajo del nombre, en la misma columna de texto', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency() } }), new FakeReviews(), 320);
 
-    const texts = within(screen.getByTestId('tarjeta-agencia-textos'));
+    const texts = within(screen.getByTestId('plan-agency-card-texts'));
     expect(texts.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
-    expect(texts.getByTestId('sello-agencia')).toBeOnTheScreen();
+    expect(texts.getByTestId('agency-seal')).toBeOnTheScreen();
     expect(texts.getByText('Verificada RNT')).toBeOnTheScreen();
   });
 
@@ -256,7 +256,7 @@ describe('reseñas (detalle_resena_test)', () => {
       travelerName: name,
       comment,
     });
-  const avatars = () => screen.getAllByTestId('avatar-resena');
+  const avatars = () => screen.getAllByTestId('review-avatar');
   const avatarsWith = (text: string) => avatars().filter((a) => within(a).queryByText(text) !== null);
 
   async function renderWithReviews(list: Review[], reviewsCount = 4) {
@@ -333,13 +333,13 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
   test('la barra de reserva va DESPUÉS del contenido desplazable (no encima): el final queda sobre ella', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': longPlan() } }));
 
-    const view = screen.getByTestId('pantalla-PlanDetailView');
-    const content = within(screen.getByTestId('ficha-contenido'));
+    const view = screen.getByTestId('screen-PlanDetailView');
+    const content = within(screen.getByTestId('plan-detail-content'));
     // Lo último del contenido está en el scroll; la barra con las fechas, fuera de él.
     expect(content.getByText(policy)).toBeOnTheScreen();
-    expect(content.queryByTestId('barra-reserva')).toBeNull();
-    expect(within(view).getByTestId('fechas-reserva')).toBeOnTheScreen();
-    expect(screen.getByTestId('barra-reserva')).not.toHaveStyle({ position: 'absolute' });
+    expect(content.queryByTestId('booking-bar')).toBeNull();
+    expect(within(view).getByTestId('booking-dates')).toBeOnTheScreen();
+    expect(screen.getByTestId('booking-bar')).not.toHaveStyle({ position: 'absolute' });
     expect(screen.getByText('Reservar')).toBeOnTheScreen();
   });
 
@@ -359,7 +359,7 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
   test('itinerario: la línea de tiempo termina en el último paso (12 pasos, 11 tramos)', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': longPlan() } }));
 
-    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(11);
+    expect(screen.getAllByTestId('itinerary-line')).toHaveLength(11);
   });
 });
 
@@ -367,12 +367,12 @@ describe('pantallas anchas', () => {
   test('en web ancha (1280) el contenido va en una columna centrada de 720 como máximo', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan() } }), new FakeReviews(), 1280);
 
-    expect(screen.getByTestId('ficha-columna')).toHaveStyle({ maxWidth: 720, width: '100%', alignSelf: 'center' });
+    expect(screen.getByTestId('plan-detail-column')).toHaveStyle({ maxWidth: 720, width: '100%', alignSelf: 'center' });
   });
 
   test('PRESERVE: en el celular (375) la columna ocupa el ancho con los mismos márgenes de 22', async () => {
     await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan() } }), new FakeReviews(), 375);
 
-    expect(screen.getByTestId('ficha-columna')).toHaveStyle({ paddingLeft: 22, paddingRight: 22, paddingTop: 20 });
+    expect(screen.getByTestId('plan-detail-column')).toHaveStyle({ paddingLeft: 22, paddingRight: 22, paddingTop: 20 });
   });
 });

@@ -67,7 +67,7 @@ describe('CancellationCard', () => {
     const shield = icon('shield_outlined');
     expect(shield.size).toBe(19);
     expect(shield.color).toBe(lightTheme.colorScheme.onTertiaryContainer);
-    const box = styleOf(screen.getByTestId('tarjeta-cancelacion'));
+    const box = styleOf(screen.getByTestId('cancellation-card'));
     expect(box.backgroundColor).toBe('rgba(193, 232, 252, 0.45)');
     expect(box.borderRadius).toBe(20);
     expect(box.padding).toBe(14);
@@ -95,7 +95,7 @@ describe('ItineraryStepRow', () => {
         <ItineraryStepRow step={{ time: '12:00', activity: 'Regreso' }} isLast />
       </>,
     );
-    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(2);
+    expect(screen.getAllByTestId('itinerary-line')).toHaveLength(2);
     expect(screen.getByText('Regreso')).toBeOnTheScreen();
   });
 });

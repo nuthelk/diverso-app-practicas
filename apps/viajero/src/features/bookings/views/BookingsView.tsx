@@ -66,7 +66,7 @@ export function BookingsView() {
 
   const renderList = (tabBookings: Booking[], isHistory: boolean) => (
     <FlatList
-      testID="lista-reservas"
+      testID="bookings-list"
       data={tabBookings}
       keyExtractor={(b) => b.id}
       contentContainerStyle={styles.list}
@@ -130,7 +130,7 @@ export function BookingsView() {
   );
 
   return (
-    <View testID="pantalla-BookingsView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+    <View testID="screen-BookingsView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
       <TopBar title={<PageTitle text="Mis reservas" />} />
       <BookingTabs

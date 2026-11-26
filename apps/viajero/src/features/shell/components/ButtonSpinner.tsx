@@ -8,5 +8,5 @@ import { useTheme } from '@/ui/theme';
  */
 export function ButtonSpinner() {
   const cs = useTheme().colorScheme;
-  return <ActivityIndicator testID="girador-de-boton" size="small" color={cs.primary} style={{ width: 19, height: 19 }} />;
+  return <ActivityIndicator testID="button-spinner" size="small" color={cs.primary} style={{ width: 19, height: 19 }} />;
 }

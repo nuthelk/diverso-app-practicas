@@ -178,7 +178,7 @@ describe('tarjeta de «Mis reservas»', () => {
   test('jerarquía: código en la cabecera, hora, punto de encuentro, personas y precio; sin referencia de pago', async () => {
     await openApp('/reservas', [bookingWith({ departure: inDays(3, 6) })]);
 
-    expect(within(screen.getByTestId('encabezado-reserva')).getByText('DIV-CC70944A')).toBeOnTheScreen();
+    expect(within(screen.getByTestId('booking-header')).getByText('DIV-CC70944A')).toBeOnTheScreen();
     expect(screen.getByText(/06:00/)).toBeOnTheScreen();
     expect(screen.getByText('Estación San Javier')).toBeOnTheScreen();
     expect(screen.getByText('2 personas')).toBeOnTheScreen();
@@ -280,7 +280,7 @@ describe('detalle de la reserva', () => {
   test('itinerario: la línea de tiempo termina en el último paso (2 pasos, 1 tramo)', async () => {
     await openApp('/reservas/res-1', [bookingWith()]);
 
-    expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(1);
+    expect(screen.getAllByTestId('itinerary-line')).toHaveLength(1);
   });
 
   test('carga en frío por id (sin extra) con BookingRepository.reserva', async () => {
@@ -402,7 +402,7 @@ describe('detalle de la reserva', () => {
     expect(r.getPathname()).toBe('/reservas');
     expect(bookings.listQueries).toBe(2);
     expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
-    expect(screen.getByTestId('lista-reservas')).toBeOnTheScreen();
+    expect(screen.getByTestId('bookings-list')).toBeOnTheScreen();
     expect(screen.getByText('Street food tour')).toBeOnTheScreen();
 
     bookings.list = [new Booking({ ...bookings.list[0]!, hasReview: true })];
@@ -444,7 +444,7 @@ describe('detalle de la reserva', () => {
     });
     await openApp('/reservas/res-1', [bookingWith({ withPlan: longPlan })]);
 
-    const inContent = screen.getAllByText(longPlan.title).filter((t) => t.props.testID !== 'cabecera-titulo');
+    const inContent = screen.getAllByText(longPlan.title).filter((t) => t.props.testID !== 'header-title');
     expect(inContent).toHaveLength(1);
     expect(inContent[0]!.props.numberOfLines).toBeUndefined();
     expect(screen.getByText(longPlan.agency!.name).props.numberOfLines).toBeUndefined();

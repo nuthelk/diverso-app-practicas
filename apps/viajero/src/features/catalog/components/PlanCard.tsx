@@ -74,7 +74,7 @@ function PlanCardContent({ plan }: { plan: Plan }) {
         <PlanCover plan={plan} />
         {/* Degradado negro 22 % → transparente (45 %) → 45 %, en dos tramos. */}
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <View testID="degradado-portada" style={[styles.flex, COVER_GRADIENT]} />
+          <View testID="cover-gradient" style={[styles.flex, COVER_GRADIENT]} />
         </View>
         {plan.agency?.isVerified === true ? (
           <View style={styles.seal}>
@@ -90,7 +90,7 @@ function PlanCardContent({ plan }: { plan: Plan }) {
           <View style={{ width: 8 }} />
           {/* Oscura translúcida (no blanca): el texto blanco se lee igual sobre un cielo o una pared clara. */}
           <View
-            testID="pildora-duracion"
+            testID="duration-pill"
             style={[styles.pill, { backgroundColor: 'rgba(0, 0, 0, 0.38)', paddingHorizontal: 7, paddingVertical: 2 }]}
           >
             <Text style={{ color: '#FFFFFF', fontSize: AppText.note, fontWeight: '600' }}>{plan.durationText}</Text>
@@ -133,14 +133,14 @@ function PlanCover({ plan }: { plan: Plan }) {
   const photo = plan.mainPhoto;
   if (photo === null || failed) {
     return (
-      <View testID="portada-respaldo" style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
+      <View testID="cover-fallback" style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
         <Text style={{ fontSize: AppText.photoEmoji }}>{EMOJI_EXPERIENCE_CATEGORY[plan.category]}</Text>
       </View>
     );
   }
   return (
     <Image
-      testID="portada-foto"
+      testID="cover-photo"
       source={{ uri: photo }}
       contentFit="cover"
       // Listas a 120 Hz: conserva el bitmap anterior entre cargas.

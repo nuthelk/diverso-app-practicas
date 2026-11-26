@@ -17,7 +17,7 @@ export function AgencyCard({ agency }: { agency: AgencySummary }) {
   const router = useRouter();
   return (
     <Card
-      testID={`agencia-card-${agency.id}`}
+      testID={`agency-card-${agency.id}`}
       color={cs.surfaceContainerLow}
       accessibilityLabel={agency.name}
       onPress={() => router.push(AppRoutes.agency(agency.id) as Href)}
@@ -79,14 +79,14 @@ export function AgencyCover({ agency }: { agency: AgencySummary }) {
   const url = agency.coverUrl;
   if (!url || failed) {
     return (
-      <View testID="portada-agencia-respaldo" style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: withAlpha(color, 0.16) }]}>
+      <View testID="agency-cover-fallback" style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: withAlpha(color, 0.16) }]}>
         <Icon name="storefront_rounded" size={40} color={withAlpha(color, 0.55)} />
       </View>
     );
   }
   return (
     <Image
-      testID="portada-agencia-foto"
+      testID="agency-cover-photo"
       source={{ uri: url }}
       contentFit="cover"
       style={StyleSheet.absoluteFill}

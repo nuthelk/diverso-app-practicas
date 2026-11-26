@@ -54,7 +54,7 @@ export function PriceSlider({
 
   return (
     <View
-      testID="deslizador-precio"
+      testID="price-slider"
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={accessibilityLabel}

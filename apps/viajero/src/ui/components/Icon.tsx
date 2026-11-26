@@ -108,7 +108,7 @@ export interface IconProps {
   /** Por defecto `onSurfaceVariant`, como los íconos sueltos de M3 (prefijos de campos, etc.). */
   color?: string;
   style?: StyleProp<TextStyle>;
-  /** Por defecto `icono-<nombre>` (equivalente a `find.byIcon` en los tests). */
+  /** Por defecto `icon-<nombre>` (equivalente a `find.byIcon` en los tests). */
   testID?: string;
 }
 
@@ -120,7 +120,7 @@ export function Icon({ name, size = 24, color, style, testID }: IconProps) {
     size,
     color: color ?? theme.colorScheme.onSurfaceVariant,
     style,
-    testID: testID ?? `icono-${name}`,
+    testID: testID ?? `icon-${name}`,
     accessible: false,
     importantForAccessibility: 'no' as const,
     accessibilityElementsHidden: true,

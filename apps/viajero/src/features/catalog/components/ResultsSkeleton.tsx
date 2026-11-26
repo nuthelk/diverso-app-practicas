@@ -9,7 +9,7 @@ import { PLAN_COVER_HEIGHT } from './PlanCard';
 /** Marcador con la forma de una `PlanCard` mientras carga el catálogo. */
 export function PlanCardSkeleton() {
   return (
-    <Card testID="tarjeta-skeleton">
+    <Card testID="plan-card-skeleton">
       <Skeleton height={PLAN_COVER_HEIGHT} radius={0} />
       <View style={AppInsets.card}>
         <Skeleton width={200} height={16} />

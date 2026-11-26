@@ -90,15 +90,15 @@ describe('formulario', () => {
     expect(screen.getByText('total por 2 personas')).toBeOnTheScreen();
     // Sin más cupos no se puede sumar otra persona.
     expect(screen.getByRole('button', { name: 'Agregar una persona' })).toBeDisabled();
-    expect(within(screen.getByTestId('barra-pagar')).getByText('$ 300.000')).toBeOnTheScreen();
+    expect(within(screen.getByTestId('pay-bar')).getByText('$ 300.000')).toBeOnTheScreen();
   });
 
   test('la barra de pagar va DEBAJO del scroll, no encima del contenido', async () => {
     await openCheckout();
     await screen.findByText('¿Cuántos viajan?');
     const scroll = screen.getByTestId('checkout-scroll');
-    expect(within(scroll).queryByTestId('barra-pagar')).toBeNull();
-    expect(screen.getByTestId('barra-pagar')).toBeOnTheScreen();
+    expect(within(scroll).queryByTestId('pay-bar')).toBeNull();
+    expect(screen.getByTestId('pay-bar')).toBeOnTheScreen();
   });
 
   test('los datos de prueba de Wompi se despliegan al tocar «Modo de prueba»', async () => {

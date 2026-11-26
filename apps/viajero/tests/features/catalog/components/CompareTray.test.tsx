@@ -54,9 +54,9 @@ async function addToCompare() {
   await runAnimation();
 }
 
-const tray = () => screen.queryByTestId('bandeja-comparar');
-const inTray = () => within(screen.getByTestId('bandeja-comparar'));
-const compareButton = () => inTray().getByTestId('boton-comparar');
+const tray = () => screen.queryByTestId('compare-tray');
+const inTray = () => within(screen.getByTestId('compare-tray'));
+const compareButton = () => inTray().getByTestId('compare-button');
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -154,15 +154,15 @@ test('la bandeja queda debajo de la lista (no superpuesta): no tapa el final', a
   await renderCatalog({ planCount: 6 });
   await addToCompare();
 
-  const scroll = screen.getByTestId('catalogo-scroll');
+  const scroll = screen.getByTestId('catalog-scroll');
   // El último precio está en la lista; la bandeja, fuera del scroll y sin posición absoluta.
   expect(within(scroll).getByText(formatCOP(100006))).toBeOnTheScreen();
-  expect(within(scroll).queryByTestId('bandeja-comparar')).toBeNull();
-  const view = screen.getByTestId('pantalla-CatalogView');
+  expect(within(scroll).queryByTestId('compare-tray')).toBeNull();
+  const view = screen.getByTestId('screen-CatalogView');
   const children = view.children as { props: { testID?: string } }[];
   const indexOf = (pred: (h: { props: { testID?: string } }) => boolean) => children.findIndex(pred);
-  expect(indexOf((h) => h.props.testID === 'catalogo-scroll')).toBeLessThan(children.length - 1);
-  expect(StyleSheet.flatten(screen.getByTestId('bandeja-comparar').props.style).position).toBeUndefined();
+  expect(indexOf((h) => h.props.testID === 'catalog-scroll')).toBeLessThan(children.length - 1);
+  expect(StyleSheet.flatten(screen.getByTestId('compare-tray').props.style).position).toBeUndefined();
 });
 
 test('los lugares libres miden lo mismo que una miniatura, con su «+» decorativo', async () => {
@@ -170,14 +170,14 @@ test('los lugares libres miden lo mismo que una miniatura, con su «+» decorati
   await addToCompare();
 
   const heightOf = (el: { props: Record<string, unknown> }) => StyleSheet.flatten(el.props.style as never).height;
-  const photo = inTray().getByTestId('foto-miniatura');
-  const slots = inTray().getAllByTestId('hueco-bandeja', { includeHiddenElements: true });
+  const photo = inTray().getByTestId('thumbnail-photo');
+  const slots = inTray().getAllByTestId('empty-slot-box', { includeHiddenElements: true });
   expect(slots).toHaveLength(2); // 3 lugares, 1 ocupado
   for (const h of slots) expect(heightOf(h)).toBe(heightOf(photo));
   expect(heightOf(photo)).toBeGreaterThan(40); // no son cápsulas angostas
-  expect(within(slots[0]!).getByTestId('icono-add_rounded', { includeHiddenElements: true })).toBeTruthy();
+  expect(within(slots[0]!).getByTestId('icon-add_rounded', { includeHiddenElements: true })).toBeTruthy();
   // Decorativo: sin semántica ni foco.
-  const slot = inTray().getAllByTestId('hueco', { includeHiddenElements: true })[0]!;
+  const slot = inTray().getAllByTestId('empty-slot', { includeHiddenElements: true })[0]!;
   expect(slot.props.importantForAccessibility).toBe('no-hide-descendants');
   expect(slot.props.accessibilityElementsHidden).toBe(true);
   expect(within(slot).queryAllByRole('button', { includeHiddenElements: true })).toHaveLength(0);
@@ -202,7 +202,7 @@ test('no suma el inset inferior del sistema: la barra de pestañas ya está deba
     </SafeAreaInsetsContext.Provider>,
   );
 
-  expect(StyleSheet.flatten(screen.getByTestId('bandeja-comparar').props.style).paddingBottom).toBe(14);
+  expect(StyleSheet.flatten(screen.getByTestId('compare-tray').props.style).paddingBottom).toBe(14);
 });
 
 test('«Limpiar» vacía la selección y la bandeja se va (no queda congelada con la selección vieja)', async () => {
