@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, AppRadii, useTheme } from '@/ui/theme';
 
@@ -26,7 +26,7 @@ export function AgencyView({ agencyId }: AgencyViewProps) {
   const { catalogo: catalog } = useDependencies();
   const vm = useAgencyViewModel({ catalog, agencyId });
   const { load } = vm;
-  const goBack = () => volverSeguro(router, AppRoutes.agencias);
+  const goBack = () => safeGoBack(router, AppRoutes.agencies);
 
   useEffect(() => {
     void load();

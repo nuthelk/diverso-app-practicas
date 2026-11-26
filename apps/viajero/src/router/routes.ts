@@ -4,23 +4,23 @@ import { diversoConfig } from '@/core';
  * `Uri.encodeQueryComponent` de Dart: todo lo que no sea `A-Z a-z 0-9 - . _ ~` va en %XX (UTF-8)
  * y el espacio como `+`. (`encodeURIComponent` deja sin codificar `! ' ( ) *`.)
  */
-export function codificarComponenteQuery(texto: string): string {
-  return encodeURIComponent(texto)
+export function encodeQueryComponent(text: string): string {
+  return encodeURIComponent(text)
     .replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
     .replace(/%20/g, '+');
 }
 
 /** Lo inverso (`+` = espacio). `null` si la secuencia %XX no es válida. */
-export function decodificarComponenteQuery(texto: string): string | null {
+export function decodeQueryComponent(text: string): string | null {
   try {
-    return decodeURIComponent(texto.replace(/\+/g, ' '));
+    return decodeURIComponent(text.replace(/\+/g, ' '));
   } catch {
     return null;
   }
 }
 
 /** Como mucho estos planes caben en el comparador (`CatalogViewModel.maxComparar`). */
-export const MAX_COMPARAR = 3;
+export const MAX_COMPARE = 3;
 
 /**
  * Rutas de la app del viajero (`app_routes.dart`): los patrones de la tabla y los helpers que
@@ -30,73 +30,73 @@ export const MAX_COMPARAR = 3;
 export const AppRoutes = {
   // Sin parámetros.
   login: '/login',
-  consentimiento: '/consentimiento',
-  explorar: '/',
-  agencias: '/agencias',
-  reservas: '/reservas',
-  perfil: '/perfil',
-  pagoResultado: diversoConfig.paymentResultPath,
-  comparar: '/comparar',
-  resenaBase: '/resena',
+  consent: '/consentimiento',
+  explore: '/',
+  agencies: '/agencias',
+  bookings: '/reservas',
+  profile: '/perfil',
+  paymentResult: diversoConfig.paymentResultPath,
+  compare: '/comparar',
+  reviewBase: '/resena',
 
   /** `/consentimiento` recordando a dónde volver al aceptar (`desde`: ubicación original completa). */
-  consentimientoDesde: (ubicacion: string) => `/consentimiento?desde=${codificarComponenteQuery(ubicacion)}`,
+  consentFrom: (location: string) => `/consentimiento?desde=${encodeQueryComponent(location)}`,
 
   /** Los documentos legales se leen antes de crear la cuenta y mientras se pide el consentimiento. */
-  legalPrefijo: '/legal/',
+  legalPrefix: '/legal/',
 
   // Patrones con parámetros (en Expo Router son los archivos de `src/app`).
-  legalPatron: '/legal/:doc',
-  agenciaPatron: '/agencia/:id',
-  planPatron: '/plan/:id',
-  checkoutPatron: '/checkout/:planId/:fechaId',
-  reservaPatron: '/reserva/:bookingId',
-  reservaDetallePatron: '/reservas/:bookingId',
-  resenaPatron: '/resena/:bookingId',
+  legalPattern: '/legal/:doc',
+  agencyPattern: '/agencia/:id',
+  planPattern: '/plan/:id',
+  checkoutPattern: '/checkout/:planId/:fechaId',
+  bookingPattern: '/reserva/:bookingId',
+  bookingDetailPattern: '/reservas/:bookingId',
+  reviewPattern: '/resena/:bookingId',
 
   // Ubicaciones concretas.
   legal: (doc: string) => `/legal/${doc}`,
-  agencia: (id: string) => `/agencia/${id}`,
+  agency: (id: string) => `/agencia/${id}`,
   plan: (id: string) => `/plan/${id}`,
-  checkout: (planId: string, fechaId: string) => `/checkout/${planId}/${fechaId}`,
+  checkout: (planId: string, dateId: string) => `/checkout/${planId}/${dateId}`,
 
   /** Confirmación de una reserva. */
-  reserva: (bookingId: string) => `/reserva/${bookingId}`,
+  booking: (bookingId: string) => `/reserva/${bookingId}`,
 
   /** Detalle de una reserva propia (desde «Mis reservas»). */
-  reservaDetalle: (bookingId: string) => `/reservas/${bookingId}`,
+  bookingDetail: (bookingId: string) => `/reservas/${bookingId}`,
 
   /** Reseña de una reserva propia ya viajada. */
-  resena: (bookingId: string) => `/resena/${bookingId}`,
+  review: (bookingId: string) => `/resena/${bookingId}`,
 
   /** Vuelta de Wompi: verifica en el servidor el pago de la transacción. */
-  pagoDeTransaccion: (transactionId: string) =>
-    `${diversoConfig.paymentResultPath}?id=${codificarComponenteQuery(transactionId)}`,
+  paymentForTransaction: (transactionId: string) =>
+    `${diversoConfig.paymentResultPath}?id=${encodeQueryComponent(transactionId)}`,
 
   /** «Ya pagué, verificar»: verifica el pago más reciente de una reserva. */
-  pagoDeReserva: (bookingId: string) =>
-    `${diversoConfig.paymentResultPath}?reserva=${codificarComponenteQuery(bookingId)}`,
+  paymentForBooking: (bookingId: string) =>
+    `${diversoConfig.paymentResultPath}?reserva=${encodeQueryComponent(bookingId)}`,
 
   /** Comparador de planes: los ids viajan en la URL (`?ids=a,b,c`) y la pantalla carga los planes. */
-  compararPlanes: (ids: Iterable<string>) => `/comparar?ids=${[...ids].map(codificarComponenteQuery).join(',')}`,
+  comparePlans: (ids: Iterable<string>) => `/comparar?ids=${[...ids].map(encodeQueryComponent).join(',')}`,
 } as const;
 
 /**
  * Ids de `?ids=a,b,c` (sin vacíos ni repetidos, como mucho los que caben en el comparador). Acepta
  * el valor tal como lo da `useLocalSearchParams` (string, lista si se repite, o nada).
  */
-export function idsAComparar(valor: string | string[] | undefined, max = MAX_COMPARAR): string[] {
-  const crudos = (Array.isArray(valor) ? valor : [valor ?? '']).flatMap((v) => v.split(','));
-  return [...new Set(crudos.filter((id) => id.length > 0))].slice(0, max);
+export function idsToCompare(value: string | string[] | undefined, max = MAX_COMPARE): string[] {
+  const raw = (Array.isArray(value) ? value : [value ?? '']).flatMap((v) => v.split(','));
+  return [...new Set(raw.filter((id) => id.length > 0))].slice(0, max);
 }
 
 /** Un parámetro de ruta como texto (Expo Router da `string | string[]`). */
-export function parametro(valor: string | string[] | undefined): string {
-  return Array.isArray(valor) ? (valor[0] ?? '') : (valor ?? '');
+export function param(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? (value[0] ?? '') : (value ?? '');
 }
 
 /** Un parámetro de query opcional (`null` si no viene o viene vacío). */
-export function parametroOpcional(valor: string | string[] | undefined): string | null {
-  const v = parametro(valor);
+export function optionalParam(value: string | string[] | undefined): string | null {
+  const v = param(value);
   return v === '' ? null : v;
 }

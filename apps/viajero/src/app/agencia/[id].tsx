@@ -1,10 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
 
 import { AgencyView } from '@/features/agencies/views/AgencyView';
-import { parametro } from '@/router';
+import { param } from '@/router';
 
 /** `/agencia/:id`. */
 export default function RutaAgencia() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  return <AgencyView agencyId={parametro(id)} />;
+  return <AgencyView agencyId={param(id)} />;
 }

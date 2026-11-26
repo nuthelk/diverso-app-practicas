@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useDependencies } from '@/composition';
 import { BookingStatus, noLineBreaks } from '@/core';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -34,10 +34,10 @@ export function BookingConfirmationView({ bookingId }: BookingConfirmationViewPr
   const booking = vm.booking;
   const pendingPaymentId = !vm.loading && booking?.status === BookingStatus.pendingPayment ? booking.id : null;
   useEffect(() => {
-    if (pendingPaymentId !== null) goTo(router, AppRoutes.pagoDeReserva(pendingPaymentId));
+    if (pendingPaymentId !== null) goTo(router, AppRoutes.paymentForBooking(pendingPaymentId));
   }, [pendingPaymentId, router]);
 
-  const goToBookings = () => goTo(router, AppRoutes.reservas);
+  const goToBookings = () => goTo(router, AppRoutes.bookings);
 
   let content: ReactNode;
   if (vm.loading) {
@@ -87,7 +87,7 @@ function Frame({ children }: { children: ReactNode }) {
   const router = useRouter();
   return (
     <View style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
+      <TopBar title="" onBack={() => safeGoBack(router, AppRoutes.bookings)} />
       {children}
     </View>
   );

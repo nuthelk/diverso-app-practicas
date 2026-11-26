@@ -10,7 +10,7 @@ import { BottomBar, TABS } from '../components/BottomBar';
  * primera vez y no se desmontan, como el `StatefulShellRoute.indexedStack`) y el cambio es
  * fade-through. El contenido termina donde empieza la barra (no flota encima).
  *
- * El consentimiento no se pide aquí: lo decide el guard de la raíz (`NavegacionDeLaApp`).
+ * El consentimiento no se pide aquí: lo decide el guard de la raíz (`AppNavigation`).
  */
 /**
  * Orden en que se DECLARAN las pestañas: el mismo en que Expo Router arma su estado inicial. Si

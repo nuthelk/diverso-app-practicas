@@ -67,12 +67,12 @@ describe('estados', () => {
     await openResult({ responses: [testPayment(VerifiedPaymentStatus.approved)] });
     await screen.findByText('Confirmando tu pago de prueba con Wompi…');
     await new Promise((r) => setTimeout(r, 0));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reserva('res-1'));
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.booking('res-1'));
   });
 
   test('sin transacción ni reserva vuelve a Mis reservas', async () => {
     const gateway = await openResult({ transactionId: null, bookingId: null });
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.bookings);
     expect(gateway.verifications).toEqual([]);
   });
 
@@ -91,7 +91,7 @@ describe('estados', () => {
     expect(await screen.findByText('Tu reserva había vencido')).toBeOnTheScreen();
     expect(screen.queryByText('Reintentar')).toBeNull();
     await fireEvent.press(screen.getByText('Ver mis reservas'));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.bookings);
   });
 
   test('error al verificar: «No pudimos verificar el pago» con «Reintentar» que vuelve a preguntar', async () => {
@@ -106,5 +106,5 @@ describe('estados', () => {
 test('«Volver» sin historial lleva a Mis reservas (nunca de vuelta al pago)', async () => {
   await openResult();
   await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
-  expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
+  expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.bookings);
 });

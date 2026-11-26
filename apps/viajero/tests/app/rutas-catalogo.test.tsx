@@ -49,7 +49,7 @@ afterEach(() => {
 
 describe('cada id de la URL llega a su repositorio', () => {
   test('/agencia/:id pide esa agencia', async () => {
-    const { catalogo } = await abrir(AppRoutes.agencia('a1'));
+    const { catalogo } = await abrir(AppRoutes.agency('a1'));
     expect(pantallaVisible('AgenciaView')).toBeOnTheScreen();
     expect(catalogo.agenciasPedidas).toEqual(['a1']);
   });
@@ -102,7 +102,7 @@ describe('/comparar?ids=…', () => {
     const { r, catalogo } = await abrir(AppRoutes.legal('privacidad'));
 
     setPlansToCompare([plan('p1'), plan('p2')]);
-    await act(async () => router.push(AppRoutes.compararPlanes(['p1', 'p2']) as Href));
+    await act(async () => router.push(AppRoutes.comparePlans(['p1', 'p2']) as Href));
     await asentar();
 
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();

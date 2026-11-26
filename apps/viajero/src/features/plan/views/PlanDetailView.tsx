@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useDependencies } from '@/composition';
 import type { Plan, Review } from '@/core';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import {
   CollapsibleHeader,
   EmptyState,
@@ -33,7 +33,7 @@ export interface PlanDetailViewProps {
 /**
  * Ficha del plan (`/plan/:id`, `plan_detail_view.dart`): galería, agencia, qué incluye,
  * itinerario, punto de encuentro, cancelación, reseñas y barra de reserva DEBAJO del scroll.
- * «Volver» y «Ver otros planes» usan `volverSeguro` (en Flutter hacían `pop` sin comprobar: abierta
+ * «Volver» y «Ver otros planes» usan `safeGoBack` (en Flutter hacían `pop` sin comprobar: abierta
  * en frío no había a dónde volver; gotcha 6, se corrige).
  */
 export function PlanDetailView({ planId }: PlanDetailViewProps) {
@@ -42,7 +42,7 @@ export function PlanDetailView({ planId }: PlanDetailViewProps) {
   const { catalogo: catalog, resenas: reviews } = useDependencies();
   const vm = usePlanDetailViewModel({ catalog, reviews, planId });
   const { load } = vm;
-  const goBack = () => volverSeguro(router, AppRoutes.explorar);
+  const goBack = () => safeGoBack(router, AppRoutes.explore);
 
   useEffect(() => {
     void load();

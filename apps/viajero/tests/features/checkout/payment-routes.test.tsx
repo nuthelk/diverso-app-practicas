@@ -111,7 +111,7 @@ test('/checkout con una fecha que no existe en el plan avisa en vez de romperse'
 });
 
 test('/reserva/:bookingId muestra la confirmación cargada del backend', async () => {
-  await openApp(AppRoutes.reserva('res-1'), new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
+  await openApp(AppRoutes.booking('res-1'), new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
   expect(bookings.bookingQueries).toEqual(['res-1']);
   expect(screen.getByText('DIV-ABC123')).toBeOnTheScreen();
   expect(screen.getByText('Guatapé en un día')).toBeOnTheScreen();
@@ -120,13 +120,13 @@ test('/reserva/:bookingId muestra la confirmación cargada del backend', async (
 });
 
 test('/reserva/:bookingId inexistente muestra el error, no una pantalla vacía', async () => {
-  await openApp(AppRoutes.reserva('nope'), new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
+  await openApp(AppRoutes.booking('nope'), new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
   expect(screen.getByText(/No encontramos esa reserva/)).toBeOnTheScreen();
 });
 
 test('/pago/resultado?id=… verifica en el servidor y, si fue aprobado, abre /reserva/:id', async () => {
   const gateway = new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]);
-  const r = await openApp(AppRoutes.pagoDeTransaccion('tx-77'), gateway);
+  const r = await openApp(AppRoutes.paymentForTransaction('tx-77'), gateway);
   await asentar();
   expect(gateway.verifications).toEqual([{ transactionId: 'tx-77', bookingId: null }]);
   expect(r.getPathname()).toBe('/reserva/res-1');
@@ -135,7 +135,7 @@ test('/pago/resultado?id=… verifica en el servidor y, si fue aprobado, abre /r
 
 test('/pago/resultado?reserva=… («Ya pagué, verificar») verifica por reserva', async () => {
   const gateway = new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]);
-  await openApp(AppRoutes.pagoDeReserva('res-1'), gateway);
+  await openApp(AppRoutes.paymentForBooking('res-1'), gateway);
   expect(gateway.verifications).toEqual([{ transactionId: null, bookingId: 'res-1' }]);
 });
 
@@ -160,14 +160,14 @@ test('/pago/resultado pendiente: reintenta unas veces y luego remite a Mis reser
 });
 
 test('/pago/resultado sin id ni reserva vuelve a Mis reservas', async () => {
-  const r = await openApp(AppRoutes.pagoResultado, new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
+  const r = await openApp(AppRoutes.paymentResult, new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]));
   expect(r.getPathname()).toBe('/reservas');
 });
 
 test('/reserva/:bookingId pendiente de pago manda a verificar el pago de esa reserva', async () => {
   bookings = new FakeBookings([bookingWithStatus(BookingStatus.pendingPayment)]);
   const gateway = new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.pending, BookingStatus.pendingPayment)]);
-  const r = await openApp(AppRoutes.reserva('res-1'), gateway);
+  const r = await openApp(AppRoutes.booking('res-1'), gateway);
   await asentar();
   expect(r.getPathname()).toBe('/pago/resultado');
   expect(gateway.verifications[0]).toEqual({ transactionId: null, bookingId: 'res-1' });
@@ -175,7 +175,7 @@ test('/reserva/:bookingId pendiente de pago manda a verificar el pago de esa res
 
 test('/reserva/:bookingId cancelada lo dice con su código', async () => {
   bookings = new FakeBookings([bookingWithStatus(BookingStatus.cancelled)]);
-  await openApp(AppRoutes.reserva('res-1'), new FakePaymentGateway());
+  await openApp(AppRoutes.booking('res-1'), new FakePaymentGateway());
   expect(screen.getByText('Reserva cancelada')).toBeOnTheScreen();
   expect(screen.getByText(/La reserva DIV-ABC123 está cancelada\./)).toBeOnTheScreen();
 });

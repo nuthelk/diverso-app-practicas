@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useDependencies } from '@/composition';
 import { BookingStatus, VerifiedPaymentStatus, type DiversoError, type VerifiedPayment } from '@/core';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -34,20 +34,20 @@ export function PaymentResultView({ transactionId, bookingId }: PaymentResultVie
 
   useEffect(() => {
     // `addPostFrameCallback` de Dart: tras el primer pintado.
-    if (vm.noData) goTo(router, AppRoutes.reservas);
+    if (vm.noData) goTo(router, AppRoutes.bookings);
     else void vm.verify();
   }, []);
 
   // El listener de Dart: aprobado y ya sin cargar → confirmación.
   const approvedBookingId = !vm.loading && vm.result?.status === VerifiedPaymentStatus.approved ? vm.result.bookingId : null;
   useEffect(() => {
-    if (approvedBookingId !== null) goTo(router, AppRoutes.reserva(approvedBookingId));
+    if (approvedBookingId !== null) goTo(router, AppRoutes.booking(approvedBookingId));
   }, [approvedBookingId, router]);
 
   return (
     <View testID="pantalla-PagoResultadoView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Resultado del pago" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
-      <Content vm={vm} goToBookings={() => goTo(router, AppRoutes.reservas)} retry={(id) => void vm.retryPayment(id, openPayment)} />
+      <TopBar title="Resultado del pago" onBack={() => safeGoBack(router, AppRoutes.bookings)} />
+      <Content vm={vm} goToBookings={() => goTo(router, AppRoutes.bookings)} retry={(id) => void vm.retryPayment(id, openPayment)} />
       {paymentModal}
     </View>
   );

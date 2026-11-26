@@ -21,7 +21,7 @@ export function PlanAgencyCard({ agency }: { agency: Agency }) {
       testID="tarjeta-agencia"
       accessibilityRole="button"
       accessibilityLabel={agency.name}
-      onPress={() => router.push(AppRoutes.agencia(agency.id) as Href)}
+      onPress={() => router.push(AppRoutes.agency(agency.id) as Href)}
       style={({ pressed }) => [
         styles.box,
         AppInsets.card,

@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -13,7 +13,7 @@ import { plansToCompare } from '../plans-to-compare';
 import { useComparatorViewModel } from '../view-models/useComparatorViewModel';
 
 export interface ComparatorViewProps {
-  /** Ids de `?ids=a,b,c` ya limpios (sin vacíos ni repetidos, máx. 3: `idsAComparar`). */
+  /** Ids de `?ids=a,b,c` ya limpios (sin vacíos ni repetidos, máx. 3: `idsToCompare`). */
   ids: string[];
 }
 
@@ -53,7 +53,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
         action={
           <View style={styles.actions}>
             <FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.load()} />
-            <TextButton text="Ir al catálogo" onPress={() => router.replace(AppRoutes.explorar as Href)} />
+            <TextButton text="Ir al catálogo" onPress={() => router.replace(AppRoutes.explore as Href)} />
           </View>
         }
       />
@@ -62,7 +62,7 @@ export function ComparatorView({ ids }: ComparatorViewProps) {
 
   return (
     <View testID="pantalla-ComparatorView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Comparar planes" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
+      <TopBar title="Comparar planes" onBack={() => safeGoBack(router, AppRoutes.explore)} />
       {body}
     </View>
   );

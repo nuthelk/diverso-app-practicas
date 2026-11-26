@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { DiversoError, diversoConfig } from '@/core';
-import { AppRoutes, decodificarComponenteQuery } from '@/router';
+import { AppRoutes, decodeQueryComponent } from '@/router';
 
 import { PaymentOutcome } from './payment-outcome';
 
@@ -34,8 +34,8 @@ function parseUrl(url: string): ParsedUrl | null {
 function queryParam(query: string, name: string): string | null {
   for (const pair of query.split('&')) {
     const i = pair.indexOf('=');
-    const key = decodificarComponenteQuery(i < 0 ? pair : pair.slice(0, i));
-    if (key === name) return decodificarComponenteQuery(i < 0 ? '' : pair.slice(i + 1));
+    const key = decodeQueryComponent(i < 0 ? pair : pair.slice(0, i));
+    if (key === name) return decodeQueryComponent(i < 0 ? '' : pair.slice(i + 1));
   }
   return null;
 }
@@ -51,7 +51,7 @@ export function paymentReturnUrl({
   web = Platform.OS === 'web',
   origin = () => window.location.origin,
 }: { web?: boolean; origin?: () => string } = {}): string {
-  return web ? `${origin()}${AppRoutes.pagoResultado}` : diversoConfig.mobilePaymentReturnUrl;
+  return web ? `${origin()}${AppRoutes.paymentResult}` : diversoConfig.mobilePaymentReturnUrl;
 }
 
 /** ¿Es [url] la redirección final de Wompi (`https://diverso.app/pago/resultado[?id=…]`)? */

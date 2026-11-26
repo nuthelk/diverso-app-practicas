@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import { ProveedoresDeLaApp } from '@/composition/RaizDeLaApp';
 import { AppRoutes } from '@/router';
-import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
+import { AppNavigation } from '@/router/AppNavigation';
 import { lightTheme, darkTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
 
 import { arrancarApp, asentar, pantallaVisible } from '../support/app';
@@ -67,18 +67,18 @@ describe('cada ruta de la tabla resuelve con sus parámetros', () => {
     ['/reservas', 'BookingsView', []],
     ['/perfil', 'ProfileView', []],
     // Pantallas reales (T5): que el id llegue al repositorio lo prueba `rutas-catalogo.test.tsx`.
-    [AppRoutes.agencia('a1'), 'AgenciaView', []],
+    [AppRoutes.agency('a1'), 'AgenciaView', []],
     [AppRoutes.plan('p1'), 'PlanDetailView', []],
     // Pantallas reales (T6), con dobles que rechazan: el id que llega a cada repositorio lo prueba
     // `features/checkout/rutas-pago.test.tsx`.
     [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['No pudimos cargar el plan']],
-    [AppRoutes.pagoDeTransaccion('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
-    [AppRoutes.pagoDeReserva('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
-    [AppRoutes.reserva('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
+    [AppRoutes.paymentForTransaction('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
+    [AppRoutes.paymentForBooking('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
+    [AppRoutes.booking('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
     // Pantallas reales (T7), con dobles que rechazan: el id que llega al repositorio lo prueban
     // `consentimiento-guard-resena.test.tsx` y `features/bookings/views/*`.
-    [AppRoutes.reservaDetalle('b1'), 'ReservaDetalleView', ['No pudimos cargar la reserva']],
-    [AppRoutes.resena('b1'), 'ReviewView', ['No pudimos cargar la reserva']],
+    [AppRoutes.bookingDetail('b1'), 'ReservaDetalleView', ['No pudimos cargar la reserva']],
+    [AppRoutes.review('b1'), 'ReviewView', ['No pudimos cargar la reserva']],
     ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
     ['/comparar', 'ComparatorView', ['Nada para comparar']],
   ];
@@ -148,7 +148,7 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
         _layout: () => (
           <ProveedoresDeLaApp dependencias={dependenciasDePrueba()} modoTemaInicial="light">
             <CapturaModo />
-            <NavegacionDeLaApp listo />
+            <AppNavigation ready />
           </ProveedoresDeLaApp>
         ),
       },

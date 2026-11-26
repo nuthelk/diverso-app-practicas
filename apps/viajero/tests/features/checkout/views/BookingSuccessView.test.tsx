@@ -58,7 +58,7 @@ test('itinerario: los primeros 5 pasos y cuántos faltan', async () => {
 test('«Ver mis reservas» y «Seguir explorando» reemplazan la pila (como `go`)', async () => {
   await renderPantalla(<BookingSuccessView booking={bookingWithSteps(1)} />);
   await fireEvent.press(screen.getByText('Ver mis reservas'));
-  expect(routerFalso.replace).toHaveBeenLastCalledWith(AppRoutes.reservas);
+  expect(routerFalso.replace).toHaveBeenLastCalledWith(AppRoutes.bookings);
   await fireEvent.press(screen.getByText('Seguir explorando'));
-  expect(routerFalso.replace).toHaveBeenLastCalledWith(AppRoutes.explorar);
+  expect(routerFalso.replace).toHaveBeenLastCalledWith(AppRoutes.explore);
 });

@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -78,7 +78,7 @@ function CheckoutFrame({ children, backTo }: { children: ReactNode; backTo: stri
   const router = useRouter();
   return (
     <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, backTo)} />
+      <TopBar title="Confirmar y pagar" onBack={() => safeGoBack(router, backTo)} />
       {children}
     </View>
   );

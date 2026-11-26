@@ -6,7 +6,7 @@ import { useDependencies } from '@/composition';
 import { goTo } from '@/features/checkout/go-to';
 import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -46,11 +46,11 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   const submit = async (comment: string) => {
     if (!(await vm.submit(comment))) return;
     showSnackbar('¡Gracias! Tu reseña ayudará a otros viajeros.');
-    returnResult(AppRoutes.resena(bookingId), true);
-    volverSeguro(router, AppRoutes.reservas);
+    returnResult(AppRoutes.review(bookingId), true);
+    safeGoBack(router, AppRoutes.bookings);
   };
 
-  const goToBookings = () => goTo(router, AppRoutes.reservas);
+  const goToBookings = () => goTo(router, AppRoutes.bookings);
 
   let body: ReactNode;
   if (vm.loading) {
@@ -88,7 +88,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
 
   return (
     <View testID="pantalla-ReviewView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Tu reseña" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
+      <TopBar title="Tu reseña" onBack={() => safeGoBack(router, AppRoutes.bookings)} />
       <View style={styles.flex}>{body}</View>
       <Snackbar />
     </View>

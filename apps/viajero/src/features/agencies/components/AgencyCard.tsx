@@ -20,7 +20,7 @@ export function AgencyCard({ agency }: { agency: AgencySummary }) {
       testID={`agencia-card-${agency.id}`}
       color={cs.surfaceContainerLow}
       accessibilityLabel={agency.name}
-      onPress={() => router.push(AppRoutes.agencia(agency.id) as Href)}
+      onPress={() => router.push(AppRoutes.agency(agency.id) as Href)}
       // En la grilla llena la celda (como en SliverGrid); en la lista no cambia nada.
       style={{ flexGrow: 1 }}
     >

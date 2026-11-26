@@ -17,7 +17,7 @@ export function NotFoundView({ location }: { location: string }) {
         title="No encontramos esta página"
         message="El enlace puede estar mal escrito o la página ya no existe."
         details={location}
-        action={<FilledButton text="Ir al inicio" onPress={() => router.replace(AppRoutes.explorar as Href)} />}
+        action={<FilledButton text="Ir al inicio" onPress={() => router.replace(AppRoutes.explore as Href)} />}
       />
     </SafeAreaView>
   );

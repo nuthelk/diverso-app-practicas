@@ -8,7 +8,7 @@ import { goTo } from '@/features/checkout/go-to';
 import { useOpenPayment } from '@/features/checkout/useOpenPayment';
 import { Snackbar } from '@/features/shared/snackbar';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, useTheme } from '@/ui/theme';
 
@@ -43,7 +43,7 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
   const onReturn = useOnReturn();
   const { load, changed, paymentAttempted, reviewPublished } = vm;
   const mounted = useRef(true);
-  const ownRoute = AppRoutes.reservaDetalle(bookingId);
+  const ownRoute = AppRoutes.bookingDetail(bookingId);
 
   useEffect(() => {
     mounted.current = true;
@@ -58,7 +58,7 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
     if (changed) returnResult(ownRoute, true);
   }, [changed, ownRoute]);
 
-  const goBack = useCallback(() => volverSeguro(router, AppRoutes.reservas), [router]);
+  const goBack = useCallback(() => safeGoBack(router, AppRoutes.bookings), [router]);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,10 +77,10 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
 
   const openReview = (b: Booking) => {
     preloadBooking(b);
-    onReturn(AppRoutes.resena(b.id), (reviewed) => {
+    onReturn(AppRoutes.review(b.id), (reviewed) => {
       if (reviewed === true) reviewPublished();
     });
-    router.push(AppRoutes.resena(b.id) as Href);
+    router.push(AppRoutes.review(b.id) as Href);
   };
 
   /** Marco de las pantallas sin reserva (cargando / error): barra con «Volver». */
@@ -103,7 +103,7 @@ export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
           onBack={goBack}
           onCancel={() => void cancelWithConfirmation(b)}
           onPay={() => void pay(b)}
-          onVerify={() => goTo(router, AppRoutes.pagoDeReserva(b.id))}
+          onVerify={() => goTo(router, AppRoutes.paymentForBooking(b.id))}
           onReview={() => openReview(b)}
           onSeePlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
         />

@@ -220,7 +220,7 @@ describe('LegalView', () => {
   test('sin historial (recarga o enlace directo), «Volver» lleva al inicio: el guard decide si es el login', async () => {
     await renderPantalla(<LegalView docId="privacidad" />);
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.explorar);
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.explore);
   });
 
   test('con historial, «Volver» vuelve atrás', async () => {

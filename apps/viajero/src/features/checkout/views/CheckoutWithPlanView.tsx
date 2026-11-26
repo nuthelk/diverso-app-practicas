@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useDependencies } from '@/composition';
 import type { Plan, PlanDate } from '@/core';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { OutlinedButton, SectionLabel } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
@@ -38,12 +38,12 @@ export function CheckoutWithPlanView({ plan, planDate }: { plan: Plan; planDate:
   }, []);
 
   /** Respaldo si la redirección no llegó: el servidor consulta a Wompi por la reserva. */
-  const alreadyPaid = (bookingId: string) => goTo(router, AppRoutes.pagoDeReserva(bookingId));
+  const alreadyPaid = (bookingId: string) => goTo(router, AppRoutes.paymentForBooking(bookingId));
 
   const { pending, error, bookingId } = vm;
   return (
     <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, AppRoutes.plan(plan.id))} />
+      <TopBar title="Confirmar y pagar" onBack={() => safeGoBack(router, AppRoutes.plan(plan.id))} />
       <ScrollView testID="checkout-scroll" style={styles.screen} contentContainerStyle={styles.list}>
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}
         {pending !== null ? (

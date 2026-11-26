@@ -50,18 +50,18 @@ export function BookingsView() {
 
   const openDetail = (b: Booking) => {
     preloadBooking(b);
-    onReturn(AppRoutes.reservaDetalle(b.id), (changed) => {
+    onReturn(AppRoutes.bookingDetail(b.id), (changed) => {
       if (changed === true) void refresh();
     });
-    router.push(AppRoutes.reservaDetalle(b.id) as Href);
+    router.push(AppRoutes.bookingDetail(b.id) as Href);
   };
 
   const openReview = (b: Booking) => {
     preloadBooking(b);
-    onReturn(AppRoutes.resena(b.id), (published) => {
+    onReturn(AppRoutes.review(b.id), (published) => {
       if (published === true) void refresh();
     });
-    router.push(AppRoutes.resena(b.id) as Href);
+    router.push(AppRoutes.review(b.id) as Href);
   };
 
   const renderList = (tabBookings: Booking[], isHistory: boolean) => (
@@ -80,7 +80,7 @@ export function BookingsView() {
             onOpen={() => openDetail(b)}
             onReview={vm.canReview(b) ? () => openReview(b) : null}
             onPay={isPending ? () => void completePayment(b) : null}
-            onVerify={isPending ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
+            onVerify={isPending ? () => goTo(router, AppRoutes.paymentForBooking(b.id)) : null}
             onCancel={vm.canCancel(b) ? () => void cancelWithConfirmation(b) : null}
           />
         );
@@ -114,7 +114,7 @@ export function BookingsView() {
         <FilledButton
           variant="tonal"
           text="Explorar planes"
-          onPress={() => router.navigate(AppRoutes.explorar as Href)}
+          onPress={() => router.navigate(AppRoutes.explore as Href)}
           style={styles.action}
         />
       }

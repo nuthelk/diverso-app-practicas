@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
 import { ExperienceCategory, CatalogSort } from '@/core';
-import { MAX_COMPARAR, useCatalogViewModel } from '@/features/catalog/view-models/useCatalogViewModel';
+import { MAX_COMPARE, useCatalogViewModel } from '@/features/catalog/view-models/useCatalogViewModel';
 
 import { CatalogoFalso, planDePrueba } from '../../../support/catalogo-falso';
 import { compuerta } from '../../../support/compuerta';
@@ -218,7 +218,7 @@ describe('filtros', () => {
 });
 
 describe('selección para comparar', () => {
-  test(`agrega, quita y respeta el máximo de ${MAX_COMPARAR}`, async () => {
+  test(`agrega, quita y respeta el máximo de ${MAX_COMPARE}`, async () => {
     catalog.planes = ['a', 'b', 'c', 'd'].map((id) => planDePrueba({ id }));
     const { result } = await setup();
     await act(() => result.current.load());

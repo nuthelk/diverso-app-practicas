@@ -16,7 +16,7 @@ import { Grid } from '../components/Grid';
 import { PlanCard } from '../components/PlanCard';
 import { ResultsSkeleton } from '../components/ResultsSkeleton';
 import { setPlansToCompare } from '../plans-to-compare';
-import { MAX_COMPARAR, useCatalogViewModel } from '../view-models/useCatalogViewModel';
+import { MAX_COMPARE, useCatalogViewModel } from '../view-models/useCatalogViewModel';
 
 /** Padding horizontal de la lista (20 + 20): el ancho útil de la rejilla sale de la ventana. */
 const LIST_SIDE_PADDING = 40;
@@ -152,12 +152,12 @@ export function CatalogView() {
       {/* La bandeja va debajo de la lista, no encima: el último plan nunca queda tapado. */}
       <AnimatedCompareTray
         selection={vm.selection}
-        max={MAX_COMPARAR}
+        max={MAX_COMPARE}
         onRemove={vm.toggleCompare}
         onClear={vm.clearCompare}
         onCompare={() => {
           setPlansToCompare(vm.selection);
-          router.push(AppRoutes.compararPlanes(vm.selection.map((p) => p.id)) as Href);
+          router.push(AppRoutes.comparePlans(vm.selection.map((p) => p.id)) as Href);
         }}
       />
     </View>

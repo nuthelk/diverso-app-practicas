@@ -133,7 +133,7 @@ describe('pago en Android/iOS (WebView)', () => {
       shouldLoad = webview!.onShouldStartLoadWithRequest({ url: 'https://diverso.app/pago/resultado?id=tx-9' });
     });
     expect(shouldLoad).toBe(false);
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.pagoDeTransaccion('tx-9'));
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.paymentForTransaction('tx-9'));
     expect(screen.queryByText('Pago de prueba con Wompi')).toBeNull();
   });
 
@@ -159,7 +159,7 @@ describe('pago en Android/iOS (WebView)', () => {
     expect(screen.getByRole('button', { name: 'Agregar una persona' })).toBeDisabled();
 
     await fireEvent.press(screen.getByText('Ya pagué, verificar'));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.pagoDeReserva('nueva-1'));
+    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.paymentForBooking('nueva-1'));
     expect(bookings.createdBookings).toHaveLength(1);
   });
 

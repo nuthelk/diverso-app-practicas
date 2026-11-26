@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { SessionProvider } from '@/features/auth/view-models/SessionProvider';
 import { ConsentProvider } from '@/features/legal/view-models/ConsentProvider';
-import { NavegacionDeLaApp } from '@/router/NavegacionDeLaApp';
+import { AppNavigation } from '@/router/AppNavigation';
 import { ThemeProvider, useDiversoFonts, type ThemeMode } from '@/ui/theme';
 
 import { DependenciesProvider, type Dependencias } from './DependenciesProvider';
@@ -52,7 +52,7 @@ export function RaizDeLaApp({ dependencias }: { dependencias: Dependencias }) {
 
   return (
     <ProveedoresDeLaApp dependencias={dependencias}>
-      <NavegacionDeLaApp listo={listo} />
+      <AppNavigation ready={listo} />
     </ProveedoresDeLaApp>
   );
 }

@@ -5,12 +5,12 @@
  */
 export {
   AppRoutes,
-  codificarComponenteQuery,
-  decodificarComponenteQuery,
-  idsAComparar,
-  MAX_COMPARAR,
-  parametro,
-  parametroOpcional,
-} from './rutas';
-export { destinoSeguro, pantallaVisible, sesionRedirect, ubicacionDeRuta } from './sesion-redirect';
-export { volverSeguro, type RouterParaVolver } from './volver-seguro';
+  encodeQueryComponent,
+  decodeQueryComponent,
+  idsToCompare,
+  MAX_COMPARE,
+  param,
+  optionalParam,
+} from './routes';
+export { safeDestination, isScreenVisible, sessionRedirect, routeLocation } from './session-redirect';
+export { safeGoBack, type GoBackRouter } from './safe-go-back';

@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { LegalDocument, LEGAL_VERSION } from '@/core';
 import { TopBar } from '@/features/shell/components/TopBar';
-import { AppRoutes, volverSeguro } from '@/router';
+import { AppRoutes, safeGoBack } from '@/router';
 import { Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
@@ -22,7 +22,7 @@ export function LegalView({ docId }: { docId: string }) {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
-      <TopBar title="Documentos legales" onBack={() => volverSeguro(router, AppRoutes.explorar)} />
+      <TopBar title="Documentos legales" onBack={() => safeGoBack(router, AppRoutes.explore)} />
       {doc === null ? (
         <View style={styles.center}>
           <Text>Documento no encontrado.</Text>

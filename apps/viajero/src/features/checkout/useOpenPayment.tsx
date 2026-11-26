@@ -51,7 +51,7 @@ export function useOpenPayment(gateway: PaymentGateway): { openPayment: OpenPaym
       setCheckoutUrl(checkout.checkoutUrl);
     });
     if (id === null || !mounted.current) return PaymentOutcome.closed;
-    goTo(router, AppRoutes.pagoDeTransaccion(id));
+    goTo(router, AppRoutes.paymentForTransaction(id));
     return PaymentOutcome.completed;
   };
 

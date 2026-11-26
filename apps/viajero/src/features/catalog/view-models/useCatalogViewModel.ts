@@ -7,9 +7,9 @@ import {
   type Plan,
   type Public,
 } from '@/core';
-import { MAX_COMPARAR } from '@/router';
+import { MAX_COMPARE } from '@/router';
 
-export { MAX_COMPARAR };
+export { MAX_COMPARE };
 
 interface CatalogState {
   plans: readonly Plan[];
@@ -25,7 +25,7 @@ interface CatalogState {
   maxPrice: number | null;
   date: Date | null;
   sort: CatalogSort;
-  /** Ids elegidos para comparar (máx. [MAX_COMPARAR]), en el orden en que se eligieron. */
+  /** Ids elegidos para comparar (máx. [MAX_COMPARE]), en el orden en que se eligieron. */
   compareIds: readonly string[];
 }
 
@@ -117,7 +117,7 @@ export function useCatalogViewModel({ catalog }: { catalog: Pick<Public<CatalogR
     (p: Plan) => {
       const ids = latest.current.compareIds;
       if (ids.includes(p.id)) update({ compareIds: ids.filter((id) => id !== p.id) });
-      else if (ids.length < MAX_COMPARAR) update({ compareIds: [...ids, p.id] });
+      else if (ids.length < MAX_COMPARE) update({ compareIds: [...ids, p.id] });
     },
     [update],
   );
