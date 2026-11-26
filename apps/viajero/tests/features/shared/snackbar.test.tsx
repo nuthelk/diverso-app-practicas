@@ -3,9 +3,9 @@ import { act, screen } from '@testing-library/react-native';
 import { Snackbar, SNACKBAR_DURATION_MS, showSnackbar, hideSnackbar } from '@/features/shared/snackbar';
 
 import { renderWithTheme } from '../../ui/support/render-with-theme';
-import { textoCrudo } from '../../support/texto-crudo';
+import { rawText } from '../../support/raw-text';
 
-jest.mock('expo-router', () => require('../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../support/fake-expo-router'));
 
 /** El SnackBar de Flutter: aviso flotante de toda la app, 4 s, uno nuevo reemplaza al anterior. */
 
@@ -29,7 +29,7 @@ test('un monto o porcentaje del aviso no se separa de su signo al partirse la l√
   await renderWithTheme(<Snackbar />);
   await act(async () => showSnackbar('Reembolso de prueba aprobado: $ 190.000 (100 %).'));
 
-  expect(textoCrudo(screen.getByText(/Reembolso de prueba aprobado/))).toBe(
+  expect(rawText(screen.getByText(/Reembolso de prueba aprobado/))).toBe(
     'Reembolso de prueba aprobado: $\u00A0190.000 (100\u00A0%).',
   );
 });

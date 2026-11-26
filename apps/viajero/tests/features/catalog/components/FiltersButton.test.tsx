@@ -5,7 +5,7 @@ import { FiltersButton } from '@/features/catalog/components/FiltersButton';
 
 import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 const vm = { activeFilterCount: 0 } as never;
 const background = () => StyleSheet.flatten(screen.getByRole('button', { name: 'Filtros y orden' }).props.style).backgroundColor;

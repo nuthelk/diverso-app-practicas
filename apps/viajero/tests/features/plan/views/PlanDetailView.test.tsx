@@ -15,12 +15,12 @@ import {
 import { PlanDetailView } from '@/features/plan/views/PlanDetailView';
 import { agencyColor } from '@/ui/components';
 
-import { CatalogoFalso, fechaDePrueba, planDePrueba, ResenasFalsas } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository, testPlanDate, testPlan, FakeReviews } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Ficha del plan: la barra de reserva (fecha elegida → checkout, «¡Últimos N!», sin fechas),
@@ -30,29 +30,29 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * seguro).
  */
 
-async function renderPlanDetail(catalog: CatalogoFalso, reviews = new ResenasFalsas(), width = 600) {
-  await fijarVentana(width, 1000);
-  await renderPantalla(<PlanDetailView planId="plan-1" />, {
-    dependencias: dependenciasDePrueba({ catalog, reviews: reviews as never }),
+async function renderPlanDetail(catalog: FakeCatalogRepository, reviews = new FakeReviews(), width = 600) {
+  await setWindowSize(width, 1000);
+  await renderScreen(<PlanDetailView planId="plan-1" />, {
+    dependencies: testDependencies({ catalog, reviews: reviews as never }),
   });
   return catalog;
 }
 
 const catalogWithThreeDates = () =>
-  new CatalogoFalso({
-    detalles: {
-      'plan-1': planDePrueba({
-        dates: [fechaDePrueba('f-1', { dias: 3 }), fechaDePrueba('f-2', { dias: 5, cupos: 2 }), fechaDePrueba('f-3', { dias: 9 })],
+  new FakeCatalogRepository({
+    details: {
+      'plan-1': testPlan({
+        dates: [testPlanDate('f-1', { days: 3 }), testPlanDate('f-2', { days: 5, spots: 2 }), testPlanDate('f-3', { days: 9 })],
       }),
     },
   });
 
 beforeEach(() => {
-  reiniciarRouterFalso();
+  resetFakeRouter();
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(async () => {
-  await restaurarVentana();
+  await restoreWindowSize();
   jest.restoreAllMocks();
 });
 
@@ -62,7 +62,7 @@ describe('barra de reserva (detalle_fechas_test)', () => {
 
     await fireEvent.press(screen.getByText('Reservar'));
 
-    expect(routerFalso.push).toHaveBeenCalledWith('/checkout/plan-1/f-1');
+    expect(fakeRouter.push).toHaveBeenCalledWith('/checkout/plan-1/f-1');
   });
 
   test('elegir otra fecha cambia el checkout y avisa «¡Últimos N!»', async () => {
@@ -72,17 +72,17 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     await fireEvent.press(screen.getByText('¡Últimos 2!'));
     await fireEvent.press(screen.getByText('Reservar'));
 
-    expect(routerFalso.push).toHaveBeenCalledWith('/checkout/plan-1/f-2');
+    expect(fakeRouter.push).toHaveBeenCalledWith('/checkout/plan-1/f-2');
   });
 
   test('la fecha elegida sobrevive a que la ficha se reconstruya (más ancho)', async () => {
     await renderPlanDetail(catalogWithThreeDates());
     await fireEvent.press(screen.getByText('¡Últimos 2!'));
 
-    await fijarVentana(700, 1000);
+    await setWindowSize(700, 1000);
     await fireEvent.press(screen.getByText('Reservar'));
 
-    expect(routerFalso.push).toHaveBeenCalledWith('/checkout/plan-1/f-2');
+    expect(fakeRouter.push).toHaveBeenCalledWith('/checkout/plan-1/f-2');
   });
 
   // En el emulador el chip de «jue, 26 nov» se comía «nov»: Android midió el texto unos px más
@@ -92,8 +92,8 @@ describe('barra de reserva (detalle_fechas_test)', () => {
     StyleSheet.flatten(el.props.style as never) as Record<string, unknown>;
 
   test('los textos del chip de fecha no se cortan: una línea con holgura sobre el ancho medido', async () => {
-    const dates = [fechaDePrueba('f-1', { dias: 3 }), fechaDePrueba('f-2', { dias: 5, cupos: 2 })];
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba({ dates }) } }));
+    const dates = [testPlanDate('f-1', { days: 3 }), testPlanDate('f-2', { days: 5, spots: 2 })];
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan({ dates }) } }));
 
     for (const [id, texts] of [
       ['f-1', [formatShortDate(dates[0]!.date), '10 cupos']],
@@ -134,34 +134,34 @@ describe('barra de reserva (detalle_fechas_test)', () => {
   });
 
   test('plan sin fechas: avisa y no ofrece «Reservar»; «Ver otros planes» vuelve seguro', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan() } }));
 
     expect(screen.getByText('Sin fechas disponibles por ahora')).toBeOnTheScreen();
     expect(screen.queryByText('Reservar')).toBeNull();
 
     // Abierta en frío no hay historial: en vez de un `pop` que no hace nada, va al catálogo.
     await fireEvent.press(screen.getByText('Ver otros planes'));
-    expect(routerFalso.replace).toHaveBeenCalledWith('/');
+    expect(fakeRouter.replace).toHaveBeenCalledWith('/');
   });
 
   test('error: muestra el aviso y «Reintentar» carga la ficha', async () => {
     const catalog = catalogWithThreeDates();
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     await renderPlanDetail(catalog);
     expect(screen.getByText('No pudimos cargar el plan')).toBeOnTheScreen();
     expect(screen.getByText('Revisa tu conexión e intenta de nuevo.')).toBeOnTheScreen();
 
-    catalog.fallo = null;
+    catalog.failure = null;
     await fireEvent.press(screen.getByText('Reintentar'));
 
     expect(screen.queryByText('No pudimos cargar el plan')).toBeNull();
     expect(screen.getByText('Reservar')).toBeOnTheScreen();
-    expect(catalog.detallesPedidos).toEqual(['plan-1', 'plan-1']);
+    expect(catalog.requestedPlanIds).toEqual(['plan-1', 'plan-1']);
   });
 
   test('si fallan las reseñas falla toda la ficha', async () => {
-    const reviews = new ResenasFalsas();
-    reviews.fallo = new Error('sin red');
+    const reviews = new FakeReviews();
+    reviews.failure = new Error('sin red');
     await renderPlanDetail(catalogWithThreeDates(), reviews);
     expect(screen.getByText('No pudimos cargar el plan')).toBeOnTheScreen();
   });
@@ -171,11 +171,11 @@ describe('volver', () => {
   test('sin historial «Volver» lleva al catálogo; con historial, atrás', async () => {
     await renderPlanDetail(catalogWithThreeDates());
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    expect(routerFalso.replace).toHaveBeenCalledWith('/');
+    expect(fakeRouter.replace).toHaveBeenCalledWith('/');
 
-    routerFalso.canGoBack.mockImplementation(() => true);
+    fakeRouter.canGoBack.mockImplementation(() => true);
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    expect(routerFalso.back).toHaveBeenCalled();
+    expect(fakeRouter.back).toHaveBeenCalled();
   });
 });
 
@@ -202,7 +202,7 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
   const card = () => within(screen.getByTestId('tarjeta-agencia'));
 
   test('sin logo: iniciales «RA» sobre el color de la agencia, sin pedir imagen', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planWithAgency() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency() } }));
 
     expect(card().getByText('RA')).toBeOnTheScreen();
     expect(card().queryByTestId('agency-avatar-logo')).toBeNull();
@@ -210,12 +210,12 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
   });
 
   test('con logo_url: muestra la imagen', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planWithAgency('https://logos.test/rutas.png') } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency('https://logos.test/rutas.png') } }));
     expect(card().getByTestId('agency-avatar-logo')).toBeTruthy();
   });
 
   test('celular angosto (320): el sello va debajo del nombre, en la misma columna de texto', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planWithAgency() } }), new ResenasFalsas(), 320);
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency() } }), new FakeReviews(), 320);
 
     const texts = within(screen.getByTestId('tarjeta-agencia-textos'));
     expect(texts.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
@@ -224,12 +224,12 @@ describe('tarjeta de la agencia (detalle_agencia_test)', () => {
   });
 
   test('PRESERVE: la tarjeta sigue mostrando RNT y abre la página de la agencia', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planWithAgency() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithAgency() } }));
 
     expect(card().getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
     expect(card().getByText(/RNT 12345/)).toBeOnTheScreen();
     await fireEvent.press(card().getByText('Rutas de Antioquia Cultural'));
-    expect(routerFalso.push).toHaveBeenCalledWith('/agencia/ag-rutas');
+    expect(fakeRouter.push).toHaveBeenCalledWith('/agencia/ag-rutas');
   });
 });
 
@@ -260,7 +260,7 @@ describe('reseñas (detalle_resena_test)', () => {
   const avatarsWith = (text: string) => avatars().filter((a) => within(a).queryByText(text) !== null);
 
   async function renderWithReviews(list: Review[], reviewsCount = 4) {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planWithReviews(reviewsCount) } }), new ResenasFalsas(list));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': planWithReviews(reviewsCount) } }), new FakeReviews(list));
   }
 
   test('nombre vacío: no lanza y muestra «V» y «Viajero»', async () => {
@@ -331,7 +331,7 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
     });
 
   test('la barra de reserva va DESPUÉS del contenido desplazable (no encima): el final queda sobre ella', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': longPlan() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': longPlan() } }));
 
     const view = screen.getByTestId('pantalla-PlanDetailView');
     const content = within(screen.getByTestId('ficha-contenido'));
@@ -344,7 +344,7 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
   });
 
   test('secciones: experiencia, qué incluye, itinerario y punto de encuentro', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': longPlan() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': longPlan() } }));
 
     expect(screen.getByText('LA EXPERIENCIA')).toBeOnTheScreen();
     expect(screen.getByText('QUÉ INCLUYE · PRECIO FINAL')).toBeOnTheScreen();
@@ -357,7 +357,7 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
   });
 
   test('itinerario: la línea de tiempo termina en el último paso (12 pasos, 11 tramos)', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': longPlan() } }));
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': longPlan() } }));
 
     expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(11);
   });
@@ -365,13 +365,13 @@ describe('orden de la pantalla (detalle_scroll_test)', () => {
 
 describe('pantallas anchas', () => {
   test('en web ancha (1280) el contenido va en una columna centrada de 720 como máximo', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba() } }), new ResenasFalsas(), 1280);
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan() } }), new FakeReviews(), 1280);
 
     expect(screen.getByTestId('ficha-columna')).toHaveStyle({ maxWidth: 720, width: '100%', alignSelf: 'center' });
   });
 
   test('PRESERVE: en el celular (375) la columna ocupa el ancho con los mismos márgenes de 22', async () => {
-    await renderPlanDetail(new CatalogoFalso({ detalles: { 'plan-1': planDePrueba() } }), new ResenasFalsas(), 375);
+    await renderPlanDetail(new FakeCatalogRepository({ details: { 'plan-1': testPlan() } }), new FakeReviews(), 375);
 
     expect(screen.getByTestId('ficha-columna')).toHaveStyle({ paddingLeft: 22, paddingRight: 22, paddingTop: 20 });
   });

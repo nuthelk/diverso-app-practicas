@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-native';
 import { BookingStatus, DiversoError, type Booking } from '@/core';
 import { useReviewViewModel } from '@/features/bookings/view-models/useReviewViewModel';
 
-import { compuerta } from '../../../support/compuerta';
-import { PublicadorDeResenasFalso, ReservasFalsas, reservaDePrueba } from '../../../support/reservas-falsas';
+import { createGate } from '../../../support/gate';
+import { FakeReviewPublisher, FakeBookingRepository, testBooking } from '../../../support/fake-booking-repository';
 
 /**
  * `useReviewViewModel` con repositorios falsos: carga la reserva por id (o usa la de la lista),
@@ -16,11 +16,11 @@ const now = new Date(Date.UTC(2026, 9, 25, 15, 0));
 const daysFromNow = (d: number) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
 const departure = daysFromNow(-3);
 
-let bookings: ReservasFalsas;
-let reviews: PublicadorDeResenasFalso;
+let bookings: FakeBookingRepository;
+let reviews: FakeReviewPublisher;
 beforeEach(() => {
-  bookings = new ReservasFalsas([reservaDePrueba({ salida: departure })]);
-  reviews = new PublicadorDeResenasFalso();
+  bookings = new FakeBookingRepository([testBooking({ departure })]);
+  reviews = new FakeReviewPublisher();
 });
 
 async function setup({ preloaded }: { preloaded?: Booking } = {}) {
@@ -40,21 +40,21 @@ describe('carga de la reserva', () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.booking?.id).toBe('res-1');
     expect(result.current.canReview).toBe(true);
-    expect(bookings.consultas).toEqual(['res-1']);
+    expect(bookings.bookingQueries).toEqual(['res-1']);
   });
 
   test('con la reserva de «Mis reservas» no se vuelve a pedir', async () => {
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    const { result } = await setup({ preloaded: bookings.list[0] });
     expect(result.current.loading).toBe(false);
 
     await act(() => result.current.load());
 
-    expect(bookings.consultas).toEqual([]);
+    expect(bookings.bookingQueries).toEqual([]);
     expect(result.current.canReview).toBe(true);
   });
 
   test('una reserva adelantada de otro id se ignora y se carga la pedida', async () => {
-    const { result } = await setup({ preloaded: reservaDePrueba({ id: 'otra', salida: departure }) });
+    const { result } = await setup({ preloaded: testBooking({ id: 'otra', departure }) });
     expect(result.current.loading).toBe(true);
 
     await act(() => result.current.load());
@@ -63,7 +63,7 @@ describe('carga de la reserva', () => {
   });
 
   test('error: queda el motivo y reintentar lo limpia', async () => {
-    bookings.lista = [];
+    bookings.list = [];
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -71,7 +71,7 @@ describe('carga de la reserva', () => {
     expect(result.current.booking).toBeNull();
     expect(result.current.canReview).toBe(false);
 
-    bookings.lista = [reservaDePrueba({ salida: departure })];
+    bookings.list = [testBooking({ departure })];
     await act(() => result.current.load());
 
     expect(result.current.error).toBeNull();
@@ -79,19 +79,19 @@ describe('carga de la reserva', () => {
   });
 
   test('un error que no es de Diverso también queda como mensaje', async () => {
-    bookings.fallo = new Error('sin red');
+    bookings.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
     expect(result.current.error).not.toBeNull();
   });
 
   test.each([
-    ['aún no viajó', () => reservaDePrueba({ salida: daysFromNow(1) })],
-    ['ya reseñada', () => reservaDePrueba({ salida: departure, tieneResena: true })],
-    ['cancelada', () => reservaDePrueba({ salida: departure, estado: BookingStatus.cancelled })],
-    ['pendiente de pago', () => reservaDePrueba({ salida: departure, estado: BookingStatus.pendingPayment })],
+    ['aún no viajó', () => testBooking({ departure: daysFromNow(1) })],
+    ['ya reseñada', () => testBooking({ departure, hasReview: true })],
+    ['cancelada', () => testBooking({ departure, status: BookingStatus.cancelled })],
+    ['pendiente de pago', () => testBooking({ departure, status: BookingStatus.pendingPayment })],
   ])('no se puede reseñar una reserva %s', async (_label, make) => {
-    bookings.lista = [make()];
+    bookings.list = [make()];
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -100,14 +100,14 @@ describe('carga de la reserva', () => {
   });
 
   test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
-    bookings.compuerta = compuerta();
+    bookings.gate = createGate();
     const { result, unmount } = await setup();
     let pendingLoad!: Promise<void>;
     await act(async () => {
       pendingLoad = result.current.load();
     });
     await unmount();
-    bookings.compuerta.completar();
+    bookings.gate.resolve();
 
     await expect(pendingLoad).resolves.toBeUndefined();
   });
@@ -115,7 +115,7 @@ describe('carga de la reserva', () => {
 
 describe('calificación y envío', () => {
   test('empieza en 5 estrellas y rate la cambia (solo de 1 a 5)', async () => {
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    const { result } = await setup({ preloaded: bookings.list[0] });
     expect(result.current.rating).toBe(5);
 
     await act(async () => result.current.rate(2));
@@ -129,7 +129,7 @@ describe('calificación y envío', () => {
   });
 
   test('submit publica con la calificación y el comentario, y devuelve true', async () => {
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    const { result } = await setup({ preloaded: bookings.list[0] });
     await act(async () => result.current.rate(4));
 
     let ok = false;
@@ -138,7 +138,7 @@ describe('calificación y envío', () => {
     });
 
     expect(ok).toBe(true);
-    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 4, comentario: 'Muy bueno' }]);
+    expect(reviews.createdReviews).toEqual([{ bookingId: 'res-1', rating: 4, comment: 'Muy bueno' }]);
     expect(result.current.submitting).toBe(false);
     // La pantalla se cierra: el botón no se vuelve a activar.
     expect(result.current.published).toBe(true);
@@ -146,7 +146,7 @@ describe('calificación y envío', () => {
   });
 
   test('una reseña ya publicada no se publica dos veces', async () => {
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    const { result } = await setup({ preloaded: bookings.list[0] });
     await act(async () => {
       await result.current.submit('a');
     });
@@ -156,12 +156,12 @@ describe('calificación y envío', () => {
       ok = await result.current.submit('a');
     });
     expect(ok).toBe(false);
-    expect(reviews.creadas).toHaveLength(1);
+    expect(reviews.createdReviews).toHaveLength(1);
   });
 
   test('mientras envía `submitting` es true y un segundo envío no publica dos veces', async () => {
-    reviews.compuerta = compuerta();
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    reviews.gate = createGate();
+    const { result } = await setup({ preloaded: bookings.list[0] });
 
     let first!: Promise<boolean>;
     await act(async () => {
@@ -175,16 +175,16 @@ describe('calificación y envío', () => {
     expect(second).toBe(false);
 
     await act(async () => {
-      reviews.compuerta!.completar();
+      reviews.gate!.resolve();
       await first;
     });
     await expect(first).resolves.toBe(true);
-    expect(reviews.creadas).toHaveLength(1);
+    expect(reviews.createdReviews).toHaveLength(1);
   });
 
   test('si el servidor rechaza: false, `submitError` con el motivo y se puede reintentar', async () => {
-    reviews.fallo = new DiversoError('ESTADO_INVALIDO');
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    reviews.failure = new DiversoError('ESTADO_INVALIDO');
+    const { result } = await setup({ preloaded: bookings.list[0] });
 
     let ok = true;
     await act(async () => {
@@ -194,9 +194,9 @@ describe('calificación y envío', () => {
     expect(ok).toBe(false);
     expect(result.current.submitError).toBe('La reserva ya no admite esta operación.');
     expect(result.current.submitting).toBe(false);
-    expect(reviews.creadas).toEqual([]);
+    expect(reviews.createdReviews).toEqual([]);
 
-    reviews.fallo = null;
+    reviews.failure = null;
     await act(async () => {
       ok = await result.current.submit('');
     });
@@ -205,8 +205,8 @@ describe('calificación y envío', () => {
   });
 
   test('un error inesperado al publicar también queda como mensaje y libera el botón', async () => {
-    reviews.fallo = new Error('boom');
-    const { result } = await setup({ preloaded: bookings.lista[0] });
+    reviews.failure = new Error('boom');
+    const { result } = await setup({ preloaded: bookings.list[0] });
 
     let ok = true;
     await act(async () => {
@@ -218,14 +218,14 @@ describe('calificación y envío', () => {
   });
 
   test('desmontada: un envío que termina después no avisa a nadie ni lanza', async () => {
-    reviews.compuerta = compuerta();
-    const { result, unmount } = await setup({ preloaded: bookings.lista[0] });
+    reviews.gate = createGate();
+    const { result, unmount } = await setup({ preloaded: bookings.list[0] });
     let pendingSubmit!: Promise<boolean>;
     await act(async () => {
       pendingSubmit = result.current.submit('');
     });
     await unmount();
-    reviews.compuerta.completar();
+    reviews.gate.resolve();
 
     await expect(pendingSubmit).resolves.toBe(true);
   });

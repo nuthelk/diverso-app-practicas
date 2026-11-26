@@ -17,12 +17,12 @@ import { withAlpha, lightTheme } from '@/ui/theme';
 import { hideSnackbar } from '@/features/shared/snackbar';
 import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
-import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { testDependencies, stub } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 import { settleScreen } from '../support';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * «Mis reservas» con salidas reales (relativas a hoy): «Cancelar» solo antes de salir, «Reseñar»
@@ -79,9 +79,9 @@ function plan({ photos = [], withAgency = true }: { photos?: string[]; withAgenc
 }
 
 async function renderBookings(bookings: Booking[]) {
-  await fijarVentana(800, 1400);
-  const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => bookings });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
+  await setWindowSize(800, 1400);
+  const repo = stub<Public<BookingRepository>>('BookingRepository', { myBookings: async () => bookings });
+  await renderScreen(<BookingsView />, { dependencies: testDependencies({ bookings: repo }) });
   await settleScreen();
 }
 
@@ -90,8 +90,8 @@ const tap = async (text: string) => {
   await settleScreen();
 };
 
-beforeEach(reiniciarRouterFalso);
-afterEach(restaurarVentana);
+beforeEach(resetFakeRouter);
+afterEach(restoreWindowSize);
 
 test('una confirmada que ya salió está en «Historial», sin «Cancelar» y con «Reseñar»', async () => {
   await renderBookings([bookingIn('PASADA', -5), bookingIn('FUTURA', 5)]);
@@ -251,7 +251,7 @@ test('«Próximas» vacía: estado vacío (ícono, «Sin viajes próximos», «�
   expect(exploreButton).toBeOnTheScreen();
   await fireEvent.press(exploreButton!);
   // A la pestaña «Explorar» (que ya existe): `navigate`, no se apila otra encima.
-  expect(routerFalso.navigate).toHaveBeenCalledWith('/');
+  expect(fakeRouter.navigate).toHaveBeenCalledWith('/');
 });
 
 test('«Historial» vacía: «Todavía no hay historial.»', async () => {
@@ -261,16 +261,16 @@ test('«Historial» vacía: «Todavía no hay historial.»', async () => {
 });
 
 test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async () => {
-  await fijarVentana(800, 1400);
+  await setWindowSize(800, 1400);
   let attempts = 0;
-  const repo = doble<Public<BookingRepository>>('BookingRepository', {
+  const repo = stub<Public<BookingRepository>>('BookingRepository', {
     myBookings: async () => {
       attempts++;
       if (attempts === 1) throw new Error('sin red');
       return [bookingIn('FUTURA', 5)];
     },
   });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
+  await renderScreen(<BookingsView />, { dependencies: testDependencies({ bookings: repo }) });
   await settleScreen();
 
   expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
@@ -282,11 +282,11 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
 });
 
 test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
-  await fijarVentana(800, 1400);
-  const repo = doble<Public<BookingRepository>>('BookingRepository', {
+  await setWindowSize(800, 1400);
+  const repo = stub<Public<BookingRepository>>('BookingRepository', {
     myBookings: () => new Promise<Booking[]>(() => {}),
   });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
+  await renderScreen(<BookingsView />, { dependencies: testDependencies({ bookings: repo }) });
 
   expect(screen.getAllByTestId('skeleton')).toHaveLength(3);
 });
@@ -297,7 +297,7 @@ test('pendiente de pago: «Ya pagué, verificar» lleva a verificar el pago de e
   expect(screen.getByText('Completar pago')).toBeOnTheScreen();
   await tap('Ya pagué, verificar');
 
-  expect(routerFalso.replace).toHaveBeenCalledWith('/pago/resultado?reserva=PEN');
+  expect(fakeRouter.replace).toHaveBeenCalledWith('/pago/resultado?reserva=PEN');
 });
 
 test('tocar la tarjeta abre el detalle de esa reserva', async () => {
@@ -305,5 +305,5 @@ test('tocar la tarjeta abre el detalle de esa reserva', async () => {
 
   await fireEvent.press(screen.getByLabelText('Ver detalle de la reserva FUTURA'));
 
-  expect(routerFalso.push).toHaveBeenCalledWith('/reservas/FUTURA');
+  expect(fakeRouter.push).toHaveBeenCalledWith('/reservas/FUTURA');
 });

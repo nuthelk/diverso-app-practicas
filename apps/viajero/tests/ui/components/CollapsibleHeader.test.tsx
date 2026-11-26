@@ -7,7 +7,7 @@ import { testTopInset, renderWithTheme } from '../support/render-with-theme';
 
 // La cabecera sigue el foco de la pantalla (la barra de estado clara es solo de la pantalla
 // visible); sin navegador, el doble la da por enfocada mientras esté montada.
-jest.mock('expo-router', () => require('../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../support/fake-expo-router'));
 // `StatusBar` de expo-status-bar no pinta nada: el doble deja ver qué estilo pide.
 jest.mock('expo-status-bar', () => {
   const { createElement } = require('react');

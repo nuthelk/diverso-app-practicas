@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { DiversoError } from '@/core';
 import { useCheckoutPlanViewModel } from '@/features/checkout/view-models/useCheckoutPlanViewModel';
 
-import { compuerta, esperar } from '../../../support/compuerta';
+import { createGate, flushMicrotasks } from '../../../support/gate';
 import { FakeCatalog, testPlanDate, testPlan } from '../support/fake-catalog';
 
 /**
@@ -84,16 +84,16 @@ test('«Reintentar» tras un fallo vuelve a cargar y limpia el error', async () 
 
 test('cargar que termina con la pantalla ya cerrada no avisa a nadie', async () => {
   const catalog = new FakeCatalog({ details: { 'plan-1': testPlan() } });
-  catalog.gate = compuerta();
+  catalog.gate = createGate();
   const { result, unmount } = await setup(catalog);
   let pendingLoad!: Promise<void>;
   await act(async () => {
     pendingLoad = result.current.load();
-    await esperar();
+    await flushMicrotasks();
   });
 
   await unmount();
-  catalog.gate.completar();
+  catalog.gate.resolve();
   await pendingLoad;
 });
 

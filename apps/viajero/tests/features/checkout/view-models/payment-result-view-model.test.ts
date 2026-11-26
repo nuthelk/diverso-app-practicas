@@ -4,7 +4,7 @@ import { BookingStatus, DiversoError, VerifiedPaymentStatus } from '@/core';
 import { PaymentOutcome } from '@/features/checkout/payment-outcome';
 import { usePaymentResultViewModel } from '@/features/checkout/view-models/usePaymentResultViewModel';
 
-import { compuerta, esperar } from '../../../support/compuerta';
+import { createGate, flushMicrotasks } from '../../../support/gate';
 import { testPayment, FakePaymentGateway } from '../support/fake-payment-gateway';
 
 /**
@@ -113,14 +113,14 @@ test('«Reintentar» tras una falla verifica de nuevo desde cero', async () => {
   expect(result.current.failure).not.toBeNull();
 
   loadingStates.length = 0;
-  gateway.gate = compuerta();
+  gateway.gate = createGate();
   let verifying!: Promise<void>;
   await act(async () => {
     verifying = result.current.verify();
-    await esperar();
+    await flushMicrotasks();
   });
   expect(result.current.loading).toBe(true);
-  gateway.gate.completar();
+  gateway.gate.resolve();
   await act(() => verifying);
 
   // Vuelve a cargar y termina.
@@ -140,19 +140,19 @@ test('arranca cargando para que la pantalla no parpadee un estado vacío', async
 
 test('cada intento se avisa a la vista («… (intento N)»)', async () => {
   // Cada verificación espera su propia compuerta: así se ve el estado entre attemptStates.
-  const gates = [compuerta(), compuerta(), compuerta()];
+  const gates = [createGate(), createGate(), createGate()];
   const gateway = new FakePaymentGateway([pendingPayment()]);
   const originalVerify = gateway.verify.bind(gateway);
   let calls = 0;
   gateway.verify = async (p) => {
-    await gates[calls++]!.promesa;
+    await gates[calls++]!.promise;
     return originalVerify(p);
   };
   const { result } = await setup(gateway);
   let verifying!: Promise<void>;
   await act(async () => {
     verifying = result.current.verify();
-    await esperar();
+    await flushMicrotasks();
   });
   for (let n = 1; n <= gates.length; n++) {
     // Mientras espera la respuesta del intento n, la vista ya lo muestra.
@@ -160,8 +160,8 @@ test('cada intento se avisa a la vista («… (intento N)»)', async () => {
     await waitFor(() => expect(result.current.attempts).toBe(n));
     expect(result.current.loading).toBe(true);
     await act(async () => {
-      gates[n - 1]!.completar();
-      await esperar();
+      gates[n - 1]!.resolve();
+      await flushMicrotasks();
     });
   }
   await act(() => verifying);
@@ -180,17 +180,17 @@ describe('retryPayment («Intentar de nuevo» tras un pago rechazado)', () => {
 
   test('abre el pago de ESA reserva y deja el estado limpio', async () => {
     const { result, retryingStates } = await setup(new FakePaymentGateway());
-    const gate = compuerta();
+    const gate = createGate();
     let retrying!: Promise<void>;
     await act(async () => {
       retrying = result.current.retryPayment('res-1', async (id) => {
-        await gate.promesa;
+        await gate.promise;
         return fakeOpenPayment(PaymentOutcome.completed)(id);
       });
-      await esperar();
+      await flushMicrotasks();
     });
     expect(result.current.retryingPayment).toBe(true);
-    gate.completar();
+    gate.resolve();
     await act(() => retrying);
 
     expect(opened).toEqual(['res-1']);
@@ -244,27 +244,27 @@ describe('retryPayment («Intentar de nuevo» tras un pago rechazado)', () => {
 
   test('mientras uno está en curso, otro toque se ignora', async () => {
     const { result } = await setup(new FakePaymentGateway());
-    const gate = compuerta<PaymentOutcome>();
+    const gate = createGate<PaymentOutcome>();
     await act(async () => {
-      const first = result.current.retryPayment('res-1', () => gate.promesa);
+      const first = result.current.retryPayment('res-1', () => gate.promise);
       await result.current.retryPayment('res-1', fakeOpenPayment(PaymentOutcome.completed));
       expect(opened).toEqual([]);
-      gate.completar(PaymentOutcome.completed);
+      gate.resolve(PaymentOutcome.completed);
       await first;
     });
   });
 
   test('si la pantalla se cierra mientras el pago se abre, no avisa a nadie', async () => {
     const { result, unmount } = await setup(new FakePaymentGateway());
-    const gate = compuerta<PaymentOutcome>();
+    const gate = createGate<PaymentOutcome>();
     let retrying!: Promise<void>;
     await act(async () => {
-      retrying = result.current.retryPayment('res-1', () => gate.promesa);
-      await esperar();
+      retrying = result.current.retryPayment('res-1', () => gate.promise);
+      await flushMicrotasks();
     });
 
     await unmount();
-    gate.completar(PaymentOutcome.completed);
+    gate.resolve(PaymentOutcome.completed);
     await retrying;
   });
 });
@@ -272,16 +272,16 @@ describe('retryPayment («Intentar de nuevo» tras un pago rechazado)', () => {
 describe('guarda de desmontaje', () => {
   test('cerrar la pantalla durante la verificación corta el sondeo y no avisa', async () => {
     const gateway = new FakePaymentGateway([pendingPayment()]);
-    gateway.gate = compuerta();
+    gateway.gate = createGate();
     const { result, unmount } = await setup(gateway);
     let verifying!: Promise<void>;
     await act(async () => {
       verifying = result.current.verify();
-      await esperar();
+      await flushMicrotasks();
     });
 
     await unmount();
-    gateway.gate.completar();
+    gateway.gate.resolve();
     await verifying;
 
     // No sigue preguntando.

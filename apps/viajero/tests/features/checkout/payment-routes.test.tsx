@@ -15,8 +15,8 @@ import {
 } from '@/core';
 import { AppRoutes } from '@/router';
 
-import { arrancarApp, asentar } from '../../support/app';
-import { dependenciasDePrueba, doble } from '../../support/dependencias-de-prueba';
+import { startApp, settle } from '../../support/app';
+import { testDependencies, stub } from '../../support/test-dependencies';
 import { FakeCatalog, testPlanDate, testPlan } from './support/fake-catalog';
 import { FakePaymentGateway } from './support/fake-payment-gateway';
 import { FakeBookings } from './support/fake-bookings';
@@ -84,11 +84,11 @@ beforeEach(() => {
 });
 
 async function openApp(url: string, gateway: FakePaymentGateway) {
-  return arrancarApp(
+  return startApp(
     url,
-    dependenciasDePrueba({
-      catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-      bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+    testDependencies({
+      catalog: stub<Public<CatalogRepository>>('CatalogRepository', catalog),
+      bookings: stub<Public<BookingRepository>>('BookingRepository', bookings),
       gateway,
     }),
   );
@@ -127,7 +127,7 @@ test('/reserva/:bookingId inexistente muestra el error, no una pantalla vacía',
 test('/pago/resultado?id=… verifica en el servidor y, si fue aprobado, abre /reserva/:id', async () => {
   const gateway = new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.approved)]);
   const r = await openApp(AppRoutes.paymentForTransaction('tx-77'), gateway);
-  await asentar();
+  await settle();
   expect(gateway.verifications).toEqual([{ transactionId: 'tx-77', bookingId: null }]);
   expect(r.getPathname()).toBe('/reserva/res-1');
   expect(screen.getByText('DIV-ABC123')).toBeOnTheScreen();
@@ -168,7 +168,7 @@ test('/reserva/:bookingId pendiente de pago manda a verificar el pago de esa res
   bookings = new FakeBookings([bookingWithStatus(BookingStatus.pendingPayment)]);
   const gateway = new FakePaymentGateway([verifiedPayment(VerifiedPaymentStatus.pending, BookingStatus.pendingPayment)]);
   const r = await openApp(AppRoutes.booking('res-1'), gateway);
-  await asentar();
+  await settle();
   expect(r.getPathname()).toBe('/pago/resultado');
   expect(gateway.verifications[0]).toEqual({ transactionId: null, bookingId: 'res-1' });
 });

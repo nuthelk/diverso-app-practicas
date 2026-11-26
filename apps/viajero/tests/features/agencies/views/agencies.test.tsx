@@ -3,11 +3,11 @@ import { act, fireEvent, screen, within } from 'expo-router/testing-library';
 
 import { AgencySummary, ExperienceCategory, Plan, PlanStatus } from '@/core';
 
-import { arrancarApp, asentar } from '../../../support/app';
-import { CatalogoFalso, ResenasFalsas } from '../../../support/catalogo-falso';
-import { compuerta } from '../../../support/compuerta';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { fijarVentana, restaurarVentana } from '../../../support/pantalla';
+import { startApp, settle } from '../../../support/app';
+import { FakeCatalogRepository, FakeReviews } from '../../../support/fake-catalog-repository';
+import { createGate } from '../../../support/gate';
+import { testDependencies } from '../../../support/test-dependencies';
+import { setWindowSize, restoreWindowSize } from '../../../support/render-screen';
 
 /**
  * Pestaña «Agencias» y página `/agencia/:id` con el router real: lista con puntaje («Nueva» sin
@@ -49,17 +49,17 @@ const plan = (id: string, title: string) =>
   });
 
 function testCatalog(list = [rutas, eco, cafe]) {
-  return new CatalogoFalso({
-    agenciasPublicas: list,
-    planesPorAgencia: { 'ag-rutas': [plan('plan-1', 'Comuna 13 y memoria'), plan('plan-2', 'Santa Fe de Antioquia')] },
-    detalles: { 'plan-1': plan('plan-1', 'Comuna 13 y memoria') },
+  return new FakeCatalogRepository({
+    publicAgencies: list,
+    plansByAgency: { 'ag-rutas': [plan('plan-1', 'Comuna 13 y memoria'), plan('plan-2', 'Santa Fe de Antioquia')] },
+    details: { 'plan-1': plan('plan-1', 'Comuna 13 y memoria') },
   });
 }
 
-async function openAt(catalog: CatalogoFalso, url = '/agencias') {
+async function openAt(catalog: FakeCatalogRepository, url = '/agencias') {
   // 600 de ancho: lista de una columna.
-  await fijarVentana(600, 1400);
-  return arrancarApp(url, dependenciasDePrueba({ catalog, reviews: new ResenasFalsas() as never }));
+  await setWindowSize(600, 1400);
+  return startApp(url, testDependencies({ catalog, reviews: new FakeReviews() as never }));
 }
 
 /** Nombres de las agencias de la lista, de arriba abajo (orden en el árbol). */
@@ -72,7 +72,7 @@ function namesOnScreen() {
 
 beforeEach(() => jest.spyOn(console, 'warn').mockImplementation(() => {}));
 afterEach(async () => {
-  await restaurarVentana();
+  await restoreWindowSize();
   jest.useRealTimers();
   jest.restoreAllMocks();
 });
@@ -115,13 +115,13 @@ describe('lista de agencias', () => {
 
   test('muestra esqueletos mientras carga', async () => {
     const catalog = testCatalog([rutas]);
-    const gate = (catalog.compuerta = compuerta());
+    const gate = (catalog.gate = createGate());
     await openAt(catalog);
     expect(screen.getAllByTestId('skeleton').length).toBeGreaterThan(0);
     expect(screen.queryByText('Rutas de Antioquia Cultural')).toBeNull();
 
-    await act(async () => gate.completar());
-    await asentar();
+    await act(async () => gate.resolve());
+    await settle();
     expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
     expect(screen.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
   });
@@ -133,14 +133,14 @@ describe('lista de agencias', () => {
 
   test('si falla muestra el error y «Reintentar» vuelve a cargar', async () => {
     const catalog = testCatalog();
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     await openAt(catalog);
     expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
     expect(screen.getByText(/No pudimos cargar las agencias/)).toBeOnTheScreen();
 
-    catalog.fallo = null;
+    catalog.failure = null;
     await fireEvent.press(screen.getByText('Reintentar'));
-    await asentar();
+    await settle();
     expect(screen.queryByText('Sin conexión')).toBeNull();
     expect(screen.getByText('Rutas de Antioquia Cultural')).toBeOnTheScreen();
   });
@@ -148,17 +148,17 @@ describe('lista de agencias', () => {
   test('deslizar hacia abajo recarga la lista', async () => {
     const catalog = testCatalog();
     await openAt(catalog);
-    expect(catalog.consultasAgencias).toBe(1);
+    expect(catalog.agencyQueries).toBe(1);
 
     const refreshControl = screen.getByTestId('agencias-scroll').props.refreshControl;
     await act(async () => refreshControl.props.onRefresh());
-    expect(catalog.consultasAgencias).toBe(2);
+    expect(catalog.agencyQueries).toBe(2);
   });
 
   test('tocar una agencia abre su página', async () => {
     const r = await openAt(testCatalog());
     await fireEvent.press(screen.getByText('Rutas de Antioquia Cultural'));
-    await asentar();
+    await settle();
     expect(r.getPathname()).toBe('/agencia/ag-rutas');
     expect(screen.getByText('PLANES PUBLICADOS (2)')).toBeOnTheScreen();
   });
@@ -184,7 +184,7 @@ describe('página de agencia', () => {
   test('tocar un plan abre /plan/:id como en el catálogo', async () => {
     const r = await openAt(testCatalog(), '/agencia/ag-rutas');
     await fireEvent.press(screen.getByText('Comuna 13 y memoria'));
-    await asentar();
+    await settle();
     expect(r.getPathname()).toBe('/plan/plan-1');
   });
 
@@ -202,19 +202,19 @@ describe('página de agencia', () => {
 
   test('si falla la carga ofrece reintentar', async () => {
     const catalog = testCatalog();
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     await openAt(catalog, '/agencia/ag-rutas');
     expect(screen.getByText('No pudimos cargar la agencia')).toBeOnTheScreen();
-    catalog.fallo = null;
+    catalog.failure = null;
     await fireEvent.press(screen.getByText('Reintentar'));
-    await asentar();
+    await settle();
     expect(screen.getByText('Comuna 13 y memoria')).toBeOnTheScreen();
   });
 
   test('tras recargar (sin historial) «Volver» lleva a la lista de agencias', async () => {
     const r = await openAt(testCatalog(), '/agencia/ag-rutas');
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    await asentar();
+    await settle();
     expect(r.getPathname()).toBe('/agencias');
     expect(screen.getByText('Café y Montaña Tours')).toBeOnTheScreen();
   });
@@ -222,10 +222,10 @@ describe('página de agencia', () => {
   test('desde la lista, «Volver» regresa a la lista', async () => {
     const r = await openAt(testCatalog());
     await fireEvent.press(screen.getByText('Rutas de Antioquia Cultural'));
-    await asentar();
+    await settle();
     expect(router.canGoBack()).toBe(true);
     await fireEvent.press(within(screen.getByTestId('pantalla-AgenciaView')).getByRole('button', { name: 'Volver' }));
-    await asentar();
+    await settle();
     expect(r.getPathname()).toBe('/agencias');
   });
 });

@@ -4,7 +4,7 @@ import { DiversoError } from '@/core';
 import { PaymentOutcome } from '@/features/checkout/payment-outcome';
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
 
-import { compuerta, esperar } from '../../../support/compuerta';
+import { createGate, flushMicrotasks } from '../../../support/gate';
 import { testPlanDate, testPlan } from '../support/fake-catalog';
 import { testPendingBooking, FakeBookings } from '../support/fake-bookings';
 
@@ -64,17 +64,17 @@ test('las personas van de 1 a 20 y el total las multiplica', async () => {
 
 test('pagar avisa dos veces: empieza a procesar y termina (y vibra)', async () => {
   const { result, processingStates } = await setup();
-  const gate = compuerta();
+  const gate = createGate();
   let paying!: Promise<void>;
   await act(async () => {
     paying = result.current.pay(planDate, async (id) => {
-      await gate.promesa;
+      await gate.promise;
       return fakeOpenPayment(true)(id);
     });
-    await esperar();
+    await flushMicrotasks();
   });
   expect(result.current.processing).toBe(true);
-  gate.completar();
+  gate.resolve();
   await act(() => paying);
 
   expect(processingStates).toEqual([false, true, false]);
@@ -186,30 +186,30 @@ test('un nuevo intento limpia el error anterior', async () => {
 describe('guarda de desmontaje', () => {
   test('pagar que termina cuando la pantalla ya se cerró no avisa a nadie', async () => {
     const { result, unmount } = await setup();
-    const gate = compuerta<PaymentOutcome>();
+    const gate = createGate<PaymentOutcome>();
     let paying!: Promise<void>;
     await act(async () => {
-      paying = result.current.pay(planDate, () => gate.promesa);
-      await esperar();
+      paying = result.current.pay(planDate, () => gate.promise);
+      await flushMicrotasks();
     });
     expect(result.current.processing).toBe(true);
 
     await unmount();
-    gate.completar(PaymentOutcome.completed);
+    gate.resolve(PaymentOutcome.completed);
     await paying;
   });
 
   test('pagar que falla cuando la pantalla ya se cerró tampoco avisa', async () => {
     const { result, unmount } = await setup();
-    const gate = compuerta<PaymentOutcome>();
+    const gate = createGate<PaymentOutcome>();
     let paying!: Promise<void>;
     await act(async () => {
-      paying = result.current.pay(planDate, () => gate.promesa);
-      await esperar();
+      paying = result.current.pay(planDate, () => gate.promise);
+      await flushMicrotasks();
     });
 
     await unmount();
-    gate.fallar(new DiversoError('RESERVA_VENCIDA'));
+    gate.reject(new DiversoError('RESERVA_VENCIDA'));
     await paying;
   });
 });

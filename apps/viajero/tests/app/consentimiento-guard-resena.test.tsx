@@ -4,10 +4,10 @@ import { DiversoError, Profile, UserRole, type Booking, type BookingRepository, 
 import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 import { hideSnackbar } from '@/features/shared/snackbar';
 
-import { arrancarApp, asentar, pantallaVisible } from '../support/app';
-import { AuthFalso } from '../support/auth-falso';
-import { compuerta, type Compuerta } from '../support/compuerta';
-import { dependenciasDePrueba, doble } from '../support/dependencias-de-prueba';
+import { startApp, settle, visibleScreen } from '../support/app';
+import { FakeAuth } from '../support/fake-auth';
+import { createGate, type Gate } from '../support/gate';
+import { testDependencies, stub } from '../support/test-dependencies';
 
 /**
  * Los casos de `router/consentimiento_guard_test.dart` que dependen de las pantallas reales de
@@ -20,27 +20,27 @@ import { dependenciasDePrueba, doble } from '../support/dependencias-de-prueba';
 const pendientesDePrueba = ['tratamiento_datos', 'terminos_viajero'];
 
 /** Cada consulta de consentimiento queda en [abiertas] hasta que el test la responde. */
-class AuthManual extends AuthFalso {
-  readonly abiertas: Compuerta<string[]>[] = [];
+class AuthManual extends FakeAuth {
+  readonly abiertas: Gate<string[]>[] = [];
 
   constructor(usuario: string) {
-    super({ usuario });
+    super({ userId: usuario });
     this.email = 'viajero@demo.com';
-    this.perfil = new Profile({ id: 'viajero-1', role: UserRole.traveler, name: 'Santiago' });
+    this.profile = new Profile({ id: 'viajero-1', role: UserRole.traveler, name: 'Santiago' });
   }
 
   override pendingConsents(): Promise<string[]> {
-    this.consultas++;
-    const c = compuerta<string[]>();
+    this.consentQueries++;
+    const c = createGate<string[]>();
     this.abiertas.push(c);
-    return c.promesa;
+    return c.promise;
   }
 }
 
 /** RLS oculta las reservas de otros viajeros: el servidor responde «no existe». */
 function reservasAjenas() {
   const consultas: string[] = [];
-  const repo = doble<Public<BookingRepository>>('BookingRepository', {
+  const repo = stub<Public<BookingRepository>>('BookingRepository', {
     booking: async (bookingId: string): Promise<Booking> => {
       consultas.push(bookingId);
       throw new DiversoError('RESERVA_NO_EXISTE');
@@ -53,9 +53,9 @@ function reservasAjenas() {
   return { repo, consultas };
 }
 
-async function responder(c: Compuerta<string[]> | undefined, valor: string[]) {
-  await act(async () => c!.completar(valor));
-  await asentar();
+async function responder(c: Gate<string[]> | undefined, valor: string[]) {
+  await act(async () => c!.resolve(valor));
+  await settle();
 }
 
 afterEach(() => {
@@ -68,7 +68,7 @@ describe('V1: mientras se verifica el consentimiento', () => {
   test('un enlace a una pantalla protegida no carga sus datos', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, bookings: repo }));
+    const r = await startApp('/reservas/b-1', testDependencies({ auth, bookings: repo }));
 
     expect(r.getPathname()).toBe('/consentimiento');
     expect(consultas).toEqual([]);
@@ -79,26 +79,26 @@ describe('V1: mientras se verifica el consentimiento', () => {
   test('aceptado, el enlace original se conserva y carga esa reserva', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, bookings: repo }));
+    const r = await startApp('/reservas/b-1', testDependencies({ auth, bookings: repo }));
 
     await responder(auth.abiertas[0], []);
 
     expect(r.getPathname()).toBe('/reservas/b-1');
-    expect(pantallaVisible('ReservaDetalleView')).toBeOnTheScreen();
+    expect(visibleScreen('ReservaDetalleView')).toBeOnTheScreen();
     expect(consultas).toEqual(['b-1']);
   });
 
   test('pendiente, tras aceptar se llega al perfil con el nombre del viajero', async () => {
     const auth = new AuthManual('viajero-1');
-    const r = await arrancarApp('/perfil', dependenciasDePrueba({ auth }));
+    const r = await startApp('/perfil', testDependencies({ auth }));
 
     await responder(auth.abiertas[0], pendientesDePrueba);
     expect(screen.getByText('Antes de continuar')).toBeOnTheScreen();
-    expect(auth.cargasDePerfil).toBe(0);
+    expect(auth.profileLoads).toBe(0);
 
     for (const casilla of screen.getAllByRole('checkbox')) await fireEvent.press(casilla);
     await fireEvent.press(screen.getByText('Aceptar y continuar'));
-    await asentar(2);
+    await settle(2);
     await responder(auth.abiertas[1], []);
 
     expect(r.getPathname()).toBe('/perfil');
@@ -111,7 +111,7 @@ describe('J2: rutas con ids con el consentimiento al día', () => {
   test('/resena/<reserva de otro viajero> no muestra el formulario', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    await arrancarApp('/resena/03341be8-fa33-4958-8b64-a0893b3197e4', dependenciasDePrueba({ auth, bookings: repo }));
+    await startApp('/resena/03341be8-fa33-4958-8b64-a0893b3197e4', testDependencies({ auth, bookings: repo }));
     await responder(auth.abiertas[0], []);
 
     expect(consultas).toEqual(['03341be8-fa33-4958-8b64-a0893b3197e4']);

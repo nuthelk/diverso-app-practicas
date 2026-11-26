@@ -5,25 +5,25 @@ import { AppState, type AppStateStatus } from 'react-native';
  * Ciclo de vida de la app bajo control del test (el `handleAppLifecycleStateChanged` de
  * `flutter_test`): intercepta `AppState.addEventListener('change')` y deja emitir estados.
  */
-export function controlarAppState() {
-  const escuchas = new Set<(estado: AppStateStatus) => void>();
-  const espia = jest.spyOn(AppState, 'addEventListener').mockImplementation((tipo, escucha) => {
-    if (tipo === 'change') escuchas.add(escucha as (estado: AppStateStatus) => void);
-    return { remove: () => escuchas.delete(escucha as (estado: AppStateStatus) => void) } as never;
+export function controlAppState() {
+  const listeners = new Set<(state: AppStateStatus) => void>();
+  const spy = jest.spyOn(AppState, 'addEventListener').mockImplementation((eventType, listener) => {
+    if (eventType === 'change') listeners.add(listener as (state: AppStateStatus) => void);
+    return { remove: () => listeners.delete(listener as (state: AppStateStatus) => void) } as never;
   });
   return {
-    get oyentes() {
-      return escuchas.size;
+    get listenerCount() {
+      return listeners.size;
     },
-    async emitir(estado: AppStateStatus) {
+    async emit(state: AppStateStatus) {
       await act(async () => {
-        for (const e of [...escuchas]) e(estado);
+        for (const e of [...listeners]) e(state);
       });
     },
     /** La app pasa a segundo plano y vuelve a primer plano. */
-    async irASegundoPlanoYVolver() {
-      for (const estado of ['inactive', 'background', 'active'] as const) await this.emitir(estado);
+    async goToBackgroundAndBack() {
+      for (const state of ['inactive', 'background', 'active'] as const) await this.emit(state);
     },
-    restaurar: () => espia.mockRestore(),
+    restore: () => spy.mockRestore(),
   };
 }

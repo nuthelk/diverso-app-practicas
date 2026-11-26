@@ -9,12 +9,12 @@ import { CatalogView } from '@/features/catalog/views/CatalogView';
 import { PlanDetailView } from '@/features/plan/views/PlanDetailView';
 import { darkTheme } from '@/ui/theme';
 
-import { CatalogoFalso, ResenasFalsas } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository, FakeReviews } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Lo que de `puntaje_nueva_test.dart` y `cabeceras_test.dart` toca las pantallas de T5: la
@@ -38,14 +38,14 @@ const plan = ({ reviews = 0, rating = 0 }: { reviews?: number; rating?: number }
 
 const agency = new AgencySummary({ id: 'ag-rutas', name: 'Rutas de Antioquia Cultural', city: 'Medellín', planCount: 1 });
 
-function testDependencies(p = plan()) {
-  const catalog = new CatalogoFalso({
-    planes: [p],
-    detalles: { 'plan-1': p },
-    agenciasPublicas: [agency],
-    planesPorAgencia: { 'ag-rutas': [p] },
+function planDependencies(p = plan()) {
+  const catalog = new FakeCatalogRepository({
+    plans: [p],
+    details: { 'plan-1': p },
+    publicAgencies: [agency],
+    plansByAgency: { 'ag-rutas': [p] },
   });
-  return dependenciasDePrueba({ catalog, reviews: new ResenasFalsas() as never });
+  return testDependencies({ catalog, reviews: new FakeReviews() as never });
 }
 
 async function scrollTo(y: number) {
@@ -61,21 +61,21 @@ async function scrollTo(y: number) {
 }
 
 beforeEach(async () => {
-  reiniciarRouterFalso();
-  await fijarVentana(600, 1000);
+  resetFakeRouter();
+  await setWindowSize(600, 1000);
 });
-afterEach(restaurarVentana);
+afterEach(restoreWindowSize);
 
 describe('tarjeta del catálogo', () => {
   test('sin reseñas dice «Nueva», sin estrella ni 0.0', async () => {
-    await renderPantalla(<PlanCard plan={plan()} />);
+    await renderScreen(<PlanCard plan={plan()} />);
     expect(screen.getByText('Nueva')).toBeOnTheScreen();
     expect(screen.queryByText('0.0')).toBeNull();
     expect(screen.queryAllByTestId('icono-star_rounded', { includeHiddenElements: true })).toHaveLength(0);
   });
 
   test('PRESERVE: con reseñas sigue mostrando ★ 4.5 y la cantidad', async () => {
-    await renderPantalla(<PlanCard plan={plan({ reviews: 3, rating: 4.5 })} />);
+    await renderScreen(<PlanCard plan={plan({ reviews: 3, rating: 4.5 })} />);
     expect(screen.getByText('4.5')).toBeOnTheScreen();
     expect(screen.getByText('(3)')).toBeOnTheScreen();
     expect(screen.queryAllByTestId('icono-star_rounded', { includeHiddenElements: true })).toHaveLength(1);
@@ -85,14 +85,14 @@ describe('tarjeta del catálogo', () => {
 
 describe('ficha del plan', () => {
   test('sin reseñas dice «Nueva» y no habla de reseñas verificadas', async () => {
-    await renderPantalla(<PlanDetailView planId="plan-1" />, { dependencias: testDependencies() });
+    await renderScreen(<PlanDetailView planId="plan-1" />, { dependencies: planDependencies() });
     expect(screen.getByText('Nueva')).toBeOnTheScreen();
     expect(screen.queryByText('0.0')).toBeNull();
     expect(screen.queryByText(/reseñas verificadas/)).toBeNull();
   });
 
   test('PRESERVE: con reseñas muestra el puntaje y «n reseñas verificadas»', async () => {
-    await renderPantalla(<PlanDetailView planId="plan-1" />, { dependencias: testDependencies(plan({ reviews: 2, rating: 4.0 })) });
+    await renderScreen(<PlanDetailView planId="plan-1" />, { dependencies: planDependencies(plan({ reviews: 2, rating: 4.0 })) });
     expect(screen.getByText('4.0')).toBeOnTheScreen();
     expect(screen.getByText(/2 reseñas verificadas/)).toBeOnTheScreen();
     expect(screen.queryByText('Nueva')).toBeNull();
@@ -106,7 +106,7 @@ describe('páginas con el título en la barra superior', () => {
   ];
   for (const [name, view, title, scroll] of pages) {
     test(`${name}: el título no está dentro del scroll y usa el título de página grande`, async () => {
-      await renderPantalla(view(), { dependencias: testDependencies() });
+      await renderScreen(view(), { dependencies: planDependencies() });
 
       const bar = within(screen.getByTestId('barra-superior'));
       const text = bar.getByText(title);
@@ -118,7 +118,7 @@ describe('páginas con el título en la barra superior', () => {
   }
 
   test('en tema oscuro el título y la cabecera también se leen', async () => {
-    await renderPantalla(<AgenciesView />, { dependencias: testDependencies(), modo: 'dark' });
+    await renderScreen(<AgenciesView />, { dependencies: planDependencies(), mode: 'dark' });
 
     const bar = screen.getByTestId('barra-superior');
     expect(StyleSheet.flatten(within(bar).getByText('Agencias').props.style).color).toBe(darkTheme.colorScheme.onSurface);
@@ -128,7 +128,7 @@ describe('páginas con el título en la barra superior', () => {
 
 describe('cabecera colapsable', () => {
   test('detalle del plan: sin título en la cabecera con la foto a la vista; al colapsar, sólida con título y «Volver»', async () => {
-    await renderPantalla(<PlanDetailView planId="plan-1" />, { dependencias: testDependencies() });
+    await renderScreen(<PlanDetailView planId="plan-1" />, { dependencies: planDependencies() });
 
     expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
     expect(within(screen.getByTestId('cabecera-scroll')).getByText('Plan número 1')).toBeOnTheScreen();
@@ -140,7 +140,7 @@ describe('cabecera colapsable', () => {
   });
 
   test('página de la agencia: sin nombre en la cabecera con la portada; al colapsar, sólida con nombre y «Volver»', async () => {
-    await renderPantalla(<AgencyView agencyId="ag-rutas" />, { dependencias: testDependencies() });
+    await renderScreen(<AgencyView agencyId="ag-rutas" />, { dependencies: planDependencies() });
 
     expect(screen.queryByTestId('cabecera-titulo')).toBeNull();
     expect(screen.getByText(agency.name)).toBeOnTheScreen();

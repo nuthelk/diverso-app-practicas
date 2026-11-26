@@ -6,9 +6,9 @@ import { BookingStatus, DiversoError, ExperienceCategory, Plan, PlanStatus } fro
 import { hideSnackbar } from '@/features/shared/snackbar';
 import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
-import { arrancarApp, asentar } from '../../../support/app';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { PublicadorDeResenasFalso, ReservasFalsas, reservaDePrueba } from '../../../support/reservas-falsas';
+import { startApp, settle } from '../../../support/app';
+import { testDependencies } from '../../../support/test-dependencies';
+import { FakeReviewPublisher, FakeBookingRepository, testBooking } from '../../../support/fake-booking-repository';
 
 /**
  * Reseña (`/resena/:bookingId`): elegir estrellas, publicar y los avisos cuando el servidor la
@@ -39,18 +39,18 @@ async function openReview({
   hasDeparted = true,
   status = BookingStatus.confirmed,
 }: { url?: string; publishFailure?: unknown; hasDeparted?: boolean; status?: BookingStatus } = {}) {
-  const bookings = new ReservasFalsas([
-    reservaDePrueba({ salida: new Date(Date.now() + (hasDeparted ? -4 : 4) * DAY_MS), plan: planP1, estado: status }),
+  const bookings = new FakeBookingRepository([
+    testBooking({ departure: new Date(Date.now() + (hasDeparted ? -4 : 4) * DAY_MS), plan: planP1, status }),
   ]);
-  const reviews = new PublicadorDeResenasFalso();
-  reviews.fallo = publishFailure;
-  const r = await arrancarApp(url, dependenciasDePrueba({ bookings, reviews }));
+  const reviews = new FakeReviewPublisher();
+  reviews.failure = publishFailure;
+  const r = await startApp(url, testDependencies({ bookings, reviews }));
   return { r, bookings, reviews };
 }
 
 async function tap(text: string) {
   await fireEvent.press(screen.getByText(text));
-  await asentar();
+  await settle();
 }
 
 const publishButton = () => screen.getByRole('button', { name: 'Publicar reseña' });
@@ -71,7 +71,7 @@ describe('formulario', () => {
     const { reviews } = await openReview({ publishFailure: new DiversoError('ESTADO_INVALIDO') });
 
     await fireEvent.press(screen.getByLabelText('3 de 5 estrellas'));
-    await asentar();
+    await settle();
     expect(screen.getByText('Regular')).toBeOnTheScreen();
 
     for (const [n, label] of [
@@ -81,14 +81,14 @@ describe('formulario', () => {
       [5, '¡Excelente!'],
     ] as const) {
       await fireEvent.press(screen.getByLabelText(`${n} de 5 estrellas`));
-      await asentar();
+      await settle();
       expect(screen.getByText(label)).toBeOnTheScreen();
     }
 
     await fireEvent.changeText(screen.getByLabelText('Cuenta cómo te fue (opcional)'), 'Buen paseo');
     await tap('Publicar reseña');
 
-    expect(reviews.creadas).toEqual([]); // el servidor la rechazó
+    expect(reviews.createdReviews).toEqual([]); // el servidor la rechazó
   });
 
   test('si el servidor rechaza la reseña lo explica y deja volver a intentarlo', async () => {
@@ -106,11 +106,11 @@ describe('formulario', () => {
     const { reviews } = await openReview();
 
     await fireEvent.press(screen.getByLabelText('4 de 5 estrellas'));
-    await asentar();
+    await settle();
     await fireEvent.changeText(screen.getByLabelText('Cuenta cómo te fue (opcional)'), 'Muy bueno');
     await tap('Publicar reseña');
 
-    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 4, comentario: 'Muy bueno' }]);
+    expect(reviews.createdReviews).toEqual([{ bookingId: 'res-1', rating: 4, comment: 'Muy bueno' }]);
     expect(screen.getByText('¡Gracias! Tu reseña ayudará a otros viajeros.')).toBeOnTheScreen();
   });
 
@@ -126,7 +126,7 @@ describe('/resena/:bookingId', () => {
   test('tras una recarga (solo la URL, sin extra) carga la reserva y muestra el formulario', async () => {
     const { bookings } = await openReview();
 
-    expect(bookings.consultas).toEqual(['res-1']);
+    expect(bookings.bookingQueries).toEqual(['res-1']);
     expect(screen.getByText('Tu reseña')).toBeOnTheScreen();
     expect(screen.getByText('Plan p1')).toBeOnTheScreen();
     expect(publishButton()).toBeOnTheScreen();
@@ -137,7 +137,7 @@ describe('/resena/:bookingId', () => {
 
     await tap('Publicar reseña');
 
-    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 5, comentario: '' }]);
+    expect(reviews.createdReviews).toEqual([{ bookingId: 'res-1', rating: 5, comment: '' }]);
     expect(r.getPathname()).toBe('/reservas');
     // El aviso sobrevive a la navegación (el `ScaffoldMessenger` de Flutter es de toda la app).
     expect(screen.getByText('¡Gracias! Tu reseña ayudará a otros viajeros.')).toBeOnTheScreen();
@@ -174,19 +174,19 @@ describe('/resena/:bookingId', () => {
 
     expect(r.getPathname()).toBe('/resena/res-1');
     expect(publishButton()).toBeOnTheScreen();
-    expect(bookings.consultas).toEqual([]);
+    expect(bookings.bookingQueries).toEqual([]);
   });
 
   test('al volver de la reseña «Mis reservas» se recarga', async () => {
     const { r, bookings } = await openReview({ url: '/reservas' });
     await tap('Historial (1)');
-    expect(bookings.consultasLista).toBe(1);
+    expect(bookings.listQueries).toBe(1);
 
     await tap('Reseñar');
     await tap('Publicar reseña');
 
     expect(r.getPathname()).toBe('/reservas');
-    expect(bookings.consultasLista).toBe(2);
+    expect(bookings.listQueries).toBe(2);
   });
 
   test('la ruta vieja /resena (sin id) lleva a «Mis reservas»', async () => {
@@ -235,6 +235,6 @@ describe('teclado', () => {
 test('abierta en frío (sin historial), «Volver» lleva a Mis reservas en vez de dejarla sin salida', async () => {
   const { r } = await openReview();
   await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-  await asentar();
+  await settle();
   expect(r.getPathname()).toBe('/reservas');
 });

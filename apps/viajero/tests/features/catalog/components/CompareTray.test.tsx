@@ -7,13 +7,13 @@ import { CompareTray } from '@/features/catalog/components/CompareTray';
 import { forgetPlansToCompare, plansToCompare } from '@/features/catalog/plans-to-compare';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
-import { CatalogoFalso } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Bandeja de comparación del catálogo: oculta sin selección, con pista y botón deshabilitado con
@@ -37,9 +37,9 @@ const plan = (i: number) =>
 
 async function renderCatalog({ planCount = 4 }: { planCount?: number } = {}) {
   // 600 de ancho: lista de una columna y espacio para tres miniaturas junto al botón.
-  await fijarVentana(600, 1000);
-  const catalog = new CatalogoFalso({ planes: Array.from({ length: planCount }, (_, i) => plan(i + 1)) });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
+  await setWindowSize(600, 1000);
+  const catalog = new FakeCatalogRepository({ plans: Array.from({ length: planCount }, (_, i) => plan(i + 1)) });
+  await renderScreen(<CatalogView />, { dependencies: testDependencies({ catalog }) });
 }
 
 /** Deja correr la animación de la bandeja (220 ms). */
@@ -60,11 +60,11 @@ const compareButton = () => inTray().getByTestId('boton-comparar');
 
 beforeEach(() => {
   jest.useFakeTimers();
-  reiniciarRouterFalso();
+  resetFakeRouter();
   forgetPlansToCompare();
 });
 afterEach(async () => {
-  await restaurarVentana();
+  await restoreWindowSize();
   jest.useRealTimers();
 });
 
@@ -89,7 +89,7 @@ test('con 1 plan: contador, pista y «Comparar (1)» deshabilitado', async () =>
 
   // Tocar el botón deshabilitado no navega.
   await fireEvent.press(compareButton());
-  expect(routerFalso.push).not.toHaveBeenCalled();
+  expect(fakeRouter.push).not.toHaveBeenCalled();
 });
 
 test('con 2 planes: «Comparar (2)» activo, sin pista, y abre el comparador con ellos', async () => {
@@ -103,7 +103,7 @@ test('con 2 planes: «Comparar (2)» activo, sin pista, y abre el comparador con
   expect(compareButton()).toBeEnabled();
 
   await fireEvent.press(compareButton());
-  expect(routerFalso.push).toHaveBeenCalledWith('/comparar?ids=plan-1,plan-2');
+  expect(fakeRouter.push).toHaveBeenCalledWith('/comparar?ids=plan-1,plan-2');
   // El `extra`: los planes que ya se tenían viajan en memoria.
   expect(plansToCompare()!.map((p) => p.id)).toEqual(['plan-1', 'plan-2']);
 });

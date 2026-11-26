@@ -10,7 +10,7 @@ import {
   WompiPaymentGateway,
 } from '@/core';
 
-import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
+import { testDependencies } from '../support/test-dependencies';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -22,7 +22,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
  */
 describe('DependenciesProvider / useDependencies', () => {
   test('entrega los cinco repositorios que se le pasan', async () => {
-    const dependencies = dependenciasDePrueba();
+    const dependencies = testDependencies();
     const { result } = await renderHook(() => useDependencies(), {
       wrapper: ({ children }) => <DependenciesProvider dependencies={dependencies}>{children}</DependenciesProvider>,
     });

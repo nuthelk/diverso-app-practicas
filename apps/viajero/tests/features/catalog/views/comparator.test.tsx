@@ -6,12 +6,12 @@ import { PlanComparator } from '@/features/catalog/components/PlanComparator';
 import { setPlansToCompare, forgetPlansToCompare } from '@/features/catalog/plans-to-compare';
 import { ComparatorView } from '@/features/catalog/views/ComparatorView';
 
-import { CatalogoFalso } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Comparador: en celulares angostos la tabla no aplasta las columnas (se desliza y el precio no
@@ -35,19 +35,19 @@ const plan = (id: string, price: number, title = `Plan ${id} con un nombre basta
 const threePlans = () => [plan('1', 189000), plan('2', 178000), plan('3', 179000)];
 
 async function renderTable(width: number, plans = threePlans()) {
-  await fijarVentana(width, 1600);
-  await renderPantalla(<PlanComparator plans={plans} />);
+  await setWindowSize(width, 1600);
+  await renderScreen(<PlanComparator plans={plans} />);
 }
 
 const widthOf = (el: { props: Record<string, unknown> }) => StyleSheet.flatten(el.props.style as never).width as number;
 
 beforeEach(() => {
-  reiniciarRouterFalso();
+  resetFakeRouter();
   forgetPlansToCompare();
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(async () => {
-  await restaurarVentana();
+  await restoreWindowSize();
   jest.restoreAllMocks();
 });
 
@@ -85,7 +85,7 @@ describe('tabla (comparador_layout_test)', () => {
     expect(screen.getAllByText('Ver plan')).toHaveLength(3);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Ver plan Plan 3 con un nombre bastante largo' }));
-    expect(routerFalso.push).toHaveBeenCalledWith('/plan/3');
+    expect(fakeRouter.push).toHaveBeenCalledWith('/plan/3');
   });
 
   test('con empate de precio se marcan todas las columnas más baratas', async () => {
@@ -122,18 +122,18 @@ describe('control de viajeros (comparison_test)', () => {
 });
 
 describe('pantalla /comparar (comparator_loader)', () => {
-  async function renderComparator(ids: string[], catalog: CatalogoFalso) {
-    await fijarVentana(600, 1000);
-    await renderPantalla(<ComparatorView ids={ids} />, { dependencias: dependenciasDePrueba({ catalog }) });
+  async function renderComparator(ids: string[], catalog: FakeCatalogRepository) {
+    await setWindowSize(600, 1000);
+    await renderScreen(<ComparatorView ids={ids} />, { dependencies: testDependencies({ catalog }) });
   }
-  const catalogWithPlans = () => new CatalogoFalso({ detalles: { a: plan('a', 100000), b: plan('b', 120000) } });
+  const catalogWithPlans = () => new FakeCatalogRepository({ details: { a: plan('a', 100000), b: plan('b', 120000) } });
 
   test('carga los planes por id y muestra la tabla bajo «Comparar planes»', async () => {
     const catalog = catalogWithPlans();
     await renderComparator(['b', 'a'], catalog);
 
     expect(screen.getByText('Comparar planes')).toBeOnTheScreen();
-    expect(catalog.detallesPedidos).toEqual(['b', 'a']);
+    expect(catalog.requestedPlanIds).toEqual(['b', 'a']);
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
 
@@ -142,22 +142,22 @@ describe('pantalla /comparar (comparator_loader)', () => {
     setPlansToCompare([plan('a', 1), plan('b', 2)]);
     await renderComparator(['a', 'b'], catalog);
 
-    expect(catalog.detallesPedidos).toEqual([]);
+    expect(catalog.requestedPlanIds).toEqual([]);
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
 
   test('error: «No pudimos cargar la comparación», «Reintentar» se recupera e «Ir al catálogo» va al inicio', async () => {
     const catalog = catalogWithPlans();
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     await renderComparator(['a', 'b'], catalog);
 
     expect(screen.getByText('No pudimos cargar la comparación')).toBeOnTheScreen();
     expect(screen.getByText('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.')).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByText('Ir al catálogo'));
-    expect(routerFalso.replace).toHaveBeenCalledWith('/');
+    expect(fakeRouter.replace).toHaveBeenCalledWith('/');
 
-    catalog.fallo = null;
+    catalog.failure = null;
     await fireEvent.press(screen.getByText('Reintentar'));
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
   });
@@ -165,6 +165,6 @@ describe('pantalla /comparar (comparator_loader)', () => {
   test('«Volver» sin historial lleva al catálogo', async () => {
     await renderComparator([], catalogWithPlans());
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    expect(routerFalso.replace).toHaveBeenCalledWith('/');
+    expect(fakeRouter.replace).toHaveBeenCalledWith('/');
   });
 });

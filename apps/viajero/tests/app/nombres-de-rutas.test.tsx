@@ -1,6 +1,6 @@
 import { screen, within } from 'expo-router/testing-library';
 
-import { arrancarApp } from '../support/app';
+import { startApp } from '../support/app';
 
 /**
  * Expo Router arma el estado inicial con las rutas en su orden canónico. Si los navegadores las
@@ -12,7 +12,7 @@ import { arrancarApp } from '../support/app';
 // se verificó con un log en useNavigationBuilder. Aquí se fija el orden visual de la barra.
 describe('nombres de rutas', () => {
   test('la barra muestra las pestañas en el orden de la marca: Explorar, Agencias, Reservas, Perfil', async () => {
-    await arrancarApp('/');
+    await startApp('/');
     const pestanas = within(screen.getByTestId('navigation-bar')).getAllByRole('tab');
     expect(pestanas.map((p) => p.props.accessibilityLabel)).toEqual(['Explorar', 'Agencias', 'Reservas', 'Perfil']);
   });

@@ -3,12 +3,12 @@ import { fireEvent, screen, within } from '@testing-library/react-native';
 import { formatShortDate } from '@/core';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
-import { CatalogoFalso } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Hoja de filtros del catálogo: «Aplicar filtros» aplica destino, precio y fecha juntos con UNA
@@ -17,9 +17,9 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  */
 
 async function renderCatalog() {
-  await fijarVentana(600, 1000);
-  const catalog = new CatalogoFalso({ destinosDisponibles: ['Guatapé', 'Jardín'] });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
+  await setWindowSize(600, 1000);
+  const catalog = new FakeCatalogRepository({ availableDestinations: ['Guatapé', 'Jardín'] });
+  await renderScreen(<CatalogView />, { dependencies: testDependencies({ catalog }) });
   return catalog;
 }
 
@@ -42,21 +42,21 @@ async function pickDestination(name: string) {
   await fireEvent.press(sheet().getByTestId(`destino-${name}`));
 }
 
-beforeEach(reiniciarRouterFalso);
-afterEach(restaurarVentana);
+beforeEach(resetFakeRouter);
+afterEach(restoreWindowSize);
 
 test('aplicar destino y precio hace una sola consulta con ambos filtros', async () => {
   const catalog = await renderCatalog();
-  expect(catalog.busquedas).toHaveLength(1);
+  expect(catalog.searches).toHaveLength(1);
 
   await openSheet();
   await pickDestination('Guatapé');
   await lowerPrice();
   await apply();
 
-  expect(catalog.busquedas).toHaveLength(2);
-  expect(catalog.busquedas.at(-1)!.destination).toBe('Guatapé');
-  expect(catalog.busquedas.at(-1)!.maxPrice).not.toBeNull();
+  expect(catalog.searches).toHaveLength(2);
+  expect(catalog.searches.at(-1)!.destination).toBe('Guatapé');
+  expect(catalog.searches.at(-1)!.maxPrice).not.toBeNull();
   expect(chips()).toHaveLength(2);
 });
 
@@ -66,10 +66,10 @@ test('aplicar sin cambios también hace una sola consulta', async () => {
   await openSheet();
   await apply();
 
-  expect(catalog.busquedas).toHaveLength(2);
-  expect(catalog.busquedas.at(-1)!.destination).toBeNull();
-  expect(catalog.busquedas.at(-1)!.maxPrice).toBeNull();
-  expect(catalog.busquedas.at(-1)!.date).toBeNull();
+  expect(catalog.searches).toHaveLength(2);
+  expect(catalog.searches.at(-1)!.destination).toBeNull();
+  expect(catalog.searches.at(-1)!.maxPrice).toBeNull();
+  expect(catalog.searches.at(-1)!.date).toBeNull();
 });
 
 test('Limpiar y aplicar quita los filtros con una sola consulta', async () => {
@@ -77,15 +77,15 @@ test('Limpiar y aplicar quita los filtros con una sola consulta', async () => {
   await openSheet();
   await pickDestination('Jardín');
   await apply();
-  expect(catalog.busquedas.at(-1)!.destination).toBe('Jardín');
-  const before = catalog.busquedas.length;
+  expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
+  const before = catalog.searches.length;
 
   await openSheet();
   await fireEvent.press(sheet().getByText('Limpiar'));
   await apply();
 
-  expect(catalog.busquedas).toHaveLength(before + 1);
-  expect(catalog.busquedas.at(-1)!.destination).toBeNull();
+  expect(catalog.searches).toHaveLength(before + 1);
+  expect(catalog.searches.at(-1)!.destination).toBeNull();
   expect(chips()).toHaveLength(0);
 });
 
@@ -95,21 +95,21 @@ describe('con un destino ya activo', () => {
     await openSheet();
     await pickDestination('Guatapé');
     await apply();
-    expect(catalog.busquedas.at(-1)!.destination).toBe('Guatapé');
+    expect(catalog.searches.at(-1)!.destination).toBe('Guatapé');
     return catalog;
   }
 
   test('cambiar solo el precio conserva el destino y su chip', async () => {
     const catalog = await renderWithGuatape();
-    const before = catalog.busquedas.length;
+    const before = catalog.searches.length;
 
     await openSheet();
     await lowerPrice();
     await apply();
 
-    expect(catalog.busquedas).toHaveLength(before + 1);
-    expect(catalog.busquedas.at(-1)!.destination).toBe('Guatapé');
-    expect(catalog.busquedas.at(-1)!.maxPrice).not.toBeNull();
+    expect(catalog.searches).toHaveLength(before + 1);
+    expect(catalog.searches.at(-1)!.destination).toBe('Guatapé');
+    expect(catalog.searches.at(-1)!.maxPrice).not.toBeNull();
     expect(chips().some((c) => within(c).queryByText('Guatapé') !== null)).toBe(true);
   });
 
@@ -120,7 +120,7 @@ describe('con un destino ya activo', () => {
     await fireEvent.press(sheet().getByText('Limpiar'));
     await apply();
 
-    expect(catalog.busquedas.at(-1)!.destination).toBeNull();
+    expect(catalog.searches.at(-1)!.destination).toBeNull();
     expect(chips()).toHaveLength(0);
   });
 
@@ -131,7 +131,7 @@ describe('con un destino ya activo', () => {
     await pickDestination('Jardín');
     await apply();
 
-    expect(catalog.busquedas.at(-1)!.destination).toBe('Jardín');
+    expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
   });
 });
 
@@ -147,7 +147,7 @@ describe('detalles de la hoja', () => {
     await fireEvent(sheet().getByRole('adjustable'), 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
     expect(sheet().getByTestId('valor-precio')).toHaveTextContent('Sin límite');
     await apply();
-    expect(catalog.busquedas.at(-1)!.maxPrice).toBeNull();
+    expect(catalog.searches.at(-1)!.maxPrice).toBeNull();
   });
 
   test('el deslizador va de 50 000 a 600 000 en 11 divisiones de 50 000', async () => {
@@ -174,8 +174,8 @@ describe('detalles de la hoja', () => {
     const priceChip = chips().find((c) => within(c).queryByText('Hasta $ 450.000') !== null)!;
     await fireEvent.press(within(priceChip).getByRole('button'));
 
-    expect(catalog.busquedas.at(-1)!.maxPrice).toBeNull();
-    expect(catalog.busquedas.at(-1)!.destination).toBe('Jardín');
+    expect(catalog.searches.at(-1)!.maxPrice).toBeNull();
+    expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
     expect(screen.getByTestId('insignia-filtros')).toHaveTextContent('1');
   });
 
@@ -204,7 +204,7 @@ describe('detalles de la hoja', () => {
     expect(sheet().getByRole('button', { name: 'Quitar fecha' })).toBeOnTheScreen();
     await apply();
 
-    const date = catalog.busquedas.at(-1)!.date!;
+    const date = catalog.searches.at(-1)!.date!;
     expect([date.getFullYear(), date.getMonth(), date.getDate()]).toEqual([tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate()]);
     expect(screen.getByText(formatShortDate(tomorrow))).toBeOnTheScreen();
 

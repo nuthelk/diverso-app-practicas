@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-native';
 import { ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { useComparatorViewModel } from '@/features/catalog/view-models/useComparatorViewModel';
 
-import { CatalogoFalso } from '../../../support/catalogo-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeCatalogRepository } from '../../../support/fake-catalog-repository';
+import { createGate } from '../../../support/gate';
 
 /**
  * `useComparatorViewModel`: carga por ids en orden, sin ids no consulta, los planes que ya se
@@ -23,9 +23,9 @@ const plan = (id: string) =>
     status: PlanStatus.published,
   });
 
-let catalog: CatalogoFalso;
+let catalog: FakeCatalogRepository;
 beforeEach(() => {
-  catalog = new CatalogoFalso({ detalles: Object.fromEntries(['a', 'b', 'c'].map((id) => [id, plan(id)])) });
+  catalog = new FakeCatalogRepository({ details: Object.fromEntries(['a', 'b', 'c'].map((id) => [id, plan(id)])) });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());
@@ -52,14 +52,14 @@ test('sin ids no hay nada que cargar', async () => {
   expect(result.current.loading).toBe(false);
   expect(result.current.plans).toEqual([]);
   await act(() => result.current.load());
-  expect(catalog.detallesPedidos).toEqual([]);
+  expect(catalog.requestedPlanIds).toEqual([]);
 });
 
 test('los planes que ya se tenían (mismos ids) evitan la consulta', async () => {
   const { result } = await setup(['a', 'b'], [plan('a'), plan('b')]);
   expect(result.current.loading).toBe(false);
   await act(() => result.current.load());
-  expect(catalog.detallesPedidos).toEqual([]);
+  expect(catalog.requestedPlanIds).toEqual([]);
   expect(idsOf(result.current.plans)).toEqual(['a', 'b']);
 });
 
@@ -67,7 +67,7 @@ test('si los planes que se tenían no son los de la URL, se pide lo que dice la 
   const { result } = await setup(['a', 'c'], [plan('a'), plan('b')]);
   expect(result.current.loading).toBe(true);
   await act(() => result.current.load());
-  expect(catalog.detallesPedidos).toEqual(['a', 'c']);
+  expect(catalog.requestedPlanIds).toEqual(['a', 'c']);
   expect(idsOf(result.current.plans)).toEqual(['a', 'c']);
 });
 
@@ -75,11 +75,11 @@ test('los mismos ids en otro orden tampoco cuentan: se pide lo que dice la URL',
   const { result } = await setup(['b', 'a'], [plan('a'), plan('b')]);
   expect(result.current.loading).toBe(true);
   await act(() => result.current.load());
-  expect(catalog.detallesPedidos).toEqual(['b', 'a']);
+  expect(catalog.requestedPlanIds).toEqual(['b', 'a']);
 });
 
 test('si falla queda con el mensaje y «cargar» de nuevo se recupera', async () => {
-  catalog.fallo = new Error('sin red');
+  catalog.failure = new Error('sin red');
   const { result } = await setup(['a', 'b']);
 
   await act(() => result.current.load());
@@ -87,7 +87,7 @@ test('si falla queda con el mensaje y «cargar» de nuevo se recupera', async ()
   expect(result.current.loading).toBe(false);
   expect(result.current.error).toBe('No pudimos cargar los planes. Revisa tu conexión e intenta de nuevo.');
 
-  catalog.fallo = null;
+  catalog.failure = null;
   await act(() => result.current.load());
   expect(result.current.error).toBeNull();
   expect(result.current.plans).toHaveLength(2);
@@ -95,11 +95,11 @@ test('si falla queda con el mensaje y «cargar» de nuevo se recupera', async ()
 
 test('una respuesta que llega después de desmontar no lanza', async () => {
   const { result, unmount } = await setup(['a']);
-  const gate = (catalog.compuerta = compuerta());
+  const gate = (catalog.gate = createGate());
   const pending = result.current.load();
 
   await unmount();
-  gate.completar();
+  gate.resolve();
 
   await expect(pending).resolves.toBeUndefined();
 });

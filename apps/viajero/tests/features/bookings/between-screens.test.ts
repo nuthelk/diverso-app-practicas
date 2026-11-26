@@ -6,7 +6,7 @@ import {
   takeResult,
 } from '@/features/bookings/between-screens';
 
-import { reservaDePrueba } from '../../support/reservas-falsas';
+import { testBooking } from '../../support/fake-booking-repository';
 
 /**
  * Lo que en Flutter viajaba con la navegación (`extra` al hacer `push` y el valor de `pop(true)`),
@@ -20,7 +20,7 @@ afterEach(() => {
 
 describe('reserva adelantada (el `extra` de go_router)', () => {
   test('solo vale para el id pedido', () => {
-    const b = reservaDePrueba({ id: 'res-1' });
+    const b = testBooking({ id: 'res-1' });
     preloadBooking(b);
 
     expect(preloadedBooking('res-1')).toBe(b);
@@ -28,7 +28,7 @@ describe('reserva adelantada (el `extra` de go_router)', () => {
   });
 
   test('se puede leer más de una vez (render doble) y se olvida a pedido', () => {
-    const b = reservaDePrueba({ id: 'res-1' });
+    const b = testBooking({ id: 'res-1' });
     preloadBooking(b);
     expect(preloadedBooking('res-1')).toBe(b);
     expect(preloadedBooking('res-1')).toBe(b);
@@ -38,8 +38,8 @@ describe('reserva adelantada (el `extra` de go_router)', () => {
   });
 
   test('adelantar otra reemplaza a la anterior', () => {
-    preloadBooking(reservaDePrueba({ id: 'res-1' }));
-    preloadBooking(reservaDePrueba({ id: 'res-2' }));
+    preloadBooking(testBooking({ id: 'res-1' }));
+    preloadBooking(testBooking({ id: 'res-2' }));
     expect(preloadedBooking('res-1')).toBeNull();
     expect(preloadedBooking('res-2')?.id).toBe('res-2');
   });

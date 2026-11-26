@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-native';
 import { Review } from '@/core';
 import { MAX_REVIEWS, usePlanDetailViewModel } from '@/features/plan/view-models/usePlanDetailViewModel';
 
-import { CatalogoFalso, fechaDePrueba, planDePrueba, ResenasFalsas } from '../../../support/catalogo-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeCatalogRepository, testPlanDate, testPlan, FakeReviews } from '../../../support/fake-catalog-repository';
+import { createGate } from '../../../support/gate';
 
 /**
  * `usePlanDetailViewModel` con repositorios falsos: carga plan + reseñas (una consulta de cada
@@ -15,19 +15,19 @@ import { compuerta } from '../../../support/compuerta';
 const makeReview = (id: string) =>
   new Review({ id, bookingId: `b-${id}`, planId: 'plan-1', travelerId: `v-${id}`, rating: 5, createdAt: new Date(2026, 9, 1) });
 
-let catalog: CatalogoFalso;
-let reviews: ResenasFalsas;
+let catalog: FakeCatalogRepository;
+let reviews: FakeReviews;
 
 beforeEach(() => {
-  catalog = new CatalogoFalso({
-    detalles: {
-      'plan-1': planDePrueba({
+  catalog = new FakeCatalogRepository({
+    details: {
+      'plan-1': testPlan({
         reviewsCount: 2,
-        dates: [fechaDePrueba('f-3', { dias: 9 }), fechaDePrueba('f-1'), fechaDePrueba('f-2', { dias: 5 })],
+        dates: [testPlanDate('f-3', { days: 9 }), testPlanDate('f-1'), testPlanDate('f-2', { days: 5 })],
       }),
     },
   });
-  reviews = new ResenasFalsas([makeReview('r1'), makeReview('r2')]);
+  reviews = new FakeReviews([makeReview('r1'), makeReview('r2')]);
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => jest.restoreAllMocks());
@@ -65,16 +65,16 @@ describe('carga', () => {
     expect(ids(result.current.reviews)).toEqual(['r1', 'r2']);
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(catalog.detallesPedidos).toEqual(['plan-1']);
-    expect(reviews.pedidas).toEqual(['plan-1']);
-    expect(reviews.limites).toEqual([MAX_REVIEWS]);
+    expect(catalog.requestedPlanIds).toEqual(['plan-1']);
+    expect(reviews.requestedPlanIds).toEqual(['plan-1']);
+    expect(reviews.limits).toEqual([MAX_REVIEWS]);
     expect(MAX_REVIEWS).toBe(4);
     expect(loadingStates).toEqual([true, false]);
   });
 
   test('vacío: plan sin fechas ni reseñas', async () => {
-    catalog.detalles.set('plan-1', planDePrueba());
-    reviews.resenas = [];
+    catalog.details.set('plan-1', testPlan());
+    reviews.reviews = [];
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -86,7 +86,7 @@ describe('carga', () => {
   });
 
   test('error al cargar el plan: mensaje para el usuario y sin plan', async () => {
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -96,7 +96,7 @@ describe('carga', () => {
   });
 
   test('error al cargar las reseñas: toda la ficha falla, como antes', async () => {
-    reviews.fallo = new Error('sin red');
+    reviews.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -105,10 +105,10 @@ describe('carga', () => {
   });
 
   test('reintentar tras un error carga el plan y limpia el error', async () => {
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
-    catalog.fallo = null;
+    catalog.failure = null;
     await act(() => result.current.load());
 
     expect(result.current.error).toBeNull();
@@ -155,7 +155,7 @@ describe('fecha seleccionada', () => {
     await act(() => result.current.load());
     await act(() => result.current.selectDate(result.current.dates[1]!));
 
-    await act(() => result.current.selectDate(fechaDePrueba('otra')));
+    await act(() => result.current.selectDate(testPlanDate('otra')));
 
     expect(result.current.selectedDate!.id).toBe('f-2');
   });
@@ -174,20 +174,20 @@ describe('fecha seleccionada', () => {
 describe('desmontar (dispose)', () => {
   test('una carga que termina después de desmontar no lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
+    const gate = (catalog.gate = createGate());
     const pending = result.current.load();
     await unmount();
-    gate.completar();
+    gate.resolve();
     await expect(pending).resolves.toBeUndefined();
   });
 
   test('un error tardío después de desmontar tampoco lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
-    catalog.fallo = new Error('sin red');
+    const gate = (catalog.gate = createGate());
+    catalog.failure = new Error('sin red');
     const pending = result.current.load();
     await unmount();
-    gate.completar();
+    gate.resolve();
     await expect(pending).resolves.toBeUndefined();
   });
 });

@@ -6,14 +6,14 @@ import { hideSnackbar } from '@/features/shared/snackbar';
 import { ProfileView } from '@/features/profile/views/ProfileView';
 import { lightTheme } from '@/ui/theme';
 
-import { AuthFalso } from '../../../support/auth-falso';
-import { compuerta } from '../../../support/compuerta';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeAuth } from '../../../support/fake-auth';
+import { createGate } from '../../../support/gate';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 import { settleScreen } from '../../bookings/support';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Perfil: el nombre y el correo vienen del view model; si el perfil no carga ya no se queda
@@ -22,10 +22,10 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * `profile_view_test.dart` (+ apariencia y documentos legales).
  */
 
-async function renderProfile(auth: AuthFalso) {
-  await fijarVentana(800, 1600);
+async function renderProfile(auth: FakeAuth) {
+  await setWindowSize(800, 1600);
   // El tema arranca en «Sistema», como la app (no se persiste).
-  await renderPantalla(<ProfileView />, { dependencias: dependenciasDePrueba({ auth }), modo: 'system' });
+  await renderScreen(<ProfileView />, { dependencies: testDependencies({ auth }), mode: 'system' });
   await settleScreen();
 }
 
@@ -34,14 +34,14 @@ const tap = async (text: string) => {
   await settleScreen();
 };
 
-beforeEach(reiniciarRouterFalso);
+beforeEach(resetFakeRouter);
 afterEach(async () => {
   hideSnackbar();
-  await restaurarVentana();
+  await restoreWindowSize();
 });
 
 test('muestra el nombre, la inicial y el correo del viajero', async () => {
-  await renderProfile(new AuthFalso());
+  await renderProfile(new FakeAuth());
 
   expect(screen.getByText('Perfil')).toBeOnTheScreen();
   expect(screen.getByText('Ana')).toBeOnTheScreen();
@@ -51,8 +51,8 @@ test('muestra el nombre, la inicial y el correo del viajero', async () => {
 });
 
 test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el nombre', async () => {
-  const auth = new AuthFalso();
-  auth.falloAlCargarPerfil = new Error('sin red');
+  const auth = new FakeAuth();
+  auth.profileFailure = new Error('sin red');
   await renderProfile(auth);
 
   expect(screen.getByText('Viajero')).toBeOnTheScreen();
@@ -63,7 +63,7 @@ test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el 
     lightTheme.colorScheme.error,
   );
 
-  auth.falloAlCargarPerfil = null;
+  auth.profileFailure = null;
   await tap('Reintentar');
 
   expect(screen.getByText('Ana')).toBeOnTheScreen();
@@ -71,7 +71,7 @@ test('si el perfil no carga avisa con «Reintentar» y al reintentar muestra el 
 });
 
 test('«Cerrar sesión» cierra la sesión', async () => {
-  const auth = new AuthFalso();
+  const auth = new FakeAuth();
   await renderProfile(auth);
 
   await tap('Cerrar sesión');
@@ -80,8 +80,8 @@ test('«Cerrar sesión» cierra la sesión', async () => {
 });
 
 test('si cerrar la sesión falla lo dice en un aviso', async () => {
-  const auth = new AuthFalso();
-  auth.falloAlSalir = new Error('sin red');
+  const auth = new FakeAuth();
+  auth.signOutFailure = new Error('sin red');
   await renderProfile(auth);
 
   await tap('Cerrar sesión');
@@ -91,7 +91,7 @@ test('si cerrar la sesión falla lo dice en un aviso', async () => {
 });
 
 test('secciones: apariencia, confianza y documentos legales con la versión vigente', async () => {
-  await renderProfile(new AuthFalso());
+  await renderProfile(new FakeAuth());
 
   expect(screen.getByText('APARIENCIA')).toBeOnTheScreen();
   expect(screen.getByText('CONFIANZA')).toBeOnTheScreen();
@@ -103,17 +103,17 @@ test('secciones: apariencia, confianza y documentos legales con la versión vige
 });
 
 test('los documentos legales se abren encima del perfil', async () => {
-  await renderProfile(new AuthFalso());
+  await renderProfile(new FakeAuth());
 
   await tap('Política de tratamiento de datos');
-  expect(routerFalso.push).toHaveBeenLastCalledWith('/legal/privacidad');
+  expect(fakeRouter.push).toHaveBeenLastCalledWith('/legal/privacidad');
 
   await tap('Términos y condiciones');
-  expect(routerFalso.push).toHaveBeenLastCalledWith('/legal/terminos-viajeros');
+  expect(fakeRouter.push).toHaveBeenLastCalledWith('/legal/terminos-viajeros');
 });
 
 test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia el tema', async () => {
-  await renderProfile(new AuthFalso());
+  await renderProfile(new FakeAuth());
   const segment = (name: string) => screen.getByRole('button', { name });
 
   expect(segment('Sistema')).toBeSelected();
@@ -132,9 +132,9 @@ test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia 
 });
 
 test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos toques, una sola llamada', async () => {
-  const auth = new AuthFalso();
-  const signOutGate = compuerta();
-  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promesa);
+  const auth = new FakeAuth();
+  const signOutGate = createGate();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promise);
   await renderProfile(auth);
   const button = () => screen.getByRole('button', { name: 'Cerrar sesión' });
 
@@ -148,7 +148,7 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
   // El segundo toque se ignora: no es un fallo que haya que avisar.
   expect(screen.queryByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeNull();
 
-  signOutGate.fallar(new Error('sin red'));
+  signOutGate.reject(new Error('sin red'));
   await settleScreen();
 
   expect(button()).toBeEnabled();
@@ -157,8 +157,8 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
 });
 
 test('en pantallas anchas el contenido va en una columna centrada de 720 como máximo', async () => {
-  await renderProfile(new AuthFalso());
-  await fijarVentana(1280, 900);
+  await renderProfile(new FakeAuth());
+  await setWindowSize(1280, 900);
 
   const column = StyleSheet.flatten(screen.getByTestId('columna-perfil').props.style) ?? {};
   expect(column.maxWidth).toBe(720);

@@ -23,11 +23,11 @@ import {
 import { hideSnackbar } from '@/features/shared/snackbar';
 import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
-import { arrancarApp, asentar } from '../../../support/app';
-import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
-import { compuerta } from '../../../support/compuerta';
-import { PublicadorDeResenasFalso, ReservasFalsas } from '../../../support/reservas-falsas';
-import { textoCrudo } from '../../../support/texto-crudo';
+import { startApp, settle } from '../../../support/app';
+import { testDependencies, stub } from '../../../support/test-dependencies';
+import { createGate } from '../../../support/gate';
+import { FakeReviewPublisher, FakeBookingRepository } from '../../../support/fake-booking-repository';
+import { rawText } from '../../../support/raw-text';
 
 /**
  * Tarjeta de «Mis reservas» tocable + pantalla «Detalle de la reserva» (`/reservas/:bookingId`).
@@ -121,7 +121,7 @@ function bookingWith({
 
 function fakeRepo(list: Booking[]) {
   const queries: string[] = [];
-  const r = doble<Public<BookingRepository>>('BookingRepository', {
+  const r = stub<Public<BookingRepository>>('BookingRepository', {
     myBookings: async () => list,
     booking: async (id: string) => {
       queries.push(id);
@@ -137,13 +137,13 @@ function fakeRepo(list: Booking[]) {
 
 async function openApp(url: string, list: Booking[]) {
   const { repo: bookings, queries } = fakeRepo(list);
-  const r = await arrancarApp(url, dependenciasDePrueba({ bookings }));
+  const r = await startApp(url, testDependencies({ bookings }));
   return { r, queries };
 }
 
 async function tap(text: string) {
   await fireEvent.press(screen.getByText(text));
-  await asentar();
+  await settle();
 }
 
 describe('tarjeta de «Mis reservas»', () => {
@@ -271,10 +271,10 @@ describe('detalle de la reserva', () => {
     });
     await openApp('/reservas/res-1', [withRefund]);
 
-    expect(textoCrudo(screen.getByText(/Reembolso de prueba pendiente/))).toBe(
+    expect(rawText(screen.getByText(/Reembolso de prueba pendiente/))).toBe(
       'Reembolso de prueba pendiente · 100\u00A0% · $\u00A0399.000',
     );
-    expect(textoCrudo(screen.getByText(/2 personas/))).toBe('2 personas · $\u00A0190.000');
+    expect(rawText(screen.getByText(/2 personas/))).toBe('2 personas · $\u00A0190.000');
   });
 
   test('itinerario: la línea de tiempo termina en el último paso (2 pasos, 1 tramo)', async () => {
@@ -307,7 +307,7 @@ describe('detalle de la reserva', () => {
     expect(screen.queryByText('Ver plan')).toBeNull();
     // El marco del error tiene «Volver»: abierta en frío lleva a «Mis reservas».
     await fireEvent.press(screen.getByLabelText('Volver'));
-    await asentar();
+    await settle();
     expect(screen.getByText('Mis reservas')).toBeOnTheScreen();
   });
 
@@ -355,8 +355,8 @@ describe('detalle de la reserva', () => {
   test('reseñar desde el detalle y publicar: vuelve con «Ya dejaste tu reseña»', async () => {
     const list = [bookingWith({ departure: inDays(-5) })];
     const { repo: bookings } = fakeRepo(list);
-    const reviews = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews }));
+    const reviews = new FakeReviewPublisher();
+    const r = await startApp('/reservas', testDependencies({ bookings, reviews }));
     await tap('Historial (1)');
     await tap('Street food tour');
 
@@ -364,7 +364,7 @@ describe('detalle de la reserva', () => {
     expect(r.getPathname()).toBe('/resena/res-1');
     await tap('Publicar reseña');
 
-    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 5, comentario: '' }]);
+    expect(reviews.createdReviews).toEqual([{ bookingId: 'res-1', rating: 5, comment: '' }]);
     expect(r.getPathname()).toBe('/reservas/res-1');
     expect(screen.getByText('Ya dejaste tu reseña')).toBeOnTheScreen();
     expect(screen.queryByText('Reseñar')).toBeNull();
@@ -373,41 +373,41 @@ describe('detalle de la reserva', () => {
   // Volver de «Tu reseña» sin publicar no cambia nada: recargar devolvía la lista al principio
   // (en Flutter se recargaba siempre; esto es una mejora deliberada).
   test('volver de «Tu reseña» sin publicar no recarga «Mis reservas» (conserva el desplazamiento)', async () => {
-    const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews: new PublicadorDeResenasFalso() }));
+    const bookings = new FakeBookingRepository([bookingWith({ departure: inDays(-5) })]);
+    const r = await startApp('/reservas', testDependencies({ bookings, reviews: new FakeReviewPublisher() }));
     await tap('Historial (1)');
-    expect(bookings.consultasLista).toBe(1);
+    expect(bookings.listQueries).toBe(1);
 
     await tap('Reseñar');
     expect(r.getPathname()).toBe('/resena/res-1');
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
-    await asentar();
+    await settle();
 
     expect(r.getPathname()).toBe('/reservas');
-    expect(bookings.consultasLista).toBe(1);
+    expect(bookings.listQueries).toBe(1);
     expect(screen.getByText('Reseñar')).toBeOnTheScreen();
   });
 
   test('publicar la reseña recarga «Mis reservas» sin desmontar la lista (sin volver al esqueleto)', async () => {
-    const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
-    const reviews = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews }));
+    const bookings = new FakeBookingRepository([bookingWith({ departure: inDays(-5) })]);
+    const reviews = new FakeReviewPublisher();
+    const r = await startApp('/reservas', testDependencies({ bookings, reviews }));
     await tap('Historial (1)');
     await tap('Reseñar');
 
     // La recarga queda colgada: así se ve qué muestra la lista MIENTRAS recarga.
-    bookings.compuerta = compuerta();
+    bookings.gate = createGate();
     await tap('Publicar reseña');
 
     expect(r.getPathname()).toBe('/reservas');
-    expect(bookings.consultasLista).toBe(2);
+    expect(bookings.listQueries).toBe(2);
     expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
     expect(screen.getByTestId('lista-reservas')).toBeOnTheScreen();
     expect(screen.getByText('Street food tour')).toBeOnTheScreen();
 
-    bookings.lista = [new Booking({ ...bookings.lista[0]!, hasReview: true })];
-    await act(async () => bookings.compuerta!.completar());
-    await asentar();
+    bookings.list = [new Booking({ ...bookings.list[0]!, hasReview: true })];
+    await act(async () => bookings.gate!.resolve());
+    await settle();
 
     expect(screen.queryByText('Reseñar')).toBeNull();
   });
@@ -427,7 +427,7 @@ describe('detalle de la reserva', () => {
       await act(async () => {
         consumed = (listeners[listeners.length - 1] as (...args: unknown[]) => unknown)({});
       });
-      await asentar();
+      await settle();
 
       expect(consumed).toBe(true);
       expect(r.getPathname()).toBe('/reservas');

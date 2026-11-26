@@ -5,14 +5,14 @@ import { useRouter } from 'expo-router';
 import { ExperienceCategory, LABEL_EXPERIENCE_CATEGORY, Plan, PlanStatus } from '@/core';
 import { CatalogView } from '@/features/catalog/views/CatalogView';
 
-import { CatalogoFalso } from '../../../support/catalogo-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeCatalogRepository } from '../../../support/fake-catalog-repository';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
 // useRouter espiado: cada PlanCard lo llama al pintarse, así se cuenta cuántas se vuelven a pintar.
 jest.mock('expo-router', () => {
-  const fake = jest.requireActual('../../../support/expo-router-falso');
+  const fake = jest.requireActual('../../../support/fake-expo-router');
   return { ...fake, useRouter: jest.fn(fake.useRouter) };
 });
 
@@ -23,9 +23,9 @@ jest.mock('expo-router', () => {
  */
 
 async function renderCatalog() {
-  await fijarVentana(600, 1000);
-  const catalog = new CatalogoFalso();
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
+  await setWindowSize(600, 1000);
+  const catalog = new FakeCatalogRepository();
+  await renderScreen(<CatalogView />, { dependencies: testDependencies({ catalog }) });
   return catalog;
 }
 
@@ -36,14 +36,14 @@ async function typeAndSearch(text: string) {
   await fireEvent(searchField(), 'submitEditing');
 }
 
-beforeEach(reiniciarRouterFalso);
-afterEach(restaurarVentana);
+beforeEach(resetFakeRouter);
+afterEach(restoreWindowSize);
 
 test('al abrir se carga el catálogo sin texto', async () => {
   const catalog = await renderCatalog();
 
-  expect(catalog.busquedas).toHaveLength(1);
-  expect(catalog.busquedas[0]!.text).toBe('');
+  expect(catalog.searches).toHaveLength(1);
+  expect(catalog.searches[0]!.text).toBe('');
 });
 
 test('escribir y enviar busca con el texto escrito', async () => {
@@ -51,8 +51,8 @@ test('escribir y enviar busca con el texto escrito', async () => {
 
   await typeAndSearch('guatape');
 
-  expect(catalog.busquedas).toHaveLength(2);
-  expect(catalog.busquedas.at(-1)!.text).toBe('guatape');
+  expect(catalog.searches).toHaveLength(2);
+  expect(catalog.searches.at(-1)!.text).toBe('guatape');
 });
 
 test('el texto se envía tal cual, con tildes y comas', async () => {
@@ -60,7 +60,7 @@ test('el texto se envía tal cual, con tildes y comas', async () => {
 
   await typeAndSearch('Café, (Jardín)');
 
-  expect(catalog.busquedas.at(-1)!.text).toBe('Café, (Jardín)');
+  expect(catalog.searches.at(-1)!.text).toBe('Café, (Jardín)');
 });
 
 test('escribir sin enviar no dispara otra búsqueda', async () => {
@@ -68,7 +68,7 @@ test('escribir sin enviar no dispara otra búsqueda', async () => {
 
   await fireEvent.changeText(searchField(), 'guatape');
 
-  expect(catalog.busquedas).toHaveLength(1);
+  expect(catalog.searches).toHaveLength(1);
 });
 
 test('el botón de borrar aparece al escribir y busca sin texto', async () => {
@@ -80,7 +80,7 @@ test('el botón de borrar aparece al escribir y busca sin texto', async () => {
 
   await fireEvent.press(screen.getByRole('button', { name: 'Borrar búsqueda' }));
 
-  expect(catalog.busquedas.at(-1)!.text).toBe('');
+  expect(catalog.searches.at(-1)!.text).toBe('');
   expect(searchField().props.value).toBe('');
   expect(screen.queryByRole('button', { name: 'Borrar búsqueda' })).toBeNull();
 });
@@ -91,8 +91,8 @@ test('otro filtro conserva el texto buscado', async () => {
 
   await fireEvent.press(screen.getByText(LABEL_EXPERIENCE_CATEGORY[ExperienceCategory.adventure]));
 
-  expect(catalog.busquedas.at(-1)!.text).toBe('guatape');
-  expect(catalog.busquedas.at(-1)!.category).toBe(ExperienceCategory.adventure);
+  expect(catalog.searches.at(-1)!.text).toBe('guatape');
+  expect(catalog.searches.at(-1)!.category).toBe(ExperienceCategory.adventure);
 });
 
 test('escribir no vuelve a pintar las tarjetas de la lista (trabajo por tecla acotado)', async () => {
@@ -100,9 +100,9 @@ test('escribir no vuelve a pintar las tarjetas de la lista (trabajo por tecla ac
   // («cafe» quedaba «ccafe»). La pantalla no pasa por React Compiler (try/finally lo hace desistir).
   const plan = (i: number) =>
     new Plan({ id: `p${i}`, agencyId: 'ag', title: `Plan ${i}`, destination: 'Guatapé', category: ExperienceCategory.culture, priceCop: 100000, status: PlanStatus.published, photos: [], averageRating: 4, reviewsCount: 1 });
-  await fijarVentana(600, 1000);
-  const catalog = new CatalogoFalso({ planes: [1, 2, 3, 4, 5].map(plan) });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
+  await setWindowSize(600, 1000);
+  const catalog = new FakeCatalogRepository({ plans: [1, 2, 3, 4, 5].map(plan) });
+  await renderScreen(<CatalogView />, { dependencies: testDependencies({ catalog }) });
   expect(screen.getAllByTestId(/^plan-card-/)).toHaveLength(5);
   const routerCalls = jest.mocked(useRouter);
   routerCalls.mockClear();

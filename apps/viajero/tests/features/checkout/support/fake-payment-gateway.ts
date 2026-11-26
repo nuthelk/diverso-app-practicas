@@ -7,7 +7,7 @@ import {
   type PaymentGateway,
 } from '@/core';
 
-import type { Compuerta } from '../../../support/compuerta';
+import type { Gate } from '../../../support/gate';
 
 /**
  * [PaymentGateway] sin Wompi ni Supabase (port de `pasarela_falsa.dart`).
@@ -18,7 +18,7 @@ import type { Compuerta } from '../../../support/compuerta';
  */
 export class FakePaymentGateway implements PaymentGateway {
   /** Si no es null, `verify` espera a que se complete (respuestas tardías). */
-  gate: Compuerta | null = null;
+  gate: Gate | null = null;
 
   /**
    * Qué hace `start`: lanzar este error (por defecto, como en Dart, las pruebas no abren el
@@ -36,7 +36,7 @@ export class FakePaymentGateway implements PaymentGateway {
   async verify(p: { transactionId?: string | null; bookingId?: string | null }): Promise<VerifiedPayment> {
     this.verifications.push({ transactionId: p.transactionId ?? null, bookingId: p.bookingId ?? null });
     this.verifyKeys.push(Object.keys(p));
-    await this.gate?.promesa;
+    await this.gate?.promise;
     const i = this.verifications.length - 1;
     const response = this.responses[i < this.responses.length ? i : this.responses.length - 1];
     if (response instanceof VerifiedPayment) return response;

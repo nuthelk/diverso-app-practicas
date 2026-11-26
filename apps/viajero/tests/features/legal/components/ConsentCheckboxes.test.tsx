@@ -5,7 +5,7 @@ import { ConsentCheckboxes } from '@/features/legal/components/ConsentCheckboxes
 
 import { renderWithTheme } from '../../../ui/support/render-with-theme';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /** Casillas de autorización (Ley 1581): el aviso de error se alinea con el texto de las casillas. */
 

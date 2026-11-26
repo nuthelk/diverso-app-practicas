@@ -2,18 +2,18 @@ import { act, renderHook } from '@testing-library/react-native';
 
 import { DEMO_PASSWORD, DEMO_EMAIL, useLoginViewModel } from '@/features/auth/view-models/useLoginViewModel';
 
-import { AuthFalso } from '../../../support/auth-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeAuth } from '../../../support/fake-auth';
+import { createGate } from '../../../support/gate';
 
 /**
- * `useLoginViewModel` con un `AuthFalso`: entrar, crear cuenta con autorización expresa, errores
+ * `useLoginViewModel` con un `FakeAuth`: entrar, crear cuenta con autorización expresa, errores
  * con el mismo texto de siempre, cuenta demo solo si el flag lo permite y protección tras
  * desmontar. Port 1:1 de `login_view_model_test.dart`.
  */
 
-let auth: AuthFalso;
+let auth: FakeAuth;
 beforeEach(() => {
-  auth = new AuthFalso();
+  auth = new FakeAuth();
 });
 
 async function setup({ demoAccount }: { demoAccount?: boolean } = {}) {
@@ -66,7 +66,7 @@ describe('entrar', () => {
     const { result } = await setup();
     await submit(result.current);
 
-    expect(auth.entradas).toEqual([{ email: 'ana@correo.test', password: 'secreto' }]);
+    expect(auth.signIns).toEqual([{ email: 'ana@correo.test', password: 'secreto' }]);
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
   });
@@ -75,12 +75,12 @@ describe('entrar', () => {
     const { result } = await setup();
     await submit(result.current, { valid: false });
 
-    expect(auth.entradas).toEqual([]);
+    expect(auth.signIns).toEqual([]);
     expect(result.current.loading).toBe(false);
   });
 
   test('cargando mientras responde y un segundo envío no repite la petición', async () => {
-    auth.compuerta = compuerta();
+    auth.gate = createGate();
     const { result, loadingStates } = await setup();
     const vm = result.current;
 
@@ -92,15 +92,15 @@ describe('entrar', () => {
     // Incluso con el `vm` de antes del render (cierre viejo) el segundo envío se ignora.
     await submit(vm);
 
-    auth.compuerta.completar();
+    auth.gate.resolve();
     await act(() => first);
 
     expect(loadingStates).toEqual([false, true, false]);
-    expect(auth.entradas).toHaveLength(1);
+    expect(auth.signIns).toHaveLength(1);
   });
 
   test('credenciales rechazadas: mensaje de siempre y el botón se libera', async () => {
-    auth.falloAlEntrar = new Error('Invalid login credentials');
+    auth.signInFailure = new Error('Invalid login credentials');
     const { result } = await setup();
     await submit(result.current);
 
@@ -109,10 +109,10 @@ describe('entrar', () => {
   });
 
   test('un nuevo intento limpia el error anterior', async () => {
-    auth.falloAlEntrar = new Error('x');
+    auth.signInFailure = new Error('x');
     const { result } = await setup();
     await submit(result.current);
-    auth.falloAlEntrar = null;
+    auth.signInFailure = null;
 
     await submit(result.current);
 
@@ -128,7 +128,7 @@ describe('crear cuenta', () => {
 
     await submit(result.current);
 
-    expect(auth.registros).toEqual([]);
+    expect(auth.signUps).toEqual([]);
     expect(result.current.signUpAttempted).toBe(true);
     expect(result.current.loading).toBe(false);
   });
@@ -141,7 +141,7 @@ describe('crear cuenta', () => {
 
     await submit(result.current);
 
-    expect(auth.registros).toEqual([
+    expect(auth.signUps).toEqual([
       { name: 'Ana', email: 'ana@correo.test', password: 'secreto', acceptsDocuments: true },
     ]);
     expect(result.current.error).toBeNull();
@@ -155,11 +155,11 @@ describe('crear cuenta', () => {
 
     await submit(result.current, { valid: false });
 
-    expect(auth.registros).toEqual([]);
+    expect(auth.signUps).toEqual([]);
   });
 
   test('si falla (correo ya registrado) muestra el mensaje de registro', async () => {
-    auth.falloAlEntrar = new Error('User already registered');
+    auth.signInFailure = new Error('User already registered');
     const { result } = await setup();
     await act(() => result.current.toggleMode());
     await act(() => result.current.setAcceptsDataPolicy(true));
@@ -200,14 +200,14 @@ describe('cuenta demo (bug A)', () => {
 });
 
 test('desmontar: una respuesta que llega después no avisa a nadie ni lanza', async () => {
-  auth.compuerta = compuerta();
+  auth.gate = createGate();
   const { result, unmount } = await setup();
   let pending!: Promise<void>;
   await act(async () => {
     pending = result.current.submit({ isFormValid: true, name: '', email: 'a@b.c', password: 'secreto' });
   });
   await unmount();
-  auth.compuerta.completar();
+  auth.gate.resolve();
 
   await expect(pending).resolves.toBeUndefined();
 });

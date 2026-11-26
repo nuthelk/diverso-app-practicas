@@ -5,14 +5,14 @@ import { DiversoError, diversoConfig, type BookingRepository, type CatalogReposi
 import { CheckoutView } from '@/features/checkout/views/CheckoutView';
 import { AppRoutes } from '@/router';
 
-import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { renderPantalla } from '../../../support/pantalla';
+import { testDependencies, stub } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { renderScreen } from '../../../support/render-screen';
 import { FakeCatalog, testPlanDate, testPlan } from '../support/fake-catalog';
 import { FakePaymentGateway } from '../support/fake-payment-gateway';
 import { FakeBookings } from '../support/fake-bookings';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /** WebView falso: guarda las props para simular lo que haría Wompi dentro del WebView. */
 let webview: Record<string, any> | null = null;
@@ -30,7 +30,7 @@ jest.mock('react-native-webview', () => ({
  */
 
 beforeEach(() => {
-  reiniciarRouterFalso();
+  resetFakeRouter();
   webview = null;
 });
 
@@ -40,10 +40,10 @@ async function openCheckout({
   gateway = new FakePaymentGateway(),
   dateId = 'fecha-1',
 }: { catalog?: FakeCatalog; bookings?: FakeBookings; gateway?: FakePaymentGateway; dateId?: string } = {}) {
-  await renderPantalla(<CheckoutView planId="plan-1" dateId={dateId} />, {
-    dependencias: dependenciasDePrueba({
-      catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-      bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+  await renderScreen(<CheckoutView planId="plan-1" dateId={dateId} />, {
+    dependencies: testDependencies({
+      catalog: stub<Public<CatalogRepository>>('CatalogRepository', catalog),
+      bookings: stub<Public<BookingRepository>>('BookingRepository', bookings),
       gateway,
     }),
   });
@@ -73,7 +73,7 @@ describe('carga del plan', () => {
     await openCheckout({ catalog });
     expect(await screen.findByText('Fecha no disponible')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Ver fechas del plan'));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.plan('plan-1'));
+    expect(fakeRouter.replace).toHaveBeenCalledWith(AppRoutes.plan('plan-1'));
   });
 });
 
@@ -133,7 +133,7 @@ describe('pago en Android/iOS (WebView)', () => {
       shouldLoad = webview!.onShouldStartLoadWithRequest({ url: 'https://diverso.app/pago/resultado?id=tx-9' });
     });
     expect(shouldLoad).toBe(false);
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.paymentForTransaction('tx-9'));
+    expect(fakeRouter.replace).toHaveBeenCalledWith(AppRoutes.paymentForTransaction('tx-9'));
     expect(screen.queryByText('Pago de prueba con Wompi')).toBeNull();
   });
 
@@ -159,7 +159,7 @@ describe('pago en Android/iOS (WebView)', () => {
     expect(screen.getByRole('button', { name: 'Agregar una persona' })).toBeDisabled();
 
     await fireEvent.press(screen.getByText('Ya pagué, verificar'));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.paymentForBooking('nueva-1'));
+    expect(fakeRouter.replace).toHaveBeenCalledWith(AppRoutes.paymentForBooking('nueva-1'));
     expect(bookings.createdBookings).toHaveLength(1);
   });
 
@@ -211,14 +211,14 @@ describe('«Volver» sin historial (recarga o enlace directo)', () => {
   test('lleva a la ficha del plan en vez de dejar la pantalla sin salida', async () => {
     await openCheckout();
     await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
-    expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.plan('plan-1'));
-    expect(routerFalso.back).not.toHaveBeenCalled();
+    expect(fakeRouter.replace).toHaveBeenCalledWith(AppRoutes.plan('plan-1'));
+    expect(fakeRouter.back).not.toHaveBeenCalled();
   });
 
   test('con historial, vuelve atrás', async () => {
-    routerFalso.canGoBack.mockImplementation(() => true);
+    fakeRouter.canGoBack.mockImplementation(() => true);
     await openCheckout();
     await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
-    expect(routerFalso.back).toHaveBeenCalled();
+    expect(fakeRouter.back).toHaveBeenCalled();
   });
 });

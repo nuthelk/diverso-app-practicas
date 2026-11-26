@@ -1,6 +1,6 @@
 import { renderRouter, screen } from 'expo-router/testing-library';
 
-import { asentar } from '../support/app';
+import { settle } from '../support/app';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -14,7 +14,7 @@ afterEach(() => jest.useRealTimers());
 
 test('sin sesión guardada, el _layout real abre el login', async () => {
   const r = await renderRouter('src/app', { initialUrl: '/' });
-  await asentar();
+  await settle();
 
   expect(r.getPathname()).toBe('/login');
   expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();

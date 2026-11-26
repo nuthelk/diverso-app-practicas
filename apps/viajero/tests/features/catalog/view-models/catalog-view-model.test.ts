@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-native';
 import { ExperienceCategory, CatalogSort } from '@/core';
 import { MAX_COMPARE, useCatalogViewModel } from '@/features/catalog/view-models/useCatalogViewModel';
 
-import { CatalogoFalso, planDePrueba } from '../../../support/catalogo-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeCatalogRepository, testPlan } from '../../../support/fake-catalog-repository';
+import { createGate } from '../../../support/gate';
 
 /**
  * `useCatalogViewModel` con un catálogo falso: carga, error, vacío, filtros (una sola consulta por
@@ -12,12 +12,12 @@ import { compuerta } from '../../../support/compuerta';
  * `catalog_view_model_test.dart`.
  */
 
-let catalog: CatalogoFalso;
+let catalog: FakeCatalogRepository;
 
 beforeEach(() => {
-  catalog = new CatalogoFalso({
-    planes: [planDePrueba({ id: 'a' }), planDePrueba({ id: 'b' }), planDePrueba({ id: 'c' })],
-    destinosDisponibles: ['Guatapé', 'Jardín'],
+  catalog = new FakeCatalogRepository({
+    plans: [testPlan({ id: 'a' }), testPlan({ id: 'b' }), testPlan({ id: 'c' })],
+    availableDestinations: ['Guatapé', 'Jardín'],
   });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
@@ -43,7 +43,7 @@ describe('carga', () => {
     expect(result.current.plans).toEqual([]);
     expect(result.current.destinations).toEqual([]);
     expect(result.current.error).toBeNull();
-    expect(catalog.busquedas).toEqual([]);
+    expect(catalog.searches).toEqual([]);
   });
 
   test('éxito: planes y destinos, sin error, y notifica cargando → listo', async () => {
@@ -62,7 +62,7 @@ describe('carga', () => {
   });
 
   test('vacío: sin planes y sin error (la vista muestra «Sin resultados»)', async () => {
-    catalog.planes = [];
+    catalog.plans = [];
     const { result } = await setup();
 
     await act(() => result.current.load());
@@ -75,7 +75,7 @@ describe('carga', () => {
   test('error: mensaje para el usuario y detalle técnico; conserva lo anterior', async () => {
     const { result } = await setup();
     await act(() => result.current.load());
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
 
     await act(() => result.current.load());
 
@@ -86,11 +86,11 @@ describe('carga', () => {
   });
 
   test('reintentar tras un error limpia el error', async () => {
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
     expect(result.current.error).not.toBeNull();
-    catalog.fallo = null;
+    catalog.failure = null;
 
     await act(() => result.current.load());
 
@@ -117,22 +117,22 @@ describe('filtros', () => {
 
     await act(() => result.current.setText('guatape'));
     expect(result.current.text).toBe('guatape');
-    expect(catalog.busquedas).toHaveLength(1);
+    expect(catalog.searches).toHaveLength(1);
 
     await act(() => result.current.search());
-    expect(catalog.busquedas).toHaveLength(2);
-    expect(catalog.busquedas.at(-1)!.text).toBe('guatape');
+    expect(catalog.searches).toHaveLength(2);
+    expect(catalog.searches.at(-1)!.text).toBe('guatape');
   });
 
   test('toggleCategoria selecciona y, con la misma, deselecciona', async () => {
     const { result } = await setup();
     await act(() => result.current.toggleCategory(ExperienceCategory.adventure));
     expect(result.current.category).toBe(ExperienceCategory.adventure);
-    expect(catalog.busquedas.at(-1)!.category).toBe(ExperienceCategory.adventure);
+    expect(catalog.searches.at(-1)!.category).toBe(ExperienceCategory.adventure);
 
     await act(() => result.current.toggleCategory(ExperienceCategory.adventure));
     expect(result.current.category).toBeNull();
-    expect(catalog.busquedas.at(-1)!.category).toBeNull();
+    expect(catalog.searches.at(-1)!.category).toBeNull();
   });
 
   test('aplicarFiltros: destino, precio y fecha con UNA sola consulta', async () => {
@@ -142,9 +142,9 @@ describe('filtros', () => {
 
     await act(() => result.current.applyFilters({ destination: 'Guatapé', maxPrice: 150000, date }));
 
-    expect(catalog.busquedas).toHaveLength(2);
-    expect(catalog.consultasDestinos).toBe(2);
-    const filters = catalog.busquedas.at(-1)!;
+    expect(catalog.searches).toHaveLength(2);
+    expect(catalog.destinationQueries).toBe(2);
+    const filters = catalog.searches.at(-1)!;
     expect(filters.destination).toBe('Guatapé');
     expect(filters.maxPrice).toBe(150000);
     expect(filters.date).toEqual(date);
@@ -157,11 +157,11 @@ describe('filtros', () => {
   test('aplicarFiltros sin valores quita los tres filtros, también con una consulta', async () => {
     const { result } = await setup();
     await act(() => result.current.applyFilters({ destination: 'Guatapé', maxPrice: 1, date: new Date(2026, 11, 24) }));
-    const before = catalog.busquedas.length;
+    const before = catalog.searches.length;
 
     await act(() => result.current.applyFilters());
 
-    expect(catalog.busquedas).toHaveLength(before + 1);
+    expect(catalog.searches).toHaveLength(before + 1);
     expect(result.current.activeFilterCount).toBe(0);
     expect(result.current.destination).toBeNull();
   });
@@ -170,14 +170,14 @@ describe('filtros', () => {
     const { result, loadingStates } = await setup();
     await act(() => result.current.load());
     loadingStates.length = 0;
-    const gate = (catalog.compuerta = compuerta());
+    const gate = (catalog.gate = createGate());
 
     let applying!: Promise<void>;
     await act(async () => {
       applying = result.current.applyFilters({ destination: 'Jardín' });
     });
     await act(async () => {
-      gate.completar();
+      gate.resolve();
       await applying;
     });
 
@@ -187,17 +187,17 @@ describe('filtros', () => {
   test('PRESERVE: setDestino, setPrecioMax, setFecha y limpiarFiltros consultan una vez', async () => {
     const { result } = await setup();
     await act(() => result.current.setDestination('Jardín'));
-    expect(catalog.busquedas.at(-1)!.destination).toBe('Jardín');
+    expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
     await act(() => result.current.setMaxPrice(90000));
-    expect(catalog.busquedas.at(-1)!.maxPrice).toBe(90000);
+    expect(catalog.searches.at(-1)!.maxPrice).toBe(90000);
     await act(() => result.current.setDate(new Date(2026, 11, 1)));
-    expect(catalog.busquedas.at(-1)!.date).toEqual(new Date(2026, 11, 1));
-    expect(catalog.busquedas).toHaveLength(3);
+    expect(catalog.searches.at(-1)!.date).toEqual(new Date(2026, 11, 1));
+    expect(catalog.searches).toHaveLength(3);
     expect(result.current.activeFilterCount).toBe(3);
 
     await act(() => result.current.clearFilters());
 
-    expect(catalog.busquedas).toHaveLength(4);
+    expect(catalog.searches).toHaveLength(4);
     expect(result.current.activeFilterCount).toBe(0);
   });
 
@@ -206,7 +206,7 @@ describe('filtros', () => {
     await act(() => result.current.setSort(CatalogSort.priceAsc));
 
     expect(result.current.sort).toBe(CatalogSort.priceAsc);
-    expect(catalog.busquedas.at(-1)!.sort).toBe(CatalogSort.priceAsc);
+    expect(catalog.searches.at(-1)!.sort).toBe(CatalogSort.priceAsc);
   });
 
   test('filtrosActivos no cuenta la categoría ni el texto', async () => {
@@ -219,7 +219,7 @@ describe('filtros', () => {
 
 describe('selección para comparar', () => {
   test(`agrega, quita y respeta el máximo de ${MAX_COMPARE}`, async () => {
-    catalog.planes = ['a', 'b', 'c', 'd'].map((id) => planDePrueba({ id }));
+    catalog.plans = ['a', 'b', 'c', 'd'].map((id) => testPlan({ id }));
     const { result } = await setup();
     await act(() => result.current.load());
     const [a, b, c, d] = result.current.plans;
@@ -249,7 +249,7 @@ describe('selección para comparar', () => {
       result.current.toggleCompare(result.current.plans[0]!);
       result.current.toggleCompare(result.current.plans[1]!);
     });
-    catalog.planes = [planDePrueba({ id: 'b' })];
+    catalog.plans = [testPlan({ id: 'b' })];
 
     await act(() => result.current.load());
 
@@ -260,23 +260,23 @@ describe('selección para comparar', () => {
 describe('desmontar (dispose)', () => {
   test('una carga que termina después de desmontar no lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
+    const gate = (catalog.gate = createGate());
     const pending = result.current.load();
 
     await unmount();
-    gate.completar();
+    gate.resolve();
 
     await expect(pending).resolves.toBeUndefined();
   });
 
   test('un error tardío después de desmontar tampoco lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
-    catalog.fallo = new Error('sin red');
+    const gate = (catalog.gate = createGate());
+    catalog.failure = new Error('sin red');
     const pending = result.current.load();
 
     await unmount();
-    gate.completar();
+    gate.resolve();
 
     await expect(pending).resolves.toBeUndefined();
   });

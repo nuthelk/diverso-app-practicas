@@ -6,15 +6,15 @@ import { pendingBookingText } from '@/features/checkout/components/PendingBookin
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
 import { CheckoutView } from '@/features/checkout/views/CheckoutView';
 
-import { dependenciasDePrueba, doble } from '../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso } from '../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../support/pantalla';
-import { textoCrudo } from '../../support/texto-crudo';
+import { testDependencies, stub } from '../../support/test-dependencies';
+import { resetFakeRouter } from '../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../support/render-screen';
+import { rawText } from '../../support/raw-text';
 import { FakeCatalog, testPlanDate, testPlan } from './support/fake-catalog';
 import { FakePaymentGateway } from './support/fake-payment-gateway';
 import { testPendingBooking, FakeBookings } from './support/fake-bookings';
 
-jest.mock('expo-router', () => require('../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../support/fake-expo-router'));
 
 /**
  * Reserva pendiente de pago ya existente: el checkout no debe crear otra (retendría cupos dos
@@ -197,18 +197,18 @@ describe('aviso de reserva pendiente', () => {
 });
 
 describe('pantalla /checkout/:planId/:fechaId', () => {
-  beforeEach(reiniciarRouterFalso);
-  afterEach(restaurarVentana);
+  beforeEach(resetFakeRouter);
+  afterEach(restoreWindowSize);
 
   /** `start` falla a propósito (RESERVA_VENCIDA): así «Completar pago» no abre el WebView. */
   async function openCheckout(bookings: FakeBookings, gateway = new FakePaymentGateway()) {
     gateway.startFailure = new DiversoError('RESERVA_VENCIDA');
-    await fijarVentana(900, 2600);
+    await setWindowSize(900, 2600);
     const catalog = new FakeCatalog({ details: { 'plan-1': testPlan({ dates: [planDate] }) } });
-    await renderPantalla(<CheckoutView planId="plan-1" dateId="fecha-1" />, {
-      dependencias: dependenciasDePrueba({
-        catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-        bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+    await renderScreen(<CheckoutView planId="plan-1" dateId="fecha-1" />, {
+      dependencies: testDependencies({
+        catalog: stub<Public<CatalogRepository>>('CatalogRepository', catalog),
+        bookings: stub<Public<BookingRepository>>('BookingRepository', bookings),
         gateway,
       }),
     });
@@ -230,7 +230,7 @@ describe('pantalla /checkout/:planId/:fechaId', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText(new RegExp(`Vence a las ${timeOf(testPendingBooking().expiresAt)}\\.`))).toBeOnTheScreen();
     // El aviso es texto corrido: si se parte, el «$» no queda solo al final de una línea.
-    expect(textoCrudo(screen.getByText(/Ya tienes una reserva pendiente/))).toContain('2 personas, $\u00A0300.000');
+    expect(rawText(screen.getByText(/Ya tienes una reserva pendiente/))).toContain('2 personas, $\u00A0300.000');
     expect(screen.getByText('Completar pago')).toBeOnTheScreen();
     expect(screen.getByText('Cancelar y empezar de nuevo')).toBeOnTheScreen();
     expect(payButton()).toBeDisabled();

@@ -4,8 +4,8 @@ import { AgencySummary, AgencySort, type Plan } from '@/core';
 import { useAgencyViewModel } from '@/features/agencies/view-models/useAgencyViewModel';
 import { useAgenciesViewModel } from '@/features/agencies/view-models/useAgenciesViewModel';
 
-import { CatalogoFalso, planDePrueba } from '../../../support/catalogo-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeCatalogRepository, testPlan } from '../../../support/fake-catalog-repository';
+import { createGate } from '../../../support/gate';
 
 /**
  * View models de la pestaña «Agencias» y de la página de una agencia con un catálogo falso:
@@ -31,11 +31,11 @@ const cafe = new AgencySummary({
   reviewsTotal: 3,
 });
 
-let catalog: CatalogoFalso;
+let catalog: FakeCatalogRepository;
 beforeEach(() => {
-  catalog = new CatalogoFalso({
-    agenciasPublicas: [rutas, eco, cafe],
-    planesPorAgencia: { 'ag-rutas': [planDePrueba({ id: 'plan-1' }), planDePrueba({ id: 'plan-2' })] },
+  catalog = new FakeCatalogRepository({
+    publicAgencies: [rutas, eco, cafe],
+    plansByAgency: { 'ag-rutas': [testPlan({ id: 'plan-1' }), testPlan({ id: 'plan-2' })] },
   });
   jest.spyOn(console, 'warn').mockImplementation(() => {});
 });
@@ -64,7 +64,7 @@ describe('AgenciesViewModel', () => {
       expect(result.current.hasAgencies).toBe(false);
       expect(result.current.error).toBeNull();
       expect(result.current.sort).toBe(AgencySort.score);
-      expect(catalog.consultasAgencias).toBe(0);
+      expect(catalog.agencyQueries).toBe(0);
     });
 
     test('éxito: agencias, sin error, y notifica cargando → listo', async () => {
@@ -80,7 +80,7 @@ describe('AgenciesViewModel', () => {
     });
 
     test('vacío: sin agencias y sin error (la vista muestra «Aún no hay agencias»)', async () => {
-      catalog.agenciasPublicas = [];
+      catalog.publicAgencies = [];
       const { result } = await setup();
       await act(() => result.current.load());
 
@@ -91,7 +91,7 @@ describe('AgenciesViewModel', () => {
     });
 
     test('error: mensaje para el usuario y detalle técnico, sin agencias', async () => {
-      catalog.fallo = new Error('sin red');
+      catalog.failure = new Error('sin red');
       const { result } = await setup();
       await act(() => result.current.load());
 
@@ -102,10 +102,10 @@ describe('AgenciesViewModel', () => {
     });
 
     test('reintentar tras un error: limpia el error y muestra las agencias', async () => {
-      catalog.fallo = new Error('sin red');
+      catalog.failure = new Error('sin red');
       const { result } = await setup();
       await act(() => result.current.load());
-      catalog.fallo = null;
+      catalog.failure = null;
       await act(() => result.current.load());
 
       expect(result.current.error).toBeNull();
@@ -116,7 +116,7 @@ describe('AgenciesViewModel', () => {
     test('una recarga que falla conserva las agencias ya cargadas', async () => {
       const { result } = await setup();
       await act(() => result.current.load());
-      catalog.fallo = new Error('sin red');
+      catalog.failure = new Error('sin red');
       await act(() => result.current.load());
 
       expect(result.current.error).not.toBeNull();
@@ -163,7 +163,7 @@ describe('AgenciesViewModel', () => {
       await act(() => result.current.setSort(AgencySort.name));
 
       expect(renders()).toBe(before + 1);
-      expect(catalog.consultasAgencias).toBe(1);
+      expect(catalog.agencyQueries).toBe(1);
     });
 
     test('elegir el orden que ya está activo no notifica', async () => {
@@ -190,20 +190,20 @@ describe('AgenciesViewModel', () => {
   describe('desmontar (dispose)', () => {
     test('una carga que termina después de desmontar no lanza', async () => {
       const { result, unmount } = await setup();
-      const gate = (catalog.compuerta = compuerta());
+      const gate = (catalog.gate = createGate());
       const pending = result.current.load();
       await unmount();
-      gate.completar();
+      gate.resolve();
       await expect(pending).resolves.toBeUndefined();
     });
 
     test('un error tardío después de desmontar tampoco lanza', async () => {
       const { result, unmount } = await setup();
-      const gate = (catalog.compuerta = compuerta());
-      catalog.fallo = new Error('sin red');
+      const gate = (catalog.gate = createGate());
+      catalog.failure = new Error('sin red');
       const pending = result.current.load();
       await unmount();
-      gate.completar();
+      gate.resolve();
       await expect(pending).resolves.toBeUndefined();
     });
   });
@@ -227,7 +227,7 @@ describe('AgencyViewModel', () => {
     expect(result.current.plans).toEqual([]);
     expect(result.current.notFound).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(catalog.agenciasPedidas).toEqual([]);
+    expect(catalog.requestedAgencyIds).toEqual([]);
   });
 
   test('éxito: la agencia y sus planes, pedidos por id, y notifica cargando → listo', async () => {
@@ -240,12 +240,12 @@ describe('AgencyViewModel', () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.errorDetails).toBeNull();
-    expect(catalog.agenciasPedidas).toEqual(['ag-rutas']);
+    expect(catalog.requestedAgencyIds).toEqual(['ag-rutas']);
     expect(loadingStates).toEqual([true, false]);
   });
 
   test('agencia sin planes publicados: existe y la lista está vacía', async () => {
-    catalog.planesPorAgencia.clear();
+    catalog.plansByAgency.clear();
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -266,7 +266,7 @@ describe('AgencyViewModel', () => {
   });
 
   test('error: mensaje para el usuario y detalle técnico, sin agencia', async () => {
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -278,10 +278,10 @@ describe('AgencyViewModel', () => {
   });
 
   test('reintentar tras un error: limpia el error y muestra la agencia', async () => {
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
-    catalog.fallo = null;
+    catalog.failure = null;
     await act(() => result.current.load());
 
     expect(result.current.error).toBeNull();
@@ -292,7 +292,7 @@ describe('AgencyViewModel', () => {
   test('una recarga que falla conserva la agencia ya cargada', async () => {
     const { result } = await setup();
     await act(() => result.current.load());
-    catalog.fallo = new Error('sin red');
+    catalog.failure = new Error('sin red');
     await act(() => result.current.load());
 
     expect(result.current.error).not.toBeNull();
@@ -304,25 +304,25 @@ describe('AgencyViewModel', () => {
     const { result } = await setup();
     await act(() => result.current.load());
 
-    expect(() => (result.current.plans as Plan[]).push(planDePrueba())).toThrow();
+    expect(() => (result.current.plans as Plan[]).push(testPlan())).toThrow();
   });
 
   test('una carga que termina después de desmontar no lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
+    const gate = (catalog.gate = createGate());
     const pending = result.current.load();
     await unmount();
-    gate.completar();
+    gate.resolve();
     await expect(pending).resolves.toBeUndefined();
   });
 
   test('un error tardío después de desmontar tampoco lanza', async () => {
     const { result, unmount } = await setup();
-    const gate = (catalog.compuerta = compuerta());
-    catalog.fallo = new Error('sin red');
+    const gate = (catalog.gate = createGate());
+    catalog.failure = new Error('sin red');
     const pending = result.current.load();
     await unmount();
-    gate.completar();
+    gate.resolve();
     await expect(pending).resolves.toBeUndefined();
   });
 });

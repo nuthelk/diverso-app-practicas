@@ -7,9 +7,9 @@ import { AppRoutes } from '@/router';
 import { AppNavigation } from '@/router/AppNavigation';
 import { lightTheme, darkTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
 
-import { arrancarApp, asentar, pantallaVisible } from '../support/app';
-import { AuthFalso } from '../support/auth-falso';
-import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
+import { startApp, settle, visibleScreen } from '../support/app';
+import { FakeAuth } from '../support/fake-auth';
+import { testDependencies } from '../support/test-dependencies';
 
 /**
  * Arranque de la app tal como la cablea `_layout.tsx` (providers + guard + rutas reales) con
@@ -24,28 +24,28 @@ const barra = () => screen.queryByTestId('barra-inferior');
 
 async function irAPestana(etiqueta: string) {
   await fireEvent.press(within(screen.getByTestId('barra-inferior')).getByRole('tab', { name: etiqueta }));
-  await asentar();
+  await settle();
 }
 
 test('sin sesión arranca en /login', async () => {
-  const r = await arrancarApp('/', dependenciasDePrueba({ auth: new AuthFalso({ usuario: null }) }));
+  const r = await startApp('/', testDependencies({ auth: new FakeAuth({ userId: null }) }));
 
   expect(r.getPathname()).toBe('/login');
   expect(screen.getByText('Entra para seguir explorando Antioquia.')).toBeOnTheScreen();
-  expect(pantallaVisible('CatalogView')).toBeNull();
+  expect(visibleScreen('CatalogView')).toBeNull();
 });
 
 test('con sesión y consentimiento aceptado arranca en el catálogo', async () => {
-  const r = await arrancarApp();
+  const r = await startApp();
 
   expect(r.getPathname()).toBe('/');
-  expect(pantallaVisible('CatalogView')).toBeOnTheScreen();
+  expect(visibleScreen('CatalogView')).toBeOnTheScreen();
   expect(screen.queryByText('Entra para seguir explorando Antioquia.')).toBeNull();
   expect(barra()).toBeOnTheScreen();
 });
 
 test('cada pestaña se construye sin dependencias faltantes', async () => {
-  const r = await arrancarApp();
+  const r = await startApp();
 
   const pestanas: [string, string, string][] = [
     ['Agencias', 'AgenciasView', '/agencias'],
@@ -56,7 +56,7 @@ test('cada pestaña se construye sin dependencias faltantes', async () => {
   for (const [etiqueta, vista, ruta] of pestanas) {
     await irAPestana(etiqueta);
     expect([etiqueta, r.getPathname()]).toEqual([etiqueta, ruta]);
-    expect(pantallaVisible(vista)).toBeOnTheScreen();
+    expect(visibleScreen(vista)).toBeOnTheScreen();
   }
 });
 
@@ -84,53 +84,53 @@ describe('cada ruta de la tabla resuelve con sus parámetros', () => {
   ];
   for (const [url, vista, params] of rutas) {
     test(`${url} → ${vista}`, async () => {
-      await arrancarApp(url);
-      expect(pantallaVisible(vista)).toBeOnTheScreen();
+      await startApp(url);
+      expect(visibleScreen(vista)).toBeOnTheScreen();
       for (const p of params) expect(screen.getByText(p)).toBeOnTheScreen();
     });
   }
 
   test('/login con sesión al día lleva al inicio', async () => {
-    const r = await arrancarApp('/login');
+    const r = await startApp('/login');
     expect(r.getPathname()).toBe('/');
   });
 
   test('/legal/:doc abre el documento', async () => {
-    await arrancarApp(AppRoutes.legal('privacidad'));
+    await startApp(AppRoutes.legal('privacidad'));
     expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
     expect(screen.getByText('Política de tratamiento de datos personales')).toBeOnTheScreen();
   });
 
   test('/legal/:doc también sin sesión', async () => {
-    const r = await arrancarApp(AppRoutes.legal('terminos-viajeros'), dependenciasDePrueba({ auth: new AuthFalso({ usuario: null }) }));
+    const r = await startApp(AppRoutes.legal('terminos-viajeros'), testDependencies({ auth: new FakeAuth({ userId: null }) }));
     expect(r.getPathname()).toBe('/legal/terminos-viajeros');
     expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
   });
 
   test('una URL que no existe muestra «No encontramos esta página» con la ubicación', async () => {
-    await arrancarApp('/esta/no/existe');
+    await startApp('/esta/no/existe');
     expect(screen.getByText('No encontramos esta página')).toBeOnTheScreen();
     expect(screen.getByText('/esta/no/existe')).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByRole('button', { name: 'Ir al inicio' }));
-    await asentar();
-    expect(pantallaVisible('CatalogView')).toBeOnTheScreen();
+    await settle();
+    expect(visibleScreen('CatalogView')).toBeOnTheScreen();
   });
 });
 
 describe('rutas anteriores (dependían de `extra`, que se pierde al recargar)', () => {
   test('/checkout lleva al inicio', async () => {
-    const r = await arrancarApp('/checkout');
+    const r = await startApp('/checkout');
     expect(r.getPathname()).toBe('/');
   });
 
   test('/exito lleva a Mis reservas', async () => {
-    const r = await arrancarApp('/exito');
+    const r = await startApp('/exito');
     expect(r.getPathname()).toBe('/reservas');
   });
 
   test('/resena lleva a Mis reservas', async () => {
-    const r = await arrancarApp('/resena');
+    const r = await startApp('/resena');
     expect(r.getPathname()).toBe('/reservas');
   });
 });
@@ -146,7 +146,7 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
       appDir: 'src/app',
       overrides: {
         _layout: () => (
-          <AppProviders dependencies={dependenciasDePrueba()} initialThemeMode="light">
+          <AppProviders dependencies={testDependencies()} initialThemeMode="light">
             <CapturaModo />
             <AppNavigation ready />
           </AppProviders>
@@ -155,15 +155,15 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
     },
     { initialUrl: '/' },
   );
-  await asentar();
+  await settle();
   await act(async () => router.push(AppRoutes.legal('privacidad') as Href));
-  await asentar();
+  await settle();
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
   const fondo = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
   expect(fondo()).toBe(lightTheme.pageBackground);
 
   await act(async () => cambiarModo('dark'));
-  await asentar();
+  await settle();
 
   expect(r.getPathname()).toBe('/legal/privacidad');
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();

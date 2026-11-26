@@ -9,7 +9,7 @@ import {
   type Public,
 } from '@/core';
 
-import type { Compuerta } from '../../../support/compuerta';
+import type { Gate } from '../../../support/gate';
 
 /**
  * [CatalogRepository] sin Supabase, solo con `planDetail` (lo único que usa el checkout; port de
@@ -22,7 +22,7 @@ export class FakeCatalog implements Pick<Public<CatalogRepository>, 'planDetail'
   failure: unknown = null;
 
   /** Si no es null, `planDetail` espera a que se complete (respuestas tardías). */
-  gate: Compuerta | null = null;
+  gate: Gate | null = null;
 
   readonly requestedPlanIds: string[] = [];
 
@@ -32,7 +32,7 @@ export class FakeCatalog implements Pick<Public<CatalogRepository>, 'planDetail'
 
   async planDetail(planId: string): Promise<Plan> {
     this.requestedPlanIds.push(planId);
-    await this.gate?.promesa;
+    await this.gate?.promise;
     if (this.failure !== null) throw this.failure;
     const plan = this.details.get(planId);
     if (!plan) throw new DiversoError('PLAN_NO_PUBLICADO');

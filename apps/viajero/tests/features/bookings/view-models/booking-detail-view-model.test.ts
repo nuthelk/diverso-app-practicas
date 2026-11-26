@@ -3,8 +3,8 @@ import { act, renderHook } from '@testing-library/react-native';
 import { DiversoError, type Booking } from '@/core';
 import { useBookingDetailViewModel } from '@/features/bookings/view-models/useBookingDetailViewModel';
 
-import { compuerta } from '../../../support/compuerta';
-import { ReservasFalsas, reservaDePrueba } from '../../../support/reservas-falsas';
+import { createGate } from '../../../support/gate';
+import { FakeBookingRepository, testBooking } from '../../../support/fake-booking-repository';
 
 /**
  * `useReservaDetalleViewModel` con un repositorio falso: carga por id (o usa la reserva que ya
@@ -15,9 +15,9 @@ import { ReservasFalsas, reservaDePrueba } from '../../../support/reservas-falsa
 const now = new Date(Date.UTC(2026, 9, 25, 15, 0));
 const inDays = (d: number) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
 
-let repo: ReservasFalsas;
+let repo: FakeBookingRepository;
 beforeEach(() => {
-  repo = new ReservasFalsas([reservaDePrueba({ salida: inDays(2) })]);
+  repo = new FakeBookingRepository([testBooking({ departure: inDays(2) })]);
 });
 
 async function setup({ initial }: { initial?: Booking } = {}) {
@@ -40,10 +40,10 @@ describe('carga', () => {
   });
 
   test('con la reserva de la lista se pinta de inmediato y no se pide al backend', async () => {
-    const { result } = await setup({ initial: repo.lista[0] });
+    const { result } = await setup({ initial: repo.list[0] });
     expect(result.current.loading).toBe(false);
     expect(result.current.booking?.id).toBe('res-1');
-    expect(repo.consultas).toEqual([]);
+    expect(repo.bookingQueries).toEqual([]);
   });
 
   test('éxito: cargando → reserva, con una consulta por id', async () => {
@@ -54,11 +54,11 @@ describe('carga', () => {
     expect(loadingStates).toEqual([true, false]);
     expect(result.current.booking?.id).toBe('res-1');
     expect(result.current.error).toBeNull();
-    expect(repo.consultas).toEqual(['res-1']);
+    expect(repo.bookingQueries).toEqual(['res-1']);
   });
 
   test('reserva que no existe: queda el motivo en `error` y reintentar lo limpia', async () => {
-    repo.lista = [];
+    repo.list = [];
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -66,7 +66,7 @@ describe('carga', () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').userMessage);
 
-    repo.lista = [reservaDePrueba({ salida: inDays(2) })];
+    repo.list = [testBooking({ departure: inDays(2) })];
     await act(() => result.current.load());
 
     expect(result.current.error).toBeNull();
@@ -74,7 +74,7 @@ describe('carga', () => {
   });
 
   test('un error que no es de Diverso también queda como mensaje, no se pierde', async () => {
-    repo.fallo = new Error('sin red');
+    repo.failure = new Error('sin red');
     const { result } = await setup();
     await act(() => result.current.load());
 
@@ -83,8 +83,8 @@ describe('carga', () => {
   });
 
   test('si falla al actualizar una reserva ya visible, la deja y avisa en `message`', async () => {
-    const { result } = await setup({ initial: repo.lista[0] });
-    repo.fallo = new Error('sin red');
+    const { result } = await setup({ initial: repo.list[0] });
+    repo.failure = new Error('sin red');
 
     await act(() => result.current.load());
 
@@ -94,20 +94,20 @@ describe('carga', () => {
   });
 
   test('no pierde la marca «ya reseñada» que traía la lista', async () => {
-    const { result } = await setup({ initial: reservaDePrueba({ tieneResena: true }) });
+    const { result } = await setup({ initial: testBooking({ hasReview: true }) });
     await act(() => result.current.load());
     expect(result.current.booking?.hasReview).toBe(true);
   });
 
   test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
-    repo.compuerta = compuerta();
+    repo.gate = createGate();
     const { result, unmount } = await setup();
     let pendingLoad!: Promise<void>;
     await act(async () => {
       pendingLoad = result.current.load();
     });
     await unmount();
-    repo.compuerta.completar();
+    repo.gate.resolve();
 
     await expect(pendingLoad).resolves.toBeUndefined();
   });
@@ -115,27 +115,27 @@ describe('carga', () => {
 
 describe('cambios y acciones', () => {
   test('cancel: avisa, marca que hubo cambios y recarga solo esta reserva', async () => {
-    const { result } = await setup({ initial: repo.lista[0] });
+    const { result } = await setup({ initial: repo.list[0] });
 
     let ok = false;
     await act(async () => {
-      ok = await result.current.cancel(repo.lista[0]!);
+      ok = await result.current.cancel(repo.list[0]!);
     });
 
     expect(ok).toBe(true);
     expect(result.current.changed).toBe(true);
     expect(result.current.message).toMatch(/^Reserva cancelada y cupos liberados\./);
-    expect(repo.consultas).toEqual(['res-1']);
-    expect(repo.consultasLista).toBe(0); // el detalle no recarga la lista de reservas
+    expect(repo.bookingQueries).toEqual(['res-1']);
+    expect(repo.listQueries).toBe(0); // el detalle no recarga la lista de reservas
   });
 
   test('cancelar que el servidor rechaza explica el motivo (y aun así marca cambios)', async () => {
-    const { result } = await setup({ initial: repo.lista[0] });
-    repo.falloAlCancelar = new DiversoError('ESTADO_INVALIDO');
+    const { result } = await setup({ initial: repo.list[0] });
+    repo.cancelFailure = new DiversoError('ESTADO_INVALIDO');
 
     let ok = true;
     await act(async () => {
-      ok = await result.current.cancel(repo.lista[0]!);
+      ok = await result.current.cancel(repo.list[0]!);
     });
     expect(ok).toBe(false);
     expect(result.current.message).toBe('La reserva ya no admite esta operación.');
@@ -143,16 +143,16 @@ describe('cambios y acciones', () => {
   });
 
   test('después del pago: marca cambios y vuelve a cargar la reserva', async () => {
-    const { result } = await setup({ initial: repo.lista[0] });
+    const { result } = await setup({ initial: repo.list[0] });
 
     await act(() => result.current.paymentAttempted());
 
     expect(result.current.changed).toBe(true);
-    expect(repo.consultas).toEqual(['res-1']);
+    expect(repo.bookingQueries).toEqual(['res-1']);
   });
 
   test('reseña publicada: marca cambios y la reserva pasa a «ya reseñada»', async () => {
-    const { result } = await setup({ initial: reservaDePrueba({ salida: inDays(-2) }) });
+    const { result } = await setup({ initial: testBooking({ departure: inDays(-2) }) });
     expect(result.current.canReview(result.current.booking!)).toBe(true);
 
     await act(async () => result.current.reviewPublished());
@@ -164,8 +164,8 @@ describe('cambios y acciones', () => {
 
   test('canCancel y canReview salen de la reserva y del reloj', async () => {
     const { result } = await setup();
-    const upcoming = reservaDePrueba({ salida: inDays(2) });
-    const past = reservaDePrueba({ salida: inDays(-1) });
+    const upcoming = testBooking({ departure: inDays(2) });
+    const past = testBooking({ departure: inDays(-1) });
 
     expect(result.current.canCancel(upcoming)).toBe(true);
     expect(result.current.canReview(upcoming)).toBe(false);

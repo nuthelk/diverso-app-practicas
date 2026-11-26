@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { DiversoError } from '@/core';
 import { useBookingConfirmationViewModel } from '@/features/checkout/view-models/useBookingConfirmationViewModel';
 
-import { compuerta, esperar } from '../../../support/compuerta';
+import { createGate, flushMicrotasks } from '../../../support/gate';
 import { FakeBookings, testBooking } from '../support/fake-bookings';
 
 /**
@@ -71,15 +71,15 @@ test('cargar de nuevo limpia el error anterior', async () => {
 
 test('cargar que termina con la pantalla ya cerrada no avisa a nadie', async () => {
   const bookings = new FakeBookings([testBooking()]);
-  bookings.gate = compuerta();
+  bookings.gate = createGate();
   const { result, unmount } = await setup(bookings);
   let pendingLoad!: Promise<void>;
   await act(async () => {
     pendingLoad = result.current.load();
-    await esperar();
+    await flushMicrotasks();
   });
 
   await unmount();
-  bookings.gate.completar();
+  bookings.gate.resolve();
   await pendingLoad;
 });

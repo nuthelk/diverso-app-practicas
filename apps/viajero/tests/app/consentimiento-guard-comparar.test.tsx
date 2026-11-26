@@ -3,10 +3,10 @@ import { screen } from 'expo-router/testing-library';
 import { DiversoError, ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { forgetPlansToCompare } from '@/features/catalog/plans-to-compare';
 
-import { arrancarApp, pantallaVisible } from '../support/app';
-import { AuthFalso } from '../support/auth-falso';
-import { CatalogoFalso } from '../support/catalogo-falso';
-import { dependenciasDePrueba } from '../support/dependencias-de-prueba';
+import { startApp, visibleScreen } from '../support/app';
+import { FakeAuth } from '../support/fake-auth';
+import { FakeCatalogRepository } from '../support/fake-catalog-repository';
+import { testDependencies } from '../support/test-dependencies';
 
 /**
  * Rutas con ids (bug J) con el consentimiento al día: `/comparar` sin ids no consulta nada y avisa
@@ -26,13 +26,13 @@ const plan = (id: string) =>
   });
 
 /** Como el `_Catalogo` de Flutter: `nope` no existe (el servidor responde «no existe»). */
-class Catalogo extends CatalogoFalso {
+class Catalogo extends FakeCatalogRepository {
   constructor() {
-    super({ detalles: { p1: plan('p1') } });
+    super({ details: { p1: plan('p1') } });
   }
   override async planDetail(planId: string): Promise<Plan> {
     if (planId === 'nope') {
-      this.detallesPedidos.push(planId);
+      this.requestedPlanIds.push(planId);
       throw new DiversoError('PLAN_NO_EXISTE');
     }
     return super.planDetail(planId);
@@ -40,8 +40,8 @@ class Catalogo extends CatalogoFalso {
 }
 
 async function abrir(url: string, catalogo = new Catalogo()) {
-  const auth = new AuthFalso();
-  await arrancarApp(url, dependenciasDePrueba({ auth, catalog: catalogo }));
+  const auth = new FakeAuth();
+  await startApp(url, testDependencies({ auth, catalog: catalogo }));
   return { auth, catalogo };
 }
 
@@ -59,9 +59,9 @@ describe('rutas con ids (bug J) con el consentimiento al día', () => {
     test(`J1: ${url} no consulta nada y avisa que no hay qué comparar`, async () => {
       const { auth, catalogo } = await abrir(url);
 
-      expect(auth.consultas).toBe(1);
-      expect(pantallaVisible('ComparatorView')).toBeOnTheScreen();
-      expect(catalogo.detallesPedidos).toEqual([]);
+      expect(auth.consentQueries).toBe(1);
+      expect(visibleScreen('ComparatorView')).toBeOnTheScreen();
+      expect(catalogo.requestedPlanIds).toEqual([]);
       expect(screen.getByText('Nada para comparar')).toBeOnTheScreen();
     });
   }

@@ -3,11 +3,11 @@ import { act, renderHook } from '@testing-library/react-native';
 import { Profile, UserRole } from '@/core';
 import { initialOf, DEFAULT_NAME, useProfileViewModel } from '@/features/profile/view-models/useProfileViewModel';
 
-import { AuthFalso } from '../../../support/auth-falso';
-import { compuerta } from '../../../support/compuerta';
+import { FakeAuth } from '../../../support/fake-auth';
+import { createGate } from '../../../support/gate';
 
 /**
- * `useProfileViewModel` con un `AuthFalso`: carga del perfil (éxito, error, reintento), nombre e
+ * `useProfileViewModel` con un `FakeAuth`: carga del perfil (éxito, error, reintento), nombre e
  * inicial con respaldo, cierre de sesión y protección tras desmontar. Port 1:1 de
  * `profile_view_model_test.dart`.
  *
@@ -16,9 +16,9 @@ import { compuerta } from '../../../support/compuerta';
  * igual se ve).
  */
 
-let auth: AuthFalso;
+let auth: FakeAuth;
 beforeEach(() => {
-  auth = new AuthFalso();
+  auth = new FakeAuth();
 });
 
 async function setup() {
@@ -42,7 +42,7 @@ test('antes de cargar: cargando, «Viajero» con inicial V', async () => {
 });
 
 test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el correo de la sesión', async () => {
-  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: 'ana' });
+  auth.profile = new Profile({ id: 'u', role: UserRole.traveler, name: 'ana' });
   const { result, loadingStates } = await setup();
 
   await act(() => result.current.load());
@@ -52,11 +52,11 @@ test('éxito: cargando → perfil con su nombre, su inicial en mayúscula y el c
   expect(result.current.initial).toBe('A');
   expect(result.current.email).toBe('ana@correo.test');
   expect(result.current.error).toBeNull();
-  expect(auth.cargasDePerfil).toBe(1);
+  expect(auth.profileLoads).toBe(1);
 });
 
 test('nombre vacío: la inicial es V (no se rompe)', async () => {
-  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '' });
+  auth.profile = new Profile({ id: 'u', role: UserRole.traveler, name: '' });
   const { result } = await setup();
   await act(() => result.current.load());
 
@@ -64,7 +64,7 @@ test('nombre vacío: la inicial es V (no se rompe)', async () => {
 });
 
 test('la inicial es la primera letra completa, aunque sea un emoji (sin partir el carácter)', async () => {
-  auth.perfil = new Profile({ id: 'u', role: UserRole.traveler, name: '😀 Ana' });
+  auth.profile = new Profile({ id: 'u', role: UserRole.traveler, name: '😀 Ana' });
   const { result } = await setup();
   await act(() => result.current.load());
 
@@ -86,7 +86,7 @@ test('sin correo en la sesión, el correo es vacío', async () => {
 });
 
 test('error: queda visible en `error`, sigue «Viajero» (con el correo) y reintentar lo limpia', async () => {
-  auth.falloAlCargarPerfil = new Error('sin red');
+  auth.profileFailure = new Error('sin red');
   const { result } = await setup();
   await act(() => result.current.load());
 
@@ -96,7 +96,7 @@ test('error: queda visible en `error`, sigue «Viajero» (con el correo) y reint
   expect(result.current.name).toBe('Viajero');
   expect(result.current.email).toBe('ana@correo.test');
 
-  auth.falloAlCargarPerfil = null;
+  auth.profileFailure = null;
   await act(() => result.current.load());
 
   expect(result.current.error).toBeNull();
@@ -114,7 +114,7 @@ test('signOut: true y la sesión se cierra', async () => {
 });
 
 test('signOut que falla: false, y la sesión sigue abierta', async () => {
-  auth.falloAlSalir = new Error('sin red');
+  auth.signOutFailure = new Error('sin red');
   const { result } = await setup();
 
   let ok: boolean | null = true;
@@ -126,21 +126,21 @@ test('signOut que falla: false, y la sesión sigue abierta', async () => {
 });
 
 test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
-  auth.compuertaPerfil = compuerta();
+  auth.profileGate = createGate();
   const { result, unmount } = await setup();
   let loadPromise!: Promise<void>;
   await act(async () => {
     loadPromise = result.current.load();
   });
   await unmount();
-  auth.compuertaPerfil.completar();
+  auth.profileGate.resolve();
 
   await expect(loadPromise).resolves.toBeUndefined();
 });
 
 test('signOut: mientras cierra, `signingOut`; un segundo pedido no vuelve a llamar a signOut', async () => {
-  const signOutGate = compuerta();
-  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promesa);
+  const signOutGate = createGate();
+  const signOut = jest.spyOn(auth, 'signOut').mockImplementation(() => signOutGate.promise);
   const { result } = await setup();
   expect(result.current.signingOut).toBe(false);
 
@@ -155,7 +155,7 @@ test('signOut: mientras cierra, `signingOut`; un segundo pedido no vuelve a llam
   expect(result.current.signingOut).toBe(true);
 
   await act(async () => {
-    signOutGate.completar();
+    signOutGate.resolve();
     await first;
   });
   expect(await first).toBe(true);

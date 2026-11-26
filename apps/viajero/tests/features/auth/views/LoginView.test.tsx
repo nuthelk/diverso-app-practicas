@@ -3,12 +3,12 @@ import { BackHandler, DeviceEventEmitter, Platform, StyleSheet } from 'react-nat
 
 import { LoginView } from '@/features/auth/views/LoginView';
 
-import { AuthFalso } from '../../../support/auth-falso';
-import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
-import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
-import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
+import { FakeAuth } from '../../../support/fake-auth';
+import { testDependencies } from '../../../support/test-dependencies';
+import { resetFakeRouter, fakeRouter } from '../../../support/fake-expo-router';
+import { setWindowSize, renderScreen, restoreWindowSize } from '../../../support/render-screen';
 
-jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
+jest.mock('expo-router', () => require('../../../support/fake-expo-router'));
 
 /**
  * Pantalla de acceso: «Usar cuenta demo» solo existe cuando el flag lo permite (en la app,
@@ -17,17 +17,17 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
  * (+ enlaces legales y diseño ancho).
  */
 
-async function renderLogin({ demoAccount, auth = new AuthFalso() }: { demoAccount?: boolean; auth?: AuthFalso } = {}) {
-  await fijarVentana(420, 1000);
-  await renderPantalla(<LoginView showDemoAccount={demoAccount} />, { dependencias: dependenciasDePrueba({ auth }) });
+async function renderLogin({ demoAccount, auth = new FakeAuth() }: { demoAccount?: boolean; auth?: FakeAuth } = {}) {
+  await setWindowSize(420, 1000);
+  await renderScreen(<LoginView showDemoAccount={demoAccount} />, { dependencies: testDependencies({ auth }) });
   return auth;
 }
 
 const typeInto = (label: string, text: string) => fireEvent.changeText(screen.getByLabelText(label), text);
 const tap = (text: string) => fireEvent.press(screen.getByText(text));
 
-beforeEach(reiniciarRouterFalso);
-afterEach(restaurarVentana);
+beforeEach(resetFakeRouter);
+afterEach(restoreWindowSize);
 
 describe('bug A: «Usar cuenta demo»', () => {
   test('con el flag apagado (producción) el botón no existe', async () => {
@@ -69,7 +69,7 @@ describe('entrar y crear cuenta', () => {
     await typeInto('Contraseña', 'secreto1');
     await tap('Entrar');
 
-    expect(auth.entradas).toEqual([{ email: 'ana@correo.test', password: 'secreto1' }]);
+    expect(auth.signIns).toEqual([{ email: 'ana@correo.test', password: 'secreto1' }]);
   });
 
   test('datos inválidos muestran los avisos del formulario y no llaman a nada', async () => {
@@ -79,12 +79,12 @@ describe('entrar y crear cuenta', () => {
 
     expect(screen.getByText('Correo inválido')).toBeOnTheScreen();
     expect(screen.getByText('Mínimo 6 caracteres')).toBeOnTheScreen();
-    expect(auth.entradas).toEqual([]);
+    expect(auth.signIns).toEqual([]);
   });
 
   test('credenciales rechazadas: se ve el mensaje y el botón vuelve a estar activo', async () => {
-    const auth = new AuthFalso();
-    auth.falloAlEntrar = new Error('Invalid login credentials');
+    const auth = new FakeAuth();
+    auth.signInFailure = new Error('Invalid login credentials');
     await renderLogin({ demoAccount: false, auth });
 
     await typeInto('Correo', 'ana@correo.test');
@@ -105,7 +105,7 @@ describe('entrar y crear cuenta', () => {
     await typeInto('Contraseña', 'secreto1');
     await tap('Crear cuenta');
 
-    expect(auth.registros).toEqual([]);
+    expect(auth.signUps).toEqual([]);
     expect(screen.getByText('Debes aceptar ambos documentos para crear tu cuenta.')).toBeOnTheScreen();
   });
 
@@ -119,7 +119,7 @@ describe('entrar y crear cuenta', () => {
     for (const checkbox of screen.getAllByRole('checkbox')) await fireEvent.press(checkbox);
     await tap('Crear cuenta');
 
-    expect(auth.registros).toEqual([
+    expect(auth.signUps).toEqual([
       { name: 'Ana', email: 'ana@correo.test', password: 'secreto1', acceptsDocuments: true },
     ]);
   });
@@ -151,7 +151,7 @@ describe('textos y enlaces', () => {
     await renderLogin({ demoAccount: false });
     await tap('Política de datos');
     await tap('Términos y condiciones');
-    expect(routerFalso.push.mock.calls).toEqual([['/legal/privacidad'], ['/legal/terminos-viajeros']]);
+    expect(fakeRouter.push.mock.calls).toEqual([['/legal/privacidad'], ['/legal/terminos-viajeros']]);
   });
 
   test('el logo es solo el colibrí, centrado y sin la palabra «Diverso»; en pantallas anchas pasa al panel', async () => {
@@ -164,7 +164,7 @@ describe('textos y enlaces', () => {
     expect(screen.queryByText('Diverso')).toBeNull();
     expect(screen.queryByText(tagline)).toBeNull();
 
-    await fijarVentana(1024, 800);
+    await setWindowSize(1024, 800);
 
     expect(screen.getByTestId('panel-marca')).toBeOnTheScreen();
     expect(screen.getByText(tagline)).toBeOnTheScreen();

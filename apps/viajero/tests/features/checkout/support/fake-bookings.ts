@@ -10,7 +10,7 @@ import {
   type Public,
 } from '@/core';
 
-import type { Compuerta } from '../../../support/compuerta';
+import type { Gate } from '../../../support/gate';
 
 /**
  * [BookingRepository] sin Supabase para los view models y vistas del checkout (port de
@@ -29,7 +29,7 @@ export class FakeBookings
   cancelFailure: unknown = null;
 
   /** Si no es null, `myBookings` y `booking` esperan a que se complete (respuestas tardías). */
-  gate: Compuerta | null = null;
+  gate: Gate | null = null;
 
   /** Reserva pendiente de pago que `pendingBooking` devuelve (null = no hay ninguna). */
   pending: Booking | null = null;
@@ -64,14 +64,14 @@ export class FakeBookings
 
   async myBookings(): Promise<Booking[]> {
     this.listQueries++;
-    await this.gate?.promesa;
+    await this.gate?.promise;
     if (this.failure !== null) throw this.failure;
     return this.list;
   }
 
   async booking(bookingId: string): Promise<Booking> {
     this.bookingQueries.push(bookingId);
-    await this.gate?.promesa;
+    await this.gate?.promise;
     if (this.failure !== null) throw this.failure;
     const b = this.list.find((x) => x.id === bookingId);
     if (!b) throw new DiversoError('RESERVA_NO_EXISTE');
