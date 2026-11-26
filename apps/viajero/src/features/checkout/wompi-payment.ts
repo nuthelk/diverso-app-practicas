@@ -68,17 +68,17 @@ export function redirectTransactionId(url: string): string | null {
   return id === null || id === '' ? null : id;
 }
 
-export type NavigationDecision = { kind: 'retorno'; id: string | null } | { kind: 'permitir' } | { kind: 'bloquear' };
+export type NavigationDecision = { kind: 'return'; id: string | null } | { kind: 'allow' } | { kind: 'block' };
 
 /**
  * Qué hace el WebView con cada navegación (`onNavigationRequest` de Dart): la redirección final
- * se intercepta y NO se carga (`retorno`); http/https/about se cargan; cualquier otro esquema
+ * se intercepta y NO se carga (`return`); http/https/about se cargan; cualquier otro esquema
  * (intent://, nequi://…) se bloquea.
  */
 export function decideNavigation(url: string): NavigationDecision {
-  if (isPaymentRedirect(url)) return { kind: 'retorno', id: redirectTransactionId(url) };
+  if (isPaymentRedirect(url)) return { kind: 'return', id: redirectTransactionId(url) };
   const scheme = parseUrl(url)?.scheme;
-  return scheme === 'http' || scheme === 'https' || scheme === 'about' ? { kind: 'permitir' } : { kind: 'bloquear' };
+  return scheme === 'http' || scheme === 'https' || scheme === 'about' ? { kind: 'allow' } : { kind: 'block' };
 }
 
 /** Lleva ESTA pestaña a [url] (web). Dice si el navegador la aceptó. */

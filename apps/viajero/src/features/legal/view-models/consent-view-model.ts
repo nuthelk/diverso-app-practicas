@@ -3,10 +3,10 @@ import type { AuthRepository, Public } from '@/core';
 /** Si el usuario actual aceptó la versión vigente de los documentos legales. */
 export const ConsentState = {
   /** Aún no se sabe (consulta en curso o sin sesión). */
-  checking: 'verificando',
+  checking: 'checking',
   /** Falta aceptar algún documento: hay que pedir la autorización. */
-  pending: 'pendiente',
-  accepted: 'aceptado',
+  pending: 'pending',
+  accepted: 'accepted',
   /** La consulta falló: no se sabe si aceptó, así que se trata como pendiente hasta reintentar. */
   error: 'error',
 } as const;

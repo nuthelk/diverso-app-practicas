@@ -53,7 +53,7 @@ describe('SessionProvider', () => {
     let resolver!: (id: string | null) => void;
     jest.spyOn(auth, 'currentUserId').mockReturnValue(new Promise((r) => (resolver = r)));
     await montar(auth);
-    expect(sonda()).toBe('cargando|verificando');
+    expect(sonda()).toBe('cargando|checking');
 
     await act(async () => resolver('viajero-1'));
     await act(flushMicrotasks);
@@ -64,14 +64,14 @@ describe('SessionProvider', () => {
     const auth = new FakeAuth({ userId: null });
     await montar(auth);
     await act(flushMicrotasks);
-    expect(sonda()).toBe('sin-sesion|verificando');
+    expect(sonda()).toBe('sin-sesion|checking');
 
     await act(async () => auth.changeSession('viajero-2'));
     await act(flushMicrotasks);
-    expect(sonda()).toBe('viajero-2|aceptado');
+    expect(sonda()).toBe('viajero-2|accepted');
 
     await act(async () => auth.changeSession(null));
-    expect(sonda()).toBe('sin-sesion|verificando');
+    expect(sonda()).toBe('sin-sesion|checking');
   });
 
   test('un evento de sesión que llega antes de la lectura inicial gana', async () => {
@@ -84,7 +84,7 @@ describe('SessionProvider', () => {
     await act(async () => resolver('viajero-1'));
     await act(flushMicrotasks);
 
-    expect(sonda()).toBe('sin-sesion|verificando');
+    expect(sonda()).toBe('sin-sesion|checking');
   });
 });
 
@@ -105,7 +105,7 @@ describe('ConsentProvider', () => {
     await act(flushMicrotasks);
 
     expect(auth.consentQueries).toBe(2);
-    expect(sonda()).toBe('viajero-1|aceptado');
+    expect(sonda()).toBe('viajero-1|accepted');
   });
 
   test('al volver a primer plano con el estado ya conocido no vuelve a consultar', async () => {

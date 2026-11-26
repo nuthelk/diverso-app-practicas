@@ -61,18 +61,18 @@ export function WompiPaymentPage({
   /** `onNavigationRequest`: true = cargar; false = no cargar (`prevent`). */
   const handleNavigationRequest = ({ url }: { url: string }): boolean => {
     const decision = decideNavigation(url);
-    if (decision.kind === 'retorno') {
+    if (decision.kind === 'return') {
       finish(decision.id);
       return false;
     }
-    return decision.kind === 'permitir';
+    return decision.kind === 'allow';
   };
 
   // Respaldo: si una plataforma no consultó `onShouldStartLoadWithRequest` (p. ej. una redirección
   // del servidor en algunas versiones de Android), el cambio de URL igual cierra el pago.
   const handleNavigationChange = (n: WebViewNavigation) => {
     const decision = decideNavigation(n.url);
-    if (decision.kind === 'retorno') finish(decision.id);
+    if (decision.kind === 'return') finish(decision.id);
   };
 
   return (

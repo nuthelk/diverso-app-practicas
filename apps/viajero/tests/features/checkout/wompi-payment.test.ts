@@ -54,13 +54,13 @@ describe('redirección de retorno de Wompi (WebView en Android/iOS)', () => {
   });
 
   test('el WebView intercepta el retorno SIN cargarlo, deja pasar la web y bloquea otros esquemas', () => {
-    expect(decideNavigation('https://diverso.app/pago/resultado?id=tx-9')).toEqual({ kind: 'retorno', id: 'tx-9' });
-    expect(decideNavigation('https://diverso.app/pago/resultado')).toEqual({ kind: 'retorno', id: null });
-    expect(decideNavigation('https://checkout.wompi.co/p/?x=1')).toEqual({ kind: 'permitir' });
-    expect(decideNavigation('http://banco.example/pse')).toEqual({ kind: 'permitir' });
-    expect(decideNavigation('about:blank')).toEqual({ kind: 'permitir' });
-    expect(decideNavigation('intent://pagar#Intent;scheme=nequi;end')).toEqual({ kind: 'bloquear' });
-    expect(decideNavigation('nequi://pagar')).toEqual({ kind: 'bloquear' });
+    expect(decideNavigation('https://diverso.app/pago/resultado?id=tx-9')).toEqual({ kind: 'return', id: 'tx-9' });
+    expect(decideNavigation('https://diverso.app/pago/resultado')).toEqual({ kind: 'return', id: null });
+    expect(decideNavigation('https://checkout.wompi.co/p/?x=1')).toEqual({ kind: 'allow' });
+    expect(decideNavigation('http://banco.example/pse')).toEqual({ kind: 'allow' });
+    expect(decideNavigation('about:blank')).toEqual({ kind: 'allow' });
+    expect(decideNavigation('intent://pagar#Intent;scheme=nequi;end')).toEqual({ kind: 'block' });
+    expect(decideNavigation('nequi://pagar')).toEqual({ kind: 'block' });
   });
 });
 

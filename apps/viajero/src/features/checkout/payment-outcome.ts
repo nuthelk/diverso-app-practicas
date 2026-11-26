@@ -4,14 +4,14 @@
  */
 export const PaymentOutcome = {
   /** Android/iOS: el WebView interceptó la redirección final y la app ya va a `/pago/resultado`. */
-  completed: 'completado',
+  completed: 'completed',
   /** Android/iOS: el viajero cerró el WebView sin terminar el pago. */
-  closed: 'cerrado',
+  closed: 'closed',
   /**
    * Web: la misma pestaña ya navega a Wompi; la página se descarga y el resultado llega a
    * `/pago/resultado`. No queda nada que esperar aquí: solo termina el estado «procesando».
    */
-  redirected: 'redirigido',
+  redirected: 'redirected',
 } as const;
 export type PaymentOutcome = (typeof PaymentOutcome)[keyof typeof PaymentOutcome];
 
