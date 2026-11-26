@@ -4,7 +4,7 @@ import { BookingConfirmationView } from '@/features/checkout/views/BookingConfir
 import { param } from '@/router';
 
 /** `/reserva/:bookingId` (confirmación, con zoom). */
-export default function RutaReserva() {
+export default function BookingConfirmationRoute() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   return <BookingConfirmationView bookingId={param(bookingId)} />;
 }
