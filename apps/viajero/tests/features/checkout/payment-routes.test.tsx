@@ -25,7 +25,7 @@ import { FakeBookings } from './support/fake-bookings';
  * Pruebas de rutas: lo que sobrevive a una recarga en web es que la URL sola (con ids) reconstruya
  * la pantalla cargando todo del backend. Monta la app real (providers + guard + rutas de
  * `src/app`) con dobles. Sin red ni Supabase. Port 1:1 de `router/rutas_pago_test.dart` (las rutas
- * viejas `/exito` y `/checkout` ya las cubre `tests/app/arranque.test.tsx`).
+ * viejas `/exito` y `/checkout` ya las cubre `tests/app/startup.test.tsx`).
  */
 
 afterEach(() => jest.useRealTimers());

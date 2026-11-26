@@ -26,7 +26,7 @@ const plan = (id: string) =>
   });
 
 /** Como el `_Catalogo` de Flutter: `nope` no existe (el servidor responde «no existe»). */
-class Catalogo extends FakeCatalogRepository {
+class CatalogWithMissingPlan extends FakeCatalogRepository {
   constructor() {
     super({ details: { p1: plan('p1') } });
   }
@@ -39,10 +39,10 @@ class Catalogo extends FakeCatalogRepository {
   }
 }
 
-async function abrir(url: string, catalogo = new Catalogo()) {
+async function openApp(url: string, catalog = new CatalogWithMissingPlan()) {
   const auth = new FakeAuth();
-  await startApp(url, testDependencies({ auth, catalog: catalogo }));
-  return { auth, catalogo };
+  await startApp(url, testDependencies({ auth, catalog }));
+  return { auth, catalog };
 }
 
 beforeEach(() => {
@@ -57,17 +57,17 @@ afterEach(() => {
 describe('rutas con ids (bug J) con el consentimiento al día', () => {
   for (const url of ['/comparar', '/comparar?ids=', '/comparar?ids=,,,']) {
     test(`J1: ${url} no consulta nada y avisa que no hay qué comparar`, async () => {
-      const { auth, catalogo } = await abrir(url);
+      const { auth, catalog } = await openApp(url);
 
       expect(auth.consentQueries).toBe(1);
       expect(visibleScreen('ComparatorView')).toBeOnTheScreen();
-      expect(catalogo.requestedPlanIds).toEqual([]);
+      expect(catalog.requestedPlanIds).toEqual([]);
       expect(screen.getByText('Nada para comparar')).toBeOnTheScreen();
     });
   }
 
   test('J1: /comparar?ids=nope,p1 con un plan inexistente muestra el error', async () => {
-    await abrir('/comparar?ids=nope,p1');
+    await openApp('/comparar?ids=nope,p1');
 
     expect(screen.getByText('No pudimos cargar la comparación')).toBeOnTheScreen();
   });

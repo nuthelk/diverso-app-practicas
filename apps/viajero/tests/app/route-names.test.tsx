@@ -13,7 +13,7 @@ import { startApp } from '../support/app';
 describe('nombres de rutas', () => {
   test('la barra muestra las pestañas en el orden de la marca: Explorar, Agencias, Reservas, Perfil', async () => {
     await startApp('/');
-    const pestanas = within(screen.getByTestId('navigation-bar')).getAllByRole('tab');
-    expect(pestanas.map((p) => p.props.accessibilityLabel)).toEqual(['Explorar', 'Agencias', 'Reservas', 'Perfil']);
+    const tabs = within(screen.getByTestId('navigation-bar')).getAllByRole('tab');
+    expect(tabs.map((p) => p.props.accessibilityLabel)).toEqual(['Explorar', 'Agencias', 'Reservas', 'Perfil']);
   });
 });

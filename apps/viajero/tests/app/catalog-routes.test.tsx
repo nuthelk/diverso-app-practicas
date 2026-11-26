@@ -26,16 +26,16 @@ const plan = (id: string) =>
     status: PlanStatus.published,
   });
 
-function catalogoDePrueba() {
+function testCatalog() {
   return new FakeCatalogRepository({
     details: Object.fromEntries(['p1', 'p2', 'p3', 'p4'].map((id) => [id, plan(id)])),
     publicAgencies: [new AgencySummary({ id: 'a1', name: 'Rutas de Antioquia', city: 'Medellín' })],
   });
 }
 
-async function abrir(url: string, catalogo = catalogoDePrueba()) {
-  const r = await startApp(url, testDependencies({ catalog: catalogo, reviews: new FakeReviews() as never }));
-  return { r, catalogo };
+async function openApp(url: string, catalog = testCatalog()) {
+  const r = await startApp(url, testDependencies({ catalog, reviews: new FakeReviews() as never }));
+  return { r, catalog };
 }
 
 beforeEach(() => {
@@ -49,23 +49,23 @@ afterEach(() => {
 
 describe('cada id de la URL llega a su repositorio', () => {
   test('/agencia/:id pide esa agencia', async () => {
-    const { catalogo } = await abrir(AppRoutes.agency('a1'));
+    const { catalog } = await openApp(AppRoutes.agency('a1'));
     expect(visibleScreen('AgenciaView')).toBeOnTheScreen();
-    expect(catalogo.requestedAgencyIds).toEqual(['a1']);
+    expect(catalog.requestedAgencyIds).toEqual(['a1']);
   });
 
   test('/plan/:id pide ese plan', async () => {
-    const { catalogo } = await abrir(AppRoutes.plan('p1'));
+    const { catalog } = await openApp(AppRoutes.plan('p1'));
     expect(visibleScreen('PlanDetailView')).toBeOnTheScreen();
-    expect(catalogo.requestedPlanIds).toEqual(['p1']);
+    expect(catalog.requestedPlanIds).toEqual(['p1']);
   });
 });
 
 describe('/comparar?ids=…', () => {
   test('tras una recarga (solo la URL, sin extra) muestra los planes', async () => {
-    const { catalogo } = await abrir('/comparar?ids=p1,p2');
+    const { catalog } = await openApp('/comparar?ids=p1,p2');
 
-    expect(catalogo.requestedPlanIds).toEqual(['p1', 'p2']);
+    expect(catalog.requestedPlanIds).toEqual(['p1', 'p2']);
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
     expect(screen.getByText('Plan p1')).toBeOnTheScreen();
     expect(screen.getByText('Plan p2')).toBeOnTheScreen();
@@ -73,24 +73,24 @@ describe('/comparar?ids=…', () => {
   });
 
   test('respeta el orden de los ids, ignora repetidos y compara como mucho tres', async () => {
-    const { catalogo } = await abrir('/comparar?ids=p2,p1,p2,p3,p4');
-    expect(catalogo.requestedPlanIds).toEqual(['p2', 'p1', 'p3']);
+    const { catalog } = await openApp('/comparar?ids=p2,p1,p2,p3,p4');
+    expect(catalog.requestedPlanIds).toEqual(['p2', 'p1', 'p3']);
   });
 
   test('sin ids no hay nada que comparar (y no consulta nada)', async () => {
-    const { catalogo } = await abrir('/comparar');
+    const { catalog } = await openApp('/comparar');
     expect(screen.getByText('Nada para comparar')).toBeOnTheScreen();
-    expect(catalogo.requestedPlanIds).toEqual([]);
+    expect(catalog.requestedPlanIds).toEqual([]);
   });
 
   test('si la carga falla avisa y «Reintentar» vuelve a cargar', async () => {
-    const catalogo = catalogoDePrueba();
-    catalogo.failure = new Error('sin red');
-    await abrir('/comparar?ids=p1,p2', catalogo);
+    const catalog = testCatalog();
+    catalog.failure = new Error('sin red');
+    await openApp('/comparar?ids=p1,p2', catalog);
     expect(screen.getByText('No pudimos cargar la comparación')).toBeOnTheScreen();
     expect(screen.queryByText('Elige con toda la información')).toBeNull();
 
-    catalogo.failure = null;
+    catalog.failure = null;
     await fireEvent.press(screen.getByText('Reintentar'));
     await settle();
 
@@ -99,14 +99,14 @@ describe('/comparar?ids=…', () => {
   });
 
   test('desde el catálogo, el `extra` evita volver a pedir los planes', async () => {
-    const { r, catalogo } = await abrir(AppRoutes.legal('privacidad'));
+    const { r, catalog } = await openApp(AppRoutes.legal('privacidad'));
 
     setPlansToCompare([plan('p1'), plan('p2')]);
     await act(async () => router.push(AppRoutes.comparePlans(['p1', 'p2']) as Href));
     await settle();
 
     expect(screen.getByText('Elige con toda la información')).toBeOnTheScreen();
-    expect(catalogo.requestedPlanIds).toEqual([]);
+    expect(catalog.requestedPlanIds).toEqual([]);
     expect(r.getPathname()).toBe('/comparar');
   });
 });

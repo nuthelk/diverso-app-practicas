@@ -37,7 +37,7 @@ export function DependenciesProvider({
 
 /**
  * Los repositorios (`context.read<X>()` de Flutter). Sin `DependenciesProvider` arriba falla al
- * montar, como el `ProviderNotFoundException`: `tests/app/arranque.test.tsx` recorre las rutas
+ * montar, como el `ProviderNotFoundException`: `tests/app/startup.test.tsx` recorre las rutas
  * para atraparlo.
  */
 export function useDependencies(): Dependencies {

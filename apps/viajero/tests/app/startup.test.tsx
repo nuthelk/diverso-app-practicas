@@ -20,10 +20,10 @@ import { testDependencies } from '../support/test-dependencies';
 
 afterEach(() => jest.useRealTimers());
 
-const barra = () => screen.queryByTestId('barra-inferior');
+const bottomBar = () => screen.queryByTestId('barra-inferior');
 
-async function irAPestana(etiqueta: string) {
-  await fireEvent.press(within(screen.getByTestId('barra-inferior')).getByRole('tab', { name: etiqueta }));
+async function goToTab(label: string) {
+  await fireEvent.press(within(screen.getByTestId('barra-inferior')).getByRole('tab', { name: label }));
   await settle();
 }
 
@@ -41,51 +41,51 @@ test('con sesión y consentimiento aceptado arranca en el catálogo', async () =
   expect(r.getPathname()).toBe('/');
   expect(visibleScreen('CatalogView')).toBeOnTheScreen();
   expect(screen.queryByText('Entra para seguir explorando Antioquia.')).toBeNull();
-  expect(barra()).toBeOnTheScreen();
+  expect(bottomBar()).toBeOnTheScreen();
 });
 
 test('cada pestaña se construye sin dependencias faltantes', async () => {
   const r = await startApp();
 
-  const pestanas: [string, string, string][] = [
+  const tabs: [string, string, string][] = [
     ['Agencias', 'AgenciasView', '/agencias'],
     ['Reservas', 'BookingsView', '/reservas'],
     ['Perfil', 'ProfileView', '/perfil'],
     ['Explorar', 'CatalogView', '/'],
   ];
-  for (const [etiqueta, vista, ruta] of pestanas) {
-    await irAPestana(etiqueta);
-    expect([etiqueta, r.getPathname()]).toEqual([etiqueta, ruta]);
-    expect(visibleScreen(vista)).toBeOnTheScreen();
+  for (const [label, view, route] of tabs) {
+    await goToTab(label);
+    expect([label, r.getPathname()]).toEqual([label, route]);
+    expect(visibleScreen(view)).toBeOnTheScreen();
   }
 });
 
 describe('cada ruta de la tabla resuelve con sus parámetros', () => {
-  const rutas: [string, string, string[]][] = [
+  const routes: [string, string, string[]][] = [
     ['/', 'CatalogView', []],
     ['/agencias', 'AgenciasView', []],
     ['/reservas', 'BookingsView', []],
     ['/perfil', 'ProfileView', []],
-    // Pantallas reales (T5): que el id llegue al repositorio lo prueba `rutas-catalogo.test.tsx`.
+    // Pantallas reales (T5): que el id llegue al repositorio lo prueba `catalog-routes.test.tsx`.
     [AppRoutes.agency('a1'), 'AgenciaView', []],
     [AppRoutes.plan('p1'), 'PlanDetailView', []],
     // Pantallas reales (T6), con dobles que rechazan: el id que llega a cada repositorio lo prueba
-    // `features/checkout/rutas-pago.test.tsx`.
+    // `features/checkout/payment-routes.test.tsx`.
     [AppRoutes.checkout('p1', 'f1'), 'CheckoutView', ['No pudimos cargar el plan']],
     [AppRoutes.paymentForTransaction('tx-77'), 'PagoResultadoView', ['No pudimos verificar el pago']],
     [AppRoutes.paymentForBooking('r1'), 'PagoResultadoView', ['No pudimos verificar el pago']],
     [AppRoutes.booking('b1'), 'ReservaView', ['No pudimos cargar la reserva']],
     // Pantallas reales (T7), con dobles que rechazan: el id que llega al repositorio lo prueban
-    // `consentimiento-guard-resena.test.tsx` y `features/bookings/views/*`.
+    // `consent-guard-review.test.tsx` y `features/bookings/views/*`.
     [AppRoutes.bookingDetail('b1'), 'ReservaDetalleView', ['No pudimos cargar la reserva']],
     [AppRoutes.review('b1'), 'ReviewView', ['No pudimos cargar la reserva']],
     ['/comparar?ids=b,a,,b,c,d', 'ComparatorView', []],
     ['/comparar', 'ComparatorView', ['Nada para comparar']],
   ];
-  for (const [url, vista, params] of rutas) {
-    test(`${url} → ${vista}`, async () => {
+  for (const [url, view, params] of routes) {
+    test(`${url} → ${view}`, async () => {
       await startApp(url);
-      expect(visibleScreen(vista)).toBeOnTheScreen();
+      expect(visibleScreen(view)).toBeOnTheScreen();
       for (const p of params) expect(screen.getByText(p)).toBeOnTheScreen();
     });
   }
@@ -136,9 +136,9 @@ describe('rutas anteriores (dependían de `extra`, que se pierde al recargar)', 
 });
 
 test('cambiar el tema no recrea el router ni reinicia la navegación', async () => {
-  let cambiarModo!: (modo: ThemeMode) => void;
-  function CapturaModo() {
-    cambiarModo = useThemeMode().setMode;
+  let setThemeMode!: (mode: ThemeMode) => void;
+  function ModeCapture() {
+    setThemeMode = useThemeMode().setMode;
     return null;
   }
   const r = await renderRouter(
@@ -147,7 +147,7 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
       overrides: {
         _layout: () => (
           <AppProviders dependencies={testDependencies()} initialThemeMode="light">
-            <CapturaModo />
+            <ModeCapture />
             <AppNavigation ready />
           </AppProviders>
         ),
@@ -159,14 +159,14 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
   await act(async () => router.push(AppRoutes.legal('privacidad') as Href));
   await settle();
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
-  const fondo = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
-  expect(fondo()).toBe(lightTheme.pageBackground);
+  const background = () => StyleSheet.flatten(screen.getByTestId('barra-superior').props.style).backgroundColor;
+  expect(background()).toBe(lightTheme.pageBackground);
 
-  await act(async () => cambiarModo('dark'));
+  await act(async () => setThemeMode('dark'));
   await settle();
 
   expect(r.getPathname()).toBe('/legal/privacidad');
   expect(screen.getByText('Documentos legales')).toBeOnTheScreen();
-  expect(fondo()).toBe(darkTheme.pageBackground);
+  expect(background()).toBe(darkTheme.pageBackground);
   expect(router.canGoBack()).toBe(true);
 });
