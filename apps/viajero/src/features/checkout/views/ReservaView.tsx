@@ -9,8 +9,8 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { EntradaZoom } from '../components/Aparecer';
-import { irA } from '../ir-a';
+import { ZoomIn } from '../components/Appear';
+import { goTo } from '../go-to';
 import { useReservaViewModel } from '../view-models/useReservaViewModel';
 import { BookingSuccessView } from './BookingSuccessView';
 
@@ -34,10 +34,10 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
   const reserva = vm.reserva;
   const pendienteDePago = !vm.cargando && reserva?.status === BookingStatus.pendingPayment ? reserva.id : null;
   useEffect(() => {
-    if (pendienteDePago !== null) irA(router, AppRoutes.pagoDeReserva(pendienteDePago));
+    if (pendienteDePago !== null) goTo(router, AppRoutes.pagoDeReserva(pendienteDePago));
   }, [pendienteDePago, router]);
 
-  const irAReservas = () => irA(router, AppRoutes.reservas);
+  const irAReservas = () => goTo(router, AppRoutes.reservas);
 
   let contenido: ReactNode;
   if (vm.cargando) {
@@ -78,7 +78,7 @@ export function ReservaView({ bookingId }: ReservaViewProps) {
       }
     }
   }
-  return <EntradaZoom testID="pantalla-ReservaView">{contenido}</EntradaZoom>;
+  return <ZoomIn testID="pantalla-ReservaView">{contenido}</ZoomIn>;
 }
 
 /** `Scaffold(AppBar())`: barra vacía con «Volver» (sin historial, a Mis reservas). */

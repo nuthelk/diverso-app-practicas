@@ -1,8 +1,8 @@
 import { act, fireEvent, renderHook, screen } from '@testing-library/react-native';
 
 import { DiversoError, type BookingRepository, type CatalogRepository, type Public } from '@/core';
-import { PagoAbierto } from '@/features/checkout/pago-abierto';
-import { textoReservaPendiente } from '@/features/checkout/components/ReservaPendienteAviso';
+import { PaymentOutcome } from '@/features/checkout/payment-outcome';
+import { pendingBookingText } from '@/features/checkout/components/PendingBookingNotice';
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
 import { CheckoutView } from '@/features/checkout/views/CheckoutView';
 
@@ -31,7 +31,7 @@ describe('useCheckoutViewModel', () => {
   let abiertos: string[];
   const abrir = (terminado: boolean) => async (id: string) => {
     abiertos.push(id);
-    return terminado ? PagoAbierto.completado : PagoAbierto.cerrado;
+    return terminado ? PaymentOutcome.completed : PaymentOutcome.closed;
   };
 
   beforeEach(() => {
@@ -189,10 +189,10 @@ describe('aviso de reserva pendiente', () => {
 
   test('texto: personas, total y hora de vencimiento', () => {
     const b = pendienteDePrueba({ pax: 2 });
-    expect(textoReservaPendiente(b)).toBe(
+    expect(pendingBookingText(b)).toBe(
       `Ya tienes una reserva pendiente de pago para esta fecha (2 personas, $ 300.000). Vence a las ${hora(b.expiresAt)}.`,
     );
-    expect(textoReservaPendiente(pendienteDePrueba({ pax: 1 }))).toContain('(1 persona, $ 150.000)');
+    expect(pendingBookingText(pendienteDePrueba({ pax: 1 }))).toContain('(1 persona, $ 150.000)');
   });
 });
 

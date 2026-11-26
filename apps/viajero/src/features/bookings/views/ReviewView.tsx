@@ -3,7 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { useDependencies } from '@/composition';
-import { irA } from '@/features/checkout/ir-a';
+import { goTo } from '@/features/checkout/go-to';
 import { Snackbar, showSnackbar } from '@/features/shared/snackbar';
 import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
@@ -50,7 +50,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
     volverSeguro(router, AppRoutes.reservas);
   };
 
-  const irAMisReservas = () => irA(router, AppRoutes.reservas);
+  const irAMisReservas = () => goTo(router, AppRoutes.reservas);
 
   let cuerpo: ReactNode;
   if (vm.cargando) {

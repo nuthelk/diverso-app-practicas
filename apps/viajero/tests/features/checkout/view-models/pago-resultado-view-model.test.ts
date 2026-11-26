@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { BookingStatus, DiversoError, VerifiedPaymentStatus } from '@/core';
-import { PagoAbierto } from '@/features/checkout/pago-abierto';
+import { PaymentOutcome } from '@/features/checkout/payment-outcome';
 import { usePagoResultadoViewModel } from '@/features/checkout/view-models/usePagoResultadoViewModel';
 
 import { compuerta, esperar } from '../../../support/compuerta';
@@ -173,7 +173,7 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
   beforeEach(() => {
     abiertos = [];
   });
-  const abrir = (resultado: PagoAbierto) => async (id: string) => {
+  const abrir = (resultado: PaymentOutcome) => async (id: string) => {
     abiertos.push(id);
     return resultado;
   };
@@ -185,7 +185,7 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
     await act(async () => {
       reintentando = result.current.intentarDeNuevo('res-1', async (id) => {
         await puerta.promesa;
-        return abrir(PagoAbierto.completado)(id);
+        return abrir(PaymentOutcome.completed)(id);
       });
       await esperar();
     });
@@ -200,14 +200,14 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
 
   test('bug F: en web queda redirigido y el botón se libera, sin error', async () => {
     const { result } = await crear(new PasarelaFalsa());
-    await act(() => result.current.intentarDeNuevo('res-1', abrir(PagoAbierto.redirigido)));
+    await act(() => result.current.intentarDeNuevo('res-1', abrir(PaymentOutcome.redirected)));
     expect(result.current.reintentandoPago).toBe(false);
     expect(result.current.errorReintento).toBeNull();
   });
 
   test('cerrar el pago sin terminar avisa cómo seguir', async () => {
     const { result } = await crear(new PasarelaFalsa());
-    await act(() => result.current.intentarDeNuevo('res-1', abrir(PagoAbierto.cerrado)));
+    await act(() => result.current.intentarDeNuevo('res-1', abrir(PaymentOutcome.closed)));
     expect(result.current.errorReintento).toBe(
       'Cerraste el pago antes de terminar. Si ya pagaste, toca «Verificar de nuevo».',
     );
@@ -237,26 +237,26 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
 
   test('un nuevo intento limpia el aviso anterior', async () => {
     const { result } = await crear(new PasarelaFalsa());
-    await act(() => result.current.intentarDeNuevo('res-1', abrir(PagoAbierto.cerrado)));
-    await act(() => result.current.intentarDeNuevo('res-1', abrir(PagoAbierto.completado)));
+    await act(() => result.current.intentarDeNuevo('res-1', abrir(PaymentOutcome.closed)));
+    await act(() => result.current.intentarDeNuevo('res-1', abrir(PaymentOutcome.completed)));
     expect(result.current.errorReintento).toBeNull();
   });
 
   test('mientras uno está en curso, otro toque se ignora', async () => {
     const { result } = await crear(new PasarelaFalsa());
-    const puerta = compuerta<PagoAbierto>();
+    const puerta = compuerta<PaymentOutcome>();
     await act(async () => {
       const primero = result.current.intentarDeNuevo('res-1', () => puerta.promesa);
-      await result.current.intentarDeNuevo('res-1', abrir(PagoAbierto.completado));
+      await result.current.intentarDeNuevo('res-1', abrir(PaymentOutcome.completed));
       expect(abiertos).toEqual([]);
-      puerta.completar(PagoAbierto.completado);
+      puerta.completar(PaymentOutcome.completed);
       await primero;
     });
   });
 
   test('si la pantalla se cierra mientras el pago se abre, no avisa a nadie', async () => {
     const { result, unmount } = await crear(new PasarelaFalsa());
-    const puerta = compuerta<PagoAbierto>();
+    const puerta = compuerta<PaymentOutcome>();
     let reintentando!: Promise<void>;
     await act(async () => {
       reintentando = result.current.intentarDeNuevo('res-1', () => puerta.promesa);
@@ -264,7 +264,7 @@ describe('intentarDeNuevo («Intentar de nuevo» tras un pago rechazado)', () =>
     });
 
     await unmount();
-    puerta.completar(PagoAbierto.completado);
+    puerta.completar(PaymentOutcome.completed);
     await reintentando;
   });
 });

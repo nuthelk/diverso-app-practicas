@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 
 import { DiversoError, type Booking, type BookingRepository, type Plan, type PlanDate, type Public } from '@/core';
 
-import { PagoAbierto, type AbrirPago } from '../pago-abierto';
+import { PaymentOutcome, type OpenPayment } from '../payment-outcome';
 import { useEstadoVivo } from './use-estado-vivo';
 
 /** Máximo de personas por reserva. */
@@ -84,10 +84,10 @@ export function useCheckoutViewModel(
     notificar();
   };
 
-  const abrir = async (abrirPago: AbrirPago) => {
+  const abrir = async (abrirPago: OpenPayment) => {
     const abierto = await abrirPago(actual.current.bookingId!);
-    if (abierto === PagoAbierto.redirigido) cambiar({ redirigido: true }, false);
-    if (abierto === PagoAbierto.cerrado) cambiar({ error: MENSAJE_CERRADO }, false);
+    if (abierto === PaymentOutcome.redirected) cambiar({ redirigido: true }, false);
+    if (abierto === PaymentOutcome.closed) cambiar({ error: MENSAJE_CERRADO }, false);
   };
 
   const ejecutar = async (accion: () => Promise<void>) => {
@@ -110,7 +110,7 @@ export function useCheckoutViewModel(
    * Reserva (una sola vez) y delega en [abrirPago] el cobro con Wompi. [abrirPago] dice cómo
    * terminó: si el viajero lo cerró sin terminar queda un aviso; los errores quedan en [error].
    */
-  const pagar = async (fecha: PlanDate, abrirPago: AbrirPago): Promise<void> => {
+  const pagar = async (fecha: PlanDate, abrirPago: OpenPayment): Promise<void> => {
     if (actual.current.procesando || actual.current.redirigido) return;
     await ejecutar(async () => {
       if (actual.current.bookingId === null) {
@@ -137,7 +137,7 @@ export function useCheckoutViewModel(
   };
 
   /** Retoma [pendiente]: mismo id y mismas personas, sin crear otra reserva. */
-  const completarPendiente = async (abrirPago: AbrirPago): Promise<void> => {
+  const completarPendiente = async (abrirPago: OpenPayment): Promise<void> => {
     const reserva = actual.current.pendiente;
     if (reserva === null || actual.current.procesando || actual.current.redirigido) return;
     await ejecutar(async () => {

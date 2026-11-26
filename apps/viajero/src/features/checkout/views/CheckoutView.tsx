@@ -8,7 +8,7 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { irA } from '../ir-a';
+import { goTo } from '../go-to';
 import { useCheckoutPlanViewModel } from '../view-models/useCheckoutPlanViewModel';
 import { CheckoutConPlanView } from './CheckoutConPlanView';
 
@@ -63,7 +63,7 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
           title="Fecha no disponible"
           message="Esa fecha ya no está disponible. Elige otra salida de este plan."
           action={
-            <FilledButton variant="tonal" text="Ver fechas del plan" onPress={() => irA(router, AppRoutes.plan(plan.id))} />
+            <FilledButton variant="tonal" text="Ver fechas del plan" onPress={() => goTo(router, AppRoutes.plan(plan.id))} />
           }
         />
       </EstadoCheckout>

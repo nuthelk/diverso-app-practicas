@@ -1,6 +1,6 @@
 import { DiversoError, VerifiedPaymentStatus, type VerifiedPayment, type PaymentGateway } from '@/core';
 
-import { PagoAbierto, type AbrirPago } from '../pago-abierto';
+import { PaymentOutcome, type OpenPayment } from '../payment-outcome';
 import { useEstadoVivo } from './use-estado-vivo';
 
 interface EstadoPagoResultado {
@@ -73,12 +73,12 @@ export function usePagoResultadoViewModel(
    * Vuelve a abrir el pago de [reserva] (rechazado o cerrado) con [abrirPago]. No crea otra
    * reserva: es la misma, que sigue pendiente de pago.
    */
-  const intentarDeNuevo = async (reserva: string, abrirPago: AbrirPago): Promise<void> => {
+  const intentarDeNuevo = async (reserva: string, abrirPago: OpenPayment): Promise<void> => {
     if (actual.current.reintentandoPago) return;
     cambiar({ reintentandoPago: true, errorReintento: null });
     try {
       const abierto = await abrirPago(reserva);
-      if (abierto === PagoAbierto.cerrado) {
+      if (abierto === PaymentOutcome.closed) {
         cambiar({ errorReintento: 'Cerraste el pago antes de terminar. Si ya pagaste, toca «Verificar de nuevo».' }, false);
       }
     } catch (e) {

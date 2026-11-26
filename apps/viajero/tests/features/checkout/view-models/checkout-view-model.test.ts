@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
 import { DiversoError } from '@/core';
-import { PagoAbierto } from '@/features/checkout/pago-abierto';
+import { PaymentOutcome } from '@/features/checkout/payment-outcome';
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
 
 import { compuerta, esperar } from '../../../support/compuerta';
@@ -29,7 +29,7 @@ beforeEach(() => {
 
 const abrir = (terminado: boolean) => async (id: string) => {
   abiertos.push(id);
-  return terminado ? PagoAbierto.completado : PagoAbierto.cerrado;
+  return terminado ? PaymentOutcome.completed : PaymentOutcome.closed;
 };
 
 async function crear() {
@@ -99,7 +99,7 @@ test('bug F: en web el pago queda redirigido y «Procesando…» termina, sin er
   await act(() =>
     result.current.pagar(fecha, async (id) => {
       abiertos.push(id);
-      return PagoAbierto.redirigido;
+      return PaymentOutcome.redirected;
     }),
   );
   expect(result.current.procesando).toBe(false);
@@ -112,7 +112,7 @@ test('bug F: en web el pago queda redirigido y «Procesando…» termina, sin er
 test('web: tras redirigir a Wompi el botón de pagar sigue bloqueado hasta que la página se descarga', async () => {
   const { result } = await crear();
   expect(result.current.puedePagar).toBe(true);
-  await act(() => result.current.pagar(fecha, async () => PagoAbierto.redirigido));
+  await act(() => result.current.pagar(fecha, async () => PaymentOutcome.redirected));
   expect(result.current.puedePagar).toBe(false);
   expect(result.current.procesando).toBe(false);
 });
@@ -122,7 +122,7 @@ test('web: un segundo toque tras redirigir no abre otro pago ni crea otra reserv
   await act(() =>
     result.current.pagar(fecha, async (id) => {
       abiertos.push(id);
-      return PagoAbierto.redirigido;
+      return PaymentOutcome.redirected;
     }),
   );
   await act(() => result.current.pagar(fecha, abrir(true)));
@@ -134,7 +134,7 @@ test('web: completar la reserva pendiente y ser redirigido también bloquea paga
   reservas.pendiente = pendienteDePrueba({ pax: 2 });
   const { result } = await crear();
   await act(() => result.current.cargarPendiente(fecha));
-  await act(() => result.current.completarPendiente(async () => PagoAbierto.redirigido));
+  await act(() => result.current.completarPendiente(async () => PaymentOutcome.redirected));
   expect(result.current.puedePagar).toBe(false);
   expect(result.current.procesando).toBe(false);
 });
@@ -186,7 +186,7 @@ test('un nuevo intento limpia el error anterior', async () => {
 describe('guarda de desmontaje', () => {
   test('pagar que termina cuando la pantalla ya se cerró no avisa a nadie', async () => {
     const { result, unmount } = await crear();
-    const puerta = compuerta<PagoAbierto>();
+    const puerta = compuerta<PaymentOutcome>();
     let pagando!: Promise<void>;
     await act(async () => {
       pagando = result.current.pagar(fecha, () => puerta.promesa);
@@ -195,13 +195,13 @@ describe('guarda de desmontaje', () => {
     expect(result.current.procesando).toBe(true);
 
     await unmount();
-    puerta.completar(PagoAbierto.completado);
+    puerta.completar(PaymentOutcome.completed);
     await pagando;
   });
 
   test('pagar que falla cuando la pantalla ya se cerró tampoco avisa', async () => {
     const { result, unmount } = await crear();
-    const puerta = compuerta<PagoAbierto>();
+    const puerta = compuerta<PaymentOutcome>();
     let pagando!: Promise<void>;
     await act(async () => {
       pagando = result.current.pagar(fecha, () => puerta.promesa);

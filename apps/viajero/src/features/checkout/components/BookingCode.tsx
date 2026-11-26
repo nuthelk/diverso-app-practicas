@@ -4,10 +4,10 @@ import { Text } from '@/ui/components';
 import { AppRadii, AppText, withAlpha, useTheme } from '@/ui/theme';
 
 /** Tarjeta con el código de la reserva, seleccionable para copiarlo (`SelectableText`). */
-export function CodigoReserva({ codigo }: { codigo: string }) {
+export function BookingCode({ code }: { code: string }) {
   const cs = useTheme().colorScheme;
   return (
-    <View style={[estilos.caja, { backgroundColor: cs.primaryContainer }]}>
+    <View style={[styles.box, { backgroundColor: cs.primaryContainer }]}>
       <Text
         style={{
           fontSize: AppText.micro,
@@ -23,12 +23,12 @@ export function CodigoReserva({ codigo }: { codigo: string }) {
         selectable
         style={{ fontSize: AppText.figure, fontWeight: '900', letterSpacing: 3, color: cs.onPrimaryContainer }}
       >
-        {codigo}
+        {code}
       </Text>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  caja: { paddingVertical: 18, borderRadius: AppRadii.card, alignItems: 'center' },
+const styles = StyleSheet.create({
+  box: { paddingVertical: 18, borderRadius: AppRadii.card, alignItems: 'center' },
 });

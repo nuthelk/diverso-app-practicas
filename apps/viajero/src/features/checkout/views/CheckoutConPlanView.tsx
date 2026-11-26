@@ -9,15 +9,15 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { OutlinedButton, SectionLabel } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { AvisoErrorPago } from '../components/AvisoErrorPago';
-import { BarraPagar } from '../components/BarraPagar';
-import { PagoWompiCard } from '../components/PagoWompiCard';
-import { ReservaPendienteAviso } from '../components/ReservaPendienteAviso';
-import { ResumenPago } from '../components/ResumenPago';
-import { ResumenPlan } from '../components/ResumenPlan';
-import { SelectorPersonas } from '../components/SelectorPersonas';
-import { irA } from '../ir-a';
-import { useAbrirPago } from '../useAbrirPago';
+import { PaymentErrorNotice } from '../components/PaymentErrorNotice';
+import { PayBar } from '../components/PayBar';
+import { WompiPaymentCard } from '../components/WompiPaymentCard';
+import { PendingBookingNotice } from '../components/PendingBookingNotice';
+import { PaymentSummary } from '../components/PaymentSummary';
+import { PlanSummary } from '../components/PlanSummary';
+import { TravelersPicker } from '../components/TravelersPicker';
+import { goTo } from '../go-to';
+import { useOpenPayment } from '../useOpenPayment';
 import { useCheckoutViewModel } from '../view-models/useCheckoutViewModel';
 
 /**
@@ -30,7 +30,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
   const router = useRouter();
   const { reservas, pasarela } = useDependencies();
   const vm = useCheckoutViewModel({ reservas });
-  const { abrirPago, modalPago } = useAbrirPago(pasarela);
+  const { openPayment, paymentModal } = useOpenPayment(pasarela);
 
   useEffect(() => {
     void vm.cargarPendiente(fecha);
@@ -38,7 +38,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
   }, []);
 
   /** Respaldo si la redirección no llegó: el servidor consulta a Wompi por la reserva. */
-  const yaPague = (bookingId: string) => irA(router, AppRoutes.pagoDeReserva(bookingId));
+  const yaPague = (bookingId: string) => goTo(router, AppRoutes.pagoDeReserva(bookingId));
 
   const { pendiente, error, bookingId } = vm;
   return (
@@ -48,35 +48,35 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}
         {pendiente !== null ? (
           <>
-            <ReservaPendienteAviso
-              reserva={pendiente}
-              ocupado={vm.procesando}
-              onCompletar={() => void vm.completarPendiente(abrirPago)}
-              onVerificar={() => yaPague(pendiente.id)}
-              onCancelar={() => void vm.cancelarPendiente()}
+            <PendingBookingNotice
+              booking={pendiente}
+              busy={vm.procesando}
+              onComplete={() => void vm.completarPendiente(openPayment)}
+              onVerify={() => yaPague(pendiente.id)}
+              onCancel={() => void vm.cancelarPendiente()}
             />
             <View style={{ height: 16 }} />
           </>
         ) : null}
-        <ResumenPlan plan={plan} fecha={fecha} />
+        <PlanSummary plan={plan} planDate={fecha} />
         <View style={{ height: 22 }} />
-        <SelectorPersonas
+        <TravelersPicker
           pax={vm.pax}
-          cupos={fecha.availableSpots}
-          puedeQuitar={vm.puedeQuitarPersona}
-          puedeAgregar={vm.puedeAgregarPersona(fecha.availableSpots)}
-          onCambiar={vm.setPax}
+          availableSpots={fecha.availableSpots}
+          canRemove={vm.puedeQuitarPersona}
+          canAdd={vm.puedeAgregarPersona(fecha.availableSpots)}
+          onChange={vm.setPax}
         />
         <View style={{ height: 22 }} />
         {/* Pago con Wompi (modo prueba). */}
         <SectionLabel text="Pago" />
-        <PagoWompiCard />
+        <WompiPaymentCard />
         <View style={{ height: 22 }} />
-        <ResumenPago precioPorPersona={plan.priceCop} pax={vm.pax} total={vm.total(plan)} />
+        <PaymentSummary pricePerPerson={plan.priceCop} pax={vm.pax} total={vm.total(plan)} />
         {error !== null ? (
           <>
             <View style={{ height: 16 }} />
-            <AvisoErrorPago mensaje={error} />
+            <PaymentErrorNotice message={error} />
           </>
         ) : null}
         {bookingId !== null ? (
@@ -90,13 +90,13 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
           </>
         ) : null}
       </ScrollView>
-      <BarraPagar
+      <PayBar
         total={vm.total(plan)}
         pax={vm.pax}
-        procesando={vm.procesando}
-        onPagar={vm.puedePagar ? () => void vm.pagar(fecha, abrirPago) : null}
+        processing={vm.procesando}
+        onPay={vm.puedePagar ? () => void vm.pagar(fecha, openPayment) : null}
       />
-      {modalPago}
+      {paymentModal}
     </View>
   );
 }

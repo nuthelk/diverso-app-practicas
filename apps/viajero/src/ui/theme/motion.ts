@@ -60,7 +60,7 @@ export const Durations = {
   gallery: 900,
   /** Check de confirmación: escala 0 → 1, elasticOut. */
   confirmationCheck: 380,
-  /** `Aparecer`: escalonado 0.14 por paso, ventana 0.42, easeOutCubic, opacidad + translateY 14→0. */
+  /** `Appear`: escalonado 0.14 por paso, ventana 0.42, easeOutCubic, opacidad + translateY 14→0. */
   appear: 640,
   /** Etiqueta flotante del InputDecorator (`_kTransitionDuration`). */
   textField: 167,

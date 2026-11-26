@@ -6,65 +6,65 @@ import { formatCOP } from '@/core';
 import { FilledButton, Icon, Text } from '@/ui/components';
 import { AppText, withAlpha, useTheme } from '@/ui/theme';
 
-const ANCHO_BOTON = 220;
+const BUTTON_WIDTH = 220;
 
 /**
  * Alto del teclado (`MediaQuery.viewInsetsOf(context).bottom`). Ni iOS ni Android (edge-to-edge
  * desde el SDK 58: la ventana ya NO se achica) le hacen lugar solos; en web no hay teclado del
  * sistema. iOS avisa ANTES (`keyboardWill*`); Android solo emite `keyboardDid*`.
  */
-function useAlturaTeclado(): number {
-  const [alto, setAlto] = useState(0);
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
   useEffect(() => {
     if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
     const ios = Platform.OS === 'ios';
-    const mostrar = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
-      setAlto(e.endCoordinates.height),
+    const showListener = Keyboard.addListener(ios ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
+      setHeight(e.endCoordinates.height),
     );
-    const ocultar = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setAlto(0));
+    const hideListener = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setHeight(0));
     return () => {
-      mostrar.remove();
-      ocultar.remove();
+      showListener.remove();
+      hideListener.remove();
     };
   }, []);
-  return alto;
+  return height;
 }
 
 /**
- * Barra inferior del checkout: total, personas y el botón «Pagar con Wompi». [onPagar] null =
- * botón bloqueado; [procesando] muestra el progreso. Va DEBAJO del scroll (no encima), así el
+ * Barra inferior del checkout: total, personas y el botón «Pagar con Wompi». [onPay] null =
+ * botón bloqueado; [processing] muestra el progreso. Va DEBAJO del scroll (no encima), así el
  * contenido termina donde empieza la barra; abajo suma el teclado o la barra de gestos.
  */
-export function BarraPagar({
+export function PayBar({
   total,
   pax,
-  procesando,
-  onPagar,
+  processing,
+  onPay,
 }: {
   total: number;
   pax: number;
-  procesando: boolean;
-  onPagar: (() => void) | null;
+  processing: boolean;
+  onPay: (() => void) | null;
 }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const teclado = useAlturaTeclado();
-  const gestos = useSafeAreaInsets().bottom;
-  const habilitado = onPagar !== null;
-  const contenido = habilitado ? cs.onPrimary : withAlpha(cs.onSurface, 0.38);
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const keyboard = useKeyboardHeight();
+  const gestureInset = useSafeAreaInsets().bottom;
+  const enabled = onPay !== null;
+  const contentColor = enabled ? cs.onPrimary : withAlpha(cs.onSurface, 0.38);
   return (
     <View
       testID="barra-pagar"
       style={[
-        estilos.barra,
+        styles.bar,
         {
-          paddingBottom: 14 + Math.max(teclado, gestos),
-          backgroundColor: tema.pageBackground,
+          paddingBottom: 14 + Math.max(keyboard, gestureInset),
+          backgroundColor: theme.pageBackground,
           borderTopColor: withAlpha(cs.outlineVariant, 0.5),
         },
       ]}
     >
-      <View style={estilos.total}>
+      <View style={styles.total}>
         <Text style={{ fontSize: AppText.headingM, fontWeight: '800', letterSpacing: -0.5, color: cs.onSurface }}>
           {formatCOP(total)}
         </Text>
@@ -74,26 +74,26 @@ export function BarraPagar({
       </View>
       {/* `FilledButton.icon` (16 | ícono 17 | 8 | texto | 24): candado o progreso. */}
       <FilledButton
-        accessibilityLabel={procesando ? 'Procesando…' : 'Pagar con Wompi'}
-        onPress={onPagar}
-        style={estilos.boton}
+        accessibilityLabel={processing ? 'Procesando…' : 'Pagar con Wompi'}
+        onPress={onPay}
+        style={styles.button}
       >
-        {procesando ? (
+        {processing ? (
           // `SizedBox(17×17)` con un indicador de trazo 2 (el «small» de RN mide 20).
-          <View style={estilos.caja17}>
-            <ActivityIndicator testID="pagar-progreso" size="small" color={contenido} style={estilos.indicador} />
+          <View style={styles.box17}>
+            <ActivityIndicator testID="pagar-progreso" size="small" color={contentColor} style={styles.indicator} />
           </View>
         ) : (
-          <Icon name="lock_rounded" size={17} color={contenido} />
+          <Icon name="lock_rounded" size={17} color={contentColor} />
         )}
-        <Text style={estilos.centrado}>{procesando ? 'Procesando…' : 'Pagar con Wompi'}</Text>
+        <Text style={styles.centered}>{processing ? 'Procesando…' : 'Pagar con Wompi'}</Text>
       </FilledButton>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  barra: {
+const styles = StyleSheet.create({
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 20,
@@ -102,8 +102,8 @@ const estilos = StyleSheet.create({
     borderTopWidth: 1,
   },
   total: { flex: 1, minWidth: 0 },
-  boton: { width: ANCHO_BOTON, paddingLeft: 16, paddingRight: 24 },
-  centrado: { textAlign: 'center' },
-  caja17: { width: 17, height: 17, alignItems: 'center', justifyContent: 'center' },
-  indicador: { transform: [{ scale: 0.85 }] },
+  button: { width: BUTTON_WIDTH, paddingLeft: 16, paddingRight: 24 },
+  centered: { textAlign: 'center' },
+  box17: { width: 17, height: 17, alignItems: 'center', justifyContent: 'center' },
+  indicator: { transform: [{ scale: 0.85 }] },
 });

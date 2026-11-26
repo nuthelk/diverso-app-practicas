@@ -4,8 +4,8 @@ import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
 
 import type { Booking } from '@/core';
 import { useDependencies } from '@/composition';
-import { irA } from '@/features/checkout/ir-a';
-import { useAbrirPago } from '@/features/checkout/useAbrirPago';
+import { goTo } from '@/features/checkout/go-to';
+import { useOpenPayment } from '@/features/checkout/useOpenPayment';
 import { Snackbar } from '@/features/shared/snackbar';
 import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes, volverSeguro } from '@/router';
@@ -38,8 +38,8 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   const { reservas, pasarela } = useDependencies();
   const inicial = useRef(reservaAdelantada(bookingId)).current;
   const vm = useReservaDetalleViewModel({ reservas, bookingId, inicial });
-  const { abrirPago, modalPago } = useAbrirPago(pasarela);
-  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, abrirPago);
+  const { openPayment, paymentModal } = useOpenPayment(pasarela);
+  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, openPayment);
   const alVolver = useAlVolver();
   const { cargar, cambio, pagoIntentado, resenaPublicada } = vm;
   const montada = useRef(true);
@@ -103,13 +103,13 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
           onVolver={volver}
           onCancelar={() => void cancelarConConfirmacion(b)}
           onPagar={() => void pagar(b)}
-          onVerificar={() => irA(router, AppRoutes.pagoDeReserva(b.id))}
+          onVerificar={() => goTo(router, AppRoutes.pagoDeReserva(b.id))}
           onResenar={() => resenar(b)}
           onVerPlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
         />
         <Snackbar />
         {dialogo}
-        {modalPago}
+        {paymentModal}
       </View>
     );
   }

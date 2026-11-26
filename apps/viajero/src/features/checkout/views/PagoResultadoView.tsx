@@ -9,8 +9,8 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, Text, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { irA } from '../ir-a';
-import { useAbrirPago } from '../useAbrirPago';
+import { goTo } from '../go-to';
+import { useOpenPayment } from '../useOpenPayment';
 import { usePagoResultadoViewModel, type PagoResultadoViewModel } from '../view-models/usePagoResultadoViewModel';
 
 export interface PagoResultadoViewProps {
@@ -30,25 +30,25 @@ export function PagoResultadoView({ transactionId, bookingId }: PagoResultadoVie
   const router = useRouter();
   const { pasarela } = useDependencies();
   const vm = usePagoResultadoViewModel({ pasarela }, { transactionId, bookingId });
-  const { abrirPago, modalPago } = useAbrirPago(pasarela);
+  const { openPayment, paymentModal } = useOpenPayment(pasarela);
 
   useEffect(() => {
     // `addPostFrameCallback` de Dart: tras el primer pintado.
-    if (vm.sinDatos) irA(router, AppRoutes.reservas);
+    if (vm.sinDatos) goTo(router, AppRoutes.reservas);
     else void vm.verificar();
   }, []);
 
   // El listener de Dart: aprobado y ya sin cargar → confirmación.
   const aprobado = !vm.cargando && vm.resultado?.status === VerifiedPaymentStatus.approved ? vm.resultado.bookingId : null;
   useEffect(() => {
-    if (aprobado !== null) irA(router, AppRoutes.reserva(aprobado));
+    if (aprobado !== null) goTo(router, AppRoutes.reserva(aprobado));
   }, [aprobado, router]);
 
   return (
     <View testID="pantalla-PagoResultadoView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
       <TopBar title="Resultado del pago" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
-      <Contenido vm={vm} irAReservas={() => irA(router, AppRoutes.reservas)} reintentar={(id) => void vm.intentarDeNuevo(id, abrirPago)} />
-      {modalPago}
+      <Contenido vm={vm} irAReservas={() => goTo(router, AppRoutes.reservas)} reintentar={(id) => void vm.intentarDeNuevo(id, openPayment)} />
+      {paymentModal}
     </View>
   );
 }

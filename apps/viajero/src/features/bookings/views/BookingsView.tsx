@@ -4,8 +4,8 @@ import { FlatList, RefreshControl, ScrollView, StyleSheet, View } from 'react-na
 
 import { BookingStatus, type Booking } from '@/core';
 import { useDependencies } from '@/composition';
-import { useAbrirPago } from '@/features/checkout/useAbrirPago';
-import { irA } from '@/features/checkout/ir-a';
+import { useOpenPayment } from '@/features/checkout/useOpenPayment';
+import { goTo } from '@/features/checkout/go-to';
 import { Snackbar } from '@/features/shared/snackbar';
 import { TopBar } from '@/features/shell/components/TopBar';
 import { AppRoutes } from '@/router';
@@ -35,8 +35,8 @@ export function BookingsView() {
   const router = useRouter();
   const { reservas, pasarela } = useDependencies();
   const vm = useBookingsViewModel({ reservas });
-  const { abrirPago, modalPago } = useAbrirPago(pasarela);
-  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, abrirPago);
+  const { openPayment, paymentModal } = useOpenPayment(pasarela);
+  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, openPayment);
   const alVolver = useAlVolver();
   const [pestana, setPestana] = useState(0);
   const { cargar, refrescar } = vm;
@@ -80,7 +80,7 @@ export function BookingsView() {
             onAbrir={() => abrirDetalle(b)}
             onResenar={vm.puedeResenar(b) ? () => resenar(b) : null}
             onPagar={pendiente ? () => void completarPago(b) : null}
-            onVerificar={pendiente ? () => irA(router, AppRoutes.pagoDeReserva(b.id)) : null}
+            onVerificar={pendiente ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
             onCancelar={vm.puedeCancelar(b) ? () => void cancelarConConfirmacion(b) : null}
           />
         );
@@ -141,7 +141,7 @@ export function BookingsView() {
       <View style={estilos.flex}>{cuerpo}</View>
       <Snackbar aboveBottomBar />
       {dialogo}
-      {modalPago}
+      {paymentModal}
     </View>
   );
 }

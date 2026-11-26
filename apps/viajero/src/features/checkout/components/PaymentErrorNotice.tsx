@@ -4,21 +4,21 @@ import { Icon, Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** Caja de error del checkout con el mensaje del view model. */
-export function AvisoErrorPago({ mensaje }: { mensaje: string }) {
+export function PaymentErrorNotice({ message }: { message: string }) {
   const cs = useTheme().colorScheme;
   return (
     <View
       accessibilityRole="alert"
-      style={[AppInsets.card, estilos.caja, { backgroundColor: cs.errorContainer }]}
+      style={[AppInsets.card, styles.box, { backgroundColor: cs.errorContainer }]}
     >
       <Icon name="error_outline_rounded" color={cs.onErrorContainer} />
       <View style={{ width: 10 }} />
-      <Text style={[estilos.texto, { color: cs.onErrorContainer, fontSize: AppText.smallBody }]}>{mensaje}</Text>
+      <Text style={[styles.text, { color: cs.onErrorContainer, fontSize: AppText.smallBody }]}>{message}</Text>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  caja: { flexDirection: 'row', alignItems: 'center', borderRadius: AppRadii.card },
-  texto: { flex: 1, minWidth: 0 },
+const styles = StyleSheet.create({
+  box: { flexDirection: 'row', alignItems: 'center', borderRadius: AppRadii.card },
+  text: { flex: 1, minWidth: 0 },
 });

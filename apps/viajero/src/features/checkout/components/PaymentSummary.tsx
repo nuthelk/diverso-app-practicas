@@ -5,25 +5,25 @@ import { Divider, Icon, SectionLabel, Text } from '@/ui/components';
 import { AppInsets, AppRadii, AppText, useTheme } from '@/ui/theme';
 
 /** «Resumen» del checkout: precio por persona, personas y total a pagar. */
-export function ResumenPago({ precioPorPersona, pax, total }: { precioPorPersona: number; pax: number; total: number }) {
+export function PaymentSummary({ pricePerPerson, pax, total }: { pricePerPerson: number; pax: number; total: number }) {
   const cs = useTheme().colorScheme;
   return (
     <View>
       <SectionLabel text="Resumen" />
-      <View style={[AppInsets.wideCard, estilos.caja, { backgroundColor: cs.surfaceContainerLow }]}>
-        <LineaPago etiqueta="Precio por persona" valor={formatCOP(precioPorPersona)} />
-        <LineaPago etiqueta="Personas" valor={String(pax)} />
+      <View style={[AppInsets.wideCard, styles.box, { backgroundColor: cs.surfaceContainerLow }]}>
+        <PaymentLine label="Precio por persona" value={formatCOP(pricePerPerson)} />
+        <PaymentLine label="Personas" value={String(pax)} />
         <View style={{ paddingVertical: 8 }}>
           <Divider />
         </View>
-        <View style={estilos.extremos}>
+        <View style={styles.spaceBetween}>
           <Text style={{ fontWeight: '700', fontSize: AppText.emphasis }}>Total a pagar</Text>
           <Text style={{ fontSize: AppText.headingXs, fontWeight: '800', letterSpacing: -0.4, color: cs.primary }}>
             {formatCOP(total)}
           </Text>
         </View>
         <View style={{ height: 6 }} />
-        <View style={estilos.fila}>
+        <View style={styles.row}>
           <Icon name="lock_outline_rounded" size={12} color={cs.outline} />
           <View style={{ width: 5 }} />
           <Text style={{ fontSize: AppText.label, color: cs.outline }}>Precio final, sin cargos ocultos</Text>
@@ -33,18 +33,18 @@ export function ResumenPago({ precioPorPersona, pax, total }: { precioPorPersona
   );
 }
 
-function LineaPago({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+function PaymentLine({ label, value }: { label: string; value: string }) {
   const cs = useTheme().colorScheme;
   return (
-    <View style={[estilos.extremos, { paddingVertical: 3 }]}>
-      <Text style={{ fontSize: AppText.smallBody, color: cs.onSurfaceVariant }}>{etiqueta}</Text>
-      <Text style={{ fontWeight: '600', fontSize: AppText.smallBody }}>{valor}</Text>
+    <View style={[styles.spaceBetween, { paddingVertical: 3 }]}>
+      <Text style={{ fontSize: AppText.smallBody, color: cs.onSurfaceVariant }}>{label}</Text>
+      <Text style={{ fontWeight: '600', fontSize: AppText.smallBody }}>{value}</Text>
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  caja: { borderRadius: AppRadii.card },
-  extremos: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  fila: { flexDirection: 'row', alignItems: 'center' },
+const styles = StyleSheet.create({
+  box: { borderRadius: AppRadii.card },
+  spaceBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  row: { flexDirection: 'row', alignItems: 'center' },
 });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import type { Booking, CancellationPreview } from '@/core';
-import { PagoAbierto, type AbrirPago } from '@/features/checkout/pago-abierto';
+import { PaymentOutcome, type OpenPayment } from '@/features/checkout/payment-outcome';
 import { showSnackbar } from '@/features/shared/snackbar';
 import { errorMessageFor } from '@/features/shared/error-message';
 
@@ -24,7 +24,7 @@ export const AVISO_PAGO_CERRADO = 'Cerraste el pago antes de terminar. Si ya pag
  *
  * [dialogo] es lo que la pantalla debe pintar (el `showDialog` de Flutter).
  */
-export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
+export function useAccionesReserva(vm: ReservaAcciones, abrirPago: OpenPayment) {
   const { mensaje, limpiarMensaje, vistaPrevia, cancelar, avisar } = vm;
   const [pregunta, setPregunta] = useState<{
     codigo: string;
@@ -61,7 +61,7 @@ export function useAccionesReserva(vm: ReservaAcciones, abrirPago: AbrirPago) {
   const completarPago = useCallback(
     async (b: Booking): Promise<void> => {
       try {
-        if ((await abrirPago(b.id)) === PagoAbierto.cerrado) avisar(AVISO_PAGO_CERRADO);
+        if ((await abrirPago(b.id)) === PaymentOutcome.closed) avisar(AVISO_PAGO_CERRADO);
       } catch (e) {
         avisar(errorMessageFor(e));
       }
