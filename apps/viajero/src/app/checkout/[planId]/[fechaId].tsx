@@ -6,5 +6,5 @@ import { parametro } from '@/router';
 /** `/checkout/:planId/:fechaId`. */
 export default function RutaCheckout() {
   const { planId, fechaId } = useLocalSearchParams<{ planId: string; fechaId: string }>();
-  return <CheckoutView planId={parametro(planId)} fechaId={parametro(fechaId)} />;
+  return <CheckoutView planId={parametro(planId)} dateId={parametro(fechaId)} />;
 }

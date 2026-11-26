@@ -1,13 +1,13 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 
 import { BookingStatus, DiversoError, VerifiedPaymentStatus } from '@/core';
-import { PagoResultadoView } from '@/features/checkout/views/PagoResultadoView';
+import { PaymentResultView } from '@/features/checkout/views/PaymentResultView';
 import { AppRoutes } from '@/router';
 
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { renderPantalla } from '../../../support/pantalla';
-import { pagoDePrueba, PasarelaFalsa } from '../support/pasarela-falsa';
+import { testPayment, FakePaymentGateway } from '../support/fake-payment-gateway';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -18,38 +18,38 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
 beforeEach(reiniciarRouterFalso);
 
-async function abrir({
-  respuestas = [pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)],
-  falloAlIniciar,
+async function openResult({
+  responses = [testPayment(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)],
+  startFailure,
   transactionId = 'tx-1',
   bookingId = null,
 }: {
-  respuestas?: unknown[];
-  falloAlIniciar?: unknown;
+  responses?: unknown[];
+  startFailure?: unknown;
   transactionId?: string | null;
   bookingId?: string | null;
 } = {}) {
-  const pasarela = new PasarelaFalsa(respuestas);
-  if (falloAlIniciar !== undefined) pasarela.falloAlIniciar = falloAlIniciar;
-  await renderPantalla(<PagoResultadoView transactionId={transactionId} bookingId={bookingId} />, {
-    dependencias: dependenciasDePrueba({ pasarela }),
+  const gateway = new FakePaymentGateway(responses);
+  if (startFailure !== undefined) gateway.startFailure = startFailure;
+  await renderPantalla(<PaymentResultView transactionId={transactionId} bookingId={bookingId} />, {
+    dependencias: dependenciasDePrueba({ pasarela: gateway }),
   });
-  return pasarela;
+  return gateway;
 }
 
 test('«Intentar de nuevo» pide el checkout de la misma reserva y muestra el error', async () => {
-  const pasarela = await abrir({ falloAlIniciar: new DiversoError('RESERVA_VENCIDA') });
+  const gateway = await openResult({ startFailure: new DiversoError('RESERVA_VENCIDA') });
 
   await fireEvent.press(await screen.findByText('Intentar de nuevo'));
 
-  expect(pasarela.iniciadas.map((i) => i.bookingId)).toEqual(['res-1']);
+  expect(gateway.startedCheckouts.map((i) => i.bookingId)).toEqual(['res-1']);
   expect(await screen.findByText(new DiversoError('RESERVA_VENCIDA').userMessage)).toBeOnTheScreen();
   // El botón se libera para volver a intentar.
   expect(screen.getByRole('button', { name: 'Intentar de nuevo' })).toBeEnabled();
 });
 
 test('un error inesperado al reintentar no rompe la pantalla', async () => {
-  await abrir();
+  await openResult();
 
   await fireEvent.press(await screen.findByText('Intentar de nuevo'));
 
@@ -58,26 +58,26 @@ test('un error inesperado al reintentar no rompe la pantalla', async () => {
 
 describe('estados', () => {
   test('mientras verifica: «Confirmando tu pago de prueba con Wompi…»', async () => {
-    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.approved)] });
+    await openResult({ responses: [testPayment(VerifiedPaymentStatus.approved)] });
     expect(screen.getByText('Resultado del pago')).toBeOnTheScreen();
     expect(screen.getByText('Confirmando tu pago de prueba con Wompi…')).toBeOnTheScreen();
   });
 
   test('aprobado: va a la confirmación de la reserva (reemplaza, como `go`)', async () => {
-    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.approved)] });
+    await openResult({ responses: [testPayment(VerifiedPaymentStatus.approved)] });
     await screen.findByText('Confirmando tu pago de prueba con Wompi…');
     await new Promise((r) => setTimeout(r, 0));
     expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reserva('res-1'));
   });
 
   test('sin transacción ni reserva vuelve a Mis reservas', async () => {
-    const pasarela = await abrir({ transactionId: null, bookingId: null });
+    const gateway = await openResult({ transactionId: null, bookingId: null });
     expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
-    expect(pasarela.verificaciones).toEqual([]);
+    expect(gateway.verifications).toEqual([]);
   });
 
   test('rechazado con la reserva ya cancelada: no ofrece reintentar y «Ver mis reservas» es la acción principal', async () => {
-    await abrir({ respuestas: [pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.cancelled)] });
+    await openResult({ responses: [testPayment(VerifiedPaymentStatus.rejected, BookingStatus.cancelled)] });
     expect(await screen.findByText('El pago no se completó')).toBeOnTheScreen();
     expect(screen.getByText(/Tu reserva ya no está vigente; vuelve a reservar\.$/)).toBeOnTheScreen();
     expect(screen.queryByText('Intentar de nuevo')).toBeNull();
@@ -85,8 +85,8 @@ describe('estados', () => {
   });
 
   test('pago aprobado tarde (reserva vencida): definitivo, sin «Reintentar»', async () => {
-    await abrir({
-      respuestas: [new DiversoError('RESERVA_VENCIDA', null, { estado_pago: 'aprobado_tarde' })],
+    await openResult({
+      responses: [new DiversoError('RESERVA_VENCIDA', null, { estado_pago: 'aprobado_tarde' })],
     });
     expect(await screen.findByText('Tu reserva había vencido')).toBeOnTheScreen();
     expect(screen.queryByText('Reintentar')).toBeNull();
@@ -95,16 +95,16 @@ describe('estados', () => {
   });
 
   test('error al verificar: «No pudimos verificar el pago» con «Reintentar» que vuelve a preguntar', async () => {
-    const pasarela = await abrir({ respuestas: [new DiversoError('ERROR_RED'), pagoDePrueba(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)] });
+    const gateway = await openResult({ responses: [new DiversoError('ERROR_RED'), testPayment(VerifiedPaymentStatus.rejected, BookingStatus.pendingPayment)] });
     expect(await screen.findByText('No pudimos verificar el pago')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Reintentar'));
     expect(await screen.findByText('El pago no se completó')).toBeOnTheScreen();
-    expect(pasarela.verificaciones).toHaveLength(2);
+    expect(gateway.verifications).toHaveLength(2);
   });
 });
 
 test('«Volver» sin historial lleva a Mis reservas (nunca de vuelta al pago)', async () => {
-  await abrir();
+  await openResult();
   await fireEvent.press(await screen.findByRole('button', { name: 'Volver' }));
   expect(routerFalso.replace).toHaveBeenCalledWith(AppRoutes.reservas);
 });

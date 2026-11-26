@@ -10,54 +10,54 @@ import { useTheme } from '@/ui/theme';
 
 import { goTo } from '../go-to';
 import { useCheckoutPlanViewModel } from '../view-models/useCheckoutPlanViewModel';
-import { CheckoutConPlanView } from './CheckoutConPlanView';
+import { CheckoutWithPlanView } from './CheckoutWithPlanView';
 
 export interface CheckoutViewProps {
   planId: string;
-  fechaId: string;
+  dateId: string;
 }
 
 /**
  * `/checkout/:planId/:fechaId` (`CheckoutLoader`): carga el plan y la fecha por id desde el
  * backend, así la pantalla se reconstruye igual tras recargar la página en web (sin `extra`).
- * Con el plan y una fecha reservable pinta `CheckoutConPlanView`.
+ * Con el plan y una fecha reservable pinta `CheckoutWithPlanView`.
  */
-export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
-  const { catalogo } = useDependencies();
+export function CheckoutView({ planId, dateId }: CheckoutViewProps) {
+  const { catalogo: catalog } = useDependencies();
   const router = useRouter();
-  const vm = useCheckoutPlanViewModel({ catalogo }, { planId, fechaId });
+  const vm = useCheckoutPlanViewModel({ catalog }, { planId, dateId });
 
   useEffect(() => {
-    void vm.cargar();
+    void vm.load();
     // Solo al montar (`initState`): los ids no cambian en esta pantalla.
   }, []);
 
-  if (vm.cargando) {
+  if (vm.loading) {
     return (
-      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
-        <View style={estilos.centro}>
+      <CheckoutFrame backTo={AppRoutes.plan(planId)}>
+        <View style={styles.center}>
           <CircularProgressIndicator />
         </View>
-      </EstadoCheckout>
+      </CheckoutFrame>
     );
   }
   const plan = vm.plan;
   if (vm.error !== null || plan === null) {
     return (
-      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
+      <CheckoutFrame backTo={AppRoutes.plan(planId)}>
         <EmptyState
           icon="cloud_off_rounded"
           title="No pudimos cargar el plan"
           message="Revisa tu conexión e intenta de nuevo."
-          action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.cargar()} />}
+          action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void vm.load()} />}
         />
-      </EstadoCheckout>
+      </CheckoutFrame>
     );
   }
-  const fecha = vm.fecha;
-  if (fecha === null) {
+  const planDate = vm.planDate;
+  if (planDate === null) {
     return (
-      <EstadoCheckout volverA={AppRoutes.plan(planId)}>
+      <CheckoutFrame backTo={AppRoutes.plan(planId)}>
         <EmptyState
           icon="event_busy_rounded"
           title="Fecha no disponible"
@@ -66,25 +66,25 @@ export function CheckoutView({ planId, fechaId }: CheckoutViewProps) {
             <FilledButton variant="tonal" text="Ver fechas del plan" onPress={() => goTo(router, AppRoutes.plan(plan.id))} />
           }
         />
-      </EstadoCheckout>
+      </CheckoutFrame>
     );
   }
-  return <CheckoutConPlanView plan={plan} fecha={fecha} />;
+  return <CheckoutWithPlanView plan={plan} planDate={planDate} />;
 }
 
 /** `Scaffold(AppBar('Confirmar y pagar'))` de los estados de carga. */
-function EstadoCheckout({ children, volverA }: { children: ReactNode; volverA: string }) {
-  const tema = useTheme();
+function CheckoutFrame({ children, backTo }: { children: ReactNode; backTo: string }) {
+  const theme = useTheme();
   const router = useRouter();
   return (
-    <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
-      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, volverA)} />
+    <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
+      <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, backTo)} />
       {children}
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  pantalla: { flex: 1 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

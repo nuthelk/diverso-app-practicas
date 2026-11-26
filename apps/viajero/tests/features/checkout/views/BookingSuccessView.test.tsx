@@ -6,7 +6,7 @@ import { AppRoutes } from '@/router';
 
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { renderPantalla } from '../../../support/pantalla';
-import { planDePrueba } from '../support/catalogo-falso';
+import { testPlan } from '../support/fake-catalog';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -14,10 +14,10 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
 beforeEach(reiniciarRouterFalso);
 
-function reserva(pasos: number, pax = 1) {
-  const plan = planDePrueba({
-    puntoEncuentro: 'Parque Berrío',
-    itinerario: Array.from({ length: pasos }, (_, i) => new ItineraryStep({ time: `0${i}:00`, activity: `Paso ${i + 1}` })),
+function bookingWithSteps(steps: number, pax = 1) {
+  const plan = testPlan({
+    meetingPoint: 'Parque Berrío',
+    itinerary: Array.from({ length: steps }, (_, i) => new ItineraryStep({ time: `0${i}:00`, activity: `Paso ${i + 1}` })),
   });
   return new Booking({
     id: 'res-1',
@@ -34,7 +34,7 @@ function reserva(pasos: number, pax = 1) {
 }
 
 test('título, código seleccionable y detalle del viaje', async () => {
-  await renderPantalla(<BookingSuccessView booking={reserva(0)} />);
+  await renderPantalla(<BookingSuccessView booking={bookingWithSteps(0)} />);
   expect(screen.getByText('¡Listo, nos vemos ahí!')).toBeOnTheScreen();
   expect(screen.getByText('Tu reserva está confirmada y el cupo es tuyo.')).toBeOnTheScreen();
   expect(screen.getByText('CÓDIGO DE RESERVA')).toBeOnTheScreen();
@@ -47,7 +47,7 @@ test('título, código seleccionable y detalle del viaje', async () => {
 });
 
 test('itinerario: los primeros 5 pasos y cuántos faltan', async () => {
-  await renderPantalla(<BookingSuccessView booking={reserva(7, 2)} />);
+  await renderPantalla(<BookingSuccessView booking={bookingWithSteps(7, 2)} />);
   expect(screen.getByText('ITINERARIO')).toBeOnTheScreen();
   expect(screen.getByText('Paso 5')).toBeOnTheScreen();
   expect(screen.queryByText('Paso 6')).toBeNull();
@@ -56,7 +56,7 @@ test('itinerario: los primeros 5 pasos y cuántos faltan', async () => {
 });
 
 test('«Ver mis reservas» y «Seguir explorando» reemplazan la pila (como `go`)', async () => {
-  await renderPantalla(<BookingSuccessView booking={reserva(1)} />);
+  await renderPantalla(<BookingSuccessView booking={bookingWithSteps(1)} />);
   await fireEvent.press(screen.getByText('Ver mis reservas'));
   expect(routerFalso.replace).toHaveBeenLastCalledWith(AppRoutes.reservas);
   await fireEvent.press(screen.getByText('Seguir explorando'));

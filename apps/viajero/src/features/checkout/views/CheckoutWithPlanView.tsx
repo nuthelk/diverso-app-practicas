@@ -25,46 +25,46 @@ import { useCheckoutViewModel } from '../view-models/useCheckoutViewModel';
  * total final, todo en una pantalla, sin pasos innecesarios. El estado vive en
  * `useCheckoutViewModel` (MVVM). La barra de pago va debajo del scroll.
  */
-export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDate }) {
-  const tema = useTheme();
+export function CheckoutWithPlanView({ plan, planDate }: { plan: Plan; planDate: PlanDate }) {
+  const theme = useTheme();
   const router = useRouter();
-  const { reservas, pasarela } = useDependencies();
-  const vm = useCheckoutViewModel({ reservas });
-  const { openPayment, paymentModal } = useOpenPayment(pasarela);
+  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const vm = useCheckoutViewModel({ bookings });
+  const { openPayment, paymentModal } = useOpenPayment(gateway);
 
   useEffect(() => {
-    void vm.cargarPendiente(fecha);
+    void vm.loadPending(planDate);
     // Solo al abrir el checkout (`initState`).
   }, []);
 
   /** Respaldo si la redirección no llegó: el servidor consulta a Wompi por la reserva. */
-  const yaPague = (bookingId: string) => goTo(router, AppRoutes.pagoDeReserva(bookingId));
+  const alreadyPaid = (bookingId: string) => goTo(router, AppRoutes.pagoDeReserva(bookingId));
 
-  const { pendiente, error, bookingId } = vm;
+  const { pending, error, bookingId } = vm;
   return (
-    <View testID="pantalla-CheckoutView" style={[estilos.pantalla, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-CheckoutView" style={[styles.screen, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Confirmar y pagar" onBack={() => volverSeguro(router, AppRoutes.plan(plan.id))} />
-      <ScrollView testID="checkout-scroll" style={estilos.pantalla} contentContainerStyle={estilos.lista}>
+      <ScrollView testID="checkout-scroll" style={styles.screen} contentContainerStyle={styles.list}>
         {/* Reserva pendiente de esta fecha (p. ej. volvió atrás desde Wompi). */}
-        {pendiente !== null ? (
+        {pending !== null ? (
           <>
             <PendingBookingNotice
-              booking={pendiente}
-              busy={vm.procesando}
-              onComplete={() => void vm.completarPendiente(openPayment)}
-              onVerify={() => yaPague(pendiente.id)}
-              onCancel={() => void vm.cancelarPendiente()}
+              booking={pending}
+              busy={vm.processing}
+              onComplete={() => void vm.completePending(openPayment)}
+              onVerify={() => alreadyPaid(pending.id)}
+              onCancel={() => void vm.cancelPending()}
             />
             <View style={{ height: 16 }} />
           </>
         ) : null}
-        <PlanSummary plan={plan} planDate={fecha} />
+        <PlanSummary plan={plan} planDate={planDate} />
         <View style={{ height: 22 }} />
         <TravelersPicker
           pax={vm.pax}
-          availableSpots={fecha.availableSpots}
-          canRemove={vm.puedeQuitarPersona}
-          canAdd={vm.puedeAgregarPersona(fecha.availableSpots)}
+          availableSpots={planDate.availableSpots}
+          canRemove={vm.canRemoveTraveler}
+          canAdd={vm.canAddTraveler(planDate.availableSpots)}
           onChange={vm.setPax}
         />
         <View style={{ height: 22 }} />
@@ -85,7 +85,7 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
             <OutlinedButton
               icon="refresh_rounded"
               text="Ya pagué, verificar"
-              onPress={vm.procesando ? null : () => yaPague(bookingId)}
+              onPress={vm.processing ? null : () => alreadyPaid(bookingId)}
             />
           </>
         ) : null}
@@ -93,16 +93,16 @@ export function CheckoutConPlanView({ plan, fecha }: { plan: Plan; fecha: PlanDa
       <PayBar
         total={vm.total(plan)}
         pax={vm.pax}
-        processing={vm.procesando}
-        onPay={vm.puedePagar ? () => void vm.pagar(fecha, openPayment) : null}
+        processing={vm.processing}
+        onPay={vm.canPay ? () => void vm.pay(planDate, openPayment) : null}
       />
       {paymentModal}
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
-  pantalla: { flex: 1 },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
   // `ListView(padding: 20, 8, 20, …)`: abajo basta el aire de una lista (la barra ya no tapa nada).
-  lista: { paddingLeft: 20, paddingTop: 8, paddingRight: 20, paddingBottom: 24 },
+  list: { paddingLeft: 20, paddingTop: 8, paddingRight: 20, paddingBottom: 24 },
 });

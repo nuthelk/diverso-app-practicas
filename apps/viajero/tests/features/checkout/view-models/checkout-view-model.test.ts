@@ -5,8 +5,8 @@ import { PaymentOutcome } from '@/features/checkout/payment-outcome';
 import { useCheckoutViewModel } from '@/features/checkout/view-models/useCheckoutViewModel';
 
 import { compuerta, esperar } from '../../../support/compuerta';
-import { fechaDePrueba, planDePrueba } from '../support/catalogo-falso';
-import { pendienteDePrueba, ReservasFalsas } from '../support/reservas-falsas';
+import { testPlanDate, testPlan } from '../support/fake-catalog';
+import { testPendingBooking, FakeBookings } from '../support/fake-bookings';
 
 /**
  * Estado, comandos y guarda de desmontaje de `useCheckoutViewModel`. Las reglas de la reserva
@@ -14,46 +14,46 @@ import { pendienteDePrueba, ReservasFalsas } from '../support/reservas-falsas';
  * `checkout_view_model_test.dart` (+ la vibración al pagar).
  */
 
-const fecha = fechaDePrueba();
-const plan = planDePrueba({ fechas: [fecha] });
+const planDate = testPlanDate();
+const plan = testPlan({ dates: [planDate] });
 
-let reservas: ReservasFalsas;
-let abiertos: string[];
-let vibraciones: number;
+let bookings: FakeBookings;
+let opened: string[];
+let vibrations: number;
 
 beforeEach(() => {
-  reservas = new ReservasFalsas();
-  abiertos = [];
-  vibraciones = 0;
+  bookings = new FakeBookings();
+  opened = [];
+  vibrations = 0;
 });
 
-const abrir = (terminado: boolean) => async (id: string) => {
-  abiertos.push(id);
-  return terminado ? PaymentOutcome.completed : PaymentOutcome.closed;
+const fakeOpenPayment = (completed: boolean) => async (id: string) => {
+  opened.push(id);
+  return completed ? PaymentOutcome.completed : PaymentOutcome.closed;
 };
 
-async function crear() {
-  const procesandos: boolean[] = [];
+async function setup() {
+  const processingStates: boolean[] = [];
   const r = await renderHook(() => {
-    const vm = useCheckoutViewModel({ reservas }, { vibrar: () => vibraciones++ });
-    if (procesandos[procesandos.length - 1] !== vm.procesando) procesandos.push(vm.procesando);
+    const vm = useCheckoutViewModel({ bookings }, { vibrate: () => vibrations++ });
+    if (processingStates[processingStates.length - 1] !== vm.processing) processingStates.push(vm.processing);
     return vm;
   });
-  return { ...r, procesandos };
+  return { ...r, processingStates };
 }
 
 test('estado inicial: una persona, sin reserva, sin error ni proceso en curso', async () => {
-  const { result } = await crear();
+  const { result } = await setup();
   expect(result.current.pax).toBe(1);
   expect(result.current.bookingId).toBeNull();
-  expect(result.current.pendiente).toBeNull();
+  expect(result.current.pending).toBeNull();
   expect(result.current.error).toBeNull();
-  expect(result.current.procesando).toBe(false);
+  expect(result.current.processing).toBe(false);
   expect(result.current.total(plan)).toBe(150000);
 });
 
 test('las personas van de 1 a 20 y el total las multiplica', async () => {
-  const { result } = await crear();
+  const { result } = await setup();
   await act(() => result.current.setPax(0));
   expect(result.current.pax).toBe(1);
   await act(() => result.current.setPax(99));
@@ -63,101 +63,101 @@ test('las personas van de 1 a 20 y el total las multiplica', async () => {
 });
 
 test('pagar avisa dos veces: empieza a procesar y termina (y vibra)', async () => {
-  const { result, procesandos } = await crear();
-  const puerta = compuerta();
-  let pagando!: Promise<void>;
+  const { result, processingStates } = await setup();
+  const gate = compuerta();
+  let paying!: Promise<void>;
   await act(async () => {
-    pagando = result.current.pagar(fecha, async (id) => {
-      await puerta.promesa;
-      return abrir(true)(id);
+    paying = result.current.pay(planDate, async (id) => {
+      await gate.promesa;
+      return fakeOpenPayment(true)(id);
     });
     await esperar();
   });
-  expect(result.current.procesando).toBe(true);
-  puerta.completar();
-  await act(() => pagando);
+  expect(result.current.processing).toBe(true);
+  gate.completar();
+  await act(() => paying);
 
-  expect(procesandos).toEqual([false, true, false]);
-  expect(reservas.creadas).toEqual([{ planDateId: 'fecha-1', pax: 1 }]);
-  expect(abiertos).toEqual(['nueva-1']);
+  expect(processingStates).toEqual([false, true, false]);
+  expect(bookings.createdBookings).toEqual([{ planDateId: 'fecha-1', pax: 1 }]);
+  expect(opened).toEqual(['nueva-1']);
   expect(result.current.bookingId).toBe('nueva-1');
   expect(result.current.error).toBeNull();
-  expect(vibraciones).toBe(1);
+  expect(vibrations).toBe(1);
 });
 
 test('cerrar el pago sin terminar deja el aviso y conserva la reserva para reintentar', async () => {
-  const { result } = await crear();
-  await act(() => result.current.pagar(fecha, abrir(false)));
+  const { result } = await setup();
+  await act(() => result.current.pay(planDate, fakeOpenPayment(false)));
   expect(result.current.error).toContain('Cerraste el pago antes de terminar');
   expect(result.current.error).toContain('Ya pagué, verificar');
   expect(result.current.bookingId).toBe('nueva-1');
-  expect(result.current.procesando).toBe(false);
+  expect(result.current.processing).toBe(false);
 });
 
 test('bug F: en web el pago queda redirigido y «Procesando…» termina, sin error', async () => {
-  const { result } = await crear();
+  const { result } = await setup();
   await act(() =>
-    result.current.pagar(fecha, async (id) => {
-      abiertos.push(id);
+    result.current.pay(planDate, async (id) => {
+      opened.push(id);
       return PaymentOutcome.redirected;
     }),
   );
-  expect(result.current.procesando).toBe(false);
+  expect(result.current.processing).toBe(false);
   expect(result.current.error).toBeNull();
   // La reserva sigue lista para «Ya pagué, verificar».
   expect(result.current.bookingId).toBe('nueva-1');
-  expect(abiertos).toEqual(['nueva-1']);
+  expect(opened).toEqual(['nueva-1']);
 });
 
 test('web: tras redirigir a Wompi el botón de pagar sigue bloqueado hasta que la página se descarga', async () => {
-  const { result } = await crear();
-  expect(result.current.puedePagar).toBe(true);
-  await act(() => result.current.pagar(fecha, async () => PaymentOutcome.redirected));
-  expect(result.current.puedePagar).toBe(false);
-  expect(result.current.procesando).toBe(false);
+  const { result } = await setup();
+  expect(result.current.canPay).toBe(true);
+  await act(() => result.current.pay(planDate, async () => PaymentOutcome.redirected));
+  expect(result.current.canPay).toBe(false);
+  expect(result.current.processing).toBe(false);
 });
 
 test('web: un segundo toque tras redirigir no abre otro pago ni crea otra reserva', async () => {
-  const { result } = await crear();
+  const { result } = await setup();
   await act(() =>
-    result.current.pagar(fecha, async (id) => {
-      abiertos.push(id);
+    result.current.pay(planDate, async (id) => {
+      opened.push(id);
       return PaymentOutcome.redirected;
     }),
   );
-  await act(() => result.current.pagar(fecha, abrir(true)));
-  expect(abiertos).toEqual(['nueva-1']);
-  expect(reservas.creadas).toHaveLength(1);
+  await act(() => result.current.pay(planDate, fakeOpenPayment(true)));
+  expect(opened).toEqual(['nueva-1']);
+  expect(bookings.createdBookings).toHaveLength(1);
 });
 
 test('web: completar la reserva pendiente y ser redirigido también bloquea pagar', async () => {
-  reservas.pendiente = pendienteDePrueba({ pax: 2 });
-  const { result } = await crear();
-  await act(() => result.current.cargarPendiente(fecha));
-  await act(() => result.current.completarPendiente(async () => PaymentOutcome.redirected));
-  expect(result.current.puedePagar).toBe(false);
-  expect(result.current.procesando).toBe(false);
+  bookings.pending = testPendingBooking({ pax: 2 });
+  const { result } = await setup();
+  await act(() => result.current.loadPending(planDate));
+  await act(() => result.current.completePending(async () => PaymentOutcome.redirected));
+  expect(result.current.canPay).toBe(false);
+  expect(result.current.processing).toBe(false);
 });
 
 test('cerrar el pago (móvil) deja pagar de nuevo: solo la redirección bloquea', async () => {
-  const { result } = await crear();
-  await act(() => result.current.pagar(fecha, abrir(false)));
-  expect(result.current.puedePagar).toBe(true);
+  const { result } = await setup();
+  await act(() => result.current.pay(planDate, fakeOpenPayment(false)));
+  expect(result.current.canPay).toBe(true);
 });
 
 test('un error del servidor se muestra con su mensaje en español', async () => {
-  reservas.falloAlCrear = new DiversoError('SIN_CUPO');
-  const { result } = await crear();
-  await act(() => result.current.pagar(fecha, abrir(true)));
+  bookings.createFailure = new DiversoError('SIN_CUPO');
+  const { result } = await setup();
+  await act(() => result.current.pay(planDate, fakeOpenPayment(true)));
   expect(result.current.error).toBe(new DiversoError('SIN_CUPO').userMessage);
   expect(result.current.bookingId).toBeNull();
-  expect(result.current.procesando).toBe(false);
+  expect(result.current.processing).toBe(false);
 });
 
 test('un error del servidor al abrir el pago se muestra y no pierde la reserva', async () => {
-  const { result } = await crear();
+  const { result } = await setup();
   await act(() =>
-    result.current.pagar(fecha, async () => {
+    result.current.pay(planDate, async () => {
       throw new DiversoError('RESERVA_VENCIDA');
     }),
   );
@@ -166,50 +166,50 @@ test('un error del servidor al abrir el pago se muestra y no pierde la reserva',
 });
 
 test('un error inesperado no se traga: mensaje genérico y el checkout sigue usable', async () => {
-  reservas.falloAlBuscarPendiente = new Error('boom');
-  const { result } = await crear();
-  await act(() => result.current.pagar(fecha, abrir(true)));
+  bookings.pendingLookupFailure = new Error('boom');
+  const { result } = await setup();
+  await act(() => result.current.pay(planDate, fakeOpenPayment(true)));
   expect(result.current.error).toBe('No pudimos iniciar el pago. Intenta de nuevo.');
-  expect(result.current.procesando).toBe(false);
-  expect(abiertos).toEqual([]);
+  expect(result.current.processing).toBe(false);
+  expect(opened).toEqual([]);
 });
 
 test('un nuevo intento limpia el error anterior', async () => {
-  reservas.falloAlBuscarPendiente = new Error('boom');
-  const { result } = await crear();
-  await act(() => result.current.pagar(fecha, abrir(true)));
-  reservas.falloAlBuscarPendiente = null;
-  await act(() => result.current.pagar(fecha, abrir(true)));
+  bookings.pendingLookupFailure = new Error('boom');
+  const { result } = await setup();
+  await act(() => result.current.pay(planDate, fakeOpenPayment(true)));
+  bookings.pendingLookupFailure = null;
+  await act(() => result.current.pay(planDate, fakeOpenPayment(true)));
   expect(result.current.error).toBeNull();
 });
 
 describe('guarda de desmontaje', () => {
   test('pagar que termina cuando la pantalla ya se cerró no avisa a nadie', async () => {
-    const { result, unmount } = await crear();
-    const puerta = compuerta<PaymentOutcome>();
-    let pagando!: Promise<void>;
+    const { result, unmount } = await setup();
+    const gate = compuerta<PaymentOutcome>();
+    let paying!: Promise<void>;
     await act(async () => {
-      pagando = result.current.pagar(fecha, () => puerta.promesa);
+      paying = result.current.pay(planDate, () => gate.promesa);
       await esperar();
     });
-    expect(result.current.procesando).toBe(true);
+    expect(result.current.processing).toBe(true);
 
     await unmount();
-    puerta.completar(PaymentOutcome.completed);
-    await pagando;
+    gate.completar(PaymentOutcome.completed);
+    await paying;
   });
 
   test('pagar que falla cuando la pantalla ya se cerró tampoco avisa', async () => {
-    const { result, unmount } = await crear();
-    const puerta = compuerta<PaymentOutcome>();
-    let pagando!: Promise<void>;
+    const { result, unmount } = await setup();
+    const gate = compuerta<PaymentOutcome>();
+    let paying!: Promise<void>;
     await act(async () => {
-      pagando = result.current.pagar(fecha, () => puerta.promesa);
+      paying = result.current.pay(planDate, () => gate.promesa);
       await esperar();
     });
 
     await unmount();
-    puerta.fallar(new DiversoError('RESERVA_VENCIDA'));
-    await pagando;
+    gate.fallar(new DiversoError('RESERVA_VENCIDA'));
+    await paying;
   });
 });
