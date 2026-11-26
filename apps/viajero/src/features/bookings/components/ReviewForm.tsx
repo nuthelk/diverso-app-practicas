@@ -7,8 +7,8 @@ import { AppInsets, AppText, withAlpha, Durations, useTheme } from '@/ui/theme';
 
 import { MAX_ESTRELLAS, type ReviewViewModel } from '../view-models/useReviewViewModel';
 
-const ETIQUETAS: Record<number, string> = { 1: 'Muy mala', 2: 'Mala', 3: 'Regular', 4: 'Buena' };
-const etiquetaDe = (calificacion: number) => ETIQUETAS[calificacion] ?? '¡Excelente!';
+const LABELS: Record<number, string> = { 1: 'Muy mala', 2: 'Mala', 3: 'Regular', 4: 'Buena' };
+const labelFor = (rating: number) => LABELS[rating] ?? '¡Excelente!';
 
 /**
  * Formulario de la reseña verificada (el `ReviewView` de Flutter): título del plan y fecha,
@@ -16,21 +16,21 @@ const etiquetaDe = (calificacion: number) => ETIQUETAS[calificacion] ?? '¡Excel
  * 150 ms, el comentario opcional (5 líneas, máx. 500 con contador) y «Publicar reseña». Mientras
  * envía —o ya publicada— todo queda bloqueado y el botón muestra un indicador.
  */
-export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnviar: (comentario: string) => void }) {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
-  const [comentario, setComentario] = useState('');
+export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (comment: string) => void }) {
+  const theme = useTheme();
+  const cs = theme.colorScheme;
+  const [comment, setComment] = useState('');
   const plan = vm.reserva?.plan ?? null;
-  const fecha = vm.reserva?.planDate?.date ?? null;
-  const bloqueado = vm.enviando || vm.publicada;
-  const colorBotonDeshabilitado = withAlpha(cs.onSurface, 0.38);
+  const date = vm.reserva?.planDate?.date ?? null;
+  const locked = vm.enviando || vm.publicada;
+  const disabledButtonColor = withAlpha(cs.onSurface, 0.38);
 
   return (
     // Ni iOS ni Android (edge-to-edge desde el SDK 58) achican la ventana con el teclado: sin
     // `padding` en AMBAS taparía el comentario y «Publicar reseña». En web no hace nada.
-    <KeyboardAvoidingView testID="resena-teclado" style={estilos.flex} behavior="padding">
-      <ScrollView contentContainerStyle={[AppInsets.screen, estilos.centro]} keyboardShouldPersistTaps="handled">
-        <View style={estilos.columna}>
+    <KeyboardAvoidingView testID="resena-teclado" style={styles.flex} behavior="padding">
+      <ScrollView contentContainerStyle={[AppInsets.screen, styles.center]} keyboardShouldPersistTaps="handled">
+        <View style={styles.column}>
           {plan !== null ? (
             <>
               <Text
@@ -39,11 +39,11 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
               >
                 {plan.title}
               </Text>
-              {fecha !== null ? (
+              {date !== null ? (
                 <>
                   <View style={{ height: 4 }} />
                   <Text style={{ fontSize: AppText.detail, color: cs.onSurfaceVariant, textAlign: 'center' }}>
-                    {formatLongDate(fecha)}
+                    {formatLongDate(date)}
                   </Text>
                 </>
               ) : null}
@@ -54,47 +54,47 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
             ¿Cómo estuvo tu experiencia?
           </Text>
           <View style={{ height: 18 }} />
-          <View style={estilos.estrellas}>
+          <View style={styles.stars}>
             {Array.from({ length: MAX_ESTRELLAS }, (_, i) => {
-              const marcada = i < vm.calificacion;
+              const filled = i < vm.calificacion;
               return (
                 <Pressable
                   key={i}
                   accessibilityRole="button"
                   accessibilityLabel={`${i + 1} de 5 estrellas`}
-                  accessibilityState={{ disabled: bloqueado, selected: marcada }}
-                  disabled={bloqueado}
+                  accessibilityState={{ disabled: locked, selected: filled }}
+                  disabled={locked}
                   onPress={() => vm.calificar(i + 1)}
-                  style={estilos.estrella}
+                  style={styles.star}
                 >
                   <Icon
-                    name={marcada ? 'star_rounded' : 'star_outline_rounded'}
+                    name={filled ? 'star_rounded' : 'star_outline_rounded'}
                     size={42}
-                    color={marcada ? tema.diverso.gold : cs.outline}
+                    color={filled ? theme.diverso.gold : cs.outline}
                   />
                 </Pressable>
               );
             })}
           </View>
-          <EtiquetaCalificacion texto={etiquetaDe(vm.calificacion)} color={cs.primary} />
+          <RatingLabel text={labelFor(vm.calificacion)} color={cs.primary} />
           <View style={{ height: 28 }} />
           <TextField
-            value={comentario}
-            onChangeText={setComentario}
+            value={comment}
+            onChangeText={setComment}
             label="Cuenta cómo te fue (opcional)"
             lines={5}
             maxLength={500}
-            disabled={bloqueado}
+            disabled={locked}
           />
           <View style={{ height: 18 }} />
           <FilledButton
             accessibilityLabel="Publicar reseña"
-            onPress={bloqueado ? null : () => onEnviar(comentario)}
+            onPress={locked ? null : () => onSubmit(comment)}
             style={{ paddingLeft: 16 }}
           >
-            {bloqueado ? (
-              <View style={estilos.indicador}>
-                <ActivityIndicator size="small" color={colorBotonDeshabilitado} style={{ transform: [{ scale: 0.85 }] }} />
+            {locked ? (
+              <View style={styles.indicator}>
+                <ActivityIndicator size="small" color={disabledButtonColor} style={{ transform: [{ scale: 0.85 }] }} />
               </View>
             ) : (
               <Icon name="send_rounded" size={17} color={cs.onPrimary} />
@@ -102,10 +102,10 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
             <Text>Publicar reseña</Text>
           </FilledButton>
           <View style={{ height: 14 }} />
-          <View style={estilos.pie}>
+          <View style={styles.footer}>
             <Icon name="verified_rounded" size={13} color={cs.tertiary} />
             <View style={{ width: 5 }} />
-            <Text style={[estilos.encoger, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
+            <Text style={[styles.shrink, { fontSize: AppText.caption, color: cs.onSurfaceVariant }]}>
               Reseña verificada: solo quien viajó puede opinar
             </Text>
           </View>
@@ -116,36 +116,36 @@ export function FormularioResena({ vm, onEnviar }: { vm: ReviewViewModel; onEnvi
 }
 
 /** `AnimatedSwitcher(150 ms)`: cada etiqueta nueva entra con un fundido. */
-function EtiquetaCalificacion({ texto, color }: { texto: string; color: string }) {
-  const opacidad = useRef(new Animated.Value(1)).current;
-  const anterior = useRef(texto);
+function RatingLabel({ text, color }: { text: string; color: string }) {
+  const opacity = useRef(new Animated.Value(1)).current;
+  const previous = useRef(text);
   useEffect(() => {
-    if (anterior.current === texto) return;
-    anterior.current = texto;
-    opacidad.setValue(0);
-    const animacion = Animated.timing(opacidad, {
+    if (previous.current === text) return;
+    previous.current = text;
+    opacity.setValue(0);
+    const animation = Animated.timing(opacity, {
       toValue: 1,
       duration: Durations.starsLabel,
       useNativeDriver: true,
     });
-    animacion.start();
-    return () => animacion.stop();
-  }, [texto, opacidad]);
+    animation.start();
+    return () => animation.stop();
+  }, [text, opacity]);
   return (
-    <Animated.View style={[estilos.etiqueta, { opacity: opacidad }]}>
-      <Text style={{ color, fontWeight: '700', fontSize: AppText.emphasis }}>{texto}</Text>
+    <Animated.View style={[styles.label, { opacity }]}>
+      <Text style={{ color, fontWeight: '700', fontSize: AppText.emphasis }}>{text}</Text>
     </Animated.View>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  centro: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
-  columna: { width: '100%', maxWidth: 460, alignItems: 'stretch' },
-  estrellas: { flexDirection: 'row', justifyContent: 'center' },
-  estrella: { paddingHorizontal: 6, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
-  etiqueta: { alignItems: 'center' },
-  indicador: { width: 17, height: 17, alignItems: 'center', justifyContent: 'center' },
-  pie: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  encoger: { flexShrink: 1 },
+  center: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
+  column: { width: '100%', maxWidth: 460, alignItems: 'stretch' },
+  stars: { flexDirection: 'row', justifyContent: 'center' },
+  star: { paddingHorizontal: 6, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  label: { alignItems: 'center' },
+  indicator: { width: 17, height: 17, alignItems: 'center', justifyContent: 'center' },
+  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  shrink: { flexShrink: 1 },
 });

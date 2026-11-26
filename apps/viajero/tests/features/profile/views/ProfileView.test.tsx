@@ -11,7 +11,7 @@ import { compuerta } from '../../../support/compuerta';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
-import { asentarPantalla } from '../../bookings/support';
+import { settleScreen } from '../../bookings/support';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -26,12 +26,12 @@ async function renderProfile(auth: AuthFalso) {
   await fijarVentana(800, 1600);
   // El tema arranca en «Sistema», como la app (no se persiste).
   await renderPantalla(<ProfileView />, { dependencias: dependenciasDePrueba({ auth }), modo: 'system' });
-  await asentarPantalla();
+  await settleScreen();
 }
 
 const tap = async (text: string) => {
   await fireEvent.press(screen.getByText(text));
-  await asentarPantalla();
+  await settleScreen();
 };
 
 beforeEach(reiniciarRouterFalso);
@@ -119,14 +119,14 @@ test('apariencia: arranca en «Sistema» y elegir «Oscuro» o «Claro» cambia 
   expect(segment('Sistema')).toBeSelected();
 
   await fireEvent.press(segment('Oscuro'));
-  await asentarPantalla();
+  await settleScreen();
   expect(segment('Oscuro')).toBeSelected();
   expect(segment('Sistema')).not.toBeSelected();
   // El tema efectivo cambió: el título usa el onSurface del modo oscuro.
   expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).not.toBe(lightTheme.colorScheme.onSurface);
 
   await fireEvent.press(segment('Claro'));
-  await asentarPantalla();
+  await settleScreen();
   expect(segment('Claro')).toBeSelected();
   expect(StyleSheet.flatten(screen.getByText('Perfil').props.style).color).toBe(lightTheme.colorScheme.onSurface);
 });
@@ -140,7 +140,7 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
 
   await fireEvent.press(button());
   await fireEvent.press(button());
-  await asentarPantalla();
+  await settleScreen();
 
   expect(signOut).toHaveBeenCalledTimes(1);
   expect(button()).toBeDisabled();
@@ -149,7 +149,7 @@ test('«Cerrar sesión» se deshabilita con un indicador mientras cierra: dos to
   expect(screen.queryByText('No pudimos cerrar la sesión. Intenta de nuevo.')).toBeNull();
 
   signOutGate.fallar(new Error('sin red'));
-  await asentarPantalla();
+  await settleScreen();
 
   expect(button()).toBeEnabled();
   expect(screen.queryByTestId('girador-de-boton')).toBeNull();

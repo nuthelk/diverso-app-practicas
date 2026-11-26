@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from 'expo-router/testing-library';
 
 import { DiversoError, Profile, UserRole, type Booking, type BookingRepository, type Public } from '@/core';
-import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
+import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 import { hideSnackbar } from '@/features/shared/snackbar';
 
 import { arrancarApp, asentar, pantallaVisible } from '../support/app';
@@ -60,7 +60,7 @@ async function responder(c: Compuerta<string[]> | undefined, valor: string[]) {
 
 afterEach(() => {
   hideSnackbar();
-  olvidarReservaAdelantada();
+  forgetPreloadedBooking();
   jest.useRealTimers();
 });
 

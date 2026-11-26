@@ -12,11 +12,11 @@ import { AppRoutes } from '@/router';
 import { EmptyState, FilledButton, Text, PageTitle } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { useAccionesReserva } from '../acciones-reserva';
-import { PestanasReservas } from '../components/PestanasReservas';
-import { ReservasSkeleton } from '../components/ReservasSkeleton';
-import { TarjetaReserva } from '../components/TarjetaReserva';
-import { adelantarReserva, olvidarReservaAdelantada, useAlVolver } from '../paso-entre-pantallas';
+import { useBookingActions } from '../booking-actions';
+import { BookingTabs } from '../components/BookingTabs';
+import { BookingsSkeleton } from '../components/BookingsSkeleton';
+import { BookingCard } from '../components/BookingCard';
+import { preloadBooking, forgetPreloadedBooking, useOnReturn } from '../between-screens';
 import { useBookingsViewModel } from '../view-models/useBookingsViewModel';
 
 /**
@@ -36,8 +36,8 @@ export function BookingsView() {
   const { reservas, pasarela } = useDependencies();
   const vm = useBookingsViewModel({ reservas });
   const { openPayment, paymentModal } = useOpenPayment(pasarela);
-  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, openPayment);
-  const alVolver = useAlVolver();
+  const { cancelWithConfirmation, completePayment, dialog } = useBookingActions(vm, openPayment);
+  const alVolver = useOnReturn();
   const [pestana, setPestana] = useState(0);
   const { cargar, refrescar } = vm;
 
@@ -46,10 +46,10 @@ export function BookingsView() {
   }, [cargar]);
 
   // De vuelta en la lista, la reserva que se adelantó al detalle ya no hace falta.
-  useFocusEffect(useCallback(() => olvidarReservaAdelantada(), []));
+  useFocusEffect(useCallback(() => forgetPreloadedBooking(), []));
 
   const abrirDetalle = (b: Booking) => {
-    adelantarReserva(b);
+    preloadBooking(b);
     alVolver(AppRoutes.reservaDetalle(b.id), (cambio) => {
       if (cambio === true) void refrescar();
     });
@@ -57,7 +57,7 @@ export function BookingsView() {
   };
 
   const resenar = (b: Booking) => {
-    adelantarReserva(b);
+    preloadBooking(b);
     alVolver(AppRoutes.resena(b.id), (publicada) => {
       if (publicada === true) void refrescar();
     });
@@ -74,14 +74,14 @@ export function BookingsView() {
       renderItem={({ item: b }) => {
         const pendiente = b.status === BookingStatus.pendingPayment;
         return (
-          <TarjetaReserva
+          <BookingCard
             booking={b}
-            historial={historial}
-            onAbrir={() => abrirDetalle(b)}
-            onResenar={vm.puedeResenar(b) ? () => resenar(b) : null}
-            onPagar={pendiente ? () => void completarPago(b) : null}
-            onVerificar={pendiente ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
-            onCancelar={vm.puedeCancelar(b) ? () => void cancelarConConfirmacion(b) : null}
+            isHistory={historial}
+            onOpen={() => abrirDetalle(b)}
+            onReview={vm.puedeResenar(b) ? () => resenar(b) : null}
+            onPay={pendiente ? () => void completePayment(b) : null}
+            onVerify={pendiente ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
+            onCancel={vm.puedeCancelar(b) ? () => void cancelWithConfirmation(b) : null}
           />
         );
       }}
@@ -89,7 +89,7 @@ export function BookingsView() {
   );
 
   const cuerpo = vm.cargando ? (
-    <ReservasSkeleton />
+    <BookingsSkeleton />
   ) : vm.error !== null ? (
     <EmptyState
       icon="cloud_off_rounded"
@@ -133,14 +133,14 @@ export function BookingsView() {
     <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
       <TopBar title={<PageTitle text="Mis reservas" />} />
-      <PestanasReservas
-        pestanas={[`Próximas (${vm.activas.length})`, `Historial (${vm.historial.length})`]}
-        seleccionada={pestana}
-        onCambio={setPestana}
+      <BookingTabs
+        tabs={[`Próximas (${vm.activas.length})`, `Historial (${vm.historial.length})`]}
+        selected={pestana}
+        onChange={setPestana}
       />
       <View style={estilos.flex}>{cuerpo}</View>
       <Snackbar aboveBottomBar />
-      {dialogo}
+      {dialog}
       {paymentModal}
     </View>
   );

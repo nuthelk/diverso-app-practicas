@@ -12,20 +12,20 @@ import { AppText, useTheme } from '@/ui/theme';
  * más de la mitad del color: `saturate(.45)` es su equivalente más cercano en RN (Android 12+ y
  * web; iOS ignora `filter` y la deja a color).
  */
-const apagadoEstilo: ViewStyle = { filter: [{ saturate: 0.45 }] };
+const dimmedStyle: ViewStyle = { filter: [{ saturate: 0.45 }] };
 
 /**
  * Foto del plan (`FotoReserva`) o un respaldo de color con el emoji de la categoría (o una
- * maleta si no hay plan). [apagado] le quita color (historial). Llena a su contenedor.
+ * maleta si no hay plan). [dimmed] le quita color (historial). Llena a su contenedor.
  */
-export function FotoReserva({ booking, apagado = false }: { booking: Booking; apagado?: boolean }) {
+export function BookingPhoto({ booking, dimmed = false }: { booking: Booking; dimmed?: boolean }) {
   const cs = useTheme().colorScheme;
   const plan = booking.plan;
-  const foto = plan?.mainPhoto ?? null;
-  const [fallo, setFallo] = useState(false);
+  const photo = plan?.mainPhoto ?? null;
+  const [failed, setFailed] = useState(false);
 
-  const respaldo = (testID?: string) => (
-    <View testID={testID} style={[StyleSheet.absoluteFill, estilos.centro, { backgroundColor: cs.primaryContainer }]}>
+  const fallback = (testID?: string) => (
+    <View testID={testID} style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: cs.primaryContainer }]}>
       {plan === null ? (
         <Icon name="luggage_rounded" size={40} color={cs.onPrimaryContainer} />
       ) : (
@@ -34,25 +34,25 @@ export function FotoReserva({ booking, apagado = false }: { booking: Booking; ap
     </View>
   );
 
-  const fondo =
-    foto === null ? (
-      respaldo('sin-foto-reserva')
-    ) : fallo ? (
-      respaldo()
+  const background =
+    photo === null ? (
+      fallback('sin-foto-reserva')
+    ) : failed ? (
+      fallback()
     ) : (
       <Image
         testID="foto-reserva"
-        source={{ uri: foto }}
+        source={{ uri: photo }}
         contentFit="cover"
         style={StyleSheet.absoluteFill}
-        onError={() => setFallo(true)}
+        onError={() => setFailed(true)}
         accessible={false}
       />
     );
 
-  return <View style={[StyleSheet.absoluteFill, apagado ? apagadoEstilo : null]}>{fondo}</View>;
+  return <View style={[StyleSheet.absoluteFill, dimmed ? dimmedStyle : null]}>{background}</View>;
 }
 
-const estilos = StyleSheet.create({
-  centro: { alignItems: 'center', justifyContent: 'center' },
+const styles = StyleSheet.create({
+  center: { alignItems: 'center', justifyContent: 'center' },
 });

@@ -21,7 +21,7 @@ import {
   type Public,
 } from '@/core';
 import { hideSnackbar } from '@/features/shared/snackbar';
-import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
+import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
 import { arrancarApp, asentar } from '../../../support/app';
 import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
@@ -37,7 +37,7 @@ import { textoCrudo } from '../../../support/texto-crudo';
 
 afterEach(() => {
   hideSnackbar();
-  olvidarReservaAdelantada();
+  forgetPreloadedBooking();
 });
 
 function enDias(dias: number, hora = 6) {

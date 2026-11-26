@@ -4,7 +4,7 @@ import { Keyboard, Platform, StyleSheet, type KeyboardEvent } from 'react-native
 
 import { BookingStatus, DiversoError, ExperienceCategory, Plan, PlanStatus } from '@/core';
 import { hideSnackbar } from '@/features/shared/snackbar';
-import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
+import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
 import { arrancarApp, asentar } from '../../../support/app';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
@@ -19,7 +19,7 @@ import { PublicadorDeResenasFalso, ReservasFalsas, reservaDePrueba } from '../..
 
 afterEach(() => {
   hideSnackbar();
-  olvidarReservaAdelantada();
+  forgetPreloadedBooking();
 });
 
 const DIA = 24 * 60 * 60 * 1000;

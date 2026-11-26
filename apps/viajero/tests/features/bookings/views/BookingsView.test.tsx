@@ -15,12 +15,12 @@ import {
 import { BookingsView } from '@/features/bookings/views/BookingsView';
 import { withAlpha, lightTheme } from '@/ui/theme';
 import { hideSnackbar } from '@/features/shared/snackbar';
-import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
+import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
 import { dependenciasDePrueba, doble } from '../../../support/dependencias-de-prueba';
 import { reiniciarRouterFalso, routerFalso } from '../../../support/expo-router-falso';
 import { fijarVentana, renderPantalla, restaurarVentana } from '../../../support/pantalla';
-import { asentarPantalla } from '../support';
+import { settleScreen } from '../support';
 
 jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
@@ -32,7 +32,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 
 afterEach(() => {
   hideSnackbar();
-  olvidarReservaAdelantada();
+  forgetPreloadedBooking();
 });
 
 const DIA = 24 * 60 * 60 * 1000;
@@ -82,12 +82,12 @@ async function abrir(reservas: Booking[]) {
   await fijarVentana(800, 1400);
   const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => reservas });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
-  await asentarPantalla();
+  await settleScreen();
 }
 
 const tocar = async (texto: string) => {
   await fireEvent.press(screen.getByText(texto));
-  await asentarPantalla();
+  await settleScreen();
 };
 
 beforeEach(reiniciarRouterFalso);
@@ -271,7 +271,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
     },
   });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
-  await asentarPantalla();
+  await settleScreen();
 
   expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
   expect(screen.getByText('No pudimos cargar tus reservas.')).toBeOnTheScreen();

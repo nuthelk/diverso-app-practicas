@@ -13,7 +13,7 @@ export function cssBlurFromFlutter(blurRadius: number): number {
 
 export const Shadows = {
   /**
-   * Insignias sobre foto (`EstadoReservaPill`, `_InsigniaFecha`):
+   * Insignias sobre foto (`BookingStatusPill`, `DateBadge`):
    * `BoxShadow(color: rgba(0,0,0,.25), blurRadius: 6, offset: (0, 2))`.
    */
   badge: {

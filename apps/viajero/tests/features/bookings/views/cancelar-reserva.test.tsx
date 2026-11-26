@@ -3,7 +3,7 @@ import { act, fireEvent, screen } from 'expo-router/testing-library';
 
 import { DiversoError } from '@/core';
 import { hideSnackbar } from '@/features/shared/snackbar';
-import { olvidarReservaAdelantada } from '@/features/bookings/paso-entre-pantallas';
+import { forgetPreloadedBooking } from '@/features/bookings/between-screens';
 
 import { arrancarApp, asentar } from '../../../support/app';
 import { dependenciasDePrueba } from '../../../support/dependencias-de-prueba';
@@ -18,7 +18,7 @@ import { ReservasFalsas, reservaDePrueba } from '../../../support/reservas-falsa
 
 afterEach(() => {
   hideSnackbar();
-  olvidarReservaAdelantada();
+  forgetPreloadedBooking();
 });
 
 const aviso = 'Reserva cancelada y cupos liberados. Reembolso de prueba aprobado: $ 190.000 (100 %).';

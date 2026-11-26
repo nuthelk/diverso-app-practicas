@@ -10,8 +10,8 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { CircularProgressIndicator, EmptyState, FilledButton, TextButton } from '@/ui/components';
 import { useTheme } from '@/ui/theme';
 
-import { FormularioResena } from '../components/FormularioResena';
-import { devolverResultado, reservaAdelantada } from '../paso-entre-pantallas';
+import { ReviewForm } from '../components/ReviewForm';
+import { returnResult, preloadedBooking } from '../between-screens';
 import { useReviewViewModel } from '../view-models/useReviewViewModel';
 
 export interface ReviewViewProps {
@@ -30,7 +30,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   const tema = useTheme();
   const router = useRouter();
   const { reservas, resenas } = useDependencies();
-  const adelantada = useRef(reservaAdelantada(bookingId)).current;
+  const adelantada = useRef(preloadedBooking(bookingId)).current;
   const vm = useReviewViewModel({ reservas, resenas, bookingId, adelantada });
   const { cargar, errorEnvio } = vm;
 
@@ -46,7 +46,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
   const enviar = async (comentario: string) => {
     if (!(await vm.enviar(comentario))) return;
     showSnackbar('¡Gracias! Tu reseña ayudará a otros viajeros.');
-    devolverResultado(AppRoutes.resena(bookingId), true);
+    returnResult(AppRoutes.resena(bookingId), true);
     volverSeguro(router, AppRoutes.reservas);
   };
 
@@ -83,7 +83,7 @@ export function ReviewView({ bookingId }: ReviewViewProps) {
       />
     );
   } else {
-    cuerpo = <FormularioResena vm={vm} onEnviar={(comentario) => void enviar(comentario)} />;
+    cuerpo = <ReviewForm vm={vm} onSubmit={(comentario) => void enviar(comentario)} />;
   }
 
   return (

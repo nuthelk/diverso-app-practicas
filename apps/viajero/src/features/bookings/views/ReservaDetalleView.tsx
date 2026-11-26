@@ -12,9 +12,9 @@ import { AppRoutes, volverSeguro } from '@/router';
 import { EmptyState, FilledButton, Skeleton } from '@/ui/components';
 import { AppInsets, useTheme } from '@/ui/theme';
 
-import { useAccionesReserva } from '../acciones-reserva';
-import { DetalleReserva } from '../components/DetalleReserva';
-import { adelantarReserva, devolverResultado, reservaAdelantada, useAlVolver } from '../paso-entre-pantallas';
+import { useBookingActions } from '../booking-actions';
+import { BookingDetail } from '../components/BookingDetail';
+import { preloadBooking, returnResult, preloadedBooking, useOnReturn } from '../between-screens';
 import { useReservaDetalleViewModel } from '../view-models/useReservaDetalleViewModel';
 
 export interface ReservaDetalleViewProps {
@@ -36,11 +36,11 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   const tema = useTheme();
   const router = useRouter();
   const { reservas, pasarela } = useDependencies();
-  const inicial = useRef(reservaAdelantada(bookingId)).current;
+  const inicial = useRef(preloadedBooking(bookingId)).current;
   const vm = useReservaDetalleViewModel({ reservas, bookingId, inicial });
   const { openPayment, paymentModal } = useOpenPayment(pasarela);
-  const { cancelarConConfirmacion, completarPago, dialogo } = useAccionesReserva(vm, openPayment);
-  const alVolver = useAlVolver();
+  const { cancelWithConfirmation, completePayment, dialog } = useBookingActions(vm, openPayment);
+  const alVolver = useOnReturn();
   const { cargar, cambio, pagoIntentado, resenaPublicada } = vm;
   const montada = useRef(true);
   const rutaPropia = AppRoutes.reservaDetalle(bookingId);
@@ -55,7 +55,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   }, []);
 
   useEffect(() => {
-    if (cambio) devolverResultado(rutaPropia, true);
+    if (cambio) returnResult(rutaPropia, true);
   }, [cambio, rutaPropia]);
 
   const volver = useCallback(() => volverSeguro(router, AppRoutes.reservas), [router]);
@@ -71,12 +71,12 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   );
 
   const pagar = async (b: Booking) => {
-    await completarPago(b);
+    await completePayment(b);
     if (montada.current) await pagoIntentado();
   };
 
   const resenar = (b: Booking) => {
-    adelantarReserva(b);
+    preloadBooking(b);
     alVolver(AppRoutes.resena(b.id), (reseno) => {
       if (reseno === true) resenaPublicada();
     });
@@ -96,19 +96,19 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   if (b !== null) {
     return (
       <View testID="pantalla-ReservaDetalleView" style={estilos.flex}>
-        <DetalleReserva
+        <BookingDetail
           booking={b}
-          puedeCancelar={vm.puedeCancelar(b)}
-          puedeResenar={vm.puedeResenar(b)}
-          onVolver={volver}
-          onCancelar={() => void cancelarConConfirmacion(b)}
-          onPagar={() => void pagar(b)}
-          onVerificar={() => goTo(router, AppRoutes.pagoDeReserva(b.id))}
-          onResenar={() => resenar(b)}
-          onVerPlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
+          canCancel={vm.puedeCancelar(b)}
+          canReview={vm.puedeResenar(b)}
+          onBack={volver}
+          onCancel={() => void cancelWithConfirmation(b)}
+          onPay={() => void pagar(b)}
+          onVerify={() => goTo(router, AppRoutes.pagoDeReserva(b.id))}
+          onReview={() => resenar(b)}
+          onSeePlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
         />
         <Snackbar />
-        {dialogo}
+        {dialog}
         {paymentModal}
       </View>
     );

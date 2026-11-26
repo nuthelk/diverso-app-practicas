@@ -3,7 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { Booking, BookingRepository, Public, CancellationPreview } from '@/core';
 import { errorMessageFor } from '@/features/shared/error-message';
 
-import { mensajeCancelacion } from '../reserva-formato';
+import { cancellationMessage } from '../booking-format';
 
 /** El reloj de la app: los VM lo reciben para poder fijarlo en las pruebas. */
 export type Reloj = () => Date;
@@ -74,7 +74,7 @@ export function useReservaAcciones({
       setMensaje(null);
       try {
         const resultado = await reservas.cancel(b.id);
-        setMensaje(mensajeCancelacion(resultado));
+        setMensaje(cancellationMessage(resultado));
       } catch (e) {
         console.warn('ReservaAccionesViewModel.cancelar:', e);
         setMensaje(errorMessageFor(e));
