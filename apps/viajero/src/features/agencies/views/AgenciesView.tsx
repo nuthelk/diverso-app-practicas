@@ -20,7 +20,7 @@ const SORT_SEGMENTS = valuesOf(AgencySort).map((o) => ({ value: o, label: LABEL_
  */
 export function AgenciesView() {
   const theme = useTheme();
-  const { catalogo: catalog } = useDependencies();
+  const { catalog } = useDependencies();
   const vm = useAgenciesViewModel({ catalog });
   const { width } = useWindowDimensions();
   const isGrid = width > AppTheme.bpCompact;

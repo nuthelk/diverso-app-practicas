@@ -35,7 +35,7 @@ export interface BookingDetailViewProps {
 export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const { bookings, gateway } = useDependencies();
   const initial = useRef(preloadedBooking(bookingId)).current;
   const vm = useBookingDetailViewModel({ bookings, bookingId, initial });
   const { openPayment, paymentModal } = useOpenPayment(gateway);

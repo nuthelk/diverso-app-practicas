@@ -39,7 +39,7 @@ export interface PlanDetailViewProps {
 export function PlanDetailView({ planId }: PlanDetailViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { catalogo: catalog, resenas: reviews } = useDependencies();
+  const { catalog, reviews } = useDependencies();
   const vm = usePlanDetailViewModel({ catalog, reviews, planId });
   const { load } = vm;
   const goBack = () => safeGoBack(router, AppRoutes.explore);

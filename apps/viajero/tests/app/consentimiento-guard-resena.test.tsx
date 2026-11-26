@@ -68,7 +68,7 @@ describe('V1: mientras se verifica el consentimiento', () => {
   test('un enlace a una pantalla protegida no carga sus datos', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, reservas: repo }));
+    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, bookings: repo }));
 
     expect(r.getPathname()).toBe('/consentimiento');
     expect(consultas).toEqual([]);
@@ -79,7 +79,7 @@ describe('V1: mientras se verifica el consentimiento', () => {
   test('aceptado, el enlace original se conserva y carga esa reserva', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, reservas: repo }));
+    const r = await arrancarApp('/reservas/b-1', dependenciasDePrueba({ auth, bookings: repo }));
 
     await responder(auth.abiertas[0], []);
 
@@ -111,7 +111,7 @@ describe('J2: rutas con ids con el consentimiento al día', () => {
   test('/resena/<reserva de otro viajero> no muestra el formulario', async () => {
     const auth = new AuthManual('viajero-1');
     const { repo, consultas } = reservasAjenas();
-    await arrancarApp('/resena/03341be8-fa33-4958-8b64-a0893b3197e4', dependenciasDePrueba({ auth, reservas: repo }));
+    await arrancarApp('/resena/03341be8-fa33-4958-8b64-a0893b3197e4', dependenciasDePrueba({ auth, bookings: repo }));
     await responder(auth.abiertas[0], []);
 
     expect(consultas).toEqual(['03341be8-fa33-4958-8b64-a0893b3197e4']);

@@ -14,25 +14,25 @@ import type {
  * `composition_root.dart`). Son contratos (`Publico<…>`): en producción, los repositorios reales
  * sobre Supabase; en pruebas, dobles.
  */
-export interface Dependencias {
+export interface Dependencies {
   auth: Public<AuthRepository>;
-  reservas: Public<BookingRepository>;
-  catalogo: Public<CatalogRepository>;
-  resenas: Public<ReviewRepository>;
-  pasarela: PaymentGateway;
+  bookings: Public<BookingRepository>;
+  catalog: Public<CatalogRepository>;
+  reviews: Public<ReviewRepository>;
+  gateway: PaymentGateway;
 }
 
-const ContextoDependencias = createContext<Dependencias | null>(null);
+const DependenciesContext = createContext<Dependencies | null>(null);
 
-/** Provee los repositorios a todo el árbol. Se crean UNA vez, fuera (ver `crearDependenciasReales`). */
+/** Provee los repositorios a todo el árbol. Se crean UNA vez, fuera (ver `createRealDependencies`). */
 export function DependenciesProvider({
-  dependencias,
+  dependencies,
   children,
 }: {
-  dependencias: Dependencias;
+  dependencies: Dependencies;
   children: ReactNode;
 }) {
-  return <ContextoDependencias.Provider value={dependencias}>{children}</ContextoDependencias.Provider>;
+  return <DependenciesContext.Provider value={dependencies}>{children}</DependenciesContext.Provider>;
 }
 
 /**
@@ -40,10 +40,10 @@ export function DependenciesProvider({
  * montar, como el `ProviderNotFoundException`: `tests/app/arranque.test.tsx` recorre las rutas
  * para atraparlo.
  */
-export function useDependencies(): Dependencias {
-  const dependencias = useContext(ContextoDependencias);
-  if (!dependencias) {
+export function useDependencies(): Dependencies {
+  const dependencies = useContext(DependenciesContext);
+  if (!dependencies) {
     throw new Error('useDependencies() necesita un <DependenciesProvider> arriba (raíz de composición).');
   }
-  return dependencias;
+  return dependencies;
 }

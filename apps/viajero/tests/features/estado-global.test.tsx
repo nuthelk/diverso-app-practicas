@@ -28,7 +28,7 @@ function Sonda() {
 
 async function montar(auth: AuthFalso) {
   const r = await render(
-    <DependenciesProvider dependencias={dependenciasDePrueba({ auth })}>
+    <DependenciesProvider dependencies={dependenciasDePrueba({ auth })}>
       <SessionProvider>
         <ConsentProvider>
           <Sonda />

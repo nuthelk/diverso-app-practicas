@@ -19,7 +19,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 async function renderCatalog() {
   await fijarVentana(600, 1000);
   const catalog = new CatalogoFalso({ destinosDisponibles: ['Guatapé', 'Jardín'] });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
+  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
   return catalog;
 }
 

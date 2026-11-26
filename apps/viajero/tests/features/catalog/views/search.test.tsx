@@ -25,7 +25,7 @@ jest.mock('expo-router', () => {
 async function renderCatalog() {
   await fijarVentana(600, 1000);
   const catalog = new CatalogoFalso();
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
+  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
   return catalog;
 }
 
@@ -102,7 +102,7 @@ test('escribir no vuelve a pintar las tarjetas de la lista (trabajo por tecla ac
     new Plan({ id: `p${i}`, agencyId: 'ag', title: `Plan ${i}`, destination: 'Guatapé', category: ExperienceCategory.culture, priceCop: 100000, status: PlanStatus.published, photos: [], averageRating: 4, reviewsCount: 1 });
   await fijarVentana(600, 1000);
   const catalog = new CatalogoFalso({ planes: [1, 2, 3, 4, 5].map(plan) });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
+  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
   expect(screen.getAllByTestId(/^plan-card-/)).toHaveLength(5);
   const routerCalls = jest.mocked(useRouter);
   routerCalls.mockClear();

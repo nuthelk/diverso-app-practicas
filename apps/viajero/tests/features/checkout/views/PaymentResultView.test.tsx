@@ -32,7 +32,7 @@ async function openResult({
   const gateway = new FakePaymentGateway(responses);
   if (startFailure !== undefined) gateway.startFailure = startFailure;
   await renderPantalla(<PaymentResultView transactionId={transactionId} bookingId={bookingId} />, {
-    dependencias: dependenciasDePrueba({ pasarela: gateway }),
+    dependencias: dependenciasDePrueba({ gateway }),
   });
   return gateway;
 }

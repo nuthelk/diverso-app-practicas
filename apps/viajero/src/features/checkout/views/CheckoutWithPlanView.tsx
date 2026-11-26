@@ -28,7 +28,7 @@ import { useCheckoutViewModel } from '../view-models/useCheckoutViewModel';
 export function CheckoutWithPlanView({ plan, planDate }: { plan: Plan; planDate: PlanDate }) {
   const theme = useTheme();
   const router = useRouter();
-  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const { bookings, gateway } = useDependencies();
   const vm = useCheckoutViewModel({ bookings });
   const { openPayment, paymentModal } = useOpenPayment(gateway);
 

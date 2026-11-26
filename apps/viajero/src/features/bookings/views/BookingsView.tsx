@@ -33,7 +33,7 @@ export function BookingsView() {
   const theme = useTheme();
   const cs = theme.colorScheme;
   const router = useRouter();
-  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const { bookings, gateway } = useDependencies();
   const vm = useBookingsViewModel({ bookings });
   const { openPayment, paymentModal } = useOpenPayment(gateway);
   const { cancelWithConfirmation, completePayment, dialog } = useBookingActions(vm, openPayment);

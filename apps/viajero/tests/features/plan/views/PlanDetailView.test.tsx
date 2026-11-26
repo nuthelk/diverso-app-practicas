@@ -33,7 +33,7 @@ jest.mock('expo-router', () => require('../../../support/expo-router-falso'));
 async function renderPlanDetail(catalog: CatalogoFalso, reviews = new ResenasFalsas(), width = 600) {
   await fijarVentana(width, 1000);
   await renderPantalla(<PlanDetailView planId="plan-1" />, {
-    dependencias: dependenciasDePrueba({ catalogo: catalog, resenas: reviews as never }),
+    dependencias: dependenciasDePrueba({ catalog, reviews: reviews as never }),
   });
   return catalog;
 }

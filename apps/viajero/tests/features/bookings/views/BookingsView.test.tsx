@@ -81,7 +81,7 @@ function plan({ photos = [], withAgency = true }: { photos?: string[]; withAgenc
 async function renderBookings(bookings: Booking[]) {
   await fijarVentana(800, 1400);
   const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => bookings });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
+  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
   await settleScreen();
 }
 
@@ -270,7 +270,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
       return [bookingIn('FUTURA', 5)];
     },
   });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
+  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
   await settleScreen();
 
   expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
@@ -286,7 +286,7 @@ test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
   const repo = doble<Public<BookingRepository>>('BookingRepository', {
     myBookings: () => new Promise<Booking[]>(() => {}),
   });
-  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
+  await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ bookings: repo }) });
 
   expect(screen.getAllByTestId('skeleton')).toHaveLength(3);
 });

@@ -23,7 +23,7 @@ export interface AgencyViewProps {
 export function AgencyView({ agencyId }: AgencyViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { catalogo: catalog } = useDependencies();
+  const { catalog } = useDependencies();
   const vm = useAgencyViewModel({ catalog, agencyId });
   const { load } = vm;
   const goBack = () => safeGoBack(router, AppRoutes.agencies);

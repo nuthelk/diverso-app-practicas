@@ -39,7 +39,7 @@ async function renderCatalog({ planCount = 4 }: { planCount?: number } = {}) {
   // 600 de ancho: lista de una columna y espacio para tres miniaturas junto al botón.
   await fijarVentana(600, 1000);
   const catalog = new CatalogoFalso({ planes: Array.from({ length: planCount }, (_, i) => plan(i + 1)) });
-  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
+  await renderPantalla(<CatalogView />, { dependencias: dependenciasDePrueba({ catalog }) });
 }
 
 /** Deja correr la animación de la bandeja (220 ms). */

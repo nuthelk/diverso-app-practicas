@@ -2,7 +2,7 @@ import { act } from '@testing-library/react-native';
 import type { ReactElement } from 'react';
 import { Dimensions } from 'react-native';
 
-import { DependenciesProvider, type Dependencias } from '@/composition';
+import { DependenciesProvider, type Dependencies } from '@/composition';
 import type { ThemeMode } from '@/ui/theme';
 
 import { dependenciasDePrueba } from './dependencias-de-prueba';
@@ -15,9 +15,9 @@ import { renderWithTheme } from '../ui/support/render-with-theme';
  */
 export function renderPantalla(
   ui: ReactElement,
-  { dependencias = dependenciasDePrueba(), modo = 'light' }: { dependencias?: Dependencias; modo?: ThemeMode } = {},
+  { dependencias = dependenciasDePrueba(), modo = 'light' }: { dependencias?: Dependencies; modo?: ThemeMode } = {},
 ) {
-  return renderWithTheme(<DependenciesProvider dependencias={dependencias}>{ui}</DependenciesProvider>, { mode: modo });
+  return renderWithTheme(<DependenciesProvider dependencies={dependencias}>{ui}</DependenciesProvider>, { mode: modo });
 }
 
 const ventanaOriginal = Dimensions.get('window');

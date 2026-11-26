@@ -29,7 +29,7 @@ const LIST_SIDE_PADDING = 40;
 export function CatalogView() {
   const theme = useTheme();
   const router = useRouter();
-  const { catalogo: catalog } = useDependencies();
+  const { catalog } = useDependencies();
   const vm = useCatalogViewModel({ catalog });
   const { width } = useWindowDimensions();
   const isGrid = width > AppTheme.bpCompact;

@@ -1,4 +1,4 @@
-import type { Dependencias } from '@/composition';
+import type { Dependencies } from '@/composition';
 
 import { AuthFalso } from './auth-falso';
 
@@ -21,12 +21,12 @@ export function doble<T extends object>(nombre: string, parcial: Partial<T> = {}
  * Dependencias completas para montar la app o una pantalla: AuthFalso con sesión al día y dobles
  * vacíos del resto (cada uno se puede reemplazar).
  */
-export function dependenciasDePrueba(otras: Partial<Dependencias> = {}): Dependencias {
+export function dependenciasDePrueba(otras: Partial<Dependencies> = {}): Dependencies {
   return {
     auth: otras.auth ?? new AuthFalso(),
-    reservas: otras.reservas ?? doble('BookingRepository'),
-    catalogo: otras.catalogo ?? doble('CatalogRepository'),
-    resenas: otras.resenas ?? doble('ReviewRepository'),
-    pasarela: otras.pasarela ?? doble('PaymentGateway'),
+    bookings: otras.bookings ?? doble('BookingRepository'),
+    catalog: otras.catalog ?? doble('CatalogRepository'),
+    reviews: otras.reviews ?? doble('ReviewRepository'),
+    gateway: otras.gateway ?? doble('PaymentGateway'),
   };
 }

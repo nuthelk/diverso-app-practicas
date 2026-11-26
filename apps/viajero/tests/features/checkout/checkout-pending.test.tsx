@@ -207,9 +207,9 @@ describe('pantalla /checkout/:planId/:fechaId', () => {
     const catalog = new FakeCatalog({ details: { 'plan-1': testPlan({ dates: [planDate] }) } });
     await renderPantalla(<CheckoutView planId="plan-1" dateId="fecha-1" />, {
       dependencias: dependenciasDePrueba({
-        catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-        reservas: doble<Public<BookingRepository>>('BookingRepository', bookings),
-        pasarela: gateway,
+        catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
+        bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+        gateway,
       }),
     });
     await screen.findByText('¿Cuántos viajan?');

@@ -137,7 +137,7 @@ function fakeRepo(list: Booking[]) {
 
 async function openApp(url: string, list: Booking[]) {
   const { repo: bookings, queries } = fakeRepo(list);
-  const r = await arrancarApp(url, dependenciasDePrueba({ reservas: bookings }));
+  const r = await arrancarApp(url, dependenciasDePrueba({ bookings }));
   return { r, queries };
 }
 
@@ -356,7 +356,7 @@ describe('detalle de la reserva', () => {
     const list = [bookingWith({ departure: inDays(-5) })];
     const { repo: bookings } = fakeRepo(list);
     const reviews = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: reviews }));
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews }));
     await tap('Historial (1)');
     await tap('Street food tour');
 
@@ -374,7 +374,7 @@ describe('detalle de la reserva', () => {
   // (en Flutter se recargaba siempre; esto es una mejora deliberada).
   test('volver de «Tu reseña» sin publicar no recarga «Mis reservas» (conserva el desplazamiento)', async () => {
     const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: new PublicadorDeResenasFalso() }));
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews: new PublicadorDeResenasFalso() }));
     await tap('Historial (1)');
     expect(bookings.consultasLista).toBe(1);
 
@@ -391,7 +391,7 @@ describe('detalle de la reserva', () => {
   test('publicar la reseña recarga «Mis reservas» sin desmontar la lista (sin volver al esqueleto)', async () => {
     const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
     const reviews = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: reviews }));
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ bookings, reviews }));
     await tap('Historial (1)');
     await tap('Reseñar');
 

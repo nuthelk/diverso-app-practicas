@@ -50,10 +50,10 @@ async function arrancar(auth: AuthFalso, url = '/') {
     url,
     dependenciasDePrueba({
       auth,
-      reservas: registrador('BookingRepository'),
-      catalogo: registrador('CatalogRepository'),
-      resenas: registrador('ReviewRepository'),
-      pasarela: registrador('PaymentGateway'),
+      bookings: registrador('BookingRepository'),
+      catalog: registrador('CatalogRepository'),
+      reviews: registrador('ReviewRepository'),
+      gateway: registrador('PaymentGateway'),
     }),
   );
 }
@@ -314,7 +314,7 @@ describe('guardia: cambio de usuario', () => {
     const auth = new AuthManual('A');
     // El catálogo ya es la pantalla real (T5): se cuenta cuántas veces se montó por sus cargas.
     const catalogo = new CatalogoFalso();
-    const r = await arrancarApp('/', dependenciasDePrueba({ auth, catalogo }));
+    const r = await arrancarApp('/', dependenciasDePrueba({ auth, catalog: catalogo }));
     await responder(auth.abiertas[0], []);
     expect(barraInferior()).toBeOnTheScreen();
 

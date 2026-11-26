@@ -1,7 +1,7 @@
 import { act, renderRouter, screen } from 'expo-router/testing-library';
 
-import type { Dependencias } from '@/composition';
-import { RaizDeLaApp } from '@/composition/RaizDeLaApp';
+import type { Dependencies } from '@/composition';
+import { AppRoot } from '@/composition/AppRoot';
 
 import { dependenciasDePrueba } from './dependencias-de-prueba';
 
@@ -10,11 +10,11 @@ import { dependenciasDePrueba } from './dependencias-de-prueba';
  * reales de `src/app`), pero con dobles en vez de Supabase: el `buildViajeroApp(...)` con fakes de
  * `app_arranque_test.dart`. `renderRouter` usa temporizadores falsos.
  */
-export async function arrancarApp(url = '/', dependencias: Dependencias = dependenciasDePrueba()) {
+export async function arrancarApp(url = '/', dependencias: Dependencies = dependenciasDePrueba()) {
   const r = await renderRouter(
     {
       appDir: 'src/app',
-      overrides: { _layout: () => <RaizDeLaApp dependencias={dependencias} /> },
+      overrides: { _layout: () => <AppRoot dependencies={dependencias} /> },
     },
     { initialUrl: url },
   );

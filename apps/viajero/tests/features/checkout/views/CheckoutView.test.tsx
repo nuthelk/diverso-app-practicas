@@ -42,9 +42,9 @@ async function openCheckout({
 }: { catalog?: FakeCatalog; bookings?: FakeBookings; gateway?: FakePaymentGateway; dateId?: string } = {}) {
   await renderPantalla(<CheckoutView planId="plan-1" dateId={dateId} />, {
     dependencias: dependenciasDePrueba({
-      catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-      reservas: doble<Public<BookingRepository>>('BookingRepository', bookings),
-      pasarela: gateway,
+      catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
+      bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+      gateway,
     }),
   });
   return { catalog, bookings, gateway };

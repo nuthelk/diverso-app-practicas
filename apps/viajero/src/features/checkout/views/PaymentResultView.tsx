@@ -28,7 +28,7 @@ export interface PaymentResultViewProps {
 export function PaymentResultView({ transactionId, bookingId }: PaymentResultViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { pasarela: gateway } = useDependencies();
+  const { gateway } = useDependencies();
   const vm = usePaymentResultViewModel({ gateway }, { transactionId, bookingId });
   const { openPayment, paymentModal } = useOpenPayment(gateway);
 

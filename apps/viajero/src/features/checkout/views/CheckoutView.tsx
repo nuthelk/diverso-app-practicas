@@ -23,7 +23,7 @@ export interface CheckoutViewProps {
  * Con el plan y una fecha reservable pinta `CheckoutWithPlanView`.
  */
 export function CheckoutView({ planId, dateId }: CheckoutViewProps) {
-  const { catalogo: catalog } = useDependencies();
+  const { catalog } = useDependencies();
   const router = useRouter();
   const vm = useCheckoutPlanViewModel({ catalog }, { planId, dateId });
 

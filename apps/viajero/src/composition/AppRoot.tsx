@@ -7,26 +7,26 @@ import { ConsentProvider } from '@/features/legal/view-models/ConsentProvider';
 import { AppNavigation } from '@/router/AppNavigation';
 import { ThemeProvider, useDiversoFonts, type ThemeMode } from '@/ui/theme';
 
-import { DependenciesProvider, type Dependencias } from './DependenciesProvider';
+import { DependenciesProvider, type Dependencies } from './DependenciesProvider';
 
 /**
  * Los providers raíz (`MultiProvider` de `buildViajeroApp`): dependencias, tema, sesión y
  * consentimiento, en ese orden (la sesión y el consentimiento piden `auth` a las dependencias).
  * El tema solo cambia el valor de su contexto: no remonta la navegación (gotcha 4).
  */
-export function ProveedoresDeLaApp({
-  dependencias,
-  modoTemaInicial,
+export function AppProviders({
+  dependencies,
+  initialThemeMode,
   children,
 }: {
-  dependencias: Dependencias;
-  modoTemaInicial?: ThemeMode;
+  dependencies: Dependencies;
+  initialThemeMode?: ThemeMode;
   children: ReactNode;
 }) {
   return (
     <SafeAreaProvider>
-      <DependenciesProvider dependencias={dependencias}>
-        <ThemeProvider initialMode={modoTemaInicial}>
+      <DependenciesProvider dependencies={dependencies}>
+        <ThemeProvider initialMode={initialThemeMode}>
           <SessionProvider>
             <ConsentProvider>{children}</ConsentProvider>
           </SessionProvider>
@@ -42,17 +42,17 @@ export function ProveedoresDeLaApp({
  * (mismo cableado que producción). La splash se oculta cuando las fuentes están listas (o
  * fallaron: entonces RN usa la del sistema).
  */
-export function RaizDeLaApp({ dependencias }: { dependencias: Dependencias }) {
-  const [fuentesListas, errorFuentes] = useDiversoFonts();
-  const listo = fuentesListas || errorFuentes !== null;
+export function AppRoot({ dependencies }: { dependencies: Dependencies }) {
+  const [fontsLoaded, fontError] = useDiversoFonts();
+  const ready = fontsLoaded || fontError !== null;
 
   useEffect(() => {
-    if (listo) SplashScreen.hideAsync().catch(() => {});
-  }, [listo]);
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
 
   return (
-    <ProveedoresDeLaApp dependencias={dependencias}>
-      <AppNavigation ready={listo} />
-    </ProveedoresDeLaApp>
+    <AppProviders dependencies={dependencies}>
+      <AppNavigation ready={ready} />
+    </AppProviders>
   );
 }

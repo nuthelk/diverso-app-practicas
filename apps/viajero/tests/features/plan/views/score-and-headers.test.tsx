@@ -45,7 +45,7 @@ function testDependencies(p = plan()) {
     agenciasPublicas: [agency],
     planesPorAgencia: { 'ag-rutas': [p] },
   });
-  return dependenciasDePrueba({ catalogo: catalog, resenas: new ResenasFalsas() as never });
+  return dependenciasDePrueba({ catalog, reviews: new ResenasFalsas() as never });
 }
 
 async function scrollTo(y: number) {

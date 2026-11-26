@@ -29,7 +29,7 @@ export interface ReviewViewProps {
 export function ReviewView({ bookingId }: ReviewViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { reservas: bookings, resenas: reviews } = useDependencies();
+  const { bookings, reviews } = useDependencies();
   const preloaded = useRef(preloadedBooking(bookingId)).current;
   const vm = useReviewViewModel({ bookings, reviews, bookingId, preloaded });
   const { load, submitError } = vm;

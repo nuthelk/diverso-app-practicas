@@ -2,7 +2,7 @@ import { type Href, router } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testing-library';
 import { StyleSheet } from 'react-native';
 
-import { ProveedoresDeLaApp } from '@/composition/RaizDeLaApp';
+import { AppProviders } from '@/composition/AppRoot';
 import { AppRoutes } from '@/router';
 import { AppNavigation } from '@/router/AppNavigation';
 import { lightTheme, darkTheme, useThemeMode, type ThemeMode } from '@/ui/theme';
@@ -146,10 +146,10 @@ test('cambiar el tema no recrea el router ni reinicia la navegación', async () 
       appDir: 'src/app',
       overrides: {
         _layout: () => (
-          <ProveedoresDeLaApp dependencias={dependenciasDePrueba()} modoTemaInicial="light">
+          <AppProviders dependencies={dependenciasDePrueba()} initialThemeMode="light">
             <CapturaModo />
             <AppNavigation ready />
-          </ProveedoresDeLaApp>
+          </AppProviders>
         ),
       },
     },

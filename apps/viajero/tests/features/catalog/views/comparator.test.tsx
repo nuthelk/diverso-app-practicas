@@ -124,7 +124,7 @@ describe('control de viajeros (comparison_test)', () => {
 describe('pantalla /comparar (comparator_loader)', () => {
   async function renderComparator(ids: string[], catalog: CatalogoFalso) {
     await fijarVentana(600, 1000);
-    await renderPantalla(<ComparatorView ids={ids} />, { dependencias: dependenciasDePrueba({ catalogo: catalog }) });
+    await renderPantalla(<ComparatorView ids={ids} />, { dependencias: dependenciasDePrueba({ catalog }) });
   }
   const catalogWithPlans = () => new CatalogoFalso({ detalles: { a: plan('a', 100000), b: plan('b', 120000) } });
 

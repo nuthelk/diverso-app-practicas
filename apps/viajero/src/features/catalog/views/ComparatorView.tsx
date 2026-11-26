@@ -25,7 +25,7 @@ export interface ComparatorViewProps {
 export function ComparatorView({ ids }: ComparatorViewProps) {
   const theme = useTheme();
   const router = useRouter();
-  const { catalogo: catalog } = useDependencies();
+  const { catalog } = useDependencies();
   // Los ids y el `extra` se fijan al montar (como el `initState` de Flutter).
   const [initial] = useState(() => ({ ids, plans: plansToCompare() }));
   const vm = useComparatorViewModel({ catalog, ids: initial.ids, initialPlans: initial.plans });

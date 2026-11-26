@@ -41,7 +41,7 @@ class Catalogo extends CatalogoFalso {
 
 async function abrir(url: string, catalogo = new Catalogo()) {
   const auth = new AuthFalso();
-  await arrancarApp(url, dependenciasDePrueba({ auth, catalogo }));
+  await arrancarApp(url, dependenciasDePrueba({ auth, catalog: catalogo }));
   return { auth, catalogo };
 }
 

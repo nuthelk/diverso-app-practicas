@@ -44,7 +44,7 @@ async function openReview({
   ]);
   const reviews = new PublicadorDeResenasFalso();
   reviews.fallo = publishFailure;
-  const r = await arrancarApp(url, dependenciasDePrueba({ reservas: bookings, resenas: reviews }));
+  const r = await arrancarApp(url, dependenciasDePrueba({ bookings, reviews }));
   return { r, bookings, reviews };
 }
 

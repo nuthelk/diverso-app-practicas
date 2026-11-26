@@ -24,7 +24,7 @@ afterEach(() => {
 const notice = 'Reserva cancelada y cupos liberados. Reembolso de prueba aprobado: $ 190.000 (100 %).';
 
 async function openApp(url: string, bookings: ReservasFalsas) {
-  return arrancarApp(url, dependenciasDePrueba({ reservas: bookings }));
+  return arrancarApp(url, dependenciasDePrueba({ bookings }));
 }
 
 async function tap(text: string) {

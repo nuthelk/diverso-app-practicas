@@ -34,7 +34,7 @@ function catalogoDePrueba() {
 }
 
 async function abrir(url: string, catalogo = catalogoDePrueba()) {
-  const r = await arrancarApp(url, dependenciasDePrueba({ catalogo, resenas: new ResenasFalsas() as never }));
+  const r = await arrancarApp(url, dependenciasDePrueba({ catalog: catalogo, reviews: new ResenasFalsas() as never }));
   return { r, catalogo };
 }
 

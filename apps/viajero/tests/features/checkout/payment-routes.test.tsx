@@ -87,9 +87,9 @@ async function openApp(url: string, gateway: FakePaymentGateway) {
   return arrancarApp(
     url,
     dependenciasDePrueba({
-      catalogo: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
-      reservas: doble<Public<BookingRepository>>('BookingRepository', bookings),
-      pasarela: gateway,
+      catalog: doble<Public<CatalogRepository>>('CatalogRepository', catalog),
+      bookings: doble<Public<BookingRepository>>('BookingRepository', bookings),
+      gateway,
     }),
   );
 }

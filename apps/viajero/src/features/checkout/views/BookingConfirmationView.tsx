@@ -24,7 +24,7 @@ export interface BookingConfirmationViewProps {
  */
 export function BookingConfirmationView({ bookingId }: BookingConfirmationViewProps) {
   const router = useRouter();
-  const { reservas: bookings } = useDependencies();
+  const { bookings } = useDependencies();
   const vm = useBookingConfirmationViewModel({ bookings }, { bookingId });
 
   useEffect(() => {

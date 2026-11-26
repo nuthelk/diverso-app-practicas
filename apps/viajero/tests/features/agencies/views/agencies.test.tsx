@@ -59,7 +59,7 @@ function testCatalog(list = [rutas, eco, cafe]) {
 async function openAt(catalog: CatalogoFalso, url = '/agencias') {
   // 600 de ancho: lista de una columna.
   await fijarVentana(600, 1400);
-  return arrancarApp(url, dependenciasDePrueba({ catalogo: catalog, resenas: new ResenasFalsas() as never }));
+  return arrancarApp(url, dependenciasDePrueba({ catalog, reviews: new ResenasFalsas() as never }));
 }
 
 /** Nombres de las agencias de la lista, de arriba abajo (orden en el árbol). */
