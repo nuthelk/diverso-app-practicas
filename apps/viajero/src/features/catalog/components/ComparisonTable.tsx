@@ -70,7 +70,7 @@ export function ComparisonTable({
         ))}
       </View>
       {rows.map((row) => {
-        const isPrice = row.icon === 'precio' || row.icon === 'total';
+        const isPrice = row.icon === 'price' || row.icon === 'total';
         return (
           <View key={row.icon} style={[styles.row, { borderTopWidth: 1, borderTopColor: withAlpha(cs.outlineVariant, 0.5) }]}>
             <View style={{ width: LABEL_WIDTH, paddingTop: 12, paddingRight: 8, paddingBottom: 12 }}>

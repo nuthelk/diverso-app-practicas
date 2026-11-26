@@ -3,9 +3,9 @@ import type { ExperienceCategory } from './enums';
 /** Orden del catálogo (solo cliente). */
 export const CatalogSort = {
   rating: 'rating',
-  priceAsc: 'precioAsc',
-  priceDesc: 'precioDesc',
-  newest: 'recientes',
+  priceAsc: 'priceAsc',
+  priceDesc: 'priceDesc',
+  newest: 'newest',
 } as const;
 export type CatalogSort = (typeof CatalogSort)[keyof typeof CatalogSort];
 

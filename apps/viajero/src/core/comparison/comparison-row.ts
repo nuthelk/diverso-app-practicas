@@ -28,24 +28,24 @@ export function buildComparisonRows(plans: readonly Plan[], { pax = 2 }: { pax?:
   if (plans.length === 0) return [];
 
   return [
-    new ComparisonRow('precio', 'Precio final por persona', plans.map((p) => p.priceCop.toFixed(0))),
+    new ComparisonRow('price', 'Precio final por persona', plans.map((p) => p.priceCop.toFixed(0))),
     new ComparisonRow(
       'total',
       `Total para ${pax} ${pax === 1 ? 'persona' : 'personas'}`,
       plans.map((p) => (p.priceCop * pax).toFixed(0)),
     ),
-    new ComparisonRow('duracion', 'Duración', plans.map((p) => p.durationText)),
-    new ComparisonRow('destino', 'Destino', plans.map((p) => p.destination)),
+    new ComparisonRow('duration', 'Duración', plans.map((p) => p.durationText)),
+    new ComparisonRow('destination', 'Destino', plans.map((p) => p.destination)),
     new ComparisonRow(
       'rating',
       'Calificación',
       plans.map((p) => (p.isNew ? 'Nueva' : `${p.averageRating.toFixed(1)} ★ (${p.reviewsCount})`)),
     ),
-    new ComparisonRow('transporte', 'Transporte', plans.map((p) => included(p.includesTransport))),
-    new ComparisonRow('comida', 'Comida', plans.map((p) => included(p.includesFood))),
-    new ComparisonRow('hospedaje', 'Hospedaje', plans.map((p) => included(p.includesLodging))),
+    new ComparisonRow('transport', 'Transporte', plans.map((p) => included(p.includesTransport))),
+    new ComparisonRow('food', 'Comida', plans.map((p) => included(p.includesFood))),
+    new ComparisonRow('lodging', 'Hospedaje', plans.map((p) => included(p.includesLodging))),
     new ComparisonRow(
-      'cupos',
+      'spots',
       'Próximos cupos',
       plans.map((p) => {
         const first = p.availableDates[0];
@@ -55,7 +55,7 @@ export function buildComparisonRows(plans: readonly Plan[], { pax = 2 }: { pax?:
       }),
     ),
     new ComparisonRow(
-      'cancelacion',
+      'cancellation',
       'Cancelación',
       plans.map((p) => (p.cancellationPolicy === '' ? '—' : p.cancellationPolicy)),
     ),

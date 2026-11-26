@@ -38,16 +38,16 @@ describe('buildComparisonRows (extra del port)', () => {
   test('sin planes no hay filas; con planes, las 10 filas en el orden de Dart', () => {
     expect(buildComparisonRows([])).toEqual([]);
     expect(buildComparisonRows([plan()]).map((f) => f.icon)).toEqual([
-      'precio',
+      'price',
       'total',
-      'duracion',
-      'destino',
+      'duration',
+      'destination',
       'rating',
-      'transporte',
-      'comida',
-      'hospedaje',
-      'cupos',
-      'cancelacion',
+      'transport',
+      'food',
+      'lodging',
+      'spots',
+      'cancellation',
     ]);
   });
 
@@ -70,10 +70,10 @@ describe('buildComparisonRows (extra del port)', () => {
     });
     const rows = buildComparisonRows([withDate, plan()]);
     const row = (k: string) => rows.find((f) => f.icon === k)!.values;
-    expect(row('transporte')).toEqual(['✓ Incluido', '—']);
-    expect(row('comida')).toEqual(['—', '—']);
-    expect(row('cupos')).toEqual([`7 el ${inThreeDays.getDate()}/${inThreeDays.getMonth() + 1}`, 'Sin fechas']);
-    expect(row('cancelacion')).toEqual(['Gratis hasta 48 h antes', '—']);
+    expect(row('transport')).toEqual(['✓ Incluido', '—']);
+    expect(row('food')).toEqual(['—', '—']);
+    expect(row('spots')).toEqual([`7 el ${inThreeDays.getDate()}/${inThreeDays.getMonth() + 1}`, 'Sin fechas']);
+    expect(row('cancellation')).toEqual(['Gratis hasta 48 h antes', '—']);
     expect(dateToIso(inThreeDays)).toMatch(/^\d{4}-\d\d-\d\d$/);
   });
 });

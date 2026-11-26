@@ -87,14 +87,14 @@ export class AgencySummary {
 }
 
 /** Criterios de orden de la lista de agencias (solo cliente). */
-export const AgencySort = { score: 'puntaje', mostPlans: 'masPlanes', name: 'nombre' } as const;
+export const AgencySort = { score: 'score', mostPlans: 'mostPlans', name: 'name' } as const;
 export type AgencySort = (typeof AgencySort)[keyof typeof AgencySort];
 
 /** `OrdenAgencias.label` de Dart. */
 export const LABEL_AGENCY_SORT: Record<AgencySort, string> = {
-  puntaje: 'Puntaje',
-  masPlanes: 'Más planes',
-  nombre: 'Nombre',
+  score: 'Puntaje',
+  mostPlans: 'Más planes',
+  name: 'Nombre',
 };
 
 const ACCENTS: Record<string, string> = { á: 'a', é: 'e', í: 'i', ó: 'o', ú: 'u', ü: 'u', ñ: 'n' };
