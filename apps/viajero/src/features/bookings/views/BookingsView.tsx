@@ -27,83 +27,83 @@ import { useBookingsViewModel } from '../view-models/useBookingsViewModel';
  * detalle o de la reseña SOLO se recarga si informan cambios (el detalle, «hubo cambios»; la reseña,
  * «publicada»), y en segundo plano: la lista sigue montada (sin esqueleto) y no pierde el
  * desplazamiento. En Flutter se recargaba siempre al volver de la reseña; esto es deliberado. Ver
- * `paso-entre-pantallas.ts`.
+ * `between-screens.ts`.
  */
 export function BookingsView() {
-  const tema = useTheme();
-  const cs = tema.colorScheme;
+  const theme = useTheme();
+  const cs = theme.colorScheme;
   const router = useRouter();
-  const { reservas, pasarela } = useDependencies();
-  const vm = useBookingsViewModel({ reservas });
-  const { openPayment, paymentModal } = useOpenPayment(pasarela);
+  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const vm = useBookingsViewModel({ bookings });
+  const { openPayment, paymentModal } = useOpenPayment(gateway);
   const { cancelWithConfirmation, completePayment, dialog } = useBookingActions(vm, openPayment);
-  const alVolver = useOnReturn();
-  const [pestana, setPestana] = useState(0);
-  const { cargar, refrescar } = vm;
+  const onReturn = useOnReturn();
+  const [tab, setTab] = useState(0);
+  const { load, refresh } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
   // De vuelta en la lista, la reserva que se adelantó al detalle ya no hace falta.
   useFocusEffect(useCallback(() => forgetPreloadedBooking(), []));
 
-  const abrirDetalle = (b: Booking) => {
+  const openDetail = (b: Booking) => {
     preloadBooking(b);
-    alVolver(AppRoutes.reservaDetalle(b.id), (cambio) => {
-      if (cambio === true) void refrescar();
+    onReturn(AppRoutes.reservaDetalle(b.id), (changed) => {
+      if (changed === true) void refresh();
     });
     router.push(AppRoutes.reservaDetalle(b.id) as Href);
   };
 
-  const resenar = (b: Booking) => {
+  const openReview = (b: Booking) => {
     preloadBooking(b);
-    alVolver(AppRoutes.resena(b.id), (publicada) => {
-      if (publicada === true) void refrescar();
+    onReturn(AppRoutes.resena(b.id), (published) => {
+      if (published === true) void refresh();
     });
     router.push(AppRoutes.resena(b.id) as Href);
   };
 
-  const lista = (reservasDeLaPestana: Booking[], historial: boolean) => (
+  const renderList = (tabBookings: Booking[], isHistory: boolean) => (
     <FlatList
       testID="lista-reservas"
-      data={reservasDeLaPestana}
+      data={tabBookings}
       keyExtractor={(b) => b.id}
-      contentContainerStyle={estilos.lista}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={() => void cargar()} colors={[cs.primary]} tintColor={cs.primary} />}
+      contentContainerStyle={styles.list}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={() => void load()} colors={[cs.primary]} tintColor={cs.primary} />}
       renderItem={({ item: b }) => {
-        const pendiente = b.status === BookingStatus.pendingPayment;
+        const isPending = b.status === BookingStatus.pendingPayment;
         return (
           <BookingCard
             booking={b}
-            isHistory={historial}
-            onOpen={() => abrirDetalle(b)}
-            onReview={vm.puedeResenar(b) ? () => resenar(b) : null}
-            onPay={pendiente ? () => void completePayment(b) : null}
-            onVerify={pendiente ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
-            onCancel={vm.puedeCancelar(b) ? () => void cancelWithConfirmation(b) : null}
+            isHistory={isHistory}
+            onOpen={() => openDetail(b)}
+            onReview={vm.canReview(b) ? () => openReview(b) : null}
+            onPay={isPending ? () => void completePayment(b) : null}
+            onVerify={isPending ? () => goTo(router, AppRoutes.pagoDeReserva(b.id)) : null}
+            onCancel={vm.canCancel(b) ? () => void cancelWithConfirmation(b) : null}
           />
         );
       }}
     />
   );
 
-  const cuerpo = vm.cargando ? (
+  const body = vm.loading ? (
     <BookingsSkeleton />
   ) : vm.error !== null ? (
     <EmptyState
       icon="cloud_off_rounded"
       title="Sin conexión"
       message={vm.error}
-      action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.accion} />}
+      action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void load()} style={styles.action} />}
     />
-  ) : vm.reservas.length === 0 ? (
+  ) : vm.bookings.length === 0 ? (
     <EmptyState
       icon="luggage_rounded"
       title="Aún no tienes reservas"
       message="Cuando reserves un plan, aquí verás tu código, la fecha y el itinerario."
     />
-  ) : pestana === 0 && vm.activas.length === 0 ? (
+  ) : tab === 0 && vm.upcoming.length === 0 ? (
     // Sin viajes próximos: en vez de una línea suelta, invita a ir a «Explorar» (pestaña que ya
     // existe: `navigate`, no se apila otra encima).
     <EmptyState
@@ -115,30 +115,30 @@ export function BookingsView() {
           variant="tonal"
           text="Explorar planes"
           onPress={() => router.navigate(AppRoutes.explorar as Href)}
-          style={estilos.accion}
+          style={styles.action}
         />
       }
     />
-  ) : pestana === 0 ? (
-    lista(vm.activas, false)
-  ) : vm.historial.length === 0 ? (
-    <ScrollView contentContainerStyle={estilos.vacio}>
+  ) : tab === 0 ? (
+    renderList(vm.upcoming, false)
+  ) : vm.history.length === 0 ? (
+    <ScrollView contentContainerStyle={styles.empty}>
       <Text style={{ color: cs.onSurfaceVariant, textAlign: 'center' }}>Todavía no hay historial.</Text>
     </ScrollView>
   ) : (
-    lista(vm.historial, true)
+    renderList(vm.history, true)
   );
 
   return (
-    <View testID="pantalla-BookingsView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-BookingsView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       {/* AppBar + pestañas fuera del área de la lista: las tarjetas no pueden pasar por encima. */}
       <TopBar title={<PageTitle text="Mis reservas" />} />
       <BookingTabs
-        tabs={[`Próximas (${vm.activas.length})`, `Historial (${vm.historial.length})`]}
-        selected={pestana}
-        onChange={setPestana}
+        tabs={[`Próximas (${vm.upcoming.length})`, `Historial (${vm.history.length})`]}
+        selected={tab}
+        onChange={setTab}
       />
-      <View style={estilos.flex}>{cuerpo}</View>
+      <View style={styles.flex}>{body}</View>
       <Snackbar aboveBottomBar />
       {dialog}
       {paymentModal}
@@ -146,9 +146,9 @@ export function BookingsView() {
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  lista: { paddingLeft: 20, paddingTop: 12, paddingRight: 20, paddingBottom: 24 },
-  vacio: { paddingTop: 120, paddingHorizontal: 20, alignItems: 'center' },
-  accion: { alignSelf: 'center' },
+  list: { paddingLeft: 20, paddingTop: 12, paddingRight: 20, paddingBottom: 24 },
+  empty: { paddingTop: 120, paddingHorizontal: 20, alignItems: 'center' },
+  action: { alignSelf: 'center' },
 });

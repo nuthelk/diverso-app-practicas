@@ -35,28 +35,28 @@ afterEach(() => {
   forgetPreloadedBooking();
 });
 
-const DIA = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-function reserva(
-  codigo: string,
-  dias: number,
-  { estado = BookingStatus.confirmed, plan = null }: { estado?: BookingStatus; plan?: Plan | null } = {},
+function bookingIn(
+  code: string,
+  days: number,
+  { status = BookingStatus.confirmed, plan = null }: { status?: BookingStatus; plan?: Plan | null } = {},
 ) {
   return new Booking({
-    id: codigo,
-    code: codigo,
+    id: code,
+    code,
     planDateId: 'pd',
     travelerId: 'v',
     pax: 2,
     totalAmount: 190000,
-    status: estado,
-    createdAt: new Date(Date.now() - 40 * DIA),
-    departureAt: new Date(Date.now() + dias * DIA),
+    status,
+    createdAt: new Date(Date.now() - 40 * DAY_MS),
+    departureAt: new Date(Date.now() + days * DAY_MS),
     plan,
   });
 }
 
-function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?: boolean } = {}) {
+function plan({ photos = [], withAgency = true }: { photos?: string[]; withAgency?: boolean } = {}) {
   return new Plan({
     id: 'plan-1',
     agencyId: 'ag',
@@ -65,8 +65,8 @@ function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?
     category: ExperienceCategory.culture,
     priceCop: 95000,
     status: PlanStatus.published,
-    photos: fotos,
-    agency: conAgencia
+    photos,
+    agency: withAgency
       ? new Agency({
           id: 'ag',
           name: 'EcoAndes Viajes',
@@ -78,15 +78,15 @@ function plan({ fotos = [], conAgencia = true }: { fotos?: string[]; conAgencia?
   });
 }
 
-async function abrir(reservas: Booking[]) {
+async function renderBookings(bookings: Booking[]) {
   await fijarVentana(800, 1400);
-  const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => reservas });
+  const repo = doble<Public<BookingRepository>>('BookingRepository', { myBookings: async () => bookings });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
   await settleScreen();
 }
 
-const tocar = async (texto: string) => {
-  await fireEvent.press(screen.getByText(texto));
+const tap = async (text: string) => {
+  await fireEvent.press(screen.getByText(text));
   await settleScreen();
 };
 
@@ -94,7 +94,7 @@ beforeEach(reiniciarRouterFalso);
 afterEach(restaurarVentana);
 
 test('una confirmada que ya salió está en «Historial», sin «Cancelar» y con «Reseñar»', async () => {
-  await abrir([reserva('PASADA', -5), reserva('FUTURA', 5)]);
+  await renderBookings([bookingIn('PASADA', -5), bookingIn('FUTURA', 5)]);
 
   expect(screen.getByText('Próximas (1)')).toBeOnTheScreen();
   expect(screen.getByText('Historial (1)')).toBeOnTheScreen();
@@ -105,7 +105,7 @@ test('una confirmada que ya salió está en «Historial», sin «Cancelar» y co
   expect(screen.getByText('Cancelar')).toBeOnTheScreen();
   expect(screen.queryByText('Reseñar')).toBeNull();
 
-  await tocar('Historial (1)');
+  await tap('Historial (1)');
 
   expect(screen.getByText('PASADA')).toBeOnTheScreen();
   expect(screen.queryByText('FUTURA')).toBeNull();
@@ -114,35 +114,35 @@ test('una confirmada que ya salió está en «Historial», sin «Cancelar» y co
 });
 
 test('las pestañas se anuncian como pestañas, con la seleccionada marcada', async () => {
-  await abrir([reserva('FUTURA', 5)]);
+  await renderBookings([bookingIn('FUTURA', 5)]);
 
-  const [proximas, historial] = screen.getAllByRole('tab');
-  expect(proximas).toBeSelected();
-  expect(historial).not.toBeSelected();
+  const [upcomingTab, historyTab] = screen.getAllByRole('tab');
+  expect(upcomingTab).toBeSelected();
+  expect(historyTab).not.toBeSelected();
 });
 
 test('el viaje de mañana no se puede reseñar todavía', async () => {
-  await abrir([reserva('MANANA', 1)]);
+  await renderBookings([bookingIn('MANANA', 1)]);
 
   expect(screen.queryByText('Reseñar')).toBeNull();
   expect(screen.getByText('Cancelar')).toBeOnTheScreen();
 });
 
 test('la lista queda debajo del título y las pestañas (no se desplazan con ella)', async () => {
-  await abrir(Array.from({ length: 9 }, (_, i) => reserva(`FUT${i}`, 3 + i)));
+  await renderBookings(Array.from({ length: 9 }, (_, i) => bookingIn(`FUT${i}`, 3 + i)));
 
   // Flutter mide que la lista no pase por encima: aquí el título y las pestañas están FUERA del
   // área desplazable (la lista ocupa el resto de la pantalla, debajo).
-  const lista = screen.getByTestId('lista-reservas');
-  expect(within(lista).getByText('FUT0')).toBeOnTheScreen();
-  expect(within(lista).queryByText('Mis reservas')).toBeNull();
-  expect(within(lista).queryByText('Próximas (9)')).toBeNull();
+  const list = screen.getByTestId('lista-reservas');
+  expect(within(list).getByText('FUT0')).toBeOnTheScreen();
+  expect(within(list).queryByText('Mis reservas')).toBeNull();
+  expect(within(list).queryByText('Próximas (9)')).toBeNull();
   expect(screen.getByText('Mis reservas')).toBeOnTheScreen();
 });
 
 describe('tarjeta con la foto del plan', () => {
   test('con foto: imagen de cabecera con la fecha y el estado encima, título y agencia', async () => {
-    await abrir([reserva('FUT', 5, { plan: plan({ fotos: ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg'] }) })]);
+    await renderBookings([bookingIn('FUT', 5, { plan: plan({ photos: ['https://fotos.test/a.jpg', 'https://fotos.test/b.jpg'] }) })]);
 
     expect(screen.getByTestId('foto-reserva')).toBeOnTheScreen();
     expect(screen.queryByTestId('sin-foto-reserva')).toBeNull();
@@ -155,14 +155,14 @@ describe('tarjeta con la foto del plan', () => {
 
     // La insignia de fecha y la píldora de estado van DENTRO de la cabecera (sobre la foto); el
     // título, debajo (fuera de ella).
-    const cabecera = screen.getByTestId('encabezado-reserva');
-    expect(within(cabecera).getByTestId('insignia-fecha')).toBeOnTheScreen();
-    expect(within(cabecera).getByText('Confirmada')).toBeOnTheScreen();
-    expect(within(cabecera).queryByText('Comuna 13 y memoria')).toBeNull();
+    const header = screen.getByTestId('encabezado-reserva');
+    expect(within(header).getByTestId('insignia-fecha')).toBeOnTheScreen();
+    expect(within(header).getByText('Confirmada')).toBeOnTheScreen();
+    expect(within(header).queryByText('Comuna 13 y memoria')).toBeNull();
   });
 
   test('sin foto: respaldo en su lugar, sin pedir imagen, con fecha, estado y acciones', async () => {
-    await abrir([reserva('FUT', 5, { plan: plan({ conAgencia: false }) })]);
+    await renderBookings([bookingIn('FUT', 5, { plan: plan({ withAgency: false }) })]);
 
     expect(screen.queryByTestId('foto-reserva')).toBeNull();
     expect(screen.getByTestId('sin-foto-reserva')).toBeOnTheScreen();
@@ -175,34 +175,34 @@ describe('tarjeta con la foto del plan', () => {
   });
 
   test('reserva sin plan cargado: título de respaldo y respaldo de foto', async () => {
-    await abrir([reserva('FUT', 5)]);
+    await renderBookings([bookingIn('FUT', 5)]);
 
     expect(screen.getByText('Plan')).toBeOnTheScreen();
     expect(screen.getByTestId('sin-foto-reserva')).toBeOnTheScreen();
   });
 
   test('el historial se ve más apagado que las próximas', async () => {
-    await abrir([
-      reserva('PASADA', -5, { plan: plan({ fotos: ['https://fotos.test/a.jpg'] }) }),
-      reserva('FUTURA', 5, { plan: plan({ fotos: ['https://fotos.test/a.jpg'] }) }),
+    await renderBookings([
+      bookingIn('PASADA', -5, { plan: plan({ photos: ['https://fotos.test/a.jpg'] }) }),
+      bookingIn('FUTURA', 5, { plan: plan({ photos: ['https://fotos.test/a.jpg'] }) }),
     ]);
-    const colorDe = () => StyleSheet.flatten(screen.getByText('Comuna 13 y memoria').props.style).color;
-    expect(colorDe()).toBe(lightTheme.colorScheme.onSurface);
+    const colorOf = () => StyleSheet.flatten(screen.getByText('Comuna 13 y memoria').props.style).color;
+    expect(colorOf()).toBe(lightTheme.colorScheme.onSurface);
 
-    await tocar('Historial (1)');
+    await tap('Historial (1)');
 
-    expect(colorDe()).toBe(withAlpha(lightTheme.colorScheme.onSurface, 0.72));
+    expect(colorOf()).toBe(withAlpha(lightTheme.colorScheme.onSurface, 0.72));
   });
 });
 
 describe('etiqueta de estado', () => {
   test('confirmada que ya salió dice «Realizada»; la próxima sigue «Confirmada»', async () => {
-    await abrir([reserva('PASADA', -5), reserva('FUTURA', 5)]);
+    await renderBookings([bookingIn('PASADA', -5), bookingIn('FUTURA', 5)]);
 
     expect(screen.getByText('Confirmada')).toBeOnTheScreen();
     expect(screen.queryByText('Realizada')).toBeNull();
 
-    await tocar('Historial (1)');
+    await tap('Historial (1)');
 
     expect(screen.getByText('Realizada')).toBeOnTheScreen();
     expect(screen.queryByText('Confirmada')).toBeNull();
@@ -212,12 +212,12 @@ describe('etiqueta de estado', () => {
   });
 
   test('PRESERVE: «Cancelada», «Pendiente» y «Completada» no cambian aunque ya salieron', async () => {
-    await abrir([
-      reserva('CAN', -5, { estado: BookingStatus.cancelled }),
-      reserva('PEN', -4, { estado: BookingStatus.pendingPayment }),
-      reserva('COM', -3, { estado: BookingStatus.completed }),
+    await renderBookings([
+      bookingIn('CAN', -5, { status: BookingStatus.cancelled }),
+      bookingIn('PEN', -4, { status: BookingStatus.pendingPayment }),
+      bookingIn('COM', -3, { status: BookingStatus.completed }),
     ]);
-    await tocar('Historial (3)');
+    await tap('Historial (3)');
 
     expect(screen.getByText('Cancelada')).toBeOnTheScreen();
     expect(screen.getByText('Pendiente')).toBeOnTheScreen();
@@ -226,13 +226,13 @@ describe('etiqueta de estado', () => {
   });
 
   test('PRESERVE: «Pendiente» de un viaje próximo sigue igual', async () => {
-    await abrir([reserva('PEN', 4, { estado: BookingStatus.pendingPayment })]);
+    await renderBookings([bookingIn('PEN', 4, { status: BookingStatus.pendingPayment })]);
     expect(screen.getByText('Pendiente')).toBeOnTheScreen();
   });
 });
 
 test('PRESERVE: sin reservas muestra el estado vacío', async () => {
-  await abrir([]);
+  await renderBookings([]);
 
   expect(screen.getByText('Aún no tienes reservas')).toBeOnTheScreen();
   expect(
@@ -241,33 +241,33 @@ test('PRESERVE: sin reservas muestra el estado vacío', async () => {
 });
 
 test('«Próximas» vacía: estado vacío (ícono, «Sin viajes próximos», «¡Hora de explorar!») con «Explorar planes»', async () => {
-  await abrir([reserva('PASADA', -5)]);
+  await renderBookings([bookingIn('PASADA', -5)]);
 
   expect(screen.queryByTestId('empty-state-icono', { includeHiddenElements: true })).toBeOnTheScreen();
   expect(screen.queryByText('Sin viajes próximos')).toBeOnTheScreen();
   expect(screen.queryByText('¡Hora de explorar!')).toBeOnTheScreen();
 
-  const explorar = screen.queryByRole('button', { name: 'Explorar planes' });
-  expect(explorar).toBeOnTheScreen();
-  await fireEvent.press(explorar!);
+  const exploreButton = screen.queryByRole('button', { name: 'Explorar planes' });
+  expect(exploreButton).toBeOnTheScreen();
+  await fireEvent.press(exploreButton!);
   // A la pestaña «Explorar» (que ya existe): `navigate`, no se apila otra encima.
   expect(routerFalso.navigate).toHaveBeenCalledWith('/');
 });
 
 test('«Historial» vacía: «Todavía no hay historial.»', async () => {
-  await abrir([reserva('FUTURA', 5)]);
-  await tocar('Historial (0)');
+  await renderBookings([bookingIn('FUTURA', 5)]);
+  await tap('Historial (0)');
   expect(screen.getByText('Todavía no hay historial.')).toBeOnTheScreen();
 });
 
 test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async () => {
   await fijarVentana(800, 1400);
-  let intentos = 0;
+  let attempts = 0;
   const repo = doble<Public<BookingRepository>>('BookingRepository', {
     myBookings: async () => {
-      intentos++;
-      if (intentos === 1) throw new Error('sin red');
-      return [reserva('FUTURA', 5)];
+      attempts++;
+      if (attempts === 1) throw new Error('sin red');
+      return [bookingIn('FUTURA', 5)];
     },
   });
   await renderPantalla(<BookingsView />, { dependencias: dependenciasDePrueba({ reservas: repo }) });
@@ -276,7 +276,7 @@ test('error: «Sin conexión» con «Reintentar», que vuelve a cargar', async (
   expect(screen.getByText('Sin conexión')).toBeOnTheScreen();
   expect(screen.getByText('No pudimos cargar tus reservas.')).toBeOnTheScreen();
 
-  await tocar('Reintentar');
+  await tap('Reintentar');
 
   expect(screen.getByText('FUTURA')).toBeOnTheScreen();
 });
@@ -292,16 +292,16 @@ test('mientras carga muestra el esqueleto de tres tarjetas', async () => {
 });
 
 test('pendiente de pago: «Ya pagué, verificar» lleva a verificar el pago de esa reserva', async () => {
-  await abrir([reserva('PEN', 4, { estado: BookingStatus.pendingPayment })]);
+  await renderBookings([bookingIn('PEN', 4, { status: BookingStatus.pendingPayment })]);
 
   expect(screen.getByText('Completar pago')).toBeOnTheScreen();
-  await tocar('Ya pagué, verificar');
+  await tap('Ya pagué, verificar');
 
   expect(routerFalso.replace).toHaveBeenCalledWith('/pago/resultado?reserva=PEN');
 });
 
 test('tocar la tarjeta abre el detalle de esa reserva', async () => {
-  await abrir([reserva('FUTURA', 5)]);
+  await renderBookings([bookingIn('FUTURA', 5)]);
 
   await fireEvent.press(screen.getByLabelText('Ver detalle de la reserva FUTURA'));
 

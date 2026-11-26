@@ -124,9 +124,9 @@ describe('useCheckoutViewModel', () => {
     bookings.pending = null;
     const c = await setup();
     await act(async () => {
-      const primero = c.current.pay(planDate, fakeOpenPayment(true));
+      const first = c.current.pay(planDate, fakeOpenPayment(true));
       await c.current.pay(planDate, fakeOpenPayment(true));
-      await primero;
+      await first;
     });
     expect(bookings.createdBookings).toHaveLength(1);
     expect(opened).toHaveLength(1);

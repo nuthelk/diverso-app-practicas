@@ -2,56 +2,56 @@ import { useCallback, useState } from 'react';
 
 import type { Booking, BookingRepository, Public } from '@/core';
 
-import { useReservaAcciones, type Reloj } from './useReservaAcciones';
+import { useBookingActionsViewModel, type Clock } from './useBookingActionsViewModel';
 
-interface EstadoLista {
-  lista: readonly Booking[];
-  cargando: boolean;
+interface ListState {
+  list: readonly Booking[];
+  loading: boolean;
   error: string | null;
 }
 
-const vacia: readonly Booking[] = Object.freeze([]);
+const EMPTY_LIST: readonly Booking[] = Object.freeze([]);
 
 /**
  * ViewModel de «Mis reservas» (`BookingsViewModel`): carga la lista, la separa en próximas e
  * historial por la salida y ejecuta cancelaciones (las acciones y el aviso vienen de
- * `useReservaAcciones`). `activas` e `historial` se calculan en cada render con el reloj (no se
- * cachean). No carga solo: la vista llama `cargar()` al montarse.
+ * `useBookingActionsViewModel`). `upcoming` e `history` se calculan en cada render con el reloj (no se
+ * cachean). No carga solo: la vista llama `load()` al montarse.
  */
-export function useBookingsViewModel({ reservas, reloj }: { reservas: Public<BookingRepository>; reloj?: Reloj }) {
-  const [estado, setEstado] = useState<EstadoLista>({ lista: vacia, cargando: true, error: null });
+export function useBookingsViewModel({ bookings, clock }: { bookings: Public<BookingRepository>; clock?: Clock }) {
+  const [state, setState] = useState<ListState>({ list: EMPTY_LIST, loading: true, error: null });
 
-  /** Pide la lista; [enSegundoPlano] deja la actual a la vista (sin «cargando») hasta que llega. */
-  const pedir = useCallback(async (enSegundoPlano: boolean): Promise<void> => {
-    setEstado((e) => (enSegundoPlano ? { ...e, error: null } : { ...e, cargando: true, error: null }));
+  /** Pide la lista; [inBackground] deja la actual a la vista (sin «cargando») hasta que llega. */
+  const fetchList = useCallback(async (inBackground: boolean): Promise<void> => {
+    setState((e) => (inBackground ? { ...e, error: null } : { ...e, loading: true, error: null }));
     try {
-      const lista = Object.freeze([...(await reservas.myBookings())]);
-      setEstado({ lista, cargando: false, error: null });
+      const list = Object.freeze([...(await bookings.myBookings())]);
+      setState({ list, loading: false, error: null });
     } catch (e) {
-      console.warn('BookingsViewModel.cargar:', e);
-      setEstado((s) => ({ ...s, cargando: false, error: 'No pudimos cargar tus reservas.' }));
+      console.warn('BookingsViewModel.load:', e);
+      setState((s) => ({ ...s, loading: false, error: 'No pudimos cargar tus reservas.' }));
     }
-  }, [reservas]);
+  }, [bookings]);
 
   /** Carga con «cargando» (la vista muestra el esqueleto): al abrir y al reintentar. */
-  const cargar = useCallback(() => pedir(false), [pedir]);
+  const load = useCallback(() => fetchList(false), [fetchList]);
 
   /**
    * Vuelve a pedir la lista SIN pasar por «cargando»: la vista no desmonta la lista (no vuelve al
    * esqueleto) y conserva el desplazamiento hasta que llega la nueva. Si falla, avisa igual que
-   * [cargar].
+   * [load].
    */
-  const refrescar = useCallback(() => pedir(true), [pedir]);
+  const refresh = useCallback(() => fetchList(true), [fetchList]);
 
-  const acciones = useReservaAcciones({ reservas, reloj, cargar });
-  const { esVigente } = acciones;
+  const actions = useBookingActionsViewModel({ bookings, clock, load });
+  const { isActive } = actions;
 
   /** Próximas: pendientes o confirmadas que aún no salen, la salida más cercana primero. */
-  const activas = estado.lista.filter(esVigente).sort((a, b) => a.departure!.getTime() - b.departure!.getTime());
+  const upcoming = state.list.filter(isActive).sort((a, b) => a.departure!.getTime() - b.departure!.getTime());
 
   /** Historial: todo lo demás, la salida más reciente primero (las que no tienen salida, al final). */
-  const historial = estado.lista
-    .filter((b) => !esVigente(b))
+  const history = state.list
+    .filter((b) => !isActive(b))
     .sort((a, b) => {
       const sa = a.departure;
       const sb = b.departure;
@@ -60,15 +60,15 @@ export function useBookingsViewModel({ reservas, reloj }: { reservas: Public<Boo
     });
 
   return {
-    reservas: estado.lista,
-    cargando: estado.cargando,
+    bookings: state.list,
+    loading: state.loading,
     /** Mensaje para el usuario si la carga falló. */
-    error: estado.error,
-    activas,
-    historial,
-    cargar,
-    refrescar,
-    ...acciones,
+    error: state.error,
+    upcoming,
+    history,
+    load,
+    refresh,
+    ...actions,
   };
 }
 

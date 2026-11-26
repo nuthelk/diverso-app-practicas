@@ -12,221 +12,221 @@ import { PublicadorDeResenasFalso, ReservasFalsas, reservaDePrueba } from '../..
  * `review_view_model_test.dart`.
  */
 
-const ahora = new Date(Date.UTC(2026, 9, 25, 15, 0));
-const dias = (d: number) => new Date(ahora.getTime() + d * 24 * 60 * 60 * 1000);
-const salida = dias(-3);
+const now = new Date(Date.UTC(2026, 9, 25, 15, 0));
+const daysFromNow = (d: number) => new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
+const departure = daysFromNow(-3);
 
-let reservas: ReservasFalsas;
-let resenas: PublicadorDeResenasFalso;
+let bookings: ReservasFalsas;
+let reviews: PublicadorDeResenasFalso;
 beforeEach(() => {
-  reservas = new ReservasFalsas([reservaDePrueba({ salida })]);
-  resenas = new PublicadorDeResenasFalso();
+  bookings = new ReservasFalsas([reservaDePrueba({ salida: departure })]);
+  reviews = new PublicadorDeResenasFalso();
 });
 
-async function crear({ adelantada }: { adelantada?: Booking } = {}) {
+async function setup({ preloaded }: { preloaded?: Booking } = {}) {
   return renderHook(() =>
-    useReviewViewModel({ reservas, resenas, bookingId: 'res-1', adelantada, reloj: () => ahora }),
+    useReviewViewModel({ bookings, reviews, bookingId: 'res-1', preloaded, clock: () => now }),
   );
 }
 
 describe('carga de la reserva', () => {
   test('sin reserva adelantada: cargando hasta que llega', async () => {
-    const { result } = await crear();
-    expect(result.current.cargando).toBe(true);
-    expect(result.current.reserva).toBeNull();
+    const { result } = await setup();
+    expect(result.current.loading).toBe(true);
+    expect(result.current.booking).toBeNull();
 
-    await act(() => result.current.cargar());
+    await act(() => result.current.load());
 
-    expect(result.current.cargando).toBe(false);
-    expect(result.current.reserva?.id).toBe('res-1');
-    expect(result.current.puedeResenar).toBe(true);
-    expect(reservas.consultas).toEqual(['res-1']);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.booking?.id).toBe('res-1');
+    expect(result.current.canReview).toBe(true);
+    expect(bookings.consultas).toEqual(['res-1']);
   });
 
   test('con la reserva de «Mis reservas» no se vuelve a pedir', async () => {
-    const { result } = await crear({ adelantada: reservas.lista[0] });
-    expect(result.current.cargando).toBe(false);
+    const { result } = await setup({ preloaded: bookings.lista[0] });
+    expect(result.current.loading).toBe(false);
 
-    await act(() => result.current.cargar());
+    await act(() => result.current.load());
 
-    expect(reservas.consultas).toEqual([]);
-    expect(result.current.puedeResenar).toBe(true);
+    expect(bookings.consultas).toEqual([]);
+    expect(result.current.canReview).toBe(true);
   });
 
   test('una reserva adelantada de otro id se ignora y se carga la pedida', async () => {
-    const { result } = await crear({ adelantada: reservaDePrueba({ id: 'otra', salida }) });
-    expect(result.current.cargando).toBe(true);
+    const { result } = await setup({ preloaded: reservaDePrueba({ id: 'otra', salida: departure }) });
+    expect(result.current.loading).toBe(true);
 
-    await act(() => result.current.cargar());
+    await act(() => result.current.load());
 
-    expect(result.current.reserva?.id).toBe('res-1');
+    expect(result.current.booking?.id).toBe('res-1');
   });
 
   test('error: queda el motivo y reintentar lo limpia', async () => {
-    reservas.lista = [];
-    const { result } = await crear();
-    await act(() => result.current.cargar());
+    bookings.lista = [];
+    const { result } = await setup();
+    await act(() => result.current.load());
 
     expect(result.current.error).toBe(new DiversoError('RESERVA_NO_EXISTE').userMessage);
-    expect(result.current.reserva).toBeNull();
-    expect(result.current.puedeResenar).toBe(false);
+    expect(result.current.booking).toBeNull();
+    expect(result.current.canReview).toBe(false);
 
-    reservas.lista = [reservaDePrueba({ salida })];
-    await act(() => result.current.cargar());
+    bookings.lista = [reservaDePrueba({ salida: departure })];
+    await act(() => result.current.load());
 
     expect(result.current.error).toBeNull();
-    expect(result.current.reserva?.id).toBe('res-1');
+    expect(result.current.booking?.id).toBe('res-1');
   });
 
   test('un error que no es de Diverso también queda como mensaje', async () => {
-    reservas.fallo = new Error('sin red');
-    const { result } = await crear();
-    await act(() => result.current.cargar());
+    bookings.fallo = new Error('sin red');
+    const { result } = await setup();
+    await act(() => result.current.load());
     expect(result.current.error).not.toBeNull();
   });
 
   test.each([
-    ['aún no viajó', () => reservaDePrueba({ salida: dias(1) })],
-    ['ya reseñada', () => reservaDePrueba({ salida, tieneResena: true })],
-    ['cancelada', () => reservaDePrueba({ salida, estado: BookingStatus.cancelled })],
-    ['pendiente de pago', () => reservaDePrueba({ salida, estado: BookingStatus.pendingPayment })],
-  ])('no se puede reseñar una reserva %s', async (_nombre, hacer) => {
-    reservas.lista = [hacer()];
-    const { result } = await crear();
-    await act(() => result.current.cargar());
+    ['aún no viajó', () => reservaDePrueba({ salida: daysFromNow(1) })],
+    ['ya reseñada', () => reservaDePrueba({ salida: departure, tieneResena: true })],
+    ['cancelada', () => reservaDePrueba({ salida: departure, estado: BookingStatus.cancelled })],
+    ['pendiente de pago', () => reservaDePrueba({ salida: departure, estado: BookingStatus.pendingPayment })],
+  ])('no se puede reseñar una reserva %s', async (_label, make) => {
+    bookings.lista = [make()];
+    const { result } = await setup();
+    await act(() => result.current.load());
 
-    expect(result.current.reserva).not.toBeNull();
-    expect(result.current.puedeResenar).toBe(false);
+    expect(result.current.booking).not.toBeNull();
+    expect(result.current.canReview).toBe(false);
   });
 
   test('desmontada: una carga que termina después no avisa a nadie ni lanza', async () => {
-    reservas.compuerta = compuerta();
-    const { result, unmount } = await crear();
-    let carga!: Promise<void>;
+    bookings.compuerta = compuerta();
+    const { result, unmount } = await setup();
+    let pendingLoad!: Promise<void>;
     await act(async () => {
-      carga = result.current.cargar();
+      pendingLoad = result.current.load();
     });
     await unmount();
-    reservas.compuerta.completar();
+    bookings.compuerta.completar();
 
-    await expect(carga).resolves.toBeUndefined();
+    await expect(pendingLoad).resolves.toBeUndefined();
   });
 });
 
 describe('calificación y envío', () => {
-  test('empieza en 5 estrellas y calificar la cambia (solo de 1 a 5)', async () => {
-    const { result } = await crear({ adelantada: reservas.lista[0] });
-    expect(result.current.calificacion).toBe(5);
+  test('empieza en 5 estrellas y rate la cambia (solo de 1 a 5)', async () => {
+    const { result } = await setup({ preloaded: bookings.lista[0] });
+    expect(result.current.rating).toBe(5);
 
-    await act(async () => result.current.calificar(2));
-    expect(result.current.calificacion).toBe(2);
+    await act(async () => result.current.rate(2));
+    expect(result.current.rating).toBe(2);
 
     await act(async () => {
-      result.current.calificar(0);
-      result.current.calificar(6);
+      result.current.rate(0);
+      result.current.rate(6);
     });
-    expect(result.current.calificacion).toBe(2);
+    expect(result.current.rating).toBe(2);
   });
 
-  test('enviar publica con la calificación y el comentario, y devuelve true', async () => {
-    const { result } = await crear({ adelantada: reservas.lista[0] });
-    await act(async () => result.current.calificar(4));
+  test('submit publica con la calificación y el comentario, y devuelve true', async () => {
+    const { result } = await setup({ preloaded: bookings.lista[0] });
+    await act(async () => result.current.rate(4));
 
     let ok = false;
     await act(async () => {
-      ok = await result.current.enviar('Muy bueno');
+      ok = await result.current.submit('Muy bueno');
     });
 
     expect(ok).toBe(true);
-    expect(resenas.creadas).toEqual([{ bookingId: 'res-1', calificacion: 4, comentario: 'Muy bueno' }]);
-    expect(result.current.enviando).toBe(false);
+    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 4, comentario: 'Muy bueno' }]);
+    expect(result.current.submitting).toBe(false);
     // La pantalla se cierra: el botón no se vuelve a activar.
-    expect(result.current.publicada).toBe(true);
-    expect(result.current.errorEnvio).toBeNull();
+    expect(result.current.published).toBe(true);
+    expect(result.current.submitError).toBeNull();
   });
 
   test('una reseña ya publicada no se publica dos veces', async () => {
-    const { result } = await crear({ adelantada: reservas.lista[0] });
+    const { result } = await setup({ preloaded: bookings.lista[0] });
     await act(async () => {
-      await result.current.enviar('a');
+      await result.current.submit('a');
     });
 
     let ok = true;
     await act(async () => {
-      ok = await result.current.enviar('a');
+      ok = await result.current.submit('a');
     });
     expect(ok).toBe(false);
-    expect(resenas.creadas).toHaveLength(1);
+    expect(reviews.creadas).toHaveLength(1);
   });
 
-  test('mientras envía `enviando` es true y un segundo envío no publica dos veces', async () => {
-    resenas.compuerta = compuerta();
-    const { result } = await crear({ adelantada: reservas.lista[0] });
+  test('mientras envía `submitting` es true y un segundo envío no publica dos veces', async () => {
+    reviews.compuerta = compuerta();
+    const { result } = await setup({ preloaded: bookings.lista[0] });
 
-    let primero!: Promise<boolean>;
+    let first!: Promise<boolean>;
     await act(async () => {
-      primero = result.current.enviar('a');
+      first = result.current.submit('a');
     });
-    expect(result.current.enviando).toBe(true);
-    let segundo = true;
+    expect(result.current.submitting).toBe(true);
+    let second = true;
     await act(async () => {
-      segundo = await result.current.enviar('a');
+      second = await result.current.submit('a');
     });
-    expect(segundo).toBe(false);
+    expect(second).toBe(false);
 
     await act(async () => {
-      resenas.compuerta!.completar();
-      await primero;
+      reviews.compuerta!.completar();
+      await first;
     });
-    await expect(primero).resolves.toBe(true);
-    expect(resenas.creadas).toHaveLength(1);
+    await expect(first).resolves.toBe(true);
+    expect(reviews.creadas).toHaveLength(1);
   });
 
-  test('si el servidor rechaza: false, `errorEnvio` con el motivo y se puede reintentar', async () => {
-    resenas.fallo = new DiversoError('ESTADO_INVALIDO');
-    const { result } = await crear({ adelantada: reservas.lista[0] });
+  test('si el servidor rechaza: false, `submitError` con el motivo y se puede reintentar', async () => {
+    reviews.fallo = new DiversoError('ESTADO_INVALIDO');
+    const { result } = await setup({ preloaded: bookings.lista[0] });
 
     let ok = true;
     await act(async () => {
-      ok = await result.current.enviar('');
+      ok = await result.current.submit('');
     });
 
     expect(ok).toBe(false);
-    expect(result.current.errorEnvio).toBe('La reserva ya no admite esta operación.');
-    expect(result.current.enviando).toBe(false);
-    expect(resenas.creadas).toEqual([]);
+    expect(result.current.submitError).toBe('La reserva ya no admite esta operación.');
+    expect(result.current.submitting).toBe(false);
+    expect(reviews.creadas).toEqual([]);
 
-    resenas.fallo = null;
+    reviews.fallo = null;
     await act(async () => {
-      ok = await result.current.enviar('');
+      ok = await result.current.submit('');
     });
     expect(ok).toBe(true);
-    expect(result.current.errorEnvio).toBeNull();
+    expect(result.current.submitError).toBeNull();
   });
 
   test('un error inesperado al publicar también queda como mensaje y libera el botón', async () => {
-    resenas.fallo = new Error('boom');
-    const { result } = await crear({ adelantada: reservas.lista[0] });
+    reviews.fallo = new Error('boom');
+    const { result } = await setup({ preloaded: bookings.lista[0] });
 
     let ok = true;
     await act(async () => {
-      ok = await result.current.enviar('');
+      ok = await result.current.submit('');
     });
     expect(ok).toBe(false);
-    expect(result.current.errorEnvio).not.toBeNull();
-    expect(result.current.enviando).toBe(false);
+    expect(result.current.submitError).not.toBeNull();
+    expect(result.current.submitting).toBe(false);
   });
 
   test('desmontada: un envío que termina después no avisa a nadie ni lanza', async () => {
-    resenas.compuerta = compuerta();
-    const { result, unmount } = await crear({ adelantada: reservas.lista[0] });
-    let envio!: Promise<boolean>;
+    reviews.compuerta = compuerta();
+    const { result, unmount } = await setup({ preloaded: bookings.lista[0] });
+    let pendingSubmit!: Promise<boolean>;
     await act(async () => {
-      envio = result.current.enviar('');
+      pendingSubmit = result.current.submit('');
     });
     await unmount();
-    resenas.compuerta.completar();
+    reviews.compuerta.completar();
 
-    await expect(envio).resolves.toBe(true);
+    await expect(pendingSubmit).resolves.toBe(true);
   });
 });

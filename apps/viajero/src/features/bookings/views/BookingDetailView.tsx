@@ -15,9 +15,9 @@ import { AppInsets, useTheme } from '@/ui/theme';
 import { useBookingActions } from '../booking-actions';
 import { BookingDetail } from '../components/BookingDetail';
 import { preloadBooking, returnResult, preloadedBooking, useOnReturn } from '../between-screens';
-import { useReservaDetalleViewModel } from '../view-models/useReservaDetalleViewModel';
+import { useBookingDetailViewModel } from '../view-models/useBookingDetailViewModel';
 
-export interface ReservaDetalleViewProps {
+export interface BookingDetailViewProps {
   bookingId: string;
 }
 
@@ -28,83 +28,83 @@ export interface ReservaDetalleViewProps {
  *
  * «Resultado al volver» (el `pop(cambio)` de Flutter): en cuanto hay un cambio (cancelación,
  * aunque el servidor la rechace; pago; reseña) se deja `true` para la lista con
- * `devolverResultado`; así vale también para el gesto atrás de iOS. El botón atrás de Android
+ * `returnResult`; así vale también para el gesto atrás de iOS. El botón atrás de Android
  * (el `PopScope(canPop: false)`) pasa por el mismo «Volver»: sin pantalla previa lleva a «Mis
  * reservas» en vez de salir de la app.
  */
-export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
-  const tema = useTheme();
+export function BookingDetailView({ bookingId }: BookingDetailViewProps) {
+  const theme = useTheme();
   const router = useRouter();
-  const { reservas, pasarela } = useDependencies();
-  const inicial = useRef(preloadedBooking(bookingId)).current;
-  const vm = useReservaDetalleViewModel({ reservas, bookingId, inicial });
-  const { openPayment, paymentModal } = useOpenPayment(pasarela);
+  const { reservas: bookings, pasarela: gateway } = useDependencies();
+  const initial = useRef(preloadedBooking(bookingId)).current;
+  const vm = useBookingDetailViewModel({ bookings, bookingId, initial });
+  const { openPayment, paymentModal } = useOpenPayment(gateway);
   const { cancelWithConfirmation, completePayment, dialog } = useBookingActions(vm, openPayment);
-  const alVolver = useOnReturn();
-  const { cargar, cambio, pagoIntentado, resenaPublicada } = vm;
-  const montada = useRef(true);
-  const rutaPropia = AppRoutes.reservaDetalle(bookingId);
+  const onReturn = useOnReturn();
+  const { load, changed, paymentAttempted, reviewPublished } = vm;
+  const mounted = useRef(true);
+  const ownRoute = AppRoutes.reservaDetalle(bookingId);
 
   useEffect(() => {
-    montada.current = true;
-    if (inicial === null) void cargar();
+    mounted.current = true;
+    if (initial === null) void load();
     return () => {
-      montada.current = false;
+      mounted.current = false;
     };
     // Solo al montar (el `initState` de Flutter).
   }, []);
 
   useEffect(() => {
-    if (cambio) returnResult(rutaPropia, true);
-  }, [cambio, rutaPropia]);
+    if (changed) returnResult(ownRoute, true);
+  }, [changed, ownRoute]);
 
-  const volver = useCallback(() => volverSeguro(router, AppRoutes.reservas), [router]);
+  const goBack = useCallback(() => volverSeguro(router, AppRoutes.reservas), [router]);
 
   useFocusEffect(
     useCallback(() => {
-      const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => {
-        volver();
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        goBack();
         return true;
       });
-      return () => suscripcion.remove();
-    }, [volver]),
+      return () => subscription.remove();
+    }, [goBack]),
   );
 
-  const pagar = async (b: Booking) => {
+  const pay = async (b: Booking) => {
     await completePayment(b);
-    if (montada.current) await pagoIntentado();
+    if (mounted.current) await paymentAttempted();
   };
 
-  const resenar = (b: Booking) => {
+  const openReview = (b: Booking) => {
     preloadBooking(b);
-    alVolver(AppRoutes.resena(b.id), (reseno) => {
-      if (reseno === true) resenaPublicada();
+    onReturn(AppRoutes.resena(b.id), (reviewed) => {
+      if (reviewed === true) reviewPublished();
     });
     router.push(AppRoutes.resena(b.id) as Href);
   };
 
   /** Marco de las pantallas sin reserva (cargando / error): barra con «Volver». */
-  const marco = (cuerpo: ReactNode) => (
-    <View testID="pantalla-ReservaDetalleView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
-      <TopBar title={null} onBack={volver} />
-      <View style={estilos.flex}>{cuerpo}</View>
+  const frame = (body: ReactNode) => (
+    <View testID="pantalla-ReservaDetalleView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
+      <TopBar title={null} onBack={goBack} />
+      <View style={styles.flex}>{body}</View>
       <Snackbar />
     </View>
   );
 
-  const b = vm.reserva;
+  const b = vm.booking;
   if (b !== null) {
     return (
-      <View testID="pantalla-ReservaDetalleView" style={estilos.flex}>
+      <View testID="pantalla-ReservaDetalleView" style={styles.flex}>
         <BookingDetail
           booking={b}
-          canCancel={vm.puedeCancelar(b)}
-          canReview={vm.puedeResenar(b)}
-          onBack={volver}
+          canCancel={vm.canCancel(b)}
+          canReview={vm.canReview(b)}
+          onBack={goBack}
           onCancel={() => void cancelWithConfirmation(b)}
-          onPay={() => void pagar(b)}
+          onPay={() => void pay(b)}
           onVerify={() => goTo(router, AppRoutes.pagoDeReserva(b.id))}
-          onReview={() => resenar(b)}
+          onReview={() => openReview(b)}
           onSeePlan={(planId) => router.push(AppRoutes.plan(planId) as Href)}
         />
         <Snackbar />
@@ -114,16 +114,16 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
     );
   }
   if (vm.error !== null) {
-    return marco(
+    return frame(
       <EmptyState
         icon="cloud_off_rounded"
         title="No pudimos cargar la reserva"
         message={vm.error}
-        action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} style={estilos.centro} />}
+        action={<FilledButton variant="tonal" text="Reintentar" onPress={() => void load()} style={styles.center} />}
       />,
     );
   }
-  return marco(
+  return frame(
     <ScrollView contentContainerStyle={AppInsets.content} scrollEnabled={false}>
       <Skeleton height={190} radius={20} />
       <View style={{ height: 16 }} />
@@ -134,7 +134,7 @@ export function ReservaDetalleView({ bookingId }: ReservaDetalleViewProps) {
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  centro: { alignSelf: 'center' },
+  center: { alignSelf: 'center' },
 });

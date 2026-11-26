@@ -5,7 +5,7 @@ import { formatLongDate } from '@/core';
 import { FilledButton, Icon, Text, TextField } from '@/ui/components';
 import { AppInsets, AppText, withAlpha, Durations, useTheme } from '@/ui/theme';
 
-import { MAX_ESTRELLAS, type ReviewViewModel } from '../view-models/useReviewViewModel';
+import { MAX_STARS, type ReviewViewModel } from '../view-models/useReviewViewModel';
 
 const LABELS: Record<number, string> = { 1: 'Muy mala', 2: 'Mala', 3: 'Regular', 4: 'Buena' };
 const labelFor = (rating: number) => LABELS[rating] ?? '¡Excelente!';
@@ -20,9 +20,9 @@ export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (c
   const theme = useTheme();
   const cs = theme.colorScheme;
   const [comment, setComment] = useState('');
-  const plan = vm.reserva?.plan ?? null;
-  const date = vm.reserva?.planDate?.date ?? null;
-  const locked = vm.enviando || vm.publicada;
+  const plan = vm.booking?.plan ?? null;
+  const date = vm.booking?.planDate?.date ?? null;
+  const locked = vm.submitting || vm.published;
   const disabledButtonColor = withAlpha(cs.onSurface, 0.38);
 
   return (
@@ -55,8 +55,8 @@ export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (c
           </Text>
           <View style={{ height: 18 }} />
           <View style={styles.stars}>
-            {Array.from({ length: MAX_ESTRELLAS }, (_, i) => {
-              const filled = i < vm.calificacion;
+            {Array.from({ length: MAX_STARS }, (_, i) => {
+              const filled = i < vm.rating;
               return (
                 <Pressable
                   key={i}
@@ -64,7 +64,7 @@ export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (c
                   accessibilityLabel={`${i + 1} de 5 estrellas`}
                   accessibilityState={{ disabled: locked, selected: filled }}
                   disabled={locked}
-                  onPress={() => vm.calificar(i + 1)}
+                  onPress={() => vm.rate(i + 1)}
                   style={styles.star}
                 >
                   <Icon
@@ -76,7 +76,7 @@ export function ReviewForm({ vm, onSubmit }: { vm: ReviewViewModel; onSubmit: (c
               );
             })}
           </View>
-          <RatingLabel text={labelFor(vm.calificacion)} color={cs.primary} />
+          <RatingLabel text={labelFor(vm.rating)} color={cs.primary} />
           <View style={{ height: 28 }} />
           <TextField
             value={comment}

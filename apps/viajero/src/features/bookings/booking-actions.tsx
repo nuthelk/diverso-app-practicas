@@ -6,7 +6,7 @@ import { showSnackbar } from '@/features/shared/snackbar';
 import { errorMessageFor } from '@/features/shared/error-message';
 
 import { CancellationDialog } from './components/CancellationDialog';
-import type { ReservaAcciones } from './view-models/useReservaAcciones';
+import type { BookingActionsViewModel } from './view-models/useBookingActionsViewModel';
 
 /** Aviso cuando el viajero cierra el WebView del pago sin terminar. */
 export const PAYMENT_CLOSED_NOTICE = 'Cerraste el pago antes de terminar. Si ya pagaste, toca «Ya pagué, verificar».';
@@ -24,8 +24,8 @@ export const PAYMENT_CLOSED_NOTICE = 'Cerraste el pago antes de terminar. Si ya 
  *
  * [dialog] es lo que la pantalla debe pintar (el `showDialog` de Flutter).
  */
-export function useBookingActions(vm: ReservaAcciones, openPayment: OpenPayment) {
-  const { mensaje, limpiarMensaje, vistaPrevia, cancelar, avisar } = vm;
+export function useBookingActions(vm: BookingActionsViewModel, openPayment: OpenPayment) {
+  const { message, clearMessage, cancellationPreview, cancel, notify } = vm;
   const [confirmation, setConfirmation] = useState<{
     code: string;
     preview: CancellationPreview;
@@ -41,32 +41,32 @@ export function useBookingActions(vm: ReservaAcciones, openPayment: OpenPayment)
   }, []);
 
   useEffect(() => {
-    if (mensaje === null) return;
-    showSnackbar(mensaje);
-    limpiarMensaje();
-  }, [mensaje, limpiarMensaje]);
+    if (message === null) return;
+    showSnackbar(message);
+    clearMessage();
+  }, [message, clearMessage]);
 
   const cancelWithConfirmation = useCallback(
     async (b: Booking): Promise<boolean> => {
-      const preview = await vistaPrevia(b);
+      const preview = await cancellationPreview(b);
       if (preview === null || !mounted.current) return false;
       const confirmed = await new Promise<boolean>((respond) => setConfirmation({ code: b.code, preview, respond }));
       if (!confirmed) return false;
-      await cancelar(b);
+      await cancel(b);
       return true;
     },
-    [vistaPrevia, cancelar],
+    [cancellationPreview, cancel],
   );
 
   const completePayment = useCallback(
     async (b: Booking): Promise<void> => {
       try {
-        if ((await openPayment(b.id)) === PaymentOutcome.closed) avisar(PAYMENT_CLOSED_NOTICE);
+        if ((await openPayment(b.id)) === PaymentOutcome.closed) notify(PAYMENT_CLOSED_NOTICE);
       } catch (e) {
-        avisar(errorMessageFor(e));
+        notify(errorMessageFor(e));
       }
     },
-    [openPayment, avisar],
+    [openPayment, notify],
   );
 
   const dialog: ReactNode = confirmation ? (

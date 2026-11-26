@@ -40,25 +40,25 @@ afterEach(() => {
   forgetPreloadedBooking();
 });
 
-function enDias(dias: number, hora = 6) {
-  const hoy = new Date();
-  return new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias, hora);
+function inDays(days: number, hour = 6) {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + days, hour);
 }
 
 function plan({
-  titulo = 'Street food tour',
-  puntoEncuentro = 'Estación San Javier',
-  agencia = 'EcoAndes Viajes',
-}: { titulo?: string; puntoEncuentro?: string; agencia?: string } = {}) {
+  title = 'Street food tour',
+  meetingPoint = 'Estación San Javier',
+  agency = 'EcoAndes Viajes',
+}: { title?: string; meetingPoint?: string; agency?: string } = {}) {
   return new Plan({
     id: 'plan-1',
     agencyId: 'ag',
-    title: titulo,
+    title,
     destination: 'Medellín',
     category: ExperienceCategory.gastronomy,
     priceCop: 95000,
     status: PlanStatus.published,
-    meetingPoint: puntoEncuentro,
+    meetingPoint,
     cancellationPolicy: 'Reembolso total hasta 48 horas antes.',
     itinerary: [
       new ItineraryStep({ time: '06:00', activity: 'Salida desde el metro' }),
@@ -66,7 +66,7 @@ function plan({
     ],
     agency: new Agency({
       id: 'ag',
-      name: agencia,
+      name: agency,
       rntNumber: '12345',
       commercialRegistration: '999',
       verificationStatus: VerificationStatus.verified,
@@ -74,35 +74,35 @@ function plan({
   });
 }
 
-function reserva({
+function bookingWith({
   id = 'res-1',
-  codigo = 'DIV-CC70944A',
+  code = 'DIV-CC70944A',
   pax = 2,
-  salida,
-  estado = BookingStatus.confirmed,
-  conPlan = plan(),
-  conPago = true,
+  departure,
+  status = BookingStatus.confirmed,
+  withPlan = plan(),
+  withPayment = true,
 }: {
   id?: string;
-  codigo?: string;
+  code?: string;
   pax?: number;
-  salida?: Date;
-  estado?: BookingStatus;
-  conPlan?: Plan;
-  conPago?: boolean;
+  departure?: Date;
+  status?: BookingStatus;
+  withPlan?: Plan;
+  withPayment?: boolean;
 } = {}) {
   return new Booking({
     id,
-    code: codigo,
+    code,
     planDateId: 'pd',
     travelerId: 'v',
     pax,
     totalAmount: 190000,
-    status: estado,
+    status,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    departureAt: salida ?? enDias(3),
-    plan: conPlan,
-    payments: conPago
+    departureAt: departure ?? inDays(3),
+    plan: withPlan,
+    payments: withPayment
       ? [
           new Payment({
             id: 'p',
@@ -119,38 +119,38 @@ function reserva({
   });
 }
 
-function repo(lista: Booking[]) {
-  const consultas: string[] = [];
+function fakeRepo(list: Booking[]) {
+  const queries: string[] = [];
   const r = doble<Public<BookingRepository>>('BookingRepository', {
-    myBookings: async () => lista,
+    myBookings: async () => list,
     booking: async (id: string) => {
-      consultas.push(id);
-      const b = lista.find((x) => x.id === id);
+      queries.push(id);
+      const b = list.find((x) => x.id === id);
       if (!b) throw new DiversoError('RESERVA_NO_EXISTE');
       return b;
     },
     cancellationPreview: async () =>
       new CancellationPreview({ applies: true, percentage: 100, amount: 190000, hoursBefore: 72, reason: '' }),
   });
-  return { repo: r, consultas };
+  return { repo: r, queries };
 }
 
-async function abrir(url: string, lista: Booking[]) {
-  const { repo: reservas, consultas } = repo(lista);
-  const r = await arrancarApp(url, dependenciasDePrueba({ reservas }));
-  return { r, consultas };
+async function openApp(url: string, list: Booking[]) {
+  const { repo: bookings, queries } = fakeRepo(list);
+  const r = await arrancarApp(url, dependenciasDePrueba({ reservas: bookings }));
+  return { r, queries };
 }
 
-async function tocar(texto: string) {
-  await fireEvent.press(screen.getByText(texto));
+async function tap(text: string) {
+  await fireEvent.press(screen.getByText(text));
   await asentar();
 }
 
 describe('tarjeta de «Mis reservas»', () => {
   test('tocarla abre el detalle con código, punto de encuentro, itinerario y «Ver plan»', async () => {
-    const { r } = await abrir('/reservas', [reserva()]);
+    const { r } = await openApp('/reservas', [bookingWith()]);
 
-    await tocar('Street food tour');
+    await tap('Street food tour');
 
     expect(r.getPathname()).toBe('/reservas/res-1');
     expect(screen.getByText('DIV-CC70944A')).toBeOnTheScreen();
@@ -160,23 +160,23 @@ describe('tarjeta de «Mis reservas»', () => {
   });
 
   test('«Cancelar» de la tarjeta no navega: abre su propio diálogo', async () => {
-    const { r } = await abrir('/reservas', [reserva()]);
+    const { r } = await openApp('/reservas', [bookingWith()]);
 
-    await tocar('Cancelar');
+    await tap('Cancelar');
 
     expect(r.getPathname()).toBe('/reservas');
     expect(screen.getByText('¿Cancelar reserva?')).toBeOnTheScreen();
   });
 
   test('la tarjeta se anuncia como botón con la reserva', async () => {
-    await abrir('/reservas', [reserva()]);
+    await openApp('/reservas', [bookingWith()]);
 
-    const tarjeta = screen.getByLabelText('Ver detalle de la reserva DIV-CC70944A');
-    expect(tarjeta).toHaveProp('accessibilityRole', 'button');
+    const card = screen.getByLabelText('Ver detalle de la reserva DIV-CC70944A');
+    expect(card).toHaveProp('accessibilityRole', 'button');
   });
 
   test('jerarquía: código en la cabecera, hora, punto de encuentro, personas y precio; sin referencia de pago', async () => {
-    await abrir('/reservas', [reserva({ salida: enDias(3, 6) })]);
+    await openApp('/reservas', [bookingWith({ departure: inDays(3, 6) })]);
 
     expect(within(screen.getByTestId('encabezado-reserva')).getByText('DIV-CC70944A')).toBeOnTheScreen();
     expect(screen.getByText(/06:00/)).toBeOnTheScreen();
@@ -189,26 +189,26 @@ describe('tarjeta de «Mis reservas»', () => {
   });
 
   test('una sola persona va en singular', async () => {
-    await abrir('/reservas', [reserva({ pax: 1 })]);
+    await openApp('/reservas', [bookingWith({ pax: 1 })]);
     expect(screen.getByText('1 persona')).toBeOnTheScreen();
   });
 
   test.each([
     [3, 'en 3 días'],
     [1, 'Mañana'],
-  ])('cuenta regresiva: a %i días dice «%s»', async (dias, texto) => {
-    await abrir('/reservas', [reserva({ salida: enDias(dias) })]);
-    expect(screen.getByText(texto)).toBeOnTheScreen();
+  ])('cuenta regresiva: a %i días dice «%s»', async (days, text) => {
+    await openApp('/reservas', [bookingWith({ departure: inDays(days) })]);
+    expect(screen.getByText(text)).toBeOnTheScreen();
   });
 
   test('cuenta regresiva: «Hoy»', async () => {
-    await abrir('/reservas', [reserva({ salida: new Date(Date.now() + 5 * 60 * 1000) })]);
+    await openApp('/reservas', [bookingWith({ departure: new Date(Date.now() + 5 * 60 * 1000) })]);
     expect(screen.getByText('Hoy')).toBeOnTheScreen();
   });
 
   test('el historial no muestra cuenta regresiva ni «Cancelar»', async () => {
-    await abrir('/reservas', [reserva({ salida: enDias(-5) })]);
-    await tocar('Historial (1)');
+    await openApp('/reservas', [bookingWith({ departure: inDays(-5) })]);
+    await tap('Historial (1)');
 
     expect(screen.queryByText(/en 5 días/)).toBeNull();
     expect(screen.queryByText('Hoy')).toBeNull();
@@ -218,25 +218,25 @@ describe('tarjeta de «Mis reservas»', () => {
   test('a 320 px con textos largos: el título se corta en 2 líneas y lo demás se parte, no desborda', async () => {
     // Sin motor de layout en jest no se mide el desborde (Flutter usa textScaleFactor 1.6): se
     // fija lo que lo evita (líneas máximas y filas que se parten).
-    const largo = plan({
-      titulo: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
-      puntoEncuentro: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
-      agencia: 'Agencia de viajes con un nombre larguísimo S.A.S.',
+    const longPlan = plan({
+      title: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
+      meetingPoint: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
+      agency: 'Agencia de viajes con un nombre larguísimo S.A.S.',
     });
-    await abrir('/reservas', [
-      reserva({ id: 'a', conPlan: largo }),
-      reserva({ id: 'b', codigo: 'DIV-PEND', conPlan: largo, estado: BookingStatus.pendingPayment, conPago: false }),
+    await openApp('/reservas', [
+      bookingWith({ id: 'a', withPlan: longPlan }),
+      bookingWith({ id: 'b', code: 'DIV-PEND', withPlan: longPlan, status: BookingStatus.pendingPayment, withPayment: false }),
     ]);
 
-    for (const titulo of screen.getAllByText(largo.title)) expect(titulo).toHaveProp('numberOfLines', 2);
-    for (const agencia of screen.getAllByText(largo.agency!.name)) expect(agencia).toHaveProp('numberOfLines', 1);
-    for (const lugar of screen.getAllByText(largo.meetingPoint)) expect(lugar.props.numberOfLines).toBeUndefined();
+    for (const title of screen.getAllByText(longPlan.title)) expect(title).toHaveProp('numberOfLines', 2);
+    for (const agency of screen.getAllByText(longPlan.agency!.name)) expect(agency).toHaveProp('numberOfLines', 1);
+    for (const place of screen.getAllByText(longPlan.meetingPoint)) expect(place.props.numberOfLines).toBeUndefined();
   });
 });
 
 describe('detalle de la reserva', () => {
   test('muestra estado, fecha y hora, lugar, personas y total, pago, agencia, itinerario y política', async () => {
-    await abrir('/reservas/res-1', [reserva({ salida: enDias(3, 6) })]);
+    await openApp('/reservas/res-1', [bookingWith({ departure: inDays(3, 6) })]);
 
     expect(screen.getAllByText('Street food tour').length).toBeGreaterThan(0);
     expect(screen.getByText('Confirmada')).toBeOnTheScreen();
@@ -254,9 +254,9 @@ describe('detalle de la reserva', () => {
   });
 
   test('cancelada con reembolso: «$» y «%» no se separan de su número si la línea se parte', async () => {
-    const cancelada = reserva({ estado: BookingStatus.cancelled });
-    const conReembolso = new Booking({
-      ...cancelada,
+    const cancelled = bookingWith({ status: BookingStatus.cancelled });
+    const withRefund = new Booking({
+      ...cancelled,
       refunds: [
         new Refund({
           id: 'r1',
@@ -269,7 +269,7 @@ describe('detalle de la reserva', () => {
         }),
       ],
     });
-    await abrir('/reservas/res-1', [conReembolso]);
+    await openApp('/reservas/res-1', [withRefund]);
 
     expect(textoCrudo(screen.getByText(/Reembolso de prueba pendiente/))).toBe(
       'Reembolso de prueba pendiente · 100\u00A0% · $\u00A0399.000',
@@ -278,29 +278,29 @@ describe('detalle de la reserva', () => {
   });
 
   test('itinerario: la línea de tiempo termina en el último paso (2 pasos, 1 tramo)', async () => {
-    await abrir('/reservas/res-1', [reserva()]);
+    await openApp('/reservas/res-1', [bookingWith()]);
 
     expect(screen.getAllByTestId('linea-itinerario')).toHaveLength(1);
   });
 
   test('carga en frío por id (sin extra) con BookingRepository.reserva', async () => {
-    const { consultas } = await abrir('/reservas/res-1', [reserva()]);
+    const { queries } = await openApp('/reservas/res-1', [bookingWith()]);
 
-    expect(consultas).toEqual(['res-1']);
+    expect(queries).toEqual(['res-1']);
     expect(screen.getByText('DIV-CC70944A')).toBeOnTheScreen();
     expect(screen.getByText('Estación San Javier')).toBeOnTheScreen();
   });
 
   test('con la reserva en extra no vuelve a pedirla', async () => {
-    const { consultas } = await abrir('/reservas', [reserva()]);
-    await tocar('Street food tour');
+    const { queries } = await openApp('/reservas', [bookingWith()]);
+    await tap('Street food tour');
 
-    expect(consultas).toEqual([]);
+    expect(queries).toEqual([]);
     expect(screen.getByText('Ver plan')).toBeOnTheScreen();
   });
 
   test('una reserva inexistente muestra el error con «Reintentar»', async () => {
-    await abrir('/reservas/nope', [reserva()]);
+    await openApp('/reservas/nope', [bookingWith()]);
 
     expect(screen.getByText('No pudimos cargar la reserva')).toBeOnTheScreen();
     expect(screen.getByText('Reintentar')).toBeOnTheScreen();
@@ -312,24 +312,24 @@ describe('detalle de la reserva', () => {
   });
 
   test('«Ver plan» abre el plan', async () => {
-    const { r } = await abrir('/reservas/res-1', [reserva()]);
+    const { r } = await openApp('/reservas/res-1', [bookingWith()]);
 
-    await tocar('Ver plan');
+    await tap('Ver plan');
 
     expect(r.getPathname()).toBe('/plan/plan-1');
   });
 
   test('«Cancelar» abre la confirmación con la política', async () => {
-    const { r } = await abrir('/reservas/res-1', [reserva()]);
+    const { r } = await openApp('/reservas/res-1', [bookingWith()]);
 
-    await tocar('Cancelar');
+    await tap('Cancelar');
 
     expect(screen.getByText('¿Cancelar reserva?')).toBeOnTheScreen();
     expect(r.getPathname()).toBe('/reservas/res-1');
   });
 
   test('una reserva que ya salió no se puede cancelar; sí reseñar', async () => {
-    await abrir('/reservas/res-1', [reserva({ salida: enDias(-5) })]);
+    await openApp('/reservas/res-1', [bookingWith({ departure: inDays(-5) })]);
 
     expect(screen.getByText('Realizada')).toBeOnTheScreen();
     expect(screen.queryByText('Cancelar')).toBeNull();
@@ -337,7 +337,7 @@ describe('detalle de la reserva', () => {
   });
 
   test('pendiente de pago ofrece completar el pago y verificar', async () => {
-    await abrir('/reservas/res-1', [reserva({ estado: BookingStatus.pendingPayment, conPago: false })]);
+    await openApp('/reservas/res-1', [bookingWith({ status: BookingStatus.pendingPayment, withPayment: false })]);
 
     expect(screen.getByText('Pendiente')).toBeOnTheScreen();
     expect(screen.getByText('Completar pago')).toBeOnTheScreen();
@@ -345,26 +345,26 @@ describe('detalle de la reserva', () => {
   });
 
   test('«Ya pagué, verificar» lleva al resultado del pago de esa reserva', async () => {
-    const { r } = await abrir('/reservas/res-1', [reserva({ estado: BookingStatus.pendingPayment, conPago: false })]);
+    const { r } = await openApp('/reservas/res-1', [bookingWith({ status: BookingStatus.pendingPayment, withPayment: false })]);
 
-    await tocar('Ya pagué, verificar');
+    await tap('Ya pagué, verificar');
 
     expect(r.getPathnameWithParams()).toBe('/pago/resultado?reserva=res-1');
   });
 
   test('reseñar desde el detalle y publicar: vuelve con «Ya dejaste tu reseña»', async () => {
-    const lista = [reserva({ salida: enDias(-5) })];
-    const { repo: reservas } = repo(lista);
-    const resenas = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas, resenas }));
-    await tocar('Historial (1)');
-    await tocar('Street food tour');
+    const list = [bookingWith({ departure: inDays(-5) })];
+    const { repo: bookings } = fakeRepo(list);
+    const reviews = new PublicadorDeResenasFalso();
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: reviews }));
+    await tap('Historial (1)');
+    await tap('Street food tour');
 
-    await tocar('Reseñar');
+    await tap('Reseñar');
     expect(r.getPathname()).toBe('/resena/res-1');
-    await tocar('Publicar reseña');
+    await tap('Publicar reseña');
 
-    expect(resenas.creadas).toEqual([{ bookingId: 'res-1', calificacion: 5, comentario: '' }]);
+    expect(reviews.creadas).toEqual([{ bookingId: 'res-1', calificacion: 5, comentario: '' }]);
     expect(r.getPathname()).toBe('/reservas/res-1');
     expect(screen.getByText('Ya dejaste tu reseña')).toBeOnTheScreen();
     expect(screen.queryByText('Reseñar')).toBeNull();
@@ -373,80 +373,80 @@ describe('detalle de la reserva', () => {
   // Volver de «Tu reseña» sin publicar no cambia nada: recargar devolvía la lista al principio
   // (en Flutter se recargaba siempre; esto es una mejora deliberada).
   test('volver de «Tu reseña» sin publicar no recarga «Mis reservas» (conserva el desplazamiento)', async () => {
-    const reservas = new ReservasFalsas([reserva({ salida: enDias(-5) })]);
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas, resenas: new PublicadorDeResenasFalso() }));
-    await tocar('Historial (1)');
-    expect(reservas.consultasLista).toBe(1);
+    const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: new PublicadorDeResenasFalso() }));
+    await tap('Historial (1)');
+    expect(bookings.consultasLista).toBe(1);
 
-    await tocar('Reseñar');
+    await tap('Reseñar');
     expect(r.getPathname()).toBe('/resena/res-1');
     await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
     await asentar();
 
     expect(r.getPathname()).toBe('/reservas');
-    expect(reservas.consultasLista).toBe(1);
+    expect(bookings.consultasLista).toBe(1);
     expect(screen.getByText('Reseñar')).toBeOnTheScreen();
   });
 
   test('publicar la reseña recarga «Mis reservas» sin desmontar la lista (sin volver al esqueleto)', async () => {
-    const reservas = new ReservasFalsas([reserva({ salida: enDias(-5) })]);
-    const resenas = new PublicadorDeResenasFalso();
-    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas, resenas }));
-    await tocar('Historial (1)');
-    await tocar('Reseñar');
+    const bookings = new ReservasFalsas([bookingWith({ departure: inDays(-5) })]);
+    const reviews = new PublicadorDeResenasFalso();
+    const r = await arrancarApp('/reservas', dependenciasDePrueba({ reservas: bookings, resenas: reviews }));
+    await tap('Historial (1)');
+    await tap('Reseñar');
 
     // La recarga queda colgada: así se ve qué muestra la lista MIENTRAS recarga.
-    reservas.compuerta = compuerta();
-    await tocar('Publicar reseña');
+    bookings.compuerta = compuerta();
+    await tap('Publicar reseña');
 
     expect(r.getPathname()).toBe('/reservas');
-    expect(reservas.consultasLista).toBe(2);
+    expect(bookings.consultasLista).toBe(2);
     expect(screen.queryAllByTestId('skeleton')).toHaveLength(0);
     expect(screen.getByTestId('lista-reservas')).toBeOnTheScreen();
     expect(screen.getByText('Street food tour')).toBeOnTheScreen();
 
-    reservas.lista = [new Booking({ ...reservas.lista[0]!, hasReview: true })];
-    await act(async () => reservas.compuerta!.completar());
+    bookings.lista = [new Booking({ ...bookings.lista[0]!, hasReview: true })];
+    await act(async () => bookings.compuerta!.completar());
     await asentar();
 
     expect(screen.queryByText('Reseñar')).toBeNull();
   });
 
   test('el botón atrás de Android vuelve como «Volver» (y abierto en frío lleva a «Mis reservas»)', async () => {
-    type Escucha = Parameters<typeof BackHandler.addEventListener>[1];
-    const escuchas: Escucha[] = [];
-    const espia = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_evento, escucha) => {
-      escuchas.push(escucha);
-      return { remove: () => escuchas.splice(escuchas.indexOf(escucha), 1) };
+    type Listener = Parameters<typeof BackHandler.addEventListener>[1];
+    const listeners: Listener[] = [];
+    const spy = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, listener) => {
+      listeners.push(listener);
+      return { remove: () => listeners.splice(listeners.indexOf(listener), 1) };
     });
     try {
-      const { r } = await abrir('/reservas/res-1', [reserva()]);
-      expect(escuchas.length).toBeGreaterThan(0);
+      const { r } = await openApp('/reservas/res-1', [bookingWith()]);
+      expect(listeners.length).toBeGreaterThan(0);
 
-      let consumido: unknown = false;
+      let consumed: unknown = false;
       await act(async () => {
-        consumido = (escuchas[escuchas.length - 1] as (...args: unknown[]) => unknown)({});
+        consumed = (listeners[listeners.length - 1] as (...args: unknown[]) => unknown)({});
       });
       await asentar();
 
-      expect(consumido).toBe(true);
+      expect(consumed).toBe(true);
       expect(r.getPathname()).toBe('/reservas');
     } finally {
-      espia.mockRestore();
+      spy.mockRestore();
     }
   });
 
   test('a 320 px con textos largos: el título y la agencia se parten en varias líneas', async () => {
-    const largo = plan({
-      titulo: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
-      puntoEncuentro: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
-      agencia: 'Agencia de viajes con un nombre larguísimo S.A.S.',
+    const longPlan = plan({
+      title: 'Recorrido gastronómico por las plazas de mercado más tradicionales del Valle de Aburrá',
+      meetingPoint: 'Estación San Javier, salida norte, junto a la tienda de la esquina',
+      agency: 'Agencia de viajes con un nombre larguísimo S.A.S.',
     });
-    await abrir('/reservas/res-1', [reserva({ conPlan: largo })]);
+    await openApp('/reservas/res-1', [bookingWith({ withPlan: longPlan })]);
 
-    const enContenido = screen.getAllByText(largo.title).filter((t) => t.props.testID !== 'cabecera-titulo');
-    expect(enContenido).toHaveLength(1);
-    expect(enContenido[0]!.props.numberOfLines).toBeUndefined();
-    expect(screen.getByText(largo.agency!.name).props.numberOfLines).toBeUndefined();
+    const inContent = screen.getAllByText(longPlan.title).filter((t) => t.props.testID !== 'cabecera-titulo');
+    expect(inContent).toHaveLength(1);
+    expect(inContent[0]!.props.numberOfLines).toBeUndefined();
+    expect(screen.getByText(longPlan.agency!.name).props.numberOfLines).toBeUndefined();
   });
 });

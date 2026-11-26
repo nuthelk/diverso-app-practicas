@@ -27,76 +27,76 @@ export interface ReviewViewProps {
  * y vuelve; abierta en frío, va a «Mis reservas».
  */
 export function ReviewView({ bookingId }: ReviewViewProps) {
-  const tema = useTheme();
+  const theme = useTheme();
   const router = useRouter();
-  const { reservas, resenas } = useDependencies();
-  const adelantada = useRef(preloadedBooking(bookingId)).current;
-  const vm = useReviewViewModel({ reservas, resenas, bookingId, adelantada });
-  const { cargar, errorEnvio } = vm;
+  const { reservas: bookings, resenas: reviews } = useDependencies();
+  const preloaded = useRef(preloadedBooking(bookingId)).current;
+  const vm = useReviewViewModel({ bookings, reviews, bookingId, preloaded });
+  const { load, submitError } = vm;
 
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    void load();
+  }, [load]);
 
   // Si el servidor la rechaza, el motivo va en un aviso (se puede reintentar).
   useEffect(() => {
-    if (errorEnvio !== null) showSnackbar(errorEnvio);
-  }, [errorEnvio]);
+    if (submitError !== null) showSnackbar(submitError);
+  }, [submitError]);
 
-  const enviar = async (comentario: string) => {
-    if (!(await vm.enviar(comentario))) return;
+  const submit = async (comment: string) => {
+    if (!(await vm.submit(comment))) return;
     showSnackbar('¡Gracias! Tu reseña ayudará a otros viajeros.');
     returnResult(AppRoutes.resena(bookingId), true);
     volverSeguro(router, AppRoutes.reservas);
   };
 
-  const irAMisReservas = () => goTo(router, AppRoutes.reservas);
+  const goToBookings = () => goTo(router, AppRoutes.reservas);
 
-  let cuerpo: ReactNode;
-  if (vm.cargando) {
-    cuerpo = (
-      <View style={estilos.centro}>
+  let body: ReactNode;
+  if (vm.loading) {
+    body = (
+      <View style={styles.center}>
         <CircularProgressIndicator />
       </View>
     );
   } else if (vm.error !== null) {
-    cuerpo = (
+    body = (
       <EmptyState
         icon="cloud_off_rounded"
         title="No pudimos cargar la reserva"
         message={vm.error}
         action={
-          <View style={estilos.acciones}>
-            <FilledButton variant="tonal" text="Reintentar" onPress={() => void cargar()} />
-            <TextButton text="Ver mis reservas" onPress={irAMisReservas} />
+          <View style={styles.actions}>
+            <FilledButton variant="tonal" text="Reintentar" onPress={() => void load()} />
+            <TextButton text="Ver mis reservas" onPress={goToBookings} />
           </View>
         }
       />
     );
-  } else if (!vm.puedeResenar) {
-    cuerpo = (
+  } else if (!vm.canReview) {
+    body = (
       <EmptyState
         icon="rate_review_outlined"
         title="Esta reserva no se puede reseñar"
         message="Solo se reseñan los viajes ya realizados que aún no tienen reseña."
-        action={<FilledButton variant="tonal" text="Ver mis reservas" onPress={irAMisReservas} />}
+        action={<FilledButton variant="tonal" text="Ver mis reservas" onPress={goToBookings} />}
       />
     );
   } else {
-    cuerpo = <ReviewForm vm={vm} onSubmit={(comentario) => void enviar(comentario)} />;
+    body = <ReviewForm vm={vm} onSubmit={(comment) => void submit(comment)} />;
   }
 
   return (
-    <View testID="pantalla-ReviewView" style={[estilos.flex, { backgroundColor: tema.pageBackground }]}>
+    <View testID="pantalla-ReviewView" style={[styles.flex, { backgroundColor: theme.pageBackground }]}>
       <TopBar title="Tu reseña" onBack={() => volverSeguro(router, AppRoutes.reservas)} />
-      <View style={estilos.flex}>{cuerpo}</View>
+      <View style={styles.flex}>{body}</View>
       <Snackbar />
     </View>
   );
 }
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   flex: { flex: 1 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  acciones: { alignItems: 'center' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  actions: { alignItems: 'center' },
 });
