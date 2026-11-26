@@ -84,7 +84,7 @@ describe('Plan', () => {
     expect(Plan.fromMap({ id: 'p', agency_id: 'a', titulo: 'T', destino: 'D', precio_cop: 1 }).mainPhoto).toBeNull();
   });
 
-  test('PlanDate: tieneCupos y toInsertMap con fecha YYYY-MM-DD', () => {
+  test('PlanDate: hasSpots y toInsertMap con fecha YYYY-MM-DD', () => {
     const d = new PlanDate({ id: 'd', planId: 'p', date: localDate(2026, 3, 7), totalSpots: 10, availableSpots: 0 });
     expect(d.hasSpots).toBe(false);
     expect(d.toInsertMap()).toEqual({ plan_id: 'p', fecha: '2026-03-07', cupo_total: 10, cupo_disponible: 0 });
@@ -93,7 +93,7 @@ describe('Plan', () => {
 });
 
 describe('pagos, cancelación y reseñas', () => {
-  test('CheckoutIniciado: monto en pesos y vencimiento como instante', () => {
+  test('StartedCheckout: monto en pesos y vencimiento como instante', () => {
     const c = StartedCheckout.fromMap({
       checkout_url: 'u',
       referencia: 'DIV-1-1',
@@ -104,7 +104,7 @@ describe('pagos, cancelación y reseñas', () => {
     expect(c.expiresAt).toEqual(utcDate(2026, 10, 25, 15, 30));
   });
 
-  test('PagoVerificado: estado desconocido → error; método desconocido → otro; mensajes', () => {
+  test('VerifiedPayment: estado desconocido → error; método desconocido → otro; mensajes', () => {
     const p = VerifiedPayment.fromMap({
       estado_pago: 'raro',
       metodo: 'BITCOIN',
@@ -128,7 +128,7 @@ describe('pagos, cancelación y reseñas', () => {
     );
   });
 
-  test('ResultadoCancelacion lee el objeto reembolso', () => {
+  test('CancellationResult lee el objeto reembolso', () => {
     const r = CancellationResult.fromMap({
       estado: 'cancelada',
       reembolso: { aplica: true, porcentaje: 100, monto: 300000, estado: 'pendiente', motivo: 'm' },

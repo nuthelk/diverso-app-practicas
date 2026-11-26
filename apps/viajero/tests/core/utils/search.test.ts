@@ -4,7 +4,7 @@ import { normalizeSearch } from '@/core/utils/search';
  * `normalizeSearch` debe producir lo mismo que la columna `plans.busqueda`
  * (minúsculas + unaccent, migración 0011) para que `ilike` encuentre sin importar tildes.
  */
-describe('normalizarBusqueda', () => {
+describe('normalizeSearch', () => {
   test('quita tildes, diéresis y eñes', () => {
     expect(normalizeSearch('Guatapé')).toBe('guatape');
     expect(normalizeSearch('CAFÉ')).toBe('cafe');

@@ -85,7 +85,7 @@ describe('sesión', () => {
 });
 
 describe('registro y consentimientos', () => {
-  test('signUpViajero manda nombre, rol y versión legal en los metadatos', async () => {
+  test('signUpTraveler manda nombre, rol y versión legal en los metadatos', async () => {
     const { repo, requests } = setup();
     await repo.signUpTraveler({ name: 'Nuevo', email: 'nuevo@diverso.test', password: 'clave123', acceptsDocuments: true });
     const p = requests.find((x) => x.path === '/auth/v1/signup')!;
@@ -106,7 +106,7 @@ describe('registro y consentimientos', () => {
     expect(requests).toHaveLength(0);
   });
 
-  test('consentimientosPendientes devuelve los tipos; registrarConsentimiento manda la versión vigente', async () => {
+  test('pendingConsents devuelve los tipos; recordConsent manda la versión vigente', async () => {
     const { repo, requests } = setup();
     expect(await repo.pendingConsents()).toEqual(['tratamiento_datos', 'terminos_viajero']);
     await repo.recordConsent('terminos_viajero');
@@ -114,7 +114,7 @@ describe('registro y consentimientos', () => {
     expect(p.body).toStrictEqual({ p_tipo: 'terminos_viajero', p_version: 'v2-2026-10', p_origen: 'app' });
   });
 
-  test('consentimientosPendientes: si la RPC no devuelve lista, []', async () => {
+  test('pendingConsents: si la RPC no devuelve lista, []', async () => {
     const { client } = createFakeSupabase(() => ({ body: { raro: true } }));
     expect(await new AuthRepository({ client }).pendingConsents()).toEqual([]);
   });

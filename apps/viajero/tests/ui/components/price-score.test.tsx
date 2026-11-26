@@ -54,7 +54,7 @@ describe('PriceText', () => {
 
 // Port de la parte de widget de puntaje_nueva_test.dart (la tarjeta y la ficha son de T5).
 describe('PlanScore', () => {
-  it('Plan.esNuevo: sin reseñas aunque el promedio venga en 0', () => {
+  it('Plan.isNew: sin reseñas aunque el promedio venga en 0', () => {
     expect(plan().isNew).toBe(true);
     expect(plan({ reviews: 1, rating: 5 }).isNew).toBe(false);
   });

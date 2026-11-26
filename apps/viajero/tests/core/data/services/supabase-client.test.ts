@@ -16,7 +16,7 @@ describe('cliente Supabase para React Native', () => {
     });
   });
 
-  test('crearClienteSupabase usa la configuración recibida', () => {
+  test('createSupabaseClient usa la configuración recibida', () => {
     const client = createSupabaseClient({
       supabaseUrl: 'http://10.0.2.2:54331',
       supabaseKey: 'clave',

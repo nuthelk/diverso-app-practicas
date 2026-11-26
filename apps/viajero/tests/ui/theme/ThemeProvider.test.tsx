@@ -47,7 +47,7 @@ describe('ThemeProvider (ThemeModeViewModel de Flutter)', () => {
     expect(screen.getByTestId('probe')).toHaveTextContent('system|dark|#8CD5B3|#101312');
   });
 
-  it('setModo cambia el modo efectivo sin importar el sistema', async () => {
+  it('setMode cambia el modo efectivo sin importar el sistema', async () => {
     await render(
       <ThemeProvider>
         <Probe />

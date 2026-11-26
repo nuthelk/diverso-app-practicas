@@ -137,7 +137,7 @@ describe('search: filtro de fecha (bug L)', () => {
 });
 
 describe('agencias, detalle y destinos', () => {
-  test('agencias: una AgenciaResumen por fila', async () => {
+  test('agencies: una AgencySummary por fila', async () => {
     const api = new FakeCatalogApi();
     api.agencies = [agency('a1'), agency('a2')];
     const r = await new CatalogRepository({ api }).agencies();
@@ -145,12 +145,12 @@ describe('agencias, detalle y destinos', () => {
     expect(api.agencyRequests).toEqual([null]);
   });
 
-  test('agenciaConPlanes: null si la agencia no existe o no está habilitada', async () => {
+  test('agencyWithPlans: null si la agencia no existe o no está habilitada', async () => {
     const api = new FakeCatalogApi();
     expect(await new CatalogRepository({ api }).agencyWithPlans('a-1')).toBeNull();
   });
 
-  test('agenciaConPlanes: la agencia y sus planes, ambos filtrados por su id', async () => {
+  test('agencyWithPlans: la agencia y sus planes, ambos filtrados por su id', async () => {
     const api = new FakeCatalogApi();
     api.agencies = [agency('a-1')];
     api.plans = [plan('p1', { date: inThreeDays })];
@@ -161,7 +161,7 @@ describe('agencias, detalle y destinos', () => {
     expect(api.lastSearch).toMatchObject({ agencyId: 'a-1' });
   });
 
-  test('planDetalle: pide el plan con las fechas desde hoy (Bogotá)', async () => {
+  test('planDetail: pide el plan con las fechas desde hoy (Bogotá)', async () => {
     const api = new FakeCatalogApi();
     api.planRow = plan('p9', { date: inThreeDays });
     const p = await new CatalogRepository({ api }).planDetail('p9');

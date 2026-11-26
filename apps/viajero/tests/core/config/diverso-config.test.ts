@@ -1,6 +1,6 @@
 import { configFrom, metroHost } from '@/core/config/diverso-config';
 
-describe('configDesde', () => {
+describe('configFrom', () => {
   test('sin variables usa la instancia local de Supabase (puerto 54331)', () => {
     const c = configFrom({});
     expect(c.supabaseUrl).toBe('http://127.0.0.1:54331');
@@ -23,7 +23,7 @@ describe('configDesde', () => {
     expect(configFrom({ devHost: '' }).supabaseUrl).toBe('http://127.0.0.1:54331');
   });
 
-  test('hostDeMetro saca el host de `hostUri` de Expo', () => {
+  test('metroHost saca el host de `hostUri` de Expo', () => {
     expect(metroHost('192.168.1.4:8081')).toBe('192.168.1.4');
     expect(metroHost('127.0.0.1:8083')).toBe('127.0.0.1');
     expect(metroHost('[::1]:8081')).toBe('[::1]');

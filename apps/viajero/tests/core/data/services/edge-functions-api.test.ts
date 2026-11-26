@@ -38,7 +38,7 @@ describe('EdgeFunctionsApiSupabase.invocar', () => {
     expect(e.details).toBe('');
   });
 
-  test('2xx que no es un objeto JSON: ErrorFuncion con el status y lo que llegó', async () => {
+  test('2xx que no es un objeto JSON: FunctionError con el status y lo que llegó', async () => {
     const { client } = createFakeSupabase(() => ({ body: ['no', 'objeto'] }));
     const e = await capture<FunctionError>(() => new EdgeFunctionsApiSupabase({ client }).invoke('f', {}));
     expect(e).toMatchObject({ status: 200, details: ['no', 'objeto'] });

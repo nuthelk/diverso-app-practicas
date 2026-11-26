@@ -41,7 +41,7 @@ function booking({
   return reviewed ? b.withReview() : b;
 }
 
-describe('esFutura', () => {
+describe('isUpcoming', () => {
   test('salida 1 minuto después de ahora → futura', () => {
     expect(booking({ departure: plus(now, MIN) }).isUpcoming(now)).toBe(true);
   });
@@ -101,7 +101,7 @@ describe('vigente', () => {
   });
 });
 
-describe('puedeResenar', () => {
+describe('canReview', () => {
   const departed = plus(now, -MIN);
 
   test('confirmada que salió hace 1 minuto y sin reseña → sí', () => {
@@ -153,7 +153,7 @@ describe('Booking.fromMap', () => {
     expect(b.isUpcoming(now)).toBe(true);
   });
 
-  test('sin salida_at queda en null y conResena la conserva', () => {
+  test('sin salida_at queda en null y withReview la conserva', () => {
     expect(Booking.fromMap(row()).departureAt).toBeNull();
     const b = Booking.fromMap(row('2026-10-27T13:00:00+00:00')).withReview();
     expect(b.departureAt).toEqual(utcDate(2026, 10, 27, 13));
@@ -162,13 +162,13 @@ describe('Booking.fromMap', () => {
 });
 
 describe('derivados de la reserva (extra del port)', () => {
-  test('venceAt = createdAt + 30 minutos (Booking.retencionMs)', () => {
+  test('expiresAt = createdAt + 30 minutos (Booking.holdMs)', () => {
     const b = booking();
     expect(Booking.holdMs).toBe(30 * MIN);
     expect(b.expiresAt.getTime() - b.createdAt.getTime()).toBe(30 * MIN);
   });
 
-  test('conResena devuelve una copia y no muta la original', () => {
+  test('withReview devuelve una copia y no muta la original', () => {
     const b = booking({ departure: now });
     const c = b.withReview();
     expect(c).not.toBe(b);

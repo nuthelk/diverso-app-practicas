@@ -46,7 +46,7 @@ describe('estado inicial', () => {
     expect(result.current.signUpAttempted).toBe(false);
   });
 
-  test('alternarModo cambia entre entrar y crear cuenta y limpia error e intento', async () => {
+  test('toggleMode cambia entre entrar y crear cuenta y limpia error e intento', async () => {
     const { result } = await setup();
     await act(() => result.current.toggleMode());
     expect(result.current.isSignUp).toBe(true);

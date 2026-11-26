@@ -89,7 +89,7 @@ const repo = (api: FakeBookingApi, edge?: FakeEdgeFunctions) =>
       }),
   });
 
-describe('crearReserva', () => {
+describe('createBooking', () => {
   test('convierte la fila de create_booking en CreatedBooking', async () => {
     const api = new FakeBookingApi();
     api.createRow = {
@@ -139,7 +139,7 @@ describe('crearReserva', () => {
   });
 });
 
-describe('misReservas', () => {
+describe('myBookings', () => {
   test('sin sesión: lista vacía y no consulta nada', async () => {
     const api = new FakeBookingApi();
     api.uid = null;
@@ -195,7 +195,7 @@ describe('reserva (por id)', () => {
   });
 });
 
-describe('reservaPendiente (ventana de 30 minutos)', () => {
+describe('pendingBooking (ventana de 30 minutos)', () => {
   test('sin sesión: null y no consulta', async () => {
     const api = new FakeBookingApi();
     api.uid = null;
@@ -203,7 +203,7 @@ describe('reservaPendiente (ventana de 30 minutos)', () => {
     expect(api.queries).toEqual([]);
   });
 
-  test('pide solo las creadas en los últimos 30 minutos (Booking.retencionMs)', async () => {
+  test('pide solo las creadas en los últimos 30 minutos (Booking.holdMs)', async () => {
     const api = new FakeBookingApi();
     const before = Date.now();
     await repo(api).pendingBooking('pd-1');
@@ -233,7 +233,7 @@ describe('reservaPendiente (ventana de 30 minutos)', () => {
   });
 });
 
-describe('vistaPreviaCancelacion', () => {
+describe('cancellationPreview', () => {
   test('lee la fila del RPC', async () => {
     const api = new FakeBookingApi();
     api.previewRow = {

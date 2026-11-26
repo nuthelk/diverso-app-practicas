@@ -254,7 +254,7 @@ describe('AgencyViewModel', () => {
     expect(result.current.notFound).toBe(false);
   });
 
-  test('agencia que no existe o no está habilitada: noEncontrada, sin error', async () => {
+  test('agencia que no existe o no está habilitada: notFound, sin error', async () => {
     const { result } = await setup('ag-fantasma');
     await act(() => result.current.load());
 

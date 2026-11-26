@@ -23,7 +23,7 @@ const plan = ({
     ...rest,
   });
 
-test('Plan.esNuevo: sin reseñas aunque el promedio venga en 0', () => {
+test('Plan.isNew: sin reseñas aunque el promedio venga en 0', () => {
   expect(plan().isNew).toBe(true);
   expect(plan({ reviews: 2, rating: 4.5 }).isNew).toBe(false);
 });

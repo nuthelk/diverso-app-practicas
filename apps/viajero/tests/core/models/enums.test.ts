@@ -107,7 +107,7 @@ describe('los modelos leen el valor de la BD', () => {
     expect(Booking.fromMap(bookingRow('algo_nuevo')).status).toBe(BookingStatus.pendingPayment);
   });
 
-  test('PagoVerificado.fromMap: estado de la reserva con pendiente_pago', () => {
+  test('VerifiedPayment.fromMap: estado de la reserva con pendiente_pago', () => {
     const read = (status: string) =>
       VerifiedPayment.fromMap({
         estado_pago: 'pendiente',

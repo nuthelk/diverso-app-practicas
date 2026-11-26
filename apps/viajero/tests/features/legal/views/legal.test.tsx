@@ -77,7 +77,7 @@ describe('ConsentCheckboxes', () => {
     expect(s).toMatchObject({ color: lightTheme.colorScheme.primary, fontWeight: '700', textDecorationLine: 'underline' });
   });
 
-  test('con mostrarError y alguna sin marcar avisa (y deja de avisar al marcar las dos)', async () => {
+  test('con showError y alguna sin marcar avisa (y deja de avisar al marcar las dos)', async () => {
     await renderScreen(<Checkboxes showError />);
     expect(screen.getByText('Debes aceptar ambos documentos para crear tu cuenta.')).toBeOnTheScreen();
     for (const checkbox of screen.getAllByRole('checkbox')) await fireEvent.press(checkbox);

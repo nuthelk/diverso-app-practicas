@@ -32,7 +32,7 @@ const plan = (departureMinutes: number, dates: PlanDate[]) =>
     dates,
   });
 
-describe('fechasDisponiblesA: salidas que ya partieron', () => {
+describe('availableDatesAt: salidas que ya partieron', () => {
   test('salida hace 1 minuto (15:29 Bogotá) → oculta', () => {
     expect(plan(hm(15, 29), [planDate(today)]).availableDatesAt(now)).toHaveLength(0);
   });
@@ -74,13 +74,13 @@ describe('fechasDisponiblesA: salidas que ya partieron', () => {
     expect(p.availableDatesAt(now).map((d) => d.id)).toEqual(['pronto', 'tarde']);
   });
 
-  test('yaSalio: misma regla para una fecha concreta (checkout)', () => {
+  test('hasDeparted: misma regla para una fecha concreta (checkout)', () => {
     const p = plan(hm(6), [planDate(today)]);
     expect(p.hasDeparted(p.dates[0]!, now)).toBe(true);
     expect(p.hasDeparted(planDate(localDate(2026, 11, 3)), now)).toBe(false);
   });
 
-  test('fechasDisponibles (reloj real) oculta una salida de hace 1 minuto y muestra una de dentro de 1', () => {
+  test('availableDates (reloj real) oculta una salida de hace 1 minuto y muestra una de dentro de 1', () => {
     // Campos UTC de este instante = reloj de pared de Bogotá.
     const bogota = new Date(Date.now() - 5 * 3600_000);
     const day = (t: Date) => localDate(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
@@ -130,7 +130,7 @@ describe('Plan.fromMap con filas como las devuelve PostgREST', () => {
   });
 });
 
-describe('tieneSalidaEl (filtro de fecha del catálogo)', () => {
+describe('hasDepartureOn (filtro de fecha del catálogo)', () => {
   test('solo cuenta si ese día aún hay una salida por partir', () => {
     const departed = plan(hm(6), [planDate(today)]);
     const upcoming = plan(hm(18), [planDate(today)]);

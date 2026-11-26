@@ -3,7 +3,7 @@ import { PaymentMethodOption } from '@/core/models/enums';
 import { RefundStatus, CancellationPreview } from '@/core/models/refund';
 
 describe('reembolsos y pagos de la reserva', () => {
-  test('VistaPreviaCancelacion.fromMap (vista_previa_cancelacion)', () => {
+  test('CancellationPreview.fromMap (vista_previa_cancelacion)', () => {
     const v = CancellationPreview.fromMap({
       booking_id: 'b',
       horas_antes: 30.5,

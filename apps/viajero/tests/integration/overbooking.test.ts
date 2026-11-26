@@ -34,13 +34,13 @@ import { todayInBogota } from '@/core/utils/bogota-time';
 // estático literal al transformar (y Jest cachea la transformación); así se lee en tiempo de ejecución.
 const {
   EXPO_PUBLIC_SUPABASE_URL: urlEnv,
-  EXPO_PUBLIC_SUPABASE_KEY: claveEnv,
-  SUPABASE_SERVICE_ROLE_KEY: llaveEnv,
+  EXPO_PUBLIC_SUPABASE_KEY: keyEnv,
+  SUPABASE_SERVICE_ROLE_KEY: serviceKeyEnv,
 } = process.env;
-const config = configFrom({ url: urlEnv, key: claveEnv });
-const llaveServicio = llaveEnv ?? '';
+const config = configFrom({ url: urlEnv, key: keyEnv });
+const serviceRoleKey = serviceKeyEnv ?? '';
 
-const describeConLlave = llaveServicio === '' ? describe.skip : describe;
+const describeWithServiceKey = serviceRoleKey === '' ? describe.skip : describe;
 
 /**
  * `fetch` real de Node. El setup de jest-expo (`expo/src/winter`) reemplaza el `fetch` global por
@@ -48,12 +48,12 @@ const describeConLlave = llaveServicio === '' ? describe.skip : describe;
  * `node`. `vm.runInThisContext` evalúa en el contexto principal del proceso (no en el sandbox de
  * Jest), donde `fetch` sigue siendo el de Node.
  */
-const fetchNode = (require('node:vm') as { runInThisContext(codigo: string): unknown }).runInThisContext(
+const fetchNode = (require('node:vm') as { runInThisContext(code: string): unknown }).runInThisContext(
   'fetch',
 ) as typeof fetch;
 
-function nuevoCliente(clave: string): SupabaseClient {
-  return createClient(config.supabaseUrl, clave, {
+function newClient(key: string): SupabaseClient {
+  return createClient(config.supabaseUrl, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     global: { fetch: fetchNode },
   });
@@ -64,9 +64,9 @@ function nuevoCliente(clave: string): SupabaseClient {
  * de hoy puede haber salido ya (create_booking la rechaza con FECHA_YA_SALIO y cancelar_reserva con
  * RESERVA_YA_SALIO).
  */
-const hoyIso = (): string => dateToIso(todayInBogota());
+const todayIso = (): string => dateToIso(todayInBogota());
 
-describeConLlave('anti-sobreventa (integración contra el Supabase local)', () => {
+describeWithServiceKey('anti-sobreventa (integración contra el Supabase local)', () => {
   let client: SupabaseClient;
   let admin: SupabaseClient;
   let bookings: BookingRepository;
@@ -77,38 +77,38 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
    * Borrar sin cancelar NO devuelve el cupo, así que una reserva que no se pueda cancelar no se borra
    * y la limpieza FALLA con su código: nunca deja residuos en silencio.
    */
-  async function limpiar(ids: string[]): Promise<void> {
+  async function cleanUp(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
-    const { data: filas } = await admin
+    const { data: rows } = await admin
       .from('bookings')
       .select('id, codigo, estado, viajero_id')
       .in('id', ids)
       .throwOnError();
-    const sinCancelar: string[] = [];
-    const aBorrar: string[] = [];
-    for (const f of (filas ?? []) as Row[]) {
+    const notCancelled: string[] = [];
+    const toDelete: string[] = [];
+    for (const f of (rows ?? []) as Row[]) {
       if (f['estado'] !== 'cancelada') {
         try {
           await admin
             .rpc('cancelar_reserva', { p_booking_id: f['id'], p_viajero_id: f['viajero_id'] })
             .throwOnError();
         } catch (e) {
-          sinCancelar.push(`${String(f['codigo'])} (${String(f['estado'])}): ${String(e)}`);
+          notCancelled.push(`${String(f['codigo'])} (${String(f['estado'])}): ${String(e)}`);
           continue;
         }
       }
-      aBorrar.push(asString(f['id']));
+      toDelete.push(asString(f['id']));
     }
-    if (aBorrar.length > 0) await admin.from('bookings').delete().in('id', aBorrar).throwOnError();
-    if (sinCancelar.length > 0) {
+    if (toDelete.length > 0) await admin.from('bookings').delete().in('id', toDelete).throwOnError();
+    if (notCancelled.length > 0) {
       throw new Error(
         'RESIDUO: la limpieza no pudo cancelar estas reservas de prueba, quedan en la base y ' +
-          `sus cupos retenidos: ${sinCancelar.join('; ')}`,
+          `sus cupos retenidos: ${notCancelled.join('; ')}`,
       );
     }
   }
 
-  async function cupoDe(planDateId: string): Promise<number> {
+  async function spotsOf(planDateId: string): Promise<number> {
     const { data } = await admin
       .from('plan_dates')
       .select('cupo_disponible')
@@ -119,33 +119,33 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
   }
 
   /** Fechas futuras de planes publicados con al menos [minimo] cupos (consulta con service_role). */
-  async function fechasPublicadas(minimo: number, limite: number): Promise<Row[]> {
+  async function publishedDates(minSpots: number, limit: number): Promise<Row[]> {
     const { data } = await admin
       .from('plan_dates')
       .select('id, cupo_disponible, plans!inner(estado)')
-      .gt('fecha', hoyIso())
+      .gt('fecha', todayIso())
       .eq('plans.estado', 'publicado')
-      .gte('cupo_disponible', minimo)
-      .limit(limite)
+      .gte('cupo_disponible', minSpots)
+      .limit(limit)
       .throwOnError();
     return (data ?? []) as Row[];
   }
 
   beforeAll(async () => {
-    client = nuevoCliente(config.supabaseKey);
+    client = newClient(config.supabaseKey);
     bookings = new BookingRepository({
       api: new BookingApiSupabase({ client }),
       edgeFunctions: new EdgeFunctionsApiSupabase({ client }),
     });
-    let fallo: unknown;
+    let failure: unknown;
     try {
       const { error } = await client.auth.signInWithPassword({ email: 'santiago@demo.com', password: 'demo1234' });
-      fallo = error;
+      failure = error;
     } catch (e) {
-      fallo = e;
+      failure = e;
     }
-    if (fallo) throw new Error(`No se pudo conectar al Supabase local. ¿Está corriendo? (${String(fallo)})`);
-    admin = nuevoCliente(llaveServicio);
+    if (failure) throw new Error(`No se pudo conectar al Supabase local. ¿Está corriendo? (${String(failure)})`);
+    admin = newClient(serviceRoleKey);
   });
 
   afterAll(async () => {
@@ -154,63 +154,63 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
 
   test('la carrera por el último cupo nunca se sobrevende', async () => {
     // 1. Buscar una fecha futura (posterior a hoy) con cupo conocido.
-    const { data: fechas } = await client
+    const { data: dates } = await client
       .from('plan_dates')
       .select('id, cupo_disponible, plan_id, plans(estado)')
-      .gt('fecha', hoyIso())
+      .gt('fecha', todayIso())
       .limit(50)
       .throwOnError();
     // Cupo entre 3 y 21: deja exactamente 1 cupo tras reservar cupo-1 pax sin exceder el máximo de
     // 20 personas por reserva.
-    const conCupo = ((fechas ?? []) as Row[])
+    const withSpots = ((dates ?? []) as Row[])
       .filter((f) => asInt(f['cupo_disponible']) >= 3)
       .filter((f) => asInt(f['cupo_disponible']) <= 21)
       .filter((f) => f['plans'] != null);
-    expect(conCupo.length).toBeGreaterThan(0); // El seed debe dejar fechas con cupos
-    const fecha = conCupo[0]!;
-    const planDateId = asString(fecha['id']);
-    const cupo = asInt(fecha['cupo_disponible']);
-    const creadas: string[] = [];
+    expect(withSpots.length).toBeGreaterThan(0); // El seed debe dejar fechas con cupos
+    const date = withSpots[0]!;
+    const planDateId = asString(date['id']);
+    const spots = asInt(date['cupo_disponible']);
+    const createdIds: string[] = [];
 
     // La regla "una sola reserva pendiente por viajero y fecha" (servidor) impide que UN viajero
     // compita consigo mismo: la carrera por el último cupo es entre DOS viajeros distintos.
     const email = `carrera-${Date.now()}@example.com`;
-    const otro = nuevoCliente(config.supabaseKey);
-    const { data: usuario, error: errorUsuario } = await admin.auth.admin.createUser({
+    const other = newClient(config.supabaseKey);
+    const { data: createdUser, error: createUserError } = await admin.auth.admin.createUser({
       email,
       password: 'Carrera-1234',
       email_confirm: true,
     });
-    if (errorUsuario || !usuario.user) throw errorUsuario ?? new Error('createUser no devolvió el usuario');
-    const otroId = usuario.user.id;
+    if (createUserError || !createdUser.user) throw createUserError ?? new Error('createUser no devolvió el usuario');
+    const otherId = createdUser.user.id;
 
     try {
-      const { error: errorOtro } = await otro.auth.signInWithPassword({ email, password: 'Carrera-1234' });
-      if (errorOtro) throw errorOtro;
+      const { error: otherSignInError } = await other.auth.signInWithPassword({ email, password: 'Carrera-1234' });
+      if (otherSignInError) throw otherSignInError;
 
       // 2. Consumir cupo-1 asientos en una reserva grande.
-      const grande = await bookings.createBooking({ planDateId, pax: cupo - 1 });
-      creadas.push(grande.bookingId);
-      expect(grande.code.startsWith('DIV-')).toBe(true);
+      const large = await bookings.createBooking({ planDateId, pax: spots - 1 });
+      createdIds.push(large.bookingId);
+      expect(large.code.startsWith('DIV-')).toBe(true);
       // La reserva grande queda pagada: si siguiera pendiente, la regla de una pendiente por viajero y
       // fecha rechazaría el segundo intento de este mismo viajero por ese motivo y no por falta de cupo.
-      await admin.from('bookings').update({ estado: 'confirmada' }).eq('id', grande.bookingId).throwOnError();
+      await admin.from('bookings').update({ estado: 'confirmada' }).eq('id', large.bookingId).throwOnError();
 
       // 3. Carrera: dos reservas simultáneas de 1 pax (de dos viajeros) por el último cupo.
-      type Intento = { ok: true; reserva: CreatedBooking } | { ok: false; error: unknown };
-      const intento = async (reservar: () => Promise<CreatedBooking>): Promise<Intento> => {
+      type Attempt = { ok: true; booking: CreatedBooking } | { ok: false; error: unknown };
+      const attempt = async (book: () => Promise<CreatedBooking>): Promise<Attempt> => {
         try {
-          return { ok: true, reserva: await reservar() };
+          return { ok: true, booking: await book() };
         } catch (e) {
           return { ok: false, error: e };
         }
       };
 
-      const resultados = await Promise.all([
-        intento(() => bookings.createBooking({ planDateId, pax: 1 })),
-        intento(async () => {
+      const results = await Promise.all([
+        attempt(() => bookings.createBooking({ planDateId, pax: 1 })),
+        attempt(async () => {
           try {
-            const { data: res } = await otro
+            const { data: res } = await other
               .rpc('create_booking', { p_plan_date_id: planDateId, p_pax: 1 })
               .throwOnError();
             if (!isRow(res)) throw new Error(`create_booking devolvió ${String(res)}`);
@@ -226,43 +226,43 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
         }),
       ]);
 
-      const exitosas = resultados.filter((r) => r.ok);
-      const fallidas = resultados.filter((r) => !r.ok);
+      const succeeded = results.filter((r) => r.ok);
+      const failed = results.filter((r) => !r.ok);
 
-      expect(exitosas).toHaveLength(1); // exactamente una reserva debe ganar
-      for (const r of exitosas) if (r.ok) creadas.push(r.reserva.bookingId);
+      expect(succeeded).toHaveLength(1); // exactamente una reserva debe ganar
+      for (const r of succeeded) if (r.ok) createdIds.push(r.booking.bookingId);
 
-      expect(fallidas).toHaveLength(1); // la otra debe fallar
-      const fallida = fallidas[0]!;
-      const error = fallida.ok ? null : fallida.error;
+      expect(failed).toHaveLength(1); // la otra debe fallar
+      const failedResult = failed[0]!;
+      const error = failedResult.ok ? null : failedResult.error;
       expect(error).toBeInstanceOf(DiversoError);
       expect((error as DiversoError).code).toBe('SIN_CUPO');
 
       // 4. El cupo quedó exactamente en 0 (sin sobreventa).
-      const { data: despues } = await client
+      const { data: after } = await client
         .from('plan_dates')
         .select('cupo_disponible')
         .eq('id', planDateId)
         .single()
         .throwOnError();
-      expect((despues as Row)['cupo_disponible']).toBe(0);
+      expect((after as Row)['cupo_disponible']).toBe(0);
     } finally {
       // 5. Limpieza: devuelve cupos, borra las reservas de prueba y el viajero creado para la carrera.
-      await limpiar(creadas);
-      await otro.auth.signOut();
-      const { error: errorBorrado } = await admin.auth.admin.deleteUser(otroId);
-      if (errorBorrado) throw errorBorrado;
+      await cleanUp(createdIds);
+      await other.auth.signOut();
+      const { error: deleteUserError } = await admin.auth.admin.deleteUser(otherId);
+      if (deleteUserError) throw deleteUserError;
     }
-    expect(await cupoDe(planDateId)).toBe(cupo); // la limpieza debe devolver los cupos
+    expect(await spotsOf(planDateId)).toBe(spots); // la limpieza debe devolver los cupos
   });
 
   test('el mismo viajero no abre una segunda reserva pendiente de la misma fecha (RESERVA_PENDIENTE_EXISTENTE)', async () => {
-    const fechas = await fechasPublicadas(3, 1);
-    expect(fechas.length).toBeGreaterThan(0); // el seed debe dejar una fecha con cupos
-    const planDateId = asString(fechas[0]!['id']);
-    const cupo = await cupoDe(planDateId);
+    const dates = await publishedDates(3, 1);
+    expect(dates.length).toBeGreaterThan(0); // el seed debe dejar una fecha con cupos
+    const planDateId = asString(dates[0]!['id']);
+    const spots = await spotsOf(planDateId);
 
-    const primera = await bookings.createBooking({ planDateId, pax: 1 });
+    const first = await bookings.createBooking({ planDateId, pax: 1 });
     try {
       const error = await bookings.createBooking({ planDateId, pax: 1 }).then(
         () => null,
@@ -273,51 +273,51 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
       const diverso = error as DiversoError;
       expect(diverso.code).toBe('RESERVA_PENDIENTE_EXISTENTE');
       // el error trae el id de la reserva existente
-      expect(diverso.details?.['booking_id']).toBe(primera.bookingId);
-      expect(await cupoDe(planDateId)).toBe(cupo - 1); // el rechazo no retiene cupos
+      expect(diverso.details?.['booking_id']).toBe(first.bookingId);
+      expect(await spotsOf(planDateId)).toBe(spots - 1); // el rechazo no retiene cupos
     } finally {
-      await limpiar([primera.bookingId]);
+      await cleanUp([first.bookingId]);
     }
-    expect(await cupoDe(planDateId)).toBe(cupo);
+    expect(await spotsOf(planDateId)).toBe(spots);
   });
 
-  test('reservaPendiente encuentra la reserva sin pagar de esa fecha y solo de esa', async () => {
-    const fechas = await fechasPublicadas(2, 2);
-    expect(fechas).toHaveLength(2); // el seed debe dejar dos fechas con cupos
-    const a = asString(fechas[0]!['id']);
-    const b = asString(fechas[1]!['id']);
-    const cupoA = await cupoDe(a);
+  test('pendingBooking encuentra la reserva sin pagar de esa fecha y solo de esa', async () => {
+    const dates = await publishedDates(2, 2);
+    expect(dates).toHaveLength(2); // el seed debe dejar dos fechas con cupos
+    const a = asString(dates[0]!['id']);
+    const b = asString(dates[1]!['id']);
+    const spotsA = await spotsOf(a);
 
     expect(await bookings.pendingBooking(a)).toBeNull(); // antes de reservar no hay pendiente
-    const creada = await bookings.createBooking({ planDateId: a, pax: 1 });
+    const created = await bookings.createBooking({ planDateId: a, pax: 1 });
     try {
-      const pendiente = await bookings.pendingBooking(a);
-      expect(pendiente?.id).toBe(creada.bookingId);
-      expect(pendiente?.status).toBe(BookingStatus.pendingPayment);
-      expect(pendiente?.pax).toBe(1);
-      expect(pendiente!.expiresAt.getTime()).toBeGreaterThan(Date.now());
+      const pending = await bookings.pendingBooking(a);
+      expect(pending?.id).toBe(created.bookingId);
+      expect(pending?.status).toBe(BookingStatus.pendingPayment);
+      expect(pending?.pax).toBe(1);
+      expect(pending!.expiresAt.getTime()).toBeGreaterThan(Date.now());
       expect(await bookings.pendingBooking(b)).toBeNull(); // otra fecha no se ve afectada
     } finally {
-      await limpiar([creada.bookingId]);
+      await cleanUp([created.bookingId]);
     }
     expect(await bookings.pendingBooking(a)).toBeNull();
-    expect(await cupoDe(a)).toBe(cupoA);
+    expect(await spotsOf(a)).toBe(spotsA);
   });
 
   describe('el cliente ya no puede confirmar pagos ni saltarse la política', () => {
-    const NO_EXISTE = 'PGRST202';
-    const SIN_PERMISO = '42501';
+    const NOT_FOUND = 'PGRST202';
+    const PERMISSION_DENIED = '42501';
     const uuid = '00000000-0000-0000-0000-000000000001';
 
     test('confirm_payment y cancel_booking ya no existen en la API (404)', async () => {
-      const confirmar = await client.rpc('confirm_payment', { p_booking_id: uuid, p_metodo: 'tarjeta' });
-      expect(confirmar.error?.code).toBe(NO_EXISTE);
-      const cancelar = await client.rpc('cancel_booking', { p_booking_id: uuid });
-      expect(cancelar.error?.code).toBe(NO_EXISTE);
+      const confirm = await client.rpc('confirm_payment', { p_booking_id: uuid, p_metodo: 'tarjeta' });
+      expect(confirm.error?.code).toBe(NOT_FOUND);
+      const cancel = await client.rpc('cancel_booking', { p_booking_id: uuid });
+      expect(cancel.error?.code).toBe(NOT_FOUND);
     });
 
     test('las funciones de pagos y reembolsos son solo del servidor (permiso denegado)', async () => {
-      const aplicar = await client.rpc('aplicar_resultado_pago', {
+      const apply = await client.rpc('aplicar_resultado_pago', {
         p_referencia: 'X-1',
         p_transaction_id: 'tx',
         p_status: 'APPROVED',
@@ -325,51 +325,51 @@ describeConLlave('anti-sobreventa (integración contra el Supabase local)', () =
         p_metodo: 'CARD',
         p_raw: {},
       });
-      expect(aplicar.error?.code).toBe(SIN_PERMISO);
-      const intento = await client.rpc('crear_intento_pago', { p_booking_id: uuid, p_viajero_id: uuid });
-      expect(intento.error?.code).toBe(SIN_PERMISO);
-      const cancelar = await client.rpc('cancelar_reserva', { p_booking_id: uuid, p_viajero_id: uuid });
-      expect(cancelar.error?.code).toBe(SIN_PERMISO);
+      expect(apply.error?.code).toBe(PERMISSION_DENIED);
+      const attempt = await client.rpc('crear_intento_pago', { p_booking_id: uuid, p_viajero_id: uuid });
+      expect(attempt.error?.code).toBe(PERMISSION_DENIED);
+      const cancel = await client.rpc('cancelar_reserva', { p_booking_id: uuid, p_viajero_id: uuid });
+      expect(cancel.error?.code).toBe(PERMISSION_DENIED);
     });
 
     test('escribir directo en payments/bookings no marca la reserva como pagada', async () => {
-      const { data: fechas } = await client
+      const { data: dates } = await client
         .from('plan_dates')
         .select('id, cupo_disponible, plans(estado)')
-        .gt('fecha', hoyIso())
+        .gt('fecha', todayIso())
         .limit(50)
         .throwOnError();
-      const fecha = ((fechas ?? []) as Row[]).find(
+      const date = ((dates ?? []) as Row[]).find(
         (f) => asInt(f['cupo_disponible']) >= 2 && f['plans'] != null,
       );
-      if (fecha === undefined) throw new Error('el seed debe dejar una fecha con cupos');
-      const reserva = await bookings.createBooking({ planDateId: asString(fecha['id']), pax: 1 });
+      if (date === undefined) throw new Error('el seed debe dejar una fecha con cupos');
+      const booking = await bookings.createBooking({ planDateId: asString(date['id']), pax: 1 });
       try {
-        const insercion = await client.from('payments').insert({
-          booking_id: reserva.bookingId,
+        const insertion = await client.from('payments').insert({
+          booking_id: booking.bookingId,
           metodo: 'tarjeta',
           estado: 'aprobado',
-          monto: reserva.totalAmount,
-          referencia: `FALSO-${reserva.code}`,
+          monto: booking.totalAmount,
+          referencia: `FALSO-${booking.code}`,
         });
-        expect(insercion.error).not.toBeNull();
+        expect(insertion.error).not.toBeNull();
         // El UPDATE sobre bookings no tiene política para el viajero: no cambia nada.
-        const { data: actualizadas } = await client
+        const { data: updated } = await client
           .from('bookings')
           .update({ estado: 'confirmada' })
-          .eq('id', reserva.bookingId)
+          .eq('id', booking.bookingId)
           .select()
           .throwOnError();
-        expect(actualizadas).toEqual([]);
-        const { data: estado } = await client
+        expect(updated).toEqual([]);
+        const { data: statusRow } = await client
           .from('bookings')
           .select('estado')
-          .eq('id', reserva.bookingId)
+          .eq('id', booking.bookingId)
           .single()
           .throwOnError();
-        expect((estado as Row)['estado']).toBe('pendiente_pago');
+        expect((statusRow as Row)['estado']).toBe('pendiente_pago');
       } finally {
-        await limpiar([reserva.bookingId]);
+        await cleanUp([booking.bookingId]);
       }
     });
   });

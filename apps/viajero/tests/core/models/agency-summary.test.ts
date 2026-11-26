@@ -24,7 +24,7 @@ function agency(
   });
 }
 
-describe('AgenciaResumen.fromMap', () => {
+describe('AgencySummary.fromMap', () => {
   test('lee las columnas públicas y los agregados de la función', () => {
     const a = AgencySummary.fromMap({
       id: 'ag-1',
@@ -110,7 +110,7 @@ describe('iniciales', () => {
   });
 });
 
-describe('ordenarAgencias', () => {
+describe('sortAgencies', () => {
   const list = [
     agency('Zeta Nueva', { plans: 9 }),
     agency('Bravo', { rating: 4.0, reviews: 5, plans: 2 }),

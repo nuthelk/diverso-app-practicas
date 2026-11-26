@@ -46,7 +46,7 @@ function foreignBookings() {
       throw new DiversoError('RESERVA_NO_EXISTE');
     },
     myBookings: async () => {
-      queries.push('misReservas');
+      queries.push('myBookings');
       return [];
     },
   });

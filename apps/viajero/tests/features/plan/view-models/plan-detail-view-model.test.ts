@@ -125,7 +125,7 @@ describe('fecha seleccionada', () => {
     expect(result.current.selectedDate!.id).toBe('f-1');
   });
 
-  test('seleccionarFecha cambia la selección y notifica', async () => {
+  test('selectDate cambia la selección y notifica', async () => {
     const { result, renders } = await setup();
     await act(() => result.current.load());
     const before = renders();

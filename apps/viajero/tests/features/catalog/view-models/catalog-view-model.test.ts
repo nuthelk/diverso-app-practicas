@@ -124,7 +124,7 @@ describe('filtros', () => {
     expect(catalog.searches.at(-1)!.text).toBe('guatape');
   });
 
-  test('toggleCategoria selecciona y, con la misma, deselecciona', async () => {
+  test('toggleCategory selecciona y, con la misma, deselecciona', async () => {
     const { result } = await setup();
     await act(() => result.current.toggleCategory(ExperienceCategory.adventure));
     expect(result.current.category).toBe(ExperienceCategory.adventure);
@@ -135,7 +135,7 @@ describe('filtros', () => {
     expect(catalog.searches.at(-1)!.category).toBeNull();
   });
 
-  test('aplicarFiltros: destino, precio y fecha con UNA sola consulta', async () => {
+  test('applyFilters: destino, precio y fecha con UNA sola consulta', async () => {
     const { result } = await setup();
     await act(() => result.current.load());
     const date = new Date(2026, 11, 24);
@@ -154,7 +154,7 @@ describe('filtros', () => {
     expect(result.current.activeFilterCount).toBe(3);
   });
 
-  test('aplicarFiltros sin valores quita los tres filtros, también con una consulta', async () => {
+  test('applyFilters sin valores quita los tres filtros, también con una consulta', async () => {
     const { result } = await setup();
     await act(() => result.current.applyFilters({ destination: 'Guatapé', maxPrice: 1, date: new Date(2026, 11, 24) }));
     const before = catalog.searches.length;
@@ -166,7 +166,7 @@ describe('filtros', () => {
     expect(result.current.destination).toBeNull();
   });
 
-  test('aplicarFiltros notifica una sola carga (cargando → listo)', async () => {
+  test('applyFilters notifica una sola carga (cargando → listo)', async () => {
     const { result, loadingStates } = await setup();
     await act(() => result.current.load());
     loadingStates.length = 0;
@@ -184,7 +184,7 @@ describe('filtros', () => {
     expect(loadingStates).toEqual([true, false]);
   });
 
-  test('PRESERVE: setDestino, setPrecioMax, setFecha y limpiarFiltros consultan una vez', async () => {
+  test('PRESERVE: setDestination, setMaxPrice, setDate y clearFilters consultan una vez', async () => {
     const { result } = await setup();
     await act(() => result.current.setDestination('Jardín'));
     expect(catalog.searches.at(-1)!.destination).toBe('Jardín');
@@ -201,7 +201,7 @@ describe('filtros', () => {
     expect(result.current.activeFilterCount).toBe(0);
   });
 
-  test('cambiarOrden consulta con el nuevo orden', async () => {
+  test('setSort consulta con el nuevo orden', async () => {
     const { result } = await setup();
     await act(() => result.current.setSort(CatalogSort.priceAsc));
 

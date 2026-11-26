@@ -44,7 +44,7 @@ describe('formatCOP', () => {
   });
 });
 
-describe('sinCortes (montos dentro de una línea que puede partirse)', () => {
+describe('noLineBreaks (montos dentro de una línea que puede partirse)', () => {
   const NBSP = '\u00A0';
 
   test('el «$» queda pegado al número: la línea no puede partirse entre ellos', () => {

@@ -16,7 +16,7 @@ const row = (id: string, name: string | null) => ({
   profiles: name === null ? null : { nombre: name },
 });
 
-describe('porPlan', () => {
+describe('byPlan', () => {
   test('pide las reseñas del plan con el nombre del autor, más recientes primero, 20 por defecto', async () => {
     const { client, requests } = createFakeSupabase(() => ({ body: [row('r1', 'Ana'), row('r2', null)] }));
     const r = await new ReviewRepository({ client }).byPlan('p-1');

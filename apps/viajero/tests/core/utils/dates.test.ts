@@ -12,7 +12,7 @@ import {
  * Postgres, `'2026-11-02'`, es la medianoche local, no la UTC como `new Date('2026-11-02')`);
  * con `Z` u offset es un instante exacto.
  */
-describe('parsearFecha', () => {
+describe('parseDate', () => {
   test('una date YYYY-MM-DD es la medianoche local', () => {
     const d = parseDate('2026-11-02');
     expect(d).toEqual(localDate(2026, 11, 2));
@@ -40,7 +40,7 @@ describe('parsearFecha', () => {
     expect(parseDate('2026-11-02T06:30:00')).toEqual(localDate(2026, 11, 2, 6, 30));
   });
 
-  test('texto inválido: parsearFecha lanza e intentarParsearFecha devuelve null', () => {
+  test('texto inválido: parseDate lanza y tryParseDate devuelve null', () => {
     expect(() => parseDate('mañana')).toThrow();
     expect(tryParseDate('mañana')).toBeNull();
     expect(tryParseDate('')).toBeNull();
@@ -48,17 +48,17 @@ describe('parsearFecha', () => {
   });
 });
 
-describe('fechaToIso y mismoDia', () => {
+describe('dateToIso e isSameDay', () => {
   test('rellena con ceros y usa los campos locales', () => {
     expect(dateToIso(localDate(2026, 1, 5))).toBe('2026-01-05');
     expect(dateToIso(localDate(2026, 11, 2, 23, 59))).toBe('2026-11-02');
   });
 
-  test('fechaLocal normaliza el desbordamiento como DateTime de Dart', () => {
+  test('localDate normaliza el desbordamiento como DateTime de Dart', () => {
     expect(dateToIso(localDate(2026, 12, 31 + 3))).toBe('2027-01-03');
   });
 
-  test('mismoDia compara año, mes y día locales', () => {
+  test('isSameDay compara año, mes y día locales', () => {
     expect(isSameDay(localDate(2026, 11, 2, 1), localDate(2026, 11, 2, 23))).toBe(true);
     expect(isSameDay(localDate(2026, 11, 2), localDate(2026, 11, 3))).toBe(false);
   });

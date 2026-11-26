@@ -2,7 +2,7 @@ import { todayInBogota } from '@/core/utils/bogota-time';
 import { localDate, dateToIso, utcDate } from '@/core/utils/dates';
 
 /** «Hoy» para el servidor es la fecha de Bogotá (UTC-5 todo el año), no la del reloj del teléfono. */
-describe('hoyBogota', () => {
+describe('todayInBogota', () => {
   test('a las 21:00 en Bogotá (02:00 UTC del día siguiente) sigue siendo la fecha de Bogotá', () => {
     expect(todayInBogota(utcDate(2026, 11, 3, 2, 0))).toEqual(localDate(2026, 11, 2));
   });

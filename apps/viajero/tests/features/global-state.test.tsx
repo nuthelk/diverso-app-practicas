@@ -16,22 +16,22 @@ import { testDependencies } from '../support/test-dependencies';
  * consentimiento, como Context providers que comparten todas las pantallas.
  */
 
-function Sonda() {
-  const sesion = useSession();
-  const consentimiento = useConsent();
+function Probe() {
+  const session = useSession();
+  const consent = useConsent();
   return (
     <Text testID="probe">
-      {sesion.loading ? 'cargando' : (sesion.userId ?? 'sin-sesion')}|{consentimiento.state}
+      {session.loading ? 'loading' : (session.userId ?? 'no-session')}|{consent.state}
     </Text>
   );
 }
 
-async function montar(auth: FakeAuth) {
+async function mount(auth: FakeAuth) {
   const r = await render(
     <DependenciesProvider dependencies={testDependencies({ auth })}>
       <SessionProvider>
         <ConsentProvider>
-          <Sonda />
+          <Probe />
         </ConsentProvider>
       </SessionProvider>
     </DependenciesProvider>,
@@ -39,7 +39,7 @@ async function montar(auth: FakeAuth) {
   return r;
 }
 
-const sonda = () => screen.getByTestId('probe').props.children.join('');
+const probeText = () => screen.getByTestId('probe').props.children.join('');
 
 let appState: ReturnType<typeof controlAppState>;
 beforeEach(() => {
@@ -52,65 +52,65 @@ describe('SessionProvider', () => {
     const auth = new FakeAuth();
     let resolver!: (id: string | null) => void;
     jest.spyOn(auth, 'currentUserId').mockReturnValue(new Promise((r) => (resolver = r)));
-    await montar(auth);
-    expect(sonda()).toBe('cargando|checking');
+    await mount(auth);
+    expect(probeText()).toBe('loading|checking');
 
     await act(async () => resolver('viajero-1'));
     await act(flushMicrotasks);
-    expect(sonda()).toMatch(/^viajero-1\|/);
+    expect(probeText()).toMatch(/^viajero-1\|/);
   });
 
   test('sigue los cambios de sesión (entrar, cambiar de usuario, salir)', async () => {
     const auth = new FakeAuth({ userId: null });
-    await montar(auth);
+    await mount(auth);
     await act(flushMicrotasks);
-    expect(sonda()).toBe('sin-sesion|checking');
+    expect(probeText()).toBe('no-session|checking');
 
     await act(async () => auth.changeSession('viajero-2'));
     await act(flushMicrotasks);
-    expect(sonda()).toBe('viajero-2|accepted');
+    expect(probeText()).toBe('viajero-2|accepted');
 
     await act(async () => auth.changeSession(null));
-    expect(sonda()).toBe('sin-sesion|checking');
+    expect(probeText()).toBe('no-session|checking');
   });
 
   test('un evento de sesión que llega antes de la lectura inicial gana', async () => {
     const auth = new FakeAuth();
     let resolver!: (id: string | null) => void;
     jest.spyOn(auth, 'currentUserId').mockReturnValue(new Promise((r) => (resolver = r)));
-    await montar(auth);
+    await mount(auth);
 
     await act(async () => auth.changeSession(null));
     await act(async () => resolver('viajero-1'));
     await act(flushMicrotasks);
 
-    expect(sonda()).toBe('sin-sesion|checking');
+    expect(probeText()).toBe('no-session|checking');
   });
 });
 
 describe('ConsentProvider', () => {
   test('expone el estado del ConsentViewModel global', async () => {
-    await montar(new FakeAuth({ consentResponses: [['tratamiento_datos']] }));
+    await mount(new FakeAuth({ consentResponses: [['tratamiento_datos']] }));
     await act(flushMicrotasks);
-    expect(sonda()).toBe(`viajero-1|${ConsentState.pending}`);
+    expect(probeText()).toBe(`viajero-1|${ConsentState.pending}`);
   });
 
   test('al volver a primer plano reintenta si la verificación falló (DiversoApp.didChangeAppLifecycleState)', async () => {
     const auth = new FakeAuth({ consentResponses: [new Error('sin red'), []] });
-    await montar(auth);
+    await mount(auth);
     await act(flushMicrotasks);
-    expect(sonda()).toBe('viajero-1|error');
+    expect(probeText()).toBe('viajero-1|error');
 
     await appState.goToBackgroundAndBack();
     await act(flushMicrotasks);
 
     expect(auth.consentQueries).toBe(2);
-    expect(sonda()).toBe('viajero-1|accepted');
+    expect(probeText()).toBe('viajero-1|accepted');
   });
 
   test('al volver a primer plano con el estado ya conocido no vuelve a consultar', async () => {
     const auth = new FakeAuth();
-    await montar(auth);
+    await mount(auth);
     await act(flushMicrotasks);
 
     await appState.goToBackgroundAndBack();
@@ -121,7 +121,7 @@ describe('ConsentProvider', () => {
 
   test('al desmontar deja de escuchar la sesión y el ciclo de vida', async () => {
     const auth = new FakeAuth();
-    const { unmount } = await montar(auth);
+    const { unmount } = await mount(auth);
     await act(flushMicrotasks);
     expect(auth.listenerCount).toBeGreaterThan(0);
 

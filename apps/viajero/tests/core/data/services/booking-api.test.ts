@@ -65,7 +65,7 @@ describe('BookingApiSupabase', () => {
     expect(b.hasReview).toBe(false);
   });
 
-  test('reservasDe, resenasDe y resenaDe piden lo mismo que en Dart', async () => {
+  test('bookingsOf, reviewsOf y reviewOf piden lo mismo que en Dart', async () => {
     const { client, requests } = createFakeSupabase();
     const api = new BookingApiSupabase({ client });
     await api.bookingsOf('v-1');
@@ -80,7 +80,7 @@ describe('BookingApiSupabase', () => {
     expect(requests[2]!.params['select']).toEqual(['id']);
   });
 
-  test('pendientesDe: pendiente_pago de esa fecha, creadas después del instante (ISO UTC), la más reciente', async () => {
+  test('pendingOf: pendiente_pago de esa fecha, creadas después del instante (ISO UTC), la más reciente', async () => {
     const { client, requests } = createFakeSupabase();
     await new BookingApiSupabase({ client }).pendingOf({
       travelerId: 'v-1',
@@ -119,7 +119,7 @@ describe('BookingApiSupabase', () => {
     expect(e).toMatchObject({ message: 'RESERVA_PENDIENTE_EXISTENTE', details: 'b-9' });
   });
 
-  test('usuarioId: null sin sesión; el id tras iniciar sesión', async () => {
+  test('currentUserId: null sin sesión; el id tras iniciar sesión', async () => {
     const { client } = createFakeSupabase((p) => (p.path === '/auth/v1/token' ? { body: fakeSession('u-7') } : {}));
     const api = new BookingApiSupabase({ client });
     expect(await api.currentUserId()).toBeNull();

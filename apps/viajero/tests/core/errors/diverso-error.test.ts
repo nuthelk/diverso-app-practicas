@@ -86,7 +86,7 @@ describe('DiversoError.fromFunction (orden de Dart)', () => {
     expect(DiversoError.fromFunction(new FunctionError(200, null)).code).toBe('ERROR_FUNCION');
   });
 
-  test('aprobadoTarde solo con estado_pago = aprobado_tarde', () => {
+  test('approvedLate solo con estado_pago = aprobado_tarde', () => {
     expect(
       DiversoError.fromFunction(new FunctionError(409, { error: 'RESERVA_VENCIDA', estado_pago: 'aprobado_tarde' }))
         .approvedLate,
@@ -95,7 +95,7 @@ describe('DiversoError.fromFunction (orden de Dart)', () => {
   });
 });
 
-describe('mensajeDeError: tabla 1:1 con mensaje_usuario.dart', () => {
+describe('userMessageFor: tabla 1:1 con mensaje_usuario.dart', () => {
   test.each([
     ['SIN_CUPO', 'Se acabaron los cupos para esa fecha. Prueba otra fecha u otro plan.'],
     ['ESTADO_INVALIDO', 'La reserva ya no admite esta operación.'],
